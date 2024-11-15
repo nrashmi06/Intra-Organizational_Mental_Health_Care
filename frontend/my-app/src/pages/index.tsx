@@ -7,7 +7,6 @@ import "@/styles/globals.css"
 
 // Import Navbar Component
 import Navbar from "@/components/navbar/Navbar2"
-import Footer from "@/components/footer/Footer"
 
 export default function Component() {
   return (
@@ -96,7 +95,7 @@ export default function Component() {
                   </p>
                 </CardContent>
                 <CardFooter>
-                  <Button  size="sm">
+                  <Button size="sm">
                     Read More
                   </Button>
                 </CardFooter>
@@ -106,7 +105,77 @@ export default function Component() {
         </section>
       </main>
 
-      <Footer />
+      {/* Footer */}
+      <footer className="border-t bg-gray-300">
+        <div className="container py-12">
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+            {/* Logo and Description */}
+            <div>
+              <div className="flex items-center space-x-2 mb-4 pl-4">
+                <Image src="/logo.svg" alt="SerenitySphere Logo" width={40} height={40} />
+                <span className="text-2xl font-bold text-gray-800">SerenitySphere</span>
+              </div>
+              <p className="text-sm text-gray-600 leading-relaxed pl-4">
+                At SerenitySphere, we provide a secure and personalized platform for patients and families to connect.
+              </p>
+            </div>
+
+            {/* Pages */}
+            <div>
+              <h3 className="font-bold text-lg text-gray-800 mb-4">Pages</h3>
+              <div className="grid gap-2">
+                <Link href="/" className="text-sm text-gray-600 hover:text-gray-900 transition">
+                  Home
+                </Link>
+                <Link href="/blog" className="text-sm text-gray-600 hover:text-gray-900 transition">
+                  Blog
+                </Link>
+                <Link href="/helpline" className="text-sm text-gray-600 hover:text-gray-900 transition">
+                  Helpline
+                </Link>
+                <Link href="/resources" className="text-sm text-gray-600 hover:text-gray-900 transition">
+                  Resources
+                </Link>
+                <Link href="/about" className="text-sm text-gray-600 hover:text-gray-900 transition">
+                  About
+                </Link>
+              </div>
+            </div>
+
+            {/* Contact */}
+            <div>
+              <h3 className="font-bold text-lg text-gray-800 mb-4">Contact</h3>
+              <div className="space-y-2">
+                <div className="flex items-center text-sm text-gray-600">
+                  <Phone className="mr-2 h-5 w-5 text-gray-500" />
+                  +91 1234567891
+                </div>
+                <div className="flex items-center text-sm text-gray-600">
+                  <Mail className="mr-2 h-5 w-5 text-gray-500" />
+                  SerenitySpere@gmail.com
+                </div>
+                <div className="flex items-start text-sm text-gray-600">
+                  <MapPin className="mr-2 h-5 w-5 text-gray-500" />
+                  Nine State Highway 1, Karkal, Karnataka 574110
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Section */}
+          <div className="mt-12 border-t pt-6 text-center text-sm text-gray-600">
+            <p>© 2024 SerenitySphere. All rights reserved.</p>
+            <div className="mt-4 space-x-6">
+              <Link href="/terms" className="hover:text-gray-900 transition">
+                Terms of Service
+              </Link>
+              <Link href="/privacy" className="hover:text-gray-900 transition">
+                Privacy Policy
+              </Link>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }
