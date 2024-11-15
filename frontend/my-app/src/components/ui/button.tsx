@@ -1,3 +1,4 @@
+
 // components/ui/button.tsx
 import React from 'react';
 import clsx from 'clsx';
@@ -7,11 +8,23 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'default' | 'outline' | 'link'; // Customize the types of button variants
   size?: 'sm' | 'md' | 'lg';
   href?: string; // Optional href prop to make the button a link
+  children: React.ReactNode; // Content inside the button (e.g., text, icons)
+  onClick?: () => void; // Optional onClick handler
+  className?: string; // Optional additional CSS class
 }
 
-const Button: React.FC<ButtonProps> = ({ variant = 'default', size = 'md', className, href, ...props }) => {
+const Button: React.FC<ButtonProps> = ({
+  variant = 'default',
+  size = 'md',
+  className,
+  href,
+  children,
+  onClick,
+  ...props
+}) => {
   const button = (
     <button
+      onClick={onClick}
       className={clsx(
         'px-4 py-2 rounded-lg focus:outline-none transition-all duration-200',
         {
@@ -24,7 +37,9 @@ const Button: React.FC<ButtonProps> = ({ variant = 'default', size = 'md', class
         className
       )}
       {...props}
-    />
+    >
+      {children}
+    </button>
   );
 
   // If the `href` prop is provided, wrap the button in a Next.js `Link`
