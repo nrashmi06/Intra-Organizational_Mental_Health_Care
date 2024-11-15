@@ -2,7 +2,8 @@ spring:
   application:
     name: mental-health
   app:
-    jwtSecret: QjVkN2MyYjY5NzJjZWI1ZDgzYmE2MjYwNmQwNzFhYzg4ZTA1NzA2ZTY4ZTk1NzQzM2EzMTFhYWI=
+    jwtSecret: 8EBUtzmOnBj56DWepYHgxuNv8rJrOYFXkqptcCzW7LVyQUV1mNhrb1UlyP1qebfk
+
     jwtExpirationMs: 3600000
   jpa:
     hibernate:

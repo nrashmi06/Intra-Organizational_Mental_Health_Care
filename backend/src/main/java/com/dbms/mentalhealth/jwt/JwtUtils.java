@@ -1,4 +1,5 @@
 package com.dbms.mentalhealth.jwt;
+
 import org.springframework.security.core.GrantedAuthority;
 import com.dbms.mentalhealth.config.ApplicationConfig;
 import io.jsonwebtoken.*;
@@ -14,6 +15,9 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.security.Key;
 import java.util.Date;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 public class JwtUtils {
@@ -25,6 +29,8 @@ public class JwtUtils {
     public JwtUtils(ApplicationConfig applicationConfig) {
         this.applicationConfig = applicationConfig;
     }
+
+    private final Set<String> blacklistedJti = ConcurrentHashMap.newKeySet();
 
     public String getJwtFromHeader(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
@@ -47,10 +53,10 @@ public class JwtUtils {
                 .setSubject(username)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date((new Date()).getTime() + applicationConfig.getJwtExpirationMs()))
-                .signWith(key(), SignatureAlgorithm.HS512)
+                .setId(UUID.randomUUID().toString()) // Add unique ID (jti)
+                .signWith(key(), SignatureAlgorithm.HS256)
                 .compact();
     }
-
 
     public String getUserNameFromJwtToken(String token) {
         return Jwts.parser()
@@ -58,7 +64,7 @@ public class JwtUtils {
                 .build()
                 .parseClaimsJws(token)
                 .getBody()
-                .getSubject(); // Only gets the username
+                .getSubject();
     }
 
     public String getRoleFromJwtToken(String token) {
@@ -67,9 +73,17 @@ public class JwtUtils {
                 .build()
                 .parseClaimsJws(token)
                 .getBody()
-                .get("role", String.class); // Fetch role
+                .get("role", String.class);
     }
 
+    public String getJtiFromToken(String token) {
+        return Jwts.parser()
+                .setSigningKey(key())
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .getId(); // Extract 'jti' claim
+    }
 
     private Key key() {
         return Keys.hmacShaKeyFor(Decoders.BASE64.decode(applicationConfig.getJwtSecret()));
@@ -77,8 +91,10 @@ public class JwtUtils {
 
     public boolean validateJwtToken(String authToken) {
         try {
-            System.out.println("Validate");
-            Jwts.parser().verifyWith((SecretKey) key()).build().parseSignedClaims(authToken);
+            Jwts.parser()
+                    .setSigningKey(key())
+                    .build()
+                    .parseClaimsJws(authToken);
             return true;
         } catch (MalformedJwtException e) {
             logger.error("Invalid JWT token: {}", e.getMessage());
@@ -92,5 +108,12 @@ public class JwtUtils {
         return false;
     }
 
+    public boolean isBlacklisted(String jti) {
+        return blacklistedJti.contains(jti);
+    }
+
+    public void addToBlacklist(String jti) {
+        blacklistedJti.add(jti);
+    }
 
 }

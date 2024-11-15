@@ -39,7 +39,7 @@ public class SecurityConfig {
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
-                .csrf(AbstractHttpConfigurer::disable)
+                .csrf(AbstractHttpConfigurer::disable) // Disable CSRF for stateless JWT
                 .addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }

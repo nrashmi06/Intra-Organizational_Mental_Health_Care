@@ -60,23 +60,31 @@ public class UserService implements UserDetailsService {
     public UserLoginResponseDTO loginUser(UserLoginRequestDTO userLoginDTO) {
         Authentication authentication;
         try {
-            // Authenticate user credentials
             authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(userLoginDTO.getEmail(), userLoginDTO.getPassword())
             );
-        } catch (Exception exception) {
+        } catch (Exception e) {
             throw new UsernameNotFoundException("Invalid email or password");
         }
 
-        // Retrieve authenticated user details
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        User user = userRepository.findByEmail(userLoginDTO.getEmail());
+        User user = userRepository.findByEmail(userDetails.getUsername());
+
         if (user == null) {
-            throw new UsernameNotFoundException("User not found with email: " + userLoginDTO.getEmail());
+            throw new UsernameNotFoundException("User not found with email: " + userDetails.getUsername());
         }
+
+        // Check if the user is active
+        if (!user.getProfileStatus().equals(ProfileStatus.ACTIVE)) {
+            throw new IllegalStateException("User account is inactive. Please contact support.");
+        }
+
+        // Update active status
+        setUserActiveStatus(user.getEmail(), true);
 
         // Generate JWT token
         String token = jwtUtils.generateTokenFromUsername(userDetails);
+
         return new UserLoginResponseDTO(
                 user.getUserId(),
                 user.getEmail(),
@@ -85,6 +93,7 @@ public class UserService implements UserDetailsService {
                 token
         );
     }
+
 
     public UserRegistrationResponseDTO registerUser(UserRegistrationRequestDTO userRegistrationDTO) {
         if (userRepository.existsByEmail(userRegistrationDTO.getEmail())) {
@@ -97,7 +106,7 @@ public class UserService implements UserDetailsService {
         user.setRole(Role.USER);
         user.setEmail(userRegistrationDTO.getEmail());
         user.setIsActive(false);
-        user.setProfileStatus(ProfileStatus.INACTIVE);
+        user.setProfileStatus(ProfileStatus.ACTIVE);
 
         userRepository.save(user);
 
@@ -108,4 +117,13 @@ public class UserService implements UserDetailsService {
                 user.getRole()
         );
     }
+
+    public void setUserActiveStatus(String email, boolean isActive) {
+        User user = userRepository.findByEmail(email);
+        if (user != null) {
+            user.setIsActive(isActive);
+            userRepository.save(user);
+        }
+    }
+
 }

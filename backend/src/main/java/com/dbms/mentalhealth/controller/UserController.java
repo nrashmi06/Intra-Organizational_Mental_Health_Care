@@ -56,10 +56,15 @@ public class UserController {
 
     @PostMapping(UserUrlMapping.USER_LOGOUT)
     public ResponseEntity<String> logoutUser(HttpServletRequest request, HttpServletResponse response) {
-        SecurityContextLogoutHandler logoutHandler = new SecurityContextLogoutHandler();
-        logoutHandler.logout(request, response, SecurityContextHolder.getContext().getAuthentication());
+        String token = jwtUtils.getJwtFromHeader(request);
+        if (token != null) {
+            String email = jwtUtils.getUserNameFromJwtToken(token);
+            jwtUtils.addToBlacklist(jwtUtils.getJtiFromToken(token));
+            userService.setUserActiveStatus(email, false);
+        }
         return ResponseEntity.ok("User logged out successfully.");
     }
+
 
     @GetMapping("/hello")
     @PreAuthorize("hasRole('ADMIN')") // Restrict to ADMIN only
