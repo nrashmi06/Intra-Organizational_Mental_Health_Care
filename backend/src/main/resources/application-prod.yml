@@ -1,7 +1,7 @@
 spring:
   config:
     activate:
-      on-profile: dev
+      on-profile: prod
 
   # Database connection settings for prod environment using environment variables
   datasource:
