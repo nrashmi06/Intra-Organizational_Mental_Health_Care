@@ -6,8 +6,10 @@ import { useRouter } from "next/router";
 export default function Navbar() {
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isServicesDropdownOpen, setIsServicesDropdownOpen] = useState(false);
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+  const toggleServicesDropdown = () => setIsServicesDropdownOpen(!isServicesDropdownOpen);
 
   return (
     <header className="border-b z-50 relative">
@@ -19,7 +21,7 @@ export default function Navbar() {
       >
         <div className="mx-auto px-4 py-4 flex items-center justify-between">
           {/* Logo Section */}
-          <div  className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
             <Image
               src="/images/logo/logo.png"
               alt="SerenitySphere Logo"
@@ -51,12 +53,39 @@ export default function Navbar() {
               >
                 Helpline
               </Link>
-              <Link
-                href="/services"
-                className={`text-sm font-medium text-white ${router.pathname === "/services" ? "underline" : ""}`}
-              >
-                Services
-              </Link>
+              
+              {/* Services Dropdown */}
+              <div className="relative">
+                <button
+                  className={`text-sm font-medium text-white ${router.pathname.includes('/services') ? "underline" : ""}`}
+                  onClick={toggleServicesDropdown}
+                >
+                  Services
+                </button>
+                {isServicesDropdownOpen && (
+                  <div className="absolute left-0 w-48 mt-2 bg-white text-black rounded-md shadow-lg">
+                    <Link
+                      href="/listener-application"
+                      className="block px-4 py-2 text-sm hover:bg-gray-100"
+                    >
+                      Listener Application
+                    </Link>
+                    <Link
+                      href="/appointment"
+                      className="block px-4 py-2 text-sm hover:bg-gray-100"
+                    >
+                      Appointment
+                    </Link>
+                    <Link
+                      href="/match-a-listener"
+                      className="block px-4 py-2 text-sm hover:bg-gray-100"
+                    >
+                      Match a Listener
+                    </Link>
+                  </div>
+                )}
+              </div>
+
               <Link
                 href="/about"
                 className={`text-sm font-medium text-white ${router.pathname === "/about" ? "underline" : ""}`}
