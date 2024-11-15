@@ -6,8 +6,12 @@ import { useRouter } from "next/router";
 export default function Navbar() {
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isServicesDropdownOpen, setIsServicesDropdownOpen] = useState(false);
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+
+  // Toggle the services dropdown when the Services link is clicked
+  const toggleServicesDropdown = () => setIsServicesDropdownOpen(!isServicesDropdownOpen);
 
   return (
     <header className="border-b z-50 relative">
@@ -51,12 +55,42 @@ export default function Navbar() {
               >
                 Helpline
               </Link>
-              <Link
-                href="/services"
-                className={`text-sm font-medium text-white ${router.pathname === "/services" ? "underline" : ""}`}
-              >
-                Services
-              </Link>
+
+              {/* Click-based Dropdown for Services */}
+              <div className="relative">
+                <button
+                  onClick={toggleServicesDropdown}
+                  className={`text-sm font-medium text-white ${router.pathname === "/services" ? "underline" : ""}`}
+                >
+                  Services
+                </button>
+                {isServicesDropdownOpen && (
+                  <div
+                    className="absolute left-0 w-48 mt-2 bg-white text-black rounded-md shadow-lg"
+                    style={{ zIndex: 1000 }}
+                  >
+                    <Link
+                      href="/listener-application"
+                      className="block px-4 py-2 text-sm hover:bg-gray-100"
+                    >
+                      Listener Application
+                    </Link>
+                    <Link
+                      href="/appointment"
+                      className="block px-4 py-2 text-sm hover:bg-gray-100"
+                    >
+                      Appointment
+                    </Link>
+                    <Link
+                      href="/match-a-listener"
+                      className="block px-4 py-2 text-sm hover:bg-gray-100"
+                    >
+                      Match a Listener
+                    </Link>
+                  </div>
+                )}
+              </div>
+
               <Link
                 href="/about"
                 className={`text-sm font-medium text-white ${router.pathname === "/about" ? "underline" : ""}`}
@@ -129,18 +163,41 @@ export default function Navbar() {
             >
               Helpline
             </Link>
-            <Link
-              href="/services"
-              className={`text-sm font-medium text-white ${router.pathname === "/services" ? "underline" : ""}`}
-            >
-              Services
-            </Link>
-            <Link
-              href="/about"
-              className={`text-sm font-medium text-white ${router.pathname === "/about" ? "underline" : ""}`}
-            >
-              About
-            </Link>
+
+            {/* Mobile Dropdown for Services */}
+            <div className="relative">
+              <button
+                onClick={toggleServicesDropdown}
+                className={`text-sm font-medium text-white ${router.pathname === "/services" ? "underline" : ""}`}
+              >
+                Services
+              </button>
+              {isServicesDropdownOpen && (
+                <div
+                  className="absolute left-0 w-48 mt-2 bg-white text-black rounded-md shadow-lg"
+                  style={{ zIndex: 1000 }}
+                >
+                  <Link
+                    href="/listenerApplication"
+                    className="block px-4 py-2 text-sm hover:bg-gray-100"
+                  >
+                    Listener Application
+                  </Link>
+                  <Link
+                    href="/appointment"
+                    className="block px-4 py-2 text-sm hover:bg-gray-100"
+                  >
+                    Appointment
+                  </Link>
+                  <Link
+                    href="/match-a-listener"
+                    className="block px-4 py-2 text-sm hover:bg-gray-100"
+                  >
+                    Match a Listener
+                  </Link>
+                </div>
+              )}
+            </div>
 
             {/* Sign-in and Register links */}
             <div className="flex flex-col items-center gap-4">

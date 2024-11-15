@@ -1,4 +1,4 @@
-// components/ui/card.tsx
+// src/components/ui/card.tsx
 import React from 'react';
 import clsx from 'clsx';
 
@@ -17,7 +17,25 @@ const Card: React.FC<CardProps> = ({ className, children, ...props }) => {
   );
 };
 
-// CardContent component for content inside the card with padding
+// CardHeader component for card header (optional but common for card title or metadata)
+interface CardHeaderProps extends CardProps {}
+const CardHeader: React.FC<CardHeaderProps> = ({ className, children, ...props }) => {
+  return (
+    <div className={clsx('p-4 border-b border-gray-200', className)} {...props}>
+      {children}
+    </div>
+  );
+};
+
+// CardTitle component to wrap a title inside the card header
+interface CardTitleProps {
+  children: React.ReactNode;
+}
+const CardTitle: React.FC<CardTitleProps> = ({ children }) => {
+  return <h3 className="text-xl font-semibold">{children}</h3>;
+};
+
+// CardContent component for the main content inside the card with padding
 const CardContent: React.FC<CardProps> = ({ className, children, ...props }) => {
   return (
     <div className={clsx('p-4', className)} {...props}>
@@ -29,10 +47,10 @@ const CardContent: React.FC<CardProps> = ({ className, children, ...props }) => 
 // CardFooter component for additional content at the bottom of the card
 const CardFooter: React.FC<CardProps> = ({ className, children, ...props }) => {
   return (
-    <div className={clsx('p-4 border-t', className)} {...props}>
+    <div className={clsx('p-4 border-t border-gray-200', className)} {...props}>
       {children}
     </div>
   );
 };
 
-export { Card, CardContent, CardFooter };
+export { Card, CardHeader, CardTitle, CardContent, CardFooter };
