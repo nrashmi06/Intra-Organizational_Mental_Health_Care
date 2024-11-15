@@ -1,35 +1,43 @@
+version: '3.8' # Updated version for better compatibility and features
+
 services:
   db:
     image: postgres:17.0
+    container_name: postgres_db # Assign a meaningful name for easy identification
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 211004
-      POSTGRES_DB: mentalhealth
+      POSTGRES_USER: ${DB_USERNAME:-postgres}        # Default to 'postgres' if not set
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-211004}     # Default to '211004' if not set
+      POSTGRES_DB: mentalhealth                     # Database name is hardcoded
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      # Persistent volume for database data
     ports:
-      - "5432:5432"
+      - "${DB_PORT:-5432}:5432"                     # Default DB port, can be overridden
     networks:
       - app-network
 
   app:
     build:
-      context: .  # This tells Docker to look for the Dockerfile in the current directory
+      context: .                                    # Builds app from the current directory
     depends_on:
-      - db  # Ensures the database container starts before the Spring Boot app
+      - db                                          # Ensures 'db' starts before the app
     environment:
-      SPRING_PROFILES_ACTIVE: prod
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/mentalhealth
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: 211004
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod} # Default to 'prod', can override
+      SPRING_DATASOURCE_URL: jdbc:postgresql://${DB_HOST:-db}:${DB_PORT:-5432}/mentalhealth
+      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-211004}
     ports:
-      - "8080:8080"
+      - "${APP_PORT:-8080}:8080"                    # Default app port, can be overridden
+    volumes:
+      - ./target:/app/target                        # Mounts the compiled app JARs
+    command: >
+      sh -c "java -jar /app/target/your-app.jar"    # Runs the Spring Boot app
     networks:
       - app-network
 
 volumes:
-  postgres_data:
+  postgres_data:                                    # Persistent volume for the database
 
 networks:
   app-network:
-    driver: bridge
+    driver: bridge                                  # Default bridge network for container communication

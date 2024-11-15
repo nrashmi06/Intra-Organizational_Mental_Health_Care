@@ -1,0 +1,25 @@
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  # Database connection settings for prod environment using environment variables
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:db}:${DB_PORT:5432}/mentalhealth
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:}
+
+  # Hibernate settings for prod (usually set to 'update')
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+  # Production-specific logging settings
+  logging:
+    level:
+      org.springframework: ${LOG_LEVEL_SPRING:INFO}
+      com.yourapp: ${LOG_LEVEL_APP:INFO}
+
+  # Server port for production
+  server:
+    port: ${SERVER_PORT:8080}  # Default is 8080, can be overridden
