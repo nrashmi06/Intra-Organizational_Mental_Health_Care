@@ -1,6 +1,4 @@
-import Link from "next/link"
 import { Lightbulb } from 'lucide-react'
-import { Button } from "@/components/ui/button"
 import {
   Table,
   TableBody,

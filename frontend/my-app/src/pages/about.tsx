@@ -93,7 +93,7 @@ export default function Component() {
                 <Heart className="h-12 w-12 text-primary" />
                 <h3 className="text-xl font-bold">Empathy</h3>
                 <p className="text-center text-gray-500 dark:text-gray-400">
-                  Understanding and supporting each individual's unique journey
+                  Understanding and supporting each individuals unique journey
                 </p>
               </CardContent>
             </Card>

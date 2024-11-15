@@ -1,4 +1,4 @@
-// src/components/ui/card.tsx
+// src/components/ui/Card.tsx
 import React from 'react';
 import clsx from 'clsx';
 
@@ -18,8 +18,7 @@ const Card: React.FC<CardProps> = ({ className, children, ...props }) => {
 };
 
 // CardHeader component for card header (optional but common for card title or metadata)
-interface CardHeaderProps extends CardProps {}
-const CardHeader: React.FC<CardHeaderProps> = ({ className, children, ...props }) => {
+const CardHeader: React.FC<CardProps> = ({ className, children, ...props }) => {
   return (
     <div className={clsx('p-4 border-b border-gray-200', className)} {...props}>
       {children}
