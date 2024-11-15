@@ -1,0 +1,52 @@
+/* Global styles */
+.blog-card {
+    width: 100%;
+    height: 400px; /* Fixed height for the card */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background-color: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .blog-card img {
+    width: 100%;
+    height: 50%;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 12px;
+  }
+  
+  .blog-card h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  
+  .blog-card .text-muted-foreground {
+    color: #6b7280;
+  }
+  
+  .blog-card a {
+    text-decoration: none;
+    color: #2563eb;
+  }
+  
+  .blog-card a:hover {
+    text-decoration: underline;
+  }
+  /* blog.css */
+.blog-card img {
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border 0.3s ease;
+    border: 5px solid transparent; /* Set a transparent border by default */
+  }
+  
+  .blog-card img:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    border: 5px solid #000000; /* Dark blue border on hover */
+  }
+  
