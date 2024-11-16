@@ -99,7 +99,7 @@ export default function Navbar() {
                   Sign-in
                 </Link>
                 <Link
-                  href="/register"
+                  href="/signup"
                   className="bg-black text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-800 transition-colors"
                 >
                   Register
@@ -173,11 +173,11 @@ export default function Navbar() {
 
             {/* Sign-in and Register links */}
             <div className="flex flex-col items-center gap-4">
-              <Link href="/sign-in" className="text-sm font-medium text-white">
+              <Link href="/signin" className="text-sm font-medium text-white">
                 Sign-in
               </Link>
               <Link
-                href="/register"
+                href="/signup"
                 className="bg-black text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-800 transition-colors"
               >
                 Register
