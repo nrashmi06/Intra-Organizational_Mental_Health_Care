@@ -1,4 +1,6 @@
-import React from "react";
+// src/components/ui/checkbox.tsx
+
+import React from 'react';
 
 interface CheckboxProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -23,4 +25,4 @@ const Checkbox: React.FC<CheckboxProps> = ({ id, className, label, ...props }) =
   );
 };
 
-export default Checkbox;
+export default Checkbox;  // Ensure the component is exported as default
