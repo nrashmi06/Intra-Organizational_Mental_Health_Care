@@ -56,7 +56,7 @@ public class UserController {
     }
 
 
-    @GetMapping(UserUrlMapping.DELETE_USER)
+    @DeleteMapping(UserUrlMapping.DELETE_USER)
     @PreAuthorize("hasRole('ADMIN')") // Restrict to ADMIN only
     public ResponseEntity<String> deleteUser(@PathVariable Integer userId) {
         try {
