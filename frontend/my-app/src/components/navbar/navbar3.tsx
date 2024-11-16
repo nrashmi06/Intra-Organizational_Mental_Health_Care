@@ -38,7 +38,7 @@ export default function Navbar() {
           {/* Desktop Navigation */}
           <div className="hidden md:flex md:flex-row md:items-center gap-6 z-20">
             <nav className="flex flex-row items-center gap-6 px-4">
-              <Link href="/" className="text-sm font-medium text-white hover:underline">
+              <Link href="/dashboard" className="text-sm font-medium text-white hover:underline">
                 Dashboard
               </Link>
               <Link href="/analytics" className="text-sm font-medium text-white hover:underline">
