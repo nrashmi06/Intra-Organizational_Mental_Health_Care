@@ -93,7 +93,7 @@ export default function SignIn() {
                   </label>
                 </div>
                 <Link
-                  href="/forgot-password"
+                  href="/forgotpass"
                   className="text-sm font-medium text-primary hover:underline"
                 >
                   Forgot Password?
