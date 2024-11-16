@@ -2,8 +2,10 @@ package com.dbms.mentalhealth.service;
 
 import com.dbms.mentalhealth.dto.user.request.UserLoginRequestDTO;
 import com.dbms.mentalhealth.dto.user.request.UserRegistrationRequestDTO;
+import com.dbms.mentalhealth.dto.user.request.UserUpdateRequestDTO;
 import com.dbms.mentalhealth.dto.user.response.UserLoginResponseDTO;
 import com.dbms.mentalhealth.dto.user.response.UserRegistrationResponseDTO;
+import com.dbms.mentalhealth.dto.user.response.UserInfoResponseDTO;
 import com.dbms.mentalhealth.enums.ProfileStatus;
 import com.dbms.mentalhealth.enums.Role;
 import com.dbms.mentalhealth.exception.InvalidUserCredentialsException;
@@ -132,8 +134,61 @@ public class UserService implements UserDetailsService {
             throw new EntityNotFoundException("User not found with ID: " + userId);
         }
 
+        if (user.get().getRole() == Role.ADMIN) {
+            throw new IllegalArgumentException("Cannot delete user with ADMIN role");
+        }
+
         userRepository.deleteById(userId);
     }
+
+    public UserInfoResponseDTO getUserById(Integer userId) {
+        Optional<User> user = userRepository.findById(userId);
+
+        if (user.isEmpty()) {
+            // Return an error DTO if user is not found
+            return new UserInfoResponseDTO("User not found with ID: " + userId);
+        }
+
+        // Return a DTO with user data if user is found
+        return new UserInfoResponseDTO(
+                user.get().getUserId(),
+                user.get().getEmail(),
+                user.get().getAnonymousName(),
+                user.get().getRole().name(),
+                user.get().getIsActive(),
+                user.get().getProfileStatus().name(),
+                user.get().getCreatedAt().toString(),
+                user.get().getUpdatedAt().toString(),
+                null
+        );
+    }
+
+    public void updateUserByAdmin(Integer userId, UserUpdateRequestDTO userUpdateDTO) {
+        User userToUpdate = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found with ID: " + userId));
+
+        // Update role if user is not an admin and new role is admin
+        if (userUpdateDTO.getRole() != null && !userToUpdate.getRole().equals(Role.ADMIN) && userUpdateDTO.getRole().equals("ADMIN")) {
+            userToUpdate.setRole(Role.valueOf(userUpdateDTO.getRole()));
+        } else if(userToUpdate.getRole().equals(Role.ADMIN)){
+            throw new IllegalArgumentException("Cannot update role of user with ADMIN role");
+        }
+
+        if (userUpdateDTO.getProfileStatus() != null) {
+            userToUpdate.setProfileStatus(ProfileStatus.valueOf(userUpdateDTO.getProfileStatus()));
+        }
+
+        userRepository.save(userToUpdate);
+    }
+
+    public void updateAnonymousName(Integer userId, String anonymousName) {
+        User userToUpdate = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found with ID: " + userId));
+        userToUpdate.setAnonymousName(anonymousName);
+        userRepository.save(userToUpdate);
+    }
+
+
 
 
 }
