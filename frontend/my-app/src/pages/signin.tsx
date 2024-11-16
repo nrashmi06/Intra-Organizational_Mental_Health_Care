@@ -10,7 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox1"
 import Navbar from "@/components/navbar/NavBar" // Import the Navbar component
 
 export default function SignIn() {
-  const [showPassword, setShowPassword] = useState(false)
+  const [showPassword, setShowPassword] = useState(false);
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
@@ -53,7 +53,6 @@ export default function SignIn() {
                   id="phone"
                   type="tel"
                   placeholder="+91 1234567891"
-                  className="w-full"
                 />
               </div>
 
@@ -65,7 +64,6 @@ export default function SignIn() {
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
-                    className="w-full pr-10"
                     placeholder="••••••••••"
                   />
                   <button
