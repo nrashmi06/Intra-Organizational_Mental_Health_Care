@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/table"
 import Navbar from "@/components/navbar/NavBar" // Import Navbar
 import Footer from "@/components/footer/Footer" // Import Footer
+import "@/styles/globals.css"
 
 export default function Component() {
   return (

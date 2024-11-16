@@ -6,6 +6,7 @@ import { Users, Target, Heart, ArrowRight } from 'lucide-react'
 import Navbar from "@/components/navbar/Navbar2"  // Make sure to import Navbar
 import Footer from "@/components/footer/Footer"  // Make sure to import Footer
 import Link from "next/link"  // Import Link from Next.js
+import "@/styles/globals.css"
 
 export default function Component() {
   return (

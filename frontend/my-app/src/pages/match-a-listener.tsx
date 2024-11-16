@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Avatar } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
+import "@/styles/globals.css"
 
 export default function Component() {
   const [messages] = React.useState([
