@@ -19,7 +19,7 @@ export default function Footer() {
           <div className="space-y-4 md:text-right">
             <div className="flex gap-4 md:justify-end">
               <Link href="/privacy-policy" className="hover:underline">Privacy Policy</Link>
-              <Link href="/terms" className="hover:underline">Terms of Service</Link>
+              <Link href="/t&c" className="hover:underline">Terms of Service</Link>
               <Link href="/disclosure" className="hover:underline">Disclosure</Link>
             </div>
             <div className="flex gap-4 md:justify-end">

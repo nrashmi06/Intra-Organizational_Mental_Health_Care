@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import Footer from "@/components/footer/Footer"; // Import the Footer component
 import { Checkbox } from "@/components/ui/checkbox1"
 import Navbar from "@/components/navbar/NavBar" // Import the Navbar component
+import "@/styles/global.css";
 
 export default function SignIn() {
   const [showPassword, setShowPassword] = useState(false);
