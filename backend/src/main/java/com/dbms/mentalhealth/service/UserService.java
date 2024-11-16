@@ -11,11 +11,14 @@ import com.dbms.mentalhealth.enums.Role;
 import com.dbms.mentalhealth.exception.InvalidUserCredentialsException;
 import com.dbms.mentalhealth.exception.UserNotActiveException;
 import com.dbms.mentalhealth.mapper.UserMapper;
+import com.dbms.mentalhealth.model.EmailVerification;
+import com.dbms.mentalhealth.repository.EmailVerificationRepository;
 import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.model.User;
 import com.dbms.mentalhealth.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -28,9 +31,11 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class UserService implements UserDetailsService {
@@ -39,12 +44,16 @@ public class UserService implements UserDetailsService {
     private final JwtUtils jwtUtils;
     private final AuthenticationManager authenticationManager;
     private final PasswordEncoder passwordEncoder;
+    private final EmailVerificationRepository emailVerificationRepository;
+    private final EmailService emailService;
 
-    public UserService(UserRepository userRepository, JwtUtils jwtUtils, @Lazy AuthenticationManager authenticationManager, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, JwtUtils jwtUtils, @Lazy AuthenticationManager authenticationManager, PasswordEncoder passwordEncoder, EmailVerificationRepository emailVerificationRepository, EmailService emailService) {
         this.userRepository = userRepository;
         this.jwtUtils = jwtUtils;
         this.authenticationManager = authenticationManager;
         this.passwordEncoder = passwordEncoder;
+        this.emailVerificationRepository = emailVerificationRepository;
+        this.emailService = emailService;
     }
 
     @Override
@@ -191,6 +200,43 @@ public class UserService implements UserDetailsService {
         }
 
         user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
+
+
+    public void sendVerificationEmail(String email) {
+        User user = userRepository.findByEmail(email);
+        if (user == null) {
+            throw new IllegalArgumentException("User not found with email: " + email);
+        }
+
+        String token = UUID.randomUUID().toString().substring(0, 10);
+        EmailVerification emailVerification = new EmailVerification();
+        emailVerification.setUserId(user.getUserId());
+        emailVerification.setVerificationCode(token);
+        emailVerification.setExpiryTime(LocalDateTime.now().plusHours(24));
+        emailVerification.setStatus("pending");
+        emailVerification.setCreatedAt(LocalDateTime.now());
+        emailVerificationRepository.save(emailVerification);
+
+        emailService.sendVerificationEmail(user.getEmail(), token);
+    }
+
+    public void verifyUser(String verificationCode) {
+
+        EmailVerification emailVerification = emailVerificationRepository.findByVerificationCode(verificationCode)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid verification code"));
+
+        if (emailVerification.getExpiryTime().isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("Verification code has expired");
+        }
+
+        emailVerification.setStatus("verified");
+        emailVerificationRepository.save(emailVerification);
+
+        User user = userRepository.findById(emailVerification.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        user.setProfileStatus(ProfileStatus.ACTIVE);
         userRepository.save(user);
     }
 }

@@ -2,8 +2,10 @@ package com.dbms.mentalhealth.controller;
 
 import com.dbms.mentalhealth.dto.user.request.UserLoginRequestDTO;
 import com.dbms.mentalhealth.dto.user.request.UserRegistrationRequestDTO;
+import com.dbms.mentalhealth.dto.user.request.VerifyEmailRequestDTO;
 import com.dbms.mentalhealth.dto.user.response.UserLoginResponseDTO;
 import com.dbms.mentalhealth.dto.user.response.UserRegistrationResponseDTO;
+import com.dbms.mentalhealth.dto.user.response.VerifyEmailResponseDTO;
 import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.service.UserService;
 import com.dbms.mentalhealth.urlMapper.userUrl.UserUrlMapping;
@@ -45,4 +47,17 @@ public class AuthController {
         }
         return ResponseEntity.ok("User logged out successfully.");
     }
+
+    @PostMapping(UserUrlMapping.VERIFY_EMAIL)
+    public ResponseEntity<VerifyEmailResponseDTO> sendVerificationEmail(@RequestBody VerifyEmailRequestDTO verifyEmailRequestDTO) {
+        userService.sendVerificationEmail(verifyEmailRequestDTO.getEmail());
+        return ResponseEntity.ok(new VerifyEmailResponseDTO("Verification email sent successfully."));
+    }
+
+    @GetMapping(UserUrlMapping.VERIFY_EMAIL)
+    public ResponseEntity<VerifyEmailResponseDTO> verifyEmail(@RequestParam String token) {
+        userService.verifyUser(token);
+        return ResponseEntity.ok(new VerifyEmailResponseDTO("Email verified successfully."));
+    }
+
 }
