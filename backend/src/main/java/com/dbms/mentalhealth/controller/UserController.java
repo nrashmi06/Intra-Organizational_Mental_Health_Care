@@ -97,7 +97,7 @@ public class UserController {
 
             if (authenticatedUserRole.equals("ROLE_ADMIN")) {
                 // Admin update
-                userService.updateUserByAdmin(userId, userUpdateDTO);
+                userService.updateUser(userId, userUpdateDTO);
                 return ResponseEntity.ok("User updated successfully by admin.");
             } else if (authenticatedUserRole.equals("ROLE_USER") && userUpdateDTO.getAnonymousName() != null) {
                 // User update

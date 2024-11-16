@@ -10,6 +10,7 @@ import com.dbms.mentalhealth.enums.ProfileStatus;
 import com.dbms.mentalhealth.enums.Role;
 import com.dbms.mentalhealth.exception.InvalidUserCredentialsException;
 import com.dbms.mentalhealth.exception.UserNotActiveException;
+import com.dbms.mentalhealth.mapper.UserMapper;
 import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.model.User;
 import com.dbms.mentalhealth.repository.UserRepository;
@@ -87,13 +88,7 @@ public class UserService implements UserDetailsService {
         setUserActiveStatus(user.getEmail(), true);
         String token = jwtUtils.generateTokenFromUsername(userDetails);
 
-        return new UserLoginResponseDTO(
-                user.getUserId(),
-                user.getEmail(),
-                user.getAnonymousName(),
-                user.getRole().name(),
-                token
-        );
+        return UserMapper.toLoginResponseDTO(user, token);
     }
 
     @Transactional
@@ -102,22 +97,10 @@ public class UserService implements UserDetailsService {
             throw new IllegalArgumentException("Email is already in use: " + userRegistrationDTO.getEmail());
         }
 
-        User user = new User();
-        user.setAnonymousName(userRegistrationDTO.getAnonymousName());
-        user.setPassword(passwordEncoder.encode(userRegistrationDTO.getPassword()));
-        user.setRole(Role.USER);
-        user.setEmail(userRegistrationDTO.getEmail());
-        user.setIsActive(false);
-        user.setProfileStatus(ProfileStatus.ACTIVE);
-
+        User user = UserMapper.toEntity(userRegistrationDTO, passwordEncoder.encode(userRegistrationDTO.getPassword()));
         userRepository.save(user);
 
-        return new UserRegistrationResponseDTO(
-                user.getUserId(),
-                user.getEmail(),
-                user.getAnonymousName(),
-                user.getRole()
-        );
+        return UserMapper.toRegistrationResponseDTO(user);
     }
 
     public void setUserActiveStatus(String email, boolean isActive) {
@@ -145,29 +128,16 @@ public class UserService implements UserDetailsService {
         Optional<User> user = userRepository.findById(userId);
 
         if (user.isEmpty()) {
-            // Return an error DTO if user is not found
             return new UserInfoResponseDTO("User not found with ID: " + userId);
         }
 
-        // Return a DTO with user data if user is found
-        return new UserInfoResponseDTO(
-                user.get().getUserId(),
-                user.get().getEmail(),
-                user.get().getAnonymousName(),
-                user.get().getRole().name(),
-                user.get().getIsActive(),
-                user.get().getProfileStatus().name(),
-                user.get().getCreatedAt().toString(),
-                user.get().getUpdatedAt().toString(),
-                null
-        );
+        return UserMapper.toInfoResponseDTO(user.get());
     }
 
-    public void updateUserByAdmin(Integer userId, UserUpdateRequestDTO userUpdateDTO) {
+    public void updateUser(Integer userId, UserUpdateRequestDTO userUpdateDTO) {
         User userToUpdate = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found with ID: " + userId));
 
-        // Update role if user is not an admin and new role is admin
         if (userUpdateDTO.getRole() != null && !userToUpdate.getRole().equals(Role.ADMIN) && userUpdateDTO.getRole().equals("ADMIN")) {
             userToUpdate.setRole(Role.valueOf(userUpdateDTO.getRole()));
         } else if(userToUpdate.getRole().equals(Role.ADMIN)){
@@ -187,8 +157,4 @@ public class UserService implements UserDetailsService {
         userToUpdate.setAnonymousName(anonymousName);
         userRepository.save(userToUpdate);
     }
-
-
-
-
 }
