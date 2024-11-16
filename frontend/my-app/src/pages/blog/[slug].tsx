@@ -5,6 +5,7 @@ import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import "@/styles/blog.css";
+import "@/styles/global.css";
 
 interface Article {
   title: string;
