@@ -9,7 +9,7 @@ interface BadgeProps extends HTMLProps<HTMLSpanElement> {
 const Badge: React.FC<BadgeProps> = ({ children, className = '', ...props }) => {
   return (
     <span
-      className={`inline-block px-3 py-1 text-sm font-semibold rounded-full bg-purple-600 text-white ${className}`}
+      className={`inline-block px-3 py-1 text-sm font-semibold rounded-full bg-black text-white ${className}`}
       {...props}
     >
       {children}
