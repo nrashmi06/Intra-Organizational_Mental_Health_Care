@@ -1,6 +1,6 @@
 'use client'
 import Footer from "@/components/footer/Footer"
-import Navbar from "@/components/navbar/NavBar" 
+import Navbar from "@/components/navbar/navbar3" 
 import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -40,11 +40,12 @@ export default function Profile() {
                   <label htmlFor="name" className="text-sm font-medium text-gray-700">
                     Name
                   </label>
-                  <Input
-                    id="name"
-                    placeholder="Name"
-                    className="w-full"
-                  />
+                  <div className="w-full">
+                    <Input
+                      id="name"
+                      placeholder="Name"
+                    />
+                  </div>
                 </div>
                 
                 <div className="space-y-2">
@@ -55,7 +56,6 @@ export default function Profile() {
                     id="email"
                     type="email"
                     placeholder="example@email.com"
-                    className="w-full"
                   />
                 </div>
                 
@@ -66,7 +66,6 @@ export default function Profile() {
                   <Input
                     id="phone"
                     placeholder="+91"
-                    className="w-full"
                   />
                 </div>
               </div>
@@ -78,8 +77,8 @@ export default function Profile() {
                     Department
                   </label>
                   <Select>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Department" />
+                    <SelectTrigger onClick={() => {}}>
+                      <SelectValue value="Department" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="cs">Computer Science</SelectItem>
@@ -94,8 +93,8 @@ export default function Profile() {
                     Section
                   </label>
                   <Select>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select Branch" />
+                    <SelectTrigger onClick={() => {}}>
+                      <SelectValue value="Select Branch" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="main">Section A</SelectItem>
@@ -113,7 +112,6 @@ export default function Profile() {
                   <Input
                     id="semester"
                     placeholder="Name"
-                    className="w-full"
                   />
                 </div>
               </div>
@@ -126,7 +124,6 @@ export default function Profile() {
                 <Input
                   id="usn"
                   placeholder="NNMXXXX"
-                  className="w-full"
                 />
               </div>
 
