@@ -6,6 +6,7 @@ import { useState } from "react"
 import { Eye, EyeOff } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import Footer from "@/components/footer/Footer"; // Import the Footer component
 import { Checkbox } from "@/components/ui/checkbox1"
 import Navbar from "@/components/navbar/NavBar" // Import the Navbar component
 
@@ -18,7 +19,7 @@ export default function SignIn() {
       <Navbar /> {/* Add Navbar component */}
 
       {/* Main Content */}
-      <main className="flex flex-1 justify-center items-center">
+      <main className="flex flex-1 justify-center items-center pb-32">
         <div className="w-full max-w-md">
 
           <div className="bg-white rounded-3xl shadow-xl p-8">
@@ -99,12 +100,13 @@ export default function SignIn() {
               </div>
 
               <Button className="w-full bg-black text-white hover:bg-black/90">
-                CREATE AN ACCOUNT
+                Create an Account
               </Button>
             </form>
           </div>
         </div>
       </main>
+      <Footer />
     </div>
   )
 }
