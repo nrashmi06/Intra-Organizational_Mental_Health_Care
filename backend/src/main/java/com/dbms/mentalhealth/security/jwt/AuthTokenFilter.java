@@ -1,4 +1,4 @@
-package com.dbms.mentalhealth.jwt;
+package com.dbms.mentalhealth.security.jwt;
 
 import com.dbms.mentalhealth.service.UserService;
 import io.jsonwebtoken.ExpiredJwtException;

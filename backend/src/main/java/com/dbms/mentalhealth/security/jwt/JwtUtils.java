@@ -1,4 +1,4 @@
-package com.dbms.mentalhealth.jwt;
+package com.dbms.mentalhealth.security.jwt;
 
 import org.springframework.security.core.GrantedAuthority;
 import com.dbms.mentalhealth.config.ApplicationConfig;
@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
-import javax.crypto.SecretKey;
 import java.security.Key;
 import java.util.Date;
 import java.util.Set;

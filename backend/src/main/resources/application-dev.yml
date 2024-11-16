@@ -3,18 +3,15 @@ spring:
     activate:
       on-profile: dev
 
-  # Database connection settings for dev environment using environment variables
   datasource:
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/mentalhealth
     username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD:211004}
 
-  # Hibernate settings for dev
   jpa:
     hibernate:
       ddl-auto: create-drop
 
-  # Enable more detailed logging in the dev environment
   logging:
     level:
-      org.springframework.web: ${LOG_LEVEL_DEV:DEBUG}  # Default is DEBUG, can be overridden
+      org.springframework.web: DEBUG
