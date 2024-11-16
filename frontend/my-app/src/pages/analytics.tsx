@@ -91,8 +91,12 @@ export default function ImprovedAnalyticsDashboard() {
   ];
 
   return (
+    <div>
+        <Navbar />
     <div className="p-6 space-y-6">
-      <Navbar />
+    
+  
+
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         {/* Activity Section */}
         <Card>
@@ -153,7 +157,7 @@ export default function ImprovedAnalyticsDashboard() {
         {/* User Satisfaction */}
         <Card>
           <CardHeader>
-            <CardTitle>User Satisfaction</CardTitle>
+            <CardTitle>Listener Rating</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">4.2 / 5</div>
@@ -187,6 +191,42 @@ export default function ImprovedAnalyticsDashboard() {
           </CardContent>
         </Card>
       </div>
+      {/*Listener report section */}
+      <Card>
+  <CardHeader>
+    <CardTitle>Listener Rating</CardTitle>
+  </CardHeader>
+  <CardContent>
+    <div className="text-3xl font-bold">4.2 / 5</div>
+    <div className="flex items-center mt-1">
+      <DotRating rating={4} /> {/* Replace StarRating with DotRating */}
+      <span className="ml-2 text-sm text-muted-foreground">(420 reviews)</span>
+    </div>
+    <div className="mt-4 space-y-1">
+      {feedbackData.reverse().map((item) => (
+        <div key={item.rating} className="flex items-center text-sm">
+          <span className="w-4">{item.rating}</span>
+          <div className="w-full h-2 mx-2 bg-muted rounded-full overflow-hidden">
+            <div
+              className="h-full bg-primary"
+              style={{
+                width: `${
+                  (item.count /
+                    feedbackData.reduce(
+                      (acc, curr) => acc + curr.count,
+                      0
+                    )) *
+                  100
+                }%`,
+              }}
+            ></div>
+          </div>
+          <span className="w-8 text-right">{item.count}</span>
+        </div>
+      ))}
+    </div>
+  </CardContent>
+</Card>
 
       {/* Charts and Calendar Section */}
       <div className="grid gap-6 md:grid-cols-2">
@@ -219,6 +259,7 @@ export default function ImprovedAnalyticsDashboard() {
           </CardContent>
         </Card>
       </div>
+    </div>
     </div>
   );
 }
