@@ -34,7 +34,12 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .authorizeHttpRequests(requests -> requests
-                        .requestMatchers(UserUrlMapping.USER_REGISTER, UserUrlMapping.USER_LOGIN).permitAll()
+                        .requestMatchers(UserUrlMapping.FORGOT_PASSWORD,
+                                UserUrlMapping.RESET_PASSWORD,
+                                UserUrlMapping.USER_REGISTER,
+                                UserUrlMapping.VERIFY_EMAIL,
+                                UserUrlMapping.RESEND_VERIFICATION_EMAIL,
+                                UserUrlMapping.USER_LOGIN).permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -54,3 +59,4 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 }
+

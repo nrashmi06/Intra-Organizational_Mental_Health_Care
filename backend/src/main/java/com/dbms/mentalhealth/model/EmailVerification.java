@@ -13,10 +13,10 @@ public class EmailVerification {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int verificationId;
+    private Integer verificationId;
 
     @Column(nullable = false)
-    private int userId;
+    private Integer userId;
 
     @Column(nullable = false, length = 10)
     private String verificationCode;
@@ -30,5 +30,7 @@ public class EmailVerification {
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
-    // Getters and setters
+    @Column(nullable = false)
+    private String email;
+
 }

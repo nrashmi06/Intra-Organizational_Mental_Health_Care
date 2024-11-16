@@ -17,7 +17,7 @@ public class UserMapper {
         user.setRole(Role.USER);
         user.setEmail(dto.getEmail());
         user.setIsActive(false);
-        user.setProfileStatus(ProfileStatus.ACTIVE);
+        user.setProfileStatus(ProfileStatus.INACTIVE);
         return user;
     }
 
