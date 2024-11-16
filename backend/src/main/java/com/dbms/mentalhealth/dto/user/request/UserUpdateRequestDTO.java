@@ -10,5 +10,5 @@ import lombok.NoArgsConstructor;
 public class UserUpdateRequestDTO {
     private String anonymousName;  // For updating anonymous name
     private String role;           // For updating role (admin only)
-    private String profileStatus;  // For updating profile status (admin and user)
+    private String profileStatus;
 }

@@ -134,16 +134,39 @@ public class UserService implements UserDetailsService {
         return UserMapper.toInfoResponseDTO(user.get());
     }
 
-    public void updateUser(Integer userId, UserUpdateRequestDTO userUpdateDTO) {
+    public void updateUserBasedOnRole(Integer userId, UserUpdateRequestDTO userUpdateDTO, Authentication authentication) {
+        // Fetch authenticated user's role
+        String authenticatedUserRole = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Unable to determine authenticated user role."));
+
+        if (authenticatedUserRole.equals("ROLE_ADMIN")) {
+            // Admin update
+            updateUserAsAdmin(userId, userUpdateDTO);
+        } else if (authenticatedUserRole.equals("ROLE_USER") && userUpdateDTO.getAnonymousName() != null) {
+            // User update
+            updateAnonymousName(userId, userUpdateDTO.getAnonymousName());
+        } else {
+            throw new IllegalArgumentException("Invalid update request.");
+        }
+    }
+
+    private void updateUserAsAdmin(Integer userId, UserUpdateRequestDTO userUpdateDTO) {
         User userToUpdate = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found with ID: " + userId));
 
-        if (userUpdateDTO.getRole() != null && !userToUpdate.getRole().equals(Role.ADMIN) && userUpdateDTO.getRole().equals("ADMIN")) {
-            userToUpdate.setRole(Role.valueOf(userUpdateDTO.getRole()));
-        } else if(userToUpdate.getRole().equals(Role.ADMIN)){
-            throw new IllegalArgumentException("Cannot update role of user with ADMIN role");
+        // Validate and update role
+        if (userUpdateDTO.getRole() != null) {
+            if (userToUpdate.getRole().equals(Role.ADMIN)) {
+                throw new IllegalArgumentException("Cannot update role of user with ADMIN role");
+            }
+            if (!userUpdateDTO.getRole().equals("ADMIN")) {
+                userToUpdate.setRole(Role.valueOf(userUpdateDTO.getRole()));
+            }
         }
 
+        // Update profile status
         if (userUpdateDTO.getProfileStatus() != null) {
             userToUpdate.setProfileStatus(ProfileStatus.valueOf(userUpdateDTO.getProfileStatus()));
         }
@@ -151,10 +174,23 @@ public class UserService implements UserDetailsService {
         userRepository.save(userToUpdate);
     }
 
-    public void updateAnonymousName(Integer userId, String anonymousName) {
+    private void updateAnonymousName(Integer userId, String anonymousName) {
         User userToUpdate = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found with ID: " + userId));
         userToUpdate.setAnonymousName(anonymousName);
         userRepository.save(userToUpdate);
+    }
+
+
+    public void changePasswordById(Integer userId, String oldPassword, String newPassword) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found with ID: " + userId));
+
+        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+            throw new IllegalArgumentException("Old password is incorrect");
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
     }
 }
