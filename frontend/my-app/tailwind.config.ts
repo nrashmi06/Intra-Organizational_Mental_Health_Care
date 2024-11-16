@@ -9,8 +9,15 @@ export default {
   theme: {
     extend: {
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+        primary: {
+          light: '#a78bfa',
+          DEFAULT: '#8b5cf6',
+          dark: '#7c3aed',
+        },
+        gradient: {
+          from: '#8b5cf6',
+          to: '#3b82f6',
+        },
       },
     },
   },
