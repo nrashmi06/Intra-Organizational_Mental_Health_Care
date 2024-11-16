@@ -1,15 +1,16 @@
+import { useState } from "react";
 import Badge from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle2, MoreVertical, Phone } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown";
 
 export default function PatientCard() {
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  const toggleDropdown = () => {
+    setIsDropdownOpen(!isDropdownOpen);
+  };
+
   return (
     <Card className="p-4 bg-white shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out relative">
       <CardHeader className="flex items-start justify-between mb-2">
@@ -22,24 +23,45 @@ export default function PatientCard() {
           <div className="text-sm text-gray-500">UID: xxxxxxxx</div>
         </div>
 
-        {/* Dropdown Menu */}
-        <DropdownMenu>
-          {/* Trigger Button */}
-          <DropdownMenuTrigger asChild>
-            <Button size="sm" variant="outline" className="h-8 w-8">
-              <MoreVertical className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
+        {/* Dropdown Trigger */}
+        <div className="relative">
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8 w-8 border-none bg-transparent text-black hover:bg-gray-200"
+            onClick={toggleDropdown}
+          >
+            <MoreVertical className="h-4 w-4" />
+          </Button>
 
           {/* Dropdown Content */}
-          <DropdownMenuContent
-            align="end"
-            className="bg-white border border-gray-200 shadow-md rounded-md"
-          >
-            <DropdownMenuItem>Settings</DropdownMenuItem>
-            <DropdownMenuItem>Edit</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+          {isDropdownOpen && (
+            <div
+              className="absolute right-0 mt-2 bg-white border border-gray-200 shadow-md rounded-md z-50"
+              style={{ minWidth: "150px" }}
+            >
+              <div
+                onClick={() => setIsDropdownOpen(false)}
+                className="px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer"
+              >
+                Settings
+              </div>
+              <div
+                onClick={() => setIsDropdownOpen(false)}
+                className="px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer"
+              >
+                Edit
+              </div>
+              {/* Red 'Delete' Option */}
+              <div
+                onClick={() => setIsDropdownOpen(false)}
+                className="px-4 py-2 text-sm text-red-500 hover:bg-red-100 cursor-pointer"
+              >
+                Delete
+              </div>
+            </div>
+          )}
+        </div>
       </CardHeader>
 
       <CardContent>
@@ -52,7 +74,7 @@ export default function PatientCard() {
             <div key={item} className="flex items-center justify-between py-2">
               <span className="text-sm text-gray-700">{item}</span>
               <Badge
-                className="rounded-20 bg-black text-white hover:bg-gray-800 px-3 py-0.5 text-xs font-normal cursor-pointer"
+                className="bg-black text-white hover:bg-gray-800 rounded-full px-3 py-0.5 text-xs font-normal cursor-pointer"
               >
                 View
               </Badge>
