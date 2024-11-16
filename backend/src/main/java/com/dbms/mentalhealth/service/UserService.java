@@ -6,9 +6,13 @@ import com.dbms.mentalhealth.dto.user.response.UserLoginResponseDTO;
 import com.dbms.mentalhealth.dto.user.response.UserRegistrationResponseDTO;
 import com.dbms.mentalhealth.enums.ProfileStatus;
 import com.dbms.mentalhealth.enums.Role;
-import com.dbms.mentalhealth.jwt.JwtUtils;
+import com.dbms.mentalhealth.exception.InvalidUserCredentialsException;
+import com.dbms.mentalhealth.exception.UserNotActiveException;
+import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.model.User;
 import com.dbms.mentalhealth.repository.UserRepository;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -23,6 +27,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UserService implements UserDetailsService {
@@ -56,7 +61,6 @@ public class UserService implements UserDetailsService {
         return Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role.name()));
     }
 
-
     public UserLoginResponseDTO loginUser(UserLoginRequestDTO userLoginDTO) {
         Authentication authentication;
         try {
@@ -64,7 +68,7 @@ public class UserService implements UserDetailsService {
                     new UsernamePasswordAuthenticationToken(userLoginDTO.getEmail(), userLoginDTO.getPassword())
             );
         } catch (Exception e) {
-            throw new UsernameNotFoundException("Invalid email or password");
+            throw new InvalidUserCredentialsException("Invalid email or password");
         }
 
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
@@ -74,15 +78,11 @@ public class UserService implements UserDetailsService {
             throw new UsernameNotFoundException("User not found with email: " + userDetails.getUsername());
         }
 
-        // Check if the user is active
         if (!user.getProfileStatus().equals(ProfileStatus.ACTIVE)) {
-            throw new IllegalStateException("User account is inactive. Please contact support.");
+            throw new UserNotActiveException("User is not active");
         }
 
-        // Update active status
         setUserActiveStatus(user.getEmail(), true);
-
-        // Generate JWT token
         String token = jwtUtils.generateTokenFromUsername(userDetails);
 
         return new UserLoginResponseDTO(
@@ -94,7 +94,7 @@ public class UserService implements UserDetailsService {
         );
     }
 
-
+    @Transactional
     public UserRegistrationResponseDTO registerUser(UserRegistrationRequestDTO userRegistrationDTO) {
         if (userRepository.existsByEmail(userRegistrationDTO.getEmail())) {
             throw new IllegalArgumentException("Email is already in use: " + userRegistrationDTO.getEmail());
@@ -125,5 +125,15 @@ public class UserService implements UserDetailsService {
             userRepository.save(user);
         }
     }
+
+    public void deleteUserById(Integer userId) {
+        Optional<User> user = userRepository.findById(userId);
+        if (user.isEmpty()) {
+            throw new EntityNotFoundException("User not found with ID: " + userId);
+        }
+
+        userRepository.deleteById(userId);
+    }
+
 
 }

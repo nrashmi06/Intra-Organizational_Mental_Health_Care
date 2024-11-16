@@ -3,9 +3,10 @@ import com.dbms.mentalhealth.dto.user.request.UserLoginRequestDTO;
 import com.dbms.mentalhealth.dto.user.request.UserRegistrationRequestDTO;
 import com.dbms.mentalhealth.dto.user.response.UserLoginResponseDTO;
 import com.dbms.mentalhealth.dto.user.response.UserRegistrationResponseDTO;
-import com.dbms.mentalhealth.jwt.JwtUtils;
+import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.service.UserService;
 import com.dbms.mentalhealth.urlMapper.userUrl.UserUrlMapping;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,9 +56,17 @@ public class UserController {
     }
 
 
-    @GetMapping("/hello")
+    @GetMapping(UserUrlMapping.DELETE_USER)
     @PreAuthorize("hasRole('ADMIN')") // Restrict to ADMIN only
-    public ResponseEntity<String> helloAdmin() {
-        return ResponseEntity.ok("Hello, Admin!");
+    public ResponseEntity<String> deleteUser(@PathVariable Integer userId) {
+        try {
+            userService.deleteUserById(userId); // Call service to delete user
+            return ResponseEntity.ok("User deleted successfully.");
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("User not found with ID: " + userId);
+        }
     }
+
+
 }

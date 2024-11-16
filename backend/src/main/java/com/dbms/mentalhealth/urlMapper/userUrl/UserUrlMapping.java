@@ -13,7 +13,7 @@ public class UserUrlMapping {
     // User profile management
     public static final String GET_USER_BY_ID = BASE_API + "/users/{userId}"; // Get user by ID
     public static final String UPDATE_USER = BASE_API + "/users/{userId}"; // Update user details
-    public static final String DELETE_USER = BASE_API + "/users/{userId}"; // Delete user
+    public static final String DELETE_USER = BASE_API + "/users/delete/{userId}"; // Delete user
 
     // Password management
     public static final String CHANGE_PASSWORD = BASE_API + "/users/{userId}/change-password";  // Change user password
