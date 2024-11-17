@@ -69,6 +69,12 @@ public class UserService implements UserDetailsService {
         );
     }
 
+    public boolean isAdmin(Integer userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found with ID: " + userId));
+        return user.getRole().equals(Role.ADMIN);
+    }
+
     private static List<GrantedAuthority> createAuthorities(Role role) {
         return Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role.name()));
     }
@@ -106,9 +112,19 @@ public class UserService implements UserDetailsService {
             throw new IllegalArgumentException("Email is already in use: " + userRegistrationDTO.getEmail());
         }
 
+
+        if (!isValidUsername(userRegistrationDTO.getAnonymousName())) {
+            throw new IllegalArgumentException("Invalid username: " + userRegistrationDTO.getAnonymousName() + ". Please try another.");
+        }
+
         User user = UserMapper.toEntity(userRegistrationDTO, passwordEncoder.encode(userRegistrationDTO.getPassword()));
         userRepository.save(user);
         return UserMapper.toRegistrationResponseDTO(user);
+    }
+
+    private boolean isValidUsername(String username) {
+        // Add your username validation logic here
+        return username.matches("^[a-zA-Z0-9._-]{3,}$");
     }
 
     public void setUserActiveStatus(String email, boolean isActive) {
@@ -300,10 +316,7 @@ public class UserService implements UserDetailsService {
     }
 
     public Integer getUserIdByUsername(String username) {
-        // Implement the logic to retrieve the user ID based on the username
-        // This might involve querying the database or any other data source
-        // For example:
-        User user = userRepository.findByAnonymousName(username);
+        User user = userRepository.findByEmail(username);
         return user != null ? user.getUserId() : null;
     }
 }

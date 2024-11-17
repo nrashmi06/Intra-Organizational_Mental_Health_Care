@@ -41,8 +41,8 @@ public class BlogController {
     @PutMapping(value = BlogUrlMapping.UPDATE_BLOG, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<BlogResponseDTO> updateBlog(
             @PathVariable("blogId") Integer blogId,
-            @RequestParam("image") MultipartFile image,
-            @RequestParam("blog") BlogRequestDTO blogRequestDTO
+            @RequestPart("image") MultipartFile image,
+            @RequestPart("blog") BlogRequestDTO blogRequestDTO
     ) {
         BlogResponseDTO response = blogService.updateBlog(blogId, blogRequestDTO, image);
         return new ResponseEntity<>(response, HttpStatus.OK);
@@ -53,8 +53,4 @@ public class BlogController {
         blogService.deleteBlog(blogId);
     }
 
-    @GetMapping(BlogUrlMapping.CHECK_LIKE_STATUS)
-    public boolean isBlogLikedByUser(@PathVariable("blogId") Integer blogId, @PathVariable("userId") Integer userId) {
-        return blogService.isBlogLikedByUser(blogId, userId);
-    }
 }

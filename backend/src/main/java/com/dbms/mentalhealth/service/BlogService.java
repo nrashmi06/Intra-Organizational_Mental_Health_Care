@@ -14,7 +14,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -27,7 +28,7 @@ public class BlogService {
     private final BlogLikeRepository blogLikeRepository;
     private final UserService userService;
     private final Cloudinary cloudinary;
-
+    private static final Logger logger = LoggerFactory.getLogger(BlogService.class);
     @Autowired
     public BlogService(BlogRepository blogRepository, BlogLikeRepository blogLikeRepository, UserService userService, Cloudinary cloudinary) {
         this.blogRepository = blogRepository;
@@ -49,13 +50,33 @@ public class BlogService {
         return BlogMapper.toResponseDTO(createdBlog);
     }
 
+
     public Optional<BlogResponseDTO> getBlogById(Integer blogId) {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String username;
+        if (principal instanceof UserDetails) {
+            username = ((UserDetails) principal).getUsername();
+        } else {
+            username = principal.toString();
+        }
+        Integer userId = userService.getUserIdByUsername(username);
+        if (userId == null) {
+            return Optional.empty();
+        }
+        boolean isAdmin = userService.isAdmin(userId);
+        logger.info("Current user ID: {}, isAdmin: {}", userId, isAdmin);
+
         return blogRepository.findById(blogId)
+                .filter(blog -> blog.getApprovalStatus() == ApprovalStatus.APPROVED || isAdmin)
                 .map(BlogMapper::toResponseDTO);
     }
 
+
+
+
     public BlogResponseDTO updateBlog(Integer blogId, BlogRequestDTO blogRequestDTO, MultipartFile image) {
         Blog blog = blogRepository.findById(blogId).orElseThrow(() -> new RuntimeException("Blog not found"));
+
         if (!isCurrentUserPublisher(blog.getUserId())) {
             throw new RuntimeException("You are not authorized to edit this blog");
         }
@@ -66,7 +87,6 @@ public class BlogService {
         }
         blog.setTitle(blogRequestDTO.getTitle());
         blog.setContent(blogRequestDTO.getContent());
-        blog.setUserId(blogRequestDTO.getUserId());
         blog.setSummary(blogRequestDTO.getSummary());
         blog.setApprovalStatus(ApprovalStatus.PENDING);
         Blog updatedBlog = blogRepository.save(blog);
@@ -97,9 +117,6 @@ public class BlogService {
         blogRepository.deleteById(blogId);
     }
 
-    public boolean isBlogLikedByUser(Integer blogId, Integer userId) {
-        return blogLikeRepository.findByUserIdAndBlogPostId(userId, blogId).isPresent();
-    }
 
     private boolean isCurrentUserPublisher(Integer blogUserId) {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
