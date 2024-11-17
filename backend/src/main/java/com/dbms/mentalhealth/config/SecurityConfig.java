@@ -2,6 +2,7 @@ package com.dbms.mentalhealth.config;
 
 import com.dbms.mentalhealth.security.jwt.AuthEntryPointJwt;
 import com.dbms.mentalhealth.security.jwt.AuthTokenFilter;
+import com.dbms.mentalhealth.urlMapper.blogUrl.BlogUrlMapping;
 import com.dbms.mentalhealth.urlMapper.userUrl.UserUrlMapping;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -39,7 +40,8 @@ public class SecurityConfig {
                                 UserUrlMapping.USER_REGISTER,
                                 UserUrlMapping.VERIFY_EMAIL,
                                 UserUrlMapping.RESEND_VERIFICATION_EMAIL,
-                                UserUrlMapping.USER_LOGIN).permitAll()
+                                UserUrlMapping.USER_LOGIN,
+                                BlogUrlMapping.CREATE_BLOG).permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

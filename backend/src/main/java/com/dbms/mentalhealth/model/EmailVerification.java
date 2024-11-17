@@ -2,7 +2,6 @@ package com.dbms.mentalhealth.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.Getter;
 
 import java.time.LocalDateTime;
 

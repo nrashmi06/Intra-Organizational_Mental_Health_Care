@@ -298,4 +298,12 @@ public class UserService implements UserDetailsService {
         emailVerification.setStatus("verified");
         emailVerificationRepository.save(emailVerification);
     }
+
+    public Integer getUserIdByUsername(String username) {
+        // Implement the logic to retrieve the user ID based on the username
+        // This might involve querying the database or any other data source
+        // For example:
+        User user = userRepository.findByAnonymousName(username);
+        return user != null ? user.getUserId() : null;
+    }
 }
