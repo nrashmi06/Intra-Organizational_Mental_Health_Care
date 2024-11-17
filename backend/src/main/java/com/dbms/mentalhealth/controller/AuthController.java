@@ -11,7 +11,6 @@ import com.dbms.mentalhealth.dto.user.response.VerifyEmailResponseDTO;
 import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.service.UserService;
 import com.dbms.mentalhealth.urlMapper.userUrl.UserUrlMapping;
-import jakarta.annotation.security.PermitAll;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.ResponseEntity;
