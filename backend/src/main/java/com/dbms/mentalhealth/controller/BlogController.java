@@ -75,4 +75,24 @@ public class BlogController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
+    @GetMapping(BlogUrlMapping.GET_ALL_APPROVED_BLOGS)
+    public ResponseEntity<Iterable<BlogResponseDTO>> getAllApprovedBlogs() {
+        Iterable<BlogResponseDTO> response = blogService.getAllApprovedBlogs();
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @GetMapping(BlogUrlMapping.GET_BLOGS_BY_USER)
+    public ResponseEntity<Iterable<BlogResponseDTO>> getBlogsByUser(@RequestParam("userId") Integer userId) {
+        Iterable<BlogResponseDTO> response = blogService.getBlogsByUser(userId);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @GetMapping(BlogUrlMapping.SEARCH_BLOGS_BY_PARTIAL_TITLE)
+    public ResponseEntity<Iterable<BlogResponseDTO>> searchBlogsByPartialTitle(@RequestParam("title") String title) {
+        Iterable<BlogResponseDTO> response = blogService.searchBlogsByPartialTitle(title);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+
+
 }

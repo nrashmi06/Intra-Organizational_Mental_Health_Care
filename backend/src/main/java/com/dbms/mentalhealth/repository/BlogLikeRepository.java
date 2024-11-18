@@ -6,5 +6,4 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
 public interface BlogLikeRepository extends JpaRepository<BlogLike, Integer> {
-    Optional<BlogLike> findByUserIdAndBlogPostId(Integer userId, Integer blogId);
 }

@@ -18,8 +18,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class BlogService {
@@ -181,4 +183,27 @@ public class BlogService {
         Blog unlikedBlog = blogRepository.save(blog);
         return BlogMapper.toResponseDTO(unlikedBlog);
     }
+
+    public List<BlogResponseDTO> getAllApprovedBlogs() {
+        return blogRepository.findAllByApprovalStatus(ApprovalStatus.APPROVED)
+                .stream()
+                .map(BlogMapper::toResponseDTO)
+                .toList();
+    }
+
+    public List<BlogResponseDTO> getBlogsByUser(Integer userId) {
+        return blogRepository.findByUserId(userId)
+                .stream()
+                .map(BlogMapper::toResponseDTO)
+                .toList();
+    }
+
+    public List<BlogResponseDTO> searchBlogsByPartialTitle(String title) {
+        return blogRepository.findByTitleContaining(title)
+                .stream()
+                .map(BlogMapper::toResponseDTO)
+                .toList();
+    }
+
+
 }

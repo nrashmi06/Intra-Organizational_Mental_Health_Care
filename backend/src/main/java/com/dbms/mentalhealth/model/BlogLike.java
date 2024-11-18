@@ -1,12 +1,13 @@
 package com.dbms.mentalhealth.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
 @Entity
-@Table(name = "blog_likes")
+@Table(name = "blog_likes", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"blog_id", "user_id"})
+})
 public class BlogLike {
 
     @Id
@@ -17,6 +18,7 @@ public class BlogLike {
     @JoinColumn(name = "blog_id", nullable = false)
     private Blog blog;
 
-    @Column(name = "user_id", nullable = false)
-    private Integer userId;
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 }

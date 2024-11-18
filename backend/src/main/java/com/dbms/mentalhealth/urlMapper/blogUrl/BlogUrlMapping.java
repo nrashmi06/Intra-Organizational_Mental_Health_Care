@@ -15,7 +15,7 @@ public class BlogUrlMapping {
     public static final String UNLIKE_BLOG = BASE_API + BLOG_ID_PATH + "/unlike"; // Unlike a blog
     public static final String APPROVE_BLOG = BASE_API + BLOG_ID_PATH + "/approve"; // Approve blog
     public static final String GET_ALL_APPROVED_BLOGS = BASE_API + "/all"; // Get all blogs
-    public static final String CHECK_LIKE_STATUS = BASE_API + BLOG_ID_PATH + "/likes" + USER_ID_PATH; // Check if blog is liked by user    public static final String APPROVE_BLOG = BASE_API + BLOG_ID_PATH + "/approve"; // Approve blog
     public static final String GET_BLOGS_BY_USER = BASE_API + "/user"; // Get all blogs by user
     public static final String SEARCH_BLOGS_BY_PARTIAL_TITLE = BASE_API + "/search/title";
+    public static final String CHECK_LIKE_STATUS = BASE_API + BLOG_ID_PATH + "/likes" + USER_ID_PATH; // Check if blog is liked by user    public static final String APPROVE_BLOG = BASE_API + BLOG_ID_PATH + "/approve"; // Approve blog
 }
