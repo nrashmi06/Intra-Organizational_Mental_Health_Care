@@ -2,7 +2,6 @@ package com.dbms.mentalhealth.controller;
 
 import com.dbms.mentalhealth.dto.blog.request.BlogRequestDTO;
 import com.dbms.mentalhealth.dto.blog.response.BlogResponseDTO;
-import com.dbms.mentalhealth.model.User;
 import com.dbms.mentalhealth.service.BlogService;
 import com.dbms.mentalhealth.urlMapper.blogUrl.BlogUrlMapping;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,10 +67,13 @@ public class BlogController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
+
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @PostMapping(BlogUrlMapping.APPROVE_BLOG)
-    public ResponseEntity<BlogResponseDTO> approveBlog(@PathVariable("blogId") Integer blogId) {
-        BlogResponseDTO response = blogService.approveBlog(blogId);
+    @PostMapping(BlogUrlMapping.UPDATE_BLOG_APPROVAL_STATUS)
+    public ResponseEntity<BlogResponseDTO> updateBlogApprovalStatus(
+            @PathVariable("blogId") Integer blogId,
+            @RequestParam("isApproved") boolean isApproved) {
+        BlogResponseDTO response = blogService.updateBlogApprovalStatus(blogId, isApproved);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
@@ -93,6 +95,18 @@ public class BlogController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @GetMapping(BlogUrlMapping.GET_ALL_NOT_APPROVED_BLOGS)
+    public ResponseEntity<Iterable<BlogResponseDTO>> getAllNotApprovedBlogs() {
+        Iterable<BlogResponseDTO> response = blogService.getAllNotApprovedBlogs();
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
 
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @GetMapping(BlogUrlMapping.GET_ALL_REJECTED_BLOGS)
+    public ResponseEntity<Iterable<BlogResponseDTO>> getAllRejectedBlogs() {
+        Iterable<BlogResponseDTO> response = blogService.getAllRejectedBlogs();
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
 
 }

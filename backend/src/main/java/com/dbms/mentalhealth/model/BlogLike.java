@@ -15,10 +15,10 @@ public class BlogLike {
     private Integer id;
 
     @ManyToOne
-    @JoinColumn(name = "blog_id", nullable = false)
+    @JoinColumn(name = "blog_id", nullable = false) // Map to blog_id
     private Blog blog;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = false) // Map to user_id
     private User user;
 }

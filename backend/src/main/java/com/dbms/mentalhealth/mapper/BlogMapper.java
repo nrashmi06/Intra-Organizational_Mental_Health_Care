@@ -20,7 +20,7 @@ public class BlogMapper {
     public static BlogResponseDTO toResponseDTO(Blog blog) {
         // Map Blog entity to BlogResponseDTO
         return new BlogResponseDTO(
-                blog.getPostId(),
+                blog.getId(),
                 blog.getTitle(),
                 blog.getContent(),
                 blog.getUserId(),
