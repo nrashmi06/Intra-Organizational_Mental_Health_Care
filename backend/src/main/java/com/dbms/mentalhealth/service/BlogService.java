@@ -64,11 +64,17 @@ public class BlogService {
             return Optional.empty();
         }
         boolean isAdmin = userService.isAdmin(userId);
-        logger.info("Current user ID: {}, isAdmin: {}", userId, isAdmin);
+//        logger.info("Current user ID: {}, isAdmin: {}", userId, isAdmin);
 
         return blogRepository.findById(blogId)
-                .filter(blog -> blog.getApprovalStatus() == ApprovalStatus.APPROVED || isAdmin)
-                .map(BlogMapper::toResponseDTO);
+                .map(blog -> {
+                    if (blog.getApprovalStatus() == ApprovalStatus.APPROVED || isAdmin) {
+                        blog.setViewCount(blog.getViewCount() + 1);
+                        blogRepository.save(blog);
+                        return BlogMapper.toResponseDTO(blog);
+                    }
+                    return null;
+                });
     }
 
 
@@ -103,7 +109,6 @@ public class BlogService {
     }
 
     private String extractPublicIdFromUrl(String imageUrl) {
-        // Assuming the public ID is the last part of the URL without the file extension
         String[] parts = imageUrl.split("/");
         String publicIdWithExtension = parts[parts.length - 1];
         return publicIdWithExtension.split("\\.")[0];
@@ -146,12 +151,34 @@ public class BlogService {
             throw new RuntimeException("Failed to upload image to Cloudinary", e);
         }
     }
-    public BlogResponseDTO approveBlog(Integer blogId, Integer adminId) {
+    public BlogResponseDTO approveBlog(Integer blogId) {
         Blog blog = blogRepository.findById(blogId).orElseThrow(() -> new RuntimeException("Blog not found"));
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String username;
+        if (principal instanceof UserDetails) {
+            username = ((UserDetails) principal).getUsername();
+        } else {
+            username = principal.toString();
+        }
+        Integer adminId = userService.getUserIdByUsername(username);
         blog.setApprovalStatus(ApprovalStatus.APPROVED);
         blog.setApprovedBy(adminId);
         blog.setPublishDate(LocalDateTime.now());
         Blog approvedBlog = blogRepository.save(blog);
         return BlogMapper.toResponseDTO(approvedBlog);
+    }
+
+    public BlogResponseDTO likeBlog(Integer blogId) {
+        Blog blog = blogRepository.findById(blogId).orElseThrow(() -> new RuntimeException("Blog not found"));
+        blog.setLikeCount(blog.getLikeCount() + 1);
+        Blog likedBlog = blogRepository.save(blog);
+        return BlogMapper.toResponseDTO(likedBlog);
+    }
+
+    public BlogResponseDTO unlikeBlog(Integer blogId) {
+        Blog blog = blogRepository.findById(blogId).orElseThrow(() -> new RuntimeException("Blog not found"));
+        blog.setLikeCount(blog.getLikeCount() - 1);
+        Blog unlikedBlog = blogRepository.save(blog);
+        return BlogMapper.toResponseDTO(unlikedBlog);
     }
 }
