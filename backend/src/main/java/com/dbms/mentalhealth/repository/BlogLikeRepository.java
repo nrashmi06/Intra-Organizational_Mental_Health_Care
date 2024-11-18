@@ -6,5 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
 public interface BlogLikeRepository extends JpaRepository<BlogLike, Integer> {
-    Optional<BlogLike> findByUserIdAndBlogPostId(Integer userId, Integer blogId);
+    boolean existsByBlogIdAndUserUserId(Integer blogId, Integer userId);
+    Optional<BlogLike> findByBlogIdAndUserUserId(Integer blogId, Integer userId);//jpa convention its like find by User having UserId
 }

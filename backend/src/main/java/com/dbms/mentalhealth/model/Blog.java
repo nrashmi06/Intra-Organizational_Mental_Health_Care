@@ -15,8 +15,8 @@ public class Blog {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "post_id", nullable = false, updatable = false)
-    private Integer postId;
+    @Column(name = "id", nullable = false, updatable = false)
+    private Integer id;
 
     @NotNull
     @Column(name = "user_id", nullable = false)

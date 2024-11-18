@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -16,6 +17,7 @@ import java.util.Optional;
 @RestController
 public class BlogController {
     private final BlogService blogService;
+
 
     @Autowired
     public BlogController(BlogService blogService) {
@@ -51,6 +53,60 @@ public class BlogController {
     @DeleteMapping(BlogUrlMapping.DELETE_BLOG)
     public void deleteBlog(@PathVariable("blogId") Integer blogId) {
         blogService.deleteBlog(blogId);
+    }
+
+    @PostMapping(BlogUrlMapping.LIKE_BLOG)
+    public ResponseEntity<BlogResponseDTO> likeBlog(@PathVariable("blogId") Integer blogId) {
+        BlogResponseDTO response = blogService.likeBlog(blogId);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @PostMapping(BlogUrlMapping.UNLIKE_BLOG)
+    public ResponseEntity<BlogResponseDTO> unlikeBlog(@PathVariable("blogId") Integer blogId) {
+        BlogResponseDTO response = blogService.unlikeBlog(blogId);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PostMapping(BlogUrlMapping.UPDATE_BLOG_APPROVAL_STATUS)
+    public ResponseEntity<BlogResponseDTO> updateBlogApprovalStatus(
+            @PathVariable("blogId") Integer blogId,
+            @RequestParam("isApproved") boolean isApproved) {
+        BlogResponseDTO response = blogService.updateBlogApprovalStatus(blogId, isApproved);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @GetMapping(BlogUrlMapping.GET_ALL_APPROVED_BLOGS)
+    public ResponseEntity<Iterable<BlogResponseDTO>> getAllApprovedBlogs() {
+        Iterable<BlogResponseDTO> response = blogService.getAllApprovedBlogs();
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @GetMapping(BlogUrlMapping.GET_BLOGS_BY_USER)
+    public ResponseEntity<Iterable<BlogResponseDTO>> getBlogsByUser(@RequestParam("userId") Integer userId) {
+        Iterable<BlogResponseDTO> response = blogService.getBlogsByUser(userId);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @GetMapping(BlogUrlMapping.SEARCH_BLOGS_BY_PARTIAL_TITLE)
+    public ResponseEntity<Iterable<BlogResponseDTO>> searchBlogsByPartialTitle(@RequestParam("title") String title) {
+        Iterable<BlogResponseDTO> response = blogService.searchBlogsByPartialTitle(title);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @GetMapping(BlogUrlMapping.GET_ALL_NOT_APPROVED_BLOGS)
+    public ResponseEntity<Iterable<BlogResponseDTO>> getAllNotApprovedBlogs() {
+        Iterable<BlogResponseDTO> response = blogService.getAllNotApprovedBlogs();
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @GetMapping(BlogUrlMapping.GET_ALL_REJECTED_BLOGS)
+    public ResponseEntity<Iterable<BlogResponseDTO>> getAllRejectedBlogs() {
+        Iterable<BlogResponseDTO> response = blogService.getAllRejectedBlogs();
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
 }
