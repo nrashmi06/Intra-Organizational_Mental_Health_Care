@@ -21,6 +21,7 @@ import com.dbms.mentalhealth.service.UserService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -31,6 +32,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -184,12 +186,14 @@ public class UserServiceImpl implements UserService,UserDetailsService {
         // Validate and update role
         if (userUpdateDTO.getRole() != null) {
             if (userToUpdate.getRole().equals(Role.ADMIN)) {
-                throw new IllegalArgumentException("Cannot update role of user with ADMIN role");
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Cannot update role of user with ADMIN role");
             }
-            if (!userUpdateDTO.getRole().equals("ADMIN")) {
-                userToUpdate.setRole(Role.valueOf(userUpdateDTO.getRole()));
+            if (userUpdateDTO.getRole().equals("ADMIN")) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Cannot update role to ADMIN");
             }
+            userToUpdate.setRole(Role.valueOf(userUpdateDTO.getRole()));
         }
+        userToUpdate.setAnonymousName(userUpdateDTO.getAnonymousName());
 
         // Update profile status
         if (userUpdateDTO.getProfileStatus() != null) {
@@ -319,5 +323,9 @@ public class UserServiceImpl implements UserService,UserDetailsService {
     public Integer getUserIdByUsername(String username) {
         User user = userRepository.findByEmail(username);
         return user != null ? user.getUserId() : null;
+    }
+
+    public String getUserNameFromAuthentication(Authentication authentication) {
+        return authentication.getName();
     }
 }

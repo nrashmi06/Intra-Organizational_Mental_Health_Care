@@ -1,5 +1,6 @@
 package com.dbms.mentalhealth.security.jwt;
 
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import com.dbms.mentalhealth.config.ApplicationConfig;
 import io.jsonwebtoken.*;

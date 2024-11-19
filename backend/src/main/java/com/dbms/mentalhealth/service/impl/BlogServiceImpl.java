@@ -257,7 +257,7 @@ public class BlogServiceImpl implements BlogService {
             case "approved":
                 approvalStatus = ApprovalStatus.APPROVED;
                 break;
-            case "not-approved":
+            case "pending":
                 approvalStatus = ApprovalStatus.PENDING;
                 break;
             case "rejected":

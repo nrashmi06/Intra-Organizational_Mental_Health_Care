@@ -15,7 +15,7 @@ public class BlogUrlMapping {
     // Blog approval status
     public static final String UPDATE_BLOG_APPROVAL_STATUS = BASE_API + BLOG_ID_PATH + "/approval-status"; // Update blog approval status
     // Blog retrieval by approval status
-    public static final String GET_BLOGS_BY_APPROVAL_STATUS = BASE_API + "/status";
+    public static final String GET_BLOGS_BY_APPROVAL_STATUS = BASE_API;
     // Blog retrieval by user
     public static final String GET_BLOGS_BY_USER = BASE_API + "/user/{userId}"; // Get all blogs by user
     // Blog search

@@ -25,4 +25,5 @@ public interface UserService {
     Integer getUserIdByUsername(String username);
     boolean isAdmin(Integer userId);
     UserDetails loadUserByUsername(String email);
+    String getUserNameFromAuthentication(Authentication authentication);
 }

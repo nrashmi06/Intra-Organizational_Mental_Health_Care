@@ -70,7 +70,7 @@ public class BlogController {
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @PostMapping(BlogUrlMapping.UPDATE_BLOG_APPROVAL_STATUS)
+    @PutMapping(BlogUrlMapping.UPDATE_BLOG_APPROVAL_STATUS)
     public ResponseEntity<BlogResponseDTO> updateBlogApprovalStatus(
             @PathVariable("blogId") Integer blogId,
             @RequestParam("isApproved") boolean isApproved) {
