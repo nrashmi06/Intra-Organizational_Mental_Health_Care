@@ -12,6 +12,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -55,15 +56,16 @@ public class BlogController {
         blogService.deleteBlog(blogId);
     }
 
-    @PostMapping(BlogUrlMapping.LIKE_BLOG)
-    public ResponseEntity<BlogResponseDTO> likeBlog(@PathVariable("blogId") Integer blogId) {
-        BlogResponseDTO response = blogService.likeBlog(blogId);
-        return new ResponseEntity<>(response, HttpStatus.OK);
-    }
-
-    @PostMapping(BlogUrlMapping.UNLIKE_BLOG)
-    public ResponseEntity<BlogResponseDTO> unlikeBlog(@PathVariable("blogId") Integer blogId) {
-        BlogResponseDTO response = blogService.unlikeBlog(blogId);
+    @PostMapping(BlogUrlMapping.LIKE_UNLIKE_BLOG)
+    public ResponseEntity<BlogResponseDTO> likeOrUnlikeBlog(@PathVariable Integer blogId, @RequestParam("action") String action) {
+        BlogResponseDTO response;
+        if ("like".equalsIgnoreCase(action)) {
+            response = blogService.likeBlog(blogId);
+        } else if ("unlike".equalsIgnoreCase(action)) {
+            response = blogService.unlikeBlog(blogId);
+        } else {
+            throw new IllegalArgumentException("Invalid action: " + action);
+        }
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
@@ -74,12 +76,6 @@ public class BlogController {
             @PathVariable("blogId") Integer blogId,
             @RequestParam("isApproved") boolean isApproved) {
         BlogResponseDTO response = blogService.updateBlogApprovalStatus(blogId, isApproved);
-        return new ResponseEntity<>(response, HttpStatus.OK);
-    }
-
-    @GetMapping(BlogUrlMapping.GET_ALL_APPROVED_BLOGS)
-    public ResponseEntity<Iterable<BlogResponseDTO>> getAllApprovedBlogs() {
-        Iterable<BlogResponseDTO> response = blogService.getAllApprovedBlogs();
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
@@ -95,17 +91,9 @@ public class BlogController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @GetMapping(BlogUrlMapping.GET_ALL_NOT_APPROVED_BLOGS)
-    public ResponseEntity<Iterable<BlogResponseDTO>> getAllNotApprovedBlogs() {
-        Iterable<BlogResponseDTO> response = blogService.getAllNotApprovedBlogs();
-        return new ResponseEntity<>(response, HttpStatus.OK);
-    }
-
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @GetMapping(BlogUrlMapping.GET_ALL_REJECTED_BLOGS)
-    public ResponseEntity<Iterable<BlogResponseDTO>> getAllRejectedBlogs() {
-        Iterable<BlogResponseDTO> response = blogService.getAllRejectedBlogs();
+    @GetMapping(BlogUrlMapping.GET_BLOGS_BY_APPROVAL_STATUS)
+    public ResponseEntity<List<BlogResponseDTO>> getBlogsByApprovalStatus(@RequestParam("status") String status) {
+        List<BlogResponseDTO> response = blogService.getBlogsByApprovalStatus(status);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 

@@ -17,7 +17,7 @@ public class BlogMapper {
         return blog;
     }
 
-    public static BlogResponseDTO toResponseDTO(Blog blog) {
+    public static BlogResponseDTO toResponseDTO(Blog blog,boolean likedByCurrentUser) {
         // Map Blog entity to BlogResponseDTO
         return new BlogResponseDTO(
                 blog.getId(),
@@ -30,7 +30,8 @@ public class BlogMapper {
                 blog.getViewCount(),
                 blog.getLikeCount(),
                 blog.getCreatedAt(),
-                blog.getUpdatedAt()
+                blog.getUpdatedAt(),
+                likedByCurrentUser
         );
     }
 }
