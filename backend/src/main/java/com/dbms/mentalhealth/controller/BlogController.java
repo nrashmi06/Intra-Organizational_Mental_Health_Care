@@ -2,6 +2,7 @@ package com.dbms.mentalhealth.controller;
 
 import com.dbms.mentalhealth.dto.blog.request.BlogRequestDTO;
 import com.dbms.mentalhealth.dto.blog.response.BlogResponseDTO;
+import com.dbms.mentalhealth.dto.blog.response.BlogSummaryDTO;
 import com.dbms.mentalhealth.service.BlogService;
 import com.dbms.mentalhealth.urlMapper.blogUrl.BlogUrlMapping;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +13,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -55,15 +57,16 @@ public class BlogController {
         blogService.deleteBlog(blogId);
     }
 
-    @PostMapping(BlogUrlMapping.LIKE_BLOG)
-    public ResponseEntity<BlogResponseDTO> likeBlog(@PathVariable("blogId") Integer blogId) {
-        BlogResponseDTO response = blogService.likeBlog(blogId);
-        return new ResponseEntity<>(response, HttpStatus.OK);
-    }
-
-    @PostMapping(BlogUrlMapping.UNLIKE_BLOG)
-    public ResponseEntity<BlogResponseDTO> unlikeBlog(@PathVariable("blogId") Integer blogId) {
-        BlogResponseDTO response = blogService.unlikeBlog(blogId);
+    @PostMapping(BlogUrlMapping.LIKE_UNLIKE_BLOG)
+    public ResponseEntity<BlogResponseDTO> likeOrUnlikeBlog(@PathVariable Integer blogId, @RequestParam("action") String action) {
+        BlogResponseDTO response;
+        if ("like".equalsIgnoreCase(action)) {
+            response = blogService.likeBlog(blogId);
+        } else if ("unlike".equalsIgnoreCase(action)) {
+            response = blogService.unlikeBlog(blogId);
+        } else {
+            throw new IllegalArgumentException("Invalid action: " + action);
+        }
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
@@ -77,35 +80,21 @@ public class BlogController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @GetMapping(BlogUrlMapping.GET_ALL_APPROVED_BLOGS)
-    public ResponseEntity<Iterable<BlogResponseDTO>> getAllApprovedBlogs() {
-        Iterable<BlogResponseDTO> response = blogService.getAllApprovedBlogs();
-        return new ResponseEntity<>(response, HttpStatus.OK);
-    }
-
     @GetMapping(BlogUrlMapping.GET_BLOGS_BY_USER)
-    public ResponseEntity<Iterable<BlogResponseDTO>> getBlogsByUser(@RequestParam("userId") Integer userId) {
-        Iterable<BlogResponseDTO> response = blogService.getBlogsByUser(userId);
+    public ResponseEntity<Iterable<BlogSummaryDTO>> getBlogsByUser(@PathVariable Integer userId) {
+        Iterable<BlogSummaryDTO> response = blogService.getBlogsByUser(userId);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @GetMapping(BlogUrlMapping.SEARCH_BLOGS_BY_PARTIAL_TITLE)
-    public ResponseEntity<Iterable<BlogResponseDTO>> searchBlogsByPartialTitle(@RequestParam("title") String title) {
-        Iterable<BlogResponseDTO> response = blogService.searchBlogsByPartialTitle(title);
+    public ResponseEntity<Iterable<BlogSummaryDTO>> searchBlogsByPartialTitle(@RequestParam("title") String title) {
+        Iterable<BlogSummaryDTO> response = blogService.searchBlogsByPartialTitle(title);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @GetMapping(BlogUrlMapping.GET_ALL_NOT_APPROVED_BLOGS)
-    public ResponseEntity<Iterable<BlogResponseDTO>> getAllNotApprovedBlogs() {
-        Iterable<BlogResponseDTO> response = blogService.getAllNotApprovedBlogs();
-        return new ResponseEntity<>(response, HttpStatus.OK);
-    }
-
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @GetMapping(BlogUrlMapping.GET_ALL_REJECTED_BLOGS)
-    public ResponseEntity<Iterable<BlogResponseDTO>> getAllRejectedBlogs() {
-        Iterable<BlogResponseDTO> response = blogService.getAllRejectedBlogs();
+    @GetMapping(BlogUrlMapping.GET_BLOGS_BY_APPROVAL_STATUS)
+    public ResponseEntity<List<BlogSummaryDTO>> getBlogsByApprovalStatus(@RequestParam("status") String status) {
+        List<BlogSummaryDTO> response = blogService.getBlogsByApprovalStatus(status);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 

@@ -22,4 +22,5 @@ public class BlogResponseDTO {
     private int likeCount;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private boolean likedByCurrentUser;
 }

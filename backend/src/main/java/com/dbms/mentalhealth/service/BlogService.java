@@ -4,6 +4,7 @@ import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import com.dbms.mentalhealth.dto.blog.request.BlogRequestDTO;
 import com.dbms.mentalhealth.dto.blog.response.BlogResponseDTO;
+import com.dbms.mentalhealth.dto.blog.response.BlogSummaryDTO;
 import com.dbms.mentalhealth.enums.ApprovalStatus;
 import com.dbms.mentalhealth.mapper.BlogMapper;
 import com.dbms.mentalhealth.model.Blog;
@@ -24,6 +25,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class BlogService {
@@ -54,7 +56,7 @@ public class BlogService {
             blog.setApprovalStatus(ApprovalStatus.PENDING);
         }
         Blog createdBlog = blogRepository.save(blog);
-        return BlogMapper.toResponseDTO(createdBlog);
+        return BlogMapper.toResponseDTO(createdBlog,false);
     }
 
 
@@ -71,7 +73,8 @@ public class BlogService {
                     if (blog.getApprovalStatus() == ApprovalStatus.APPROVED || isAdmin) {
                         blog.setViewCount(blog.getViewCount() + 1);
                         blogRepository.save(blog);
-                        return BlogMapper.toResponseDTO(blog);
+                        boolean likedByCurrentUser = blogLikeRepository.existsByBlogIdAndUserUserId(blogId, userId);
+                        return BlogMapper.toResponseDTO(blog, likedByCurrentUser);
                     }
                     return null;
                 });
@@ -96,7 +99,8 @@ public class BlogService {
         blog.setSummary(blogRequestDTO.getSummary());
         blog.setApprovalStatus(ApprovalStatus.PENDING);
         Blog updatedBlog = blogRepository.save(blog);
-        return BlogMapper.toResponseDTO(updatedBlog);
+        boolean likedByCurrentUser = blogLikeRepository.existsByBlogIdAndUserUserId(blogId, userService.getUserIdByUsername(getUsernameFromContext()));
+        return BlogMapper.toResponseDTO(updatedBlog, likedByCurrentUser);
     }
 
     private void deleteImageFromCloudinary(String imageUrl) {
@@ -150,7 +154,8 @@ public class BlogService {
         Blog blog = blogRepository.findById(blogId).orElseThrow(() -> new RuntimeException("Blog not found"));
         blog.setApprovalStatus(isApproved ? ApprovalStatus.APPROVED : ApprovalStatus.REJECTED);
         Blog updatedBlog = blogRepository.save(blog);
-        return BlogMapper.toResponseDTO(updatedBlog);
+        boolean likedByCurrentUser = blogLikeRepository.existsByBlogIdAndUserUserId(blogId, userService.getUserIdByUsername(getUsernameFromContext()));
+        return BlogMapper.toResponseDTO(updatedBlog, likedByCurrentUser);
     }
 
     public BlogResponseDTO likeBlog(Integer blogId) {
@@ -169,7 +174,7 @@ public class BlogService {
         blogLikeRepository.save(blogLike);
         blogRepository.save(blog);
 
-        return BlogMapper.toResponseDTO(blog);
+        return BlogMapper.toResponseDTO(blog,true);
     }
 
     public BlogResponseDTO unlikeBlog(Integer blogId) {
@@ -184,23 +189,16 @@ public class BlogService {
         blog.setLikeCount(blog.getLikeCount() - 1);
         blogRepository.save(blog);
 
-        return BlogMapper.toResponseDTO(blog);    }
+        return BlogMapper.toResponseDTO(blog,false);    }
 
     private String getUsernameFromContext() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return (principal instanceof UserDetails) ? ((UserDetails) principal).getUsername() : principal.toString();
     }
 
-    @Transactional
-    public List<BlogResponseDTO> getAllApprovedBlogs() {
-        return blogRepository.findAllByApprovalStatus(ApprovalStatus.APPROVED)
-                .stream()
-                .map(BlogMapper::toResponseDTO)
-                .toList();
-    }
 
     @Transactional
-    public List<BlogResponseDTO> getBlogsByUser(Integer userId) {
+    public List<BlogSummaryDTO> getBlogsByUser(Integer userId) {
         String username = getUsernameFromContext();
         Integer currentUserId = userService.getUserIdByUsername(username);
         if (currentUserId == null) {
@@ -210,41 +208,71 @@ public class BlogService {
         if (isAdmin) {
             return blogRepository.findByUserId(userId)
                     .stream()
-                    .map(BlogMapper::toResponseDTO)
-                    .toList();
+                    .map(blog -> {
+                        boolean likedByCurrentUser = blogLikeRepository.existsByBlogIdAndUserUserId(blog.getId(), currentUserId);
+                        return BlogMapper.toSummaryDTO(blog, likedByCurrentUser);
+                    })
+                    .collect(Collectors.toList());
         } else {
             return blogRepository.findByUserIdAndApprovalStatus(userId, ApprovalStatus.APPROVED)
                     .stream()
-                    .map(BlogMapper::toResponseDTO)
-                    .toList();
+                    .map(blog -> {
+                        boolean likedByCurrentUser = blogLikeRepository.existsByBlogIdAndUserUserId(blog.getId(), currentUserId);
+                        return BlogMapper.toSummaryDTO(blog, likedByCurrentUser);
+                    })
+                    .collect(Collectors.toList());
         }
     }
 
-
     @Transactional
-    public List<BlogResponseDTO> searchBlogsByPartialTitle(String title) {
+    public List<BlogSummaryDTO> searchBlogsByPartialTitle(String title) {
         String normalizedTitle = title.trim().toLowerCase();
+        String username = getUsernameFromContext();
+        Integer userId = userService.getUserIdByUsername(username);
 
         return blogRepository.findByTitleContainingIgnoreCase(normalizedTitle)
                 .stream()
-                .map(BlogMapper::toResponseDTO)
-                .toList();
+                .map(blog -> {
+                    boolean likedByCurrentUser = blogLikeRepository.existsByBlogIdAndUserUserId(blog.getId(), userId);
+                    return BlogMapper.toSummaryDTO(blog, likedByCurrentUser);
+                })
+                .collect(Collectors.toList());
     }
 
     @Transactional
-    public List<BlogResponseDTO> getAllNotApprovedBlogs() {
-        return blogRepository.findAllByApprovalStatus(ApprovalStatus.PENDING)
-                .stream()
-                .map(BlogMapper::toResponseDTO)
-                .toList();
-    }
+    public List<BlogSummaryDTO> getBlogsByApprovalStatus(String status) {
+        String username = getUsernameFromContext();
+        Integer userId = userService.getUserIdByUsername(username);
+        if (userId == null) {
+            throw new RuntimeException("User not found");
+        }
+        boolean isAdmin = userService.isAdmin(userId);
 
-    @Transactional
-    public List<BlogResponseDTO> getAllRejectedBlogs() {
-        return blogRepository.findAllByApprovalStatus(ApprovalStatus.REJECTED)
-                .stream()
-                .map(BlogMapper::toResponseDTO)
-                .toList();
+        if (!isAdmin && !status.equalsIgnoreCase("approved")) {
+            throw new IllegalArgumentException("Only approved blogs can be retrieved by non-admin users");
+        }
+
+        ApprovalStatus approvalStatus;
+        switch (status.toLowerCase()) {
+            case "approved":
+                approvalStatus = ApprovalStatus.APPROVED;
+                break;
+            case "not-approved":
+                approvalStatus = ApprovalStatus.PENDING;
+                break;
+            case "rejected":
+                approvalStatus = ApprovalStatus.REJECTED;
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid status: " + status);
+        }
+        List<Blog> blogs = blogRepository.findAllByApprovalStatus(approvalStatus);
+        return blogs.stream()
+                .map(blog -> {
+                    boolean likedByCurrentUser = blogLikeRepository.existsByBlogIdAndUserUserId(blog.getId(), userId);
+                    return BlogMapper.toSummaryDTO(blog, likedByCurrentUser);
+                })
+                .collect(Collectors.toList());
     }
 
 }
