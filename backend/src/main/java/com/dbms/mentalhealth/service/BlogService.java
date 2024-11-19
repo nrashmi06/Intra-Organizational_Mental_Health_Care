@@ -4,6 +4,7 @@ import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import com.dbms.mentalhealth.dto.blog.request.BlogRequestDTO;
 import com.dbms.mentalhealth.dto.blog.response.BlogResponseDTO;
+import com.dbms.mentalhealth.dto.blog.response.BlogSummaryDTO;
 import com.dbms.mentalhealth.enums.ApprovalStatus;
 import com.dbms.mentalhealth.mapper.BlogMapper;
 import com.dbms.mentalhealth.model.Blog;
@@ -197,7 +198,7 @@ public class BlogService {
 
 
     @Transactional
-    public List<BlogResponseDTO> getBlogsByUser(Integer userId) {
+    public List<BlogSummaryDTO> getBlogsByUser(Integer userId) {
         String username = getUsernameFromContext();
         Integer currentUserId = userService.getUserIdByUsername(username);
         if (currentUserId == null) {
@@ -209,7 +210,7 @@ public class BlogService {
                     .stream()
                     .map(blog -> {
                         boolean likedByCurrentUser = blogLikeRepository.existsByBlogIdAndUserUserId(blog.getId(), currentUserId);
-                        return BlogMapper.toResponseDTO(blog, likedByCurrentUser);
+                        return BlogMapper.toSummaryDTO(blog, likedByCurrentUser);
                     })
                     .collect(Collectors.toList());
         } else {
@@ -217,15 +218,14 @@ public class BlogService {
                     .stream()
                     .map(blog -> {
                         boolean likedByCurrentUser = blogLikeRepository.existsByBlogIdAndUserUserId(blog.getId(), currentUserId);
-                        return BlogMapper.toResponseDTO(blog, likedByCurrentUser);
+                        return BlogMapper.toSummaryDTO(blog, likedByCurrentUser);
                     })
                     .collect(Collectors.toList());
         }
     }
 
-
     @Transactional
-    public List<BlogResponseDTO> searchBlogsByPartialTitle(String title) {
+    public List<BlogSummaryDTO> searchBlogsByPartialTitle(String title) {
         String normalizedTitle = title.trim().toLowerCase();
         String username = getUsernameFromContext();
         Integer userId = userService.getUserIdByUsername(username);
@@ -234,14 +234,13 @@ public class BlogService {
                 .stream()
                 .map(blog -> {
                     boolean likedByCurrentUser = blogLikeRepository.existsByBlogIdAndUserUserId(blog.getId(), userId);
-                    return BlogMapper.toResponseDTO(blog, likedByCurrentUser);
+                    return BlogMapper.toSummaryDTO(blog, likedByCurrentUser);
                 })
                 .collect(Collectors.toList());
     }
 
-
     @Transactional
-    public List<BlogResponseDTO> getBlogsByApprovalStatus(String status) {
+    public List<BlogSummaryDTO> getBlogsByApprovalStatus(String status) {
         String username = getUsernameFromContext();
         Integer userId = userService.getUserIdByUsername(username);
         if (userId == null) {
@@ -271,7 +270,7 @@ public class BlogService {
         return blogs.stream()
                 .map(blog -> {
                     boolean likedByCurrentUser = blogLikeRepository.existsByBlogIdAndUserUserId(blog.getId(), userId);
-                    return BlogMapper.toResponseDTO(blog, likedByCurrentUser);
+                    return BlogMapper.toSummaryDTO(blog, likedByCurrentUser);
                 })
                 .collect(Collectors.toList());
     }

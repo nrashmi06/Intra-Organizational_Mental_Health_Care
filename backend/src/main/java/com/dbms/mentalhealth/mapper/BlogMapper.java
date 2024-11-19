@@ -2,6 +2,7 @@ package com.dbms.mentalhealth.mapper;
 
 import com.dbms.mentalhealth.dto.blog.request.BlogRequestDTO;
 import com.dbms.mentalhealth.dto.blog.response.BlogResponseDTO;
+import com.dbms.mentalhealth.dto.blog.response.BlogSummaryDTO;
 import com.dbms.mentalhealth.model.Blog;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -33,5 +34,14 @@ public class BlogMapper {
                 blog.getUpdatedAt(),
                 likedByCurrentUser
         );
+    }
+    public static BlogSummaryDTO toSummaryDTO(Blog blog, boolean likedByCurrentUser) {
+        BlogSummaryDTO summaryDTO = new BlogSummaryDTO();
+        summaryDTO.setId(blog.getId());
+        summaryDTO.setTitle(blog.getTitle());
+        summaryDTO.setSummary(blog.getSummary());
+        summaryDTO.setLikeCount(blog.getLikeCount());
+        summaryDTO.setLikedByCurrentUser(likedByCurrentUser);
+        return summaryDTO;
     }
 }

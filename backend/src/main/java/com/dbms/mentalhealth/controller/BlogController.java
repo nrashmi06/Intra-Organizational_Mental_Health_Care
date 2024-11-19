@@ -2,6 +2,7 @@ package com.dbms.mentalhealth.controller;
 
 import com.dbms.mentalhealth.dto.blog.request.BlogRequestDTO;
 import com.dbms.mentalhealth.dto.blog.response.BlogResponseDTO;
+import com.dbms.mentalhealth.dto.blog.response.BlogSummaryDTO;
 import com.dbms.mentalhealth.service.BlogService;
 import com.dbms.mentalhealth.urlMapper.blogUrl.BlogUrlMapping;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,20 +81,20 @@ public class BlogController {
     }
 
     @GetMapping(BlogUrlMapping.GET_BLOGS_BY_USER)
-    public ResponseEntity<Iterable<BlogResponseDTO>> getBlogsByUser(@RequestParam("userId") Integer userId) {
-        Iterable<BlogResponseDTO> response = blogService.getBlogsByUser(userId);
+    public ResponseEntity<Iterable<BlogSummaryDTO>> getBlogsByUser(@PathVariable Integer userId) {
+        Iterable<BlogSummaryDTO> response = blogService.getBlogsByUser(userId);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @GetMapping(BlogUrlMapping.SEARCH_BLOGS_BY_PARTIAL_TITLE)
-    public ResponseEntity<Iterable<BlogResponseDTO>> searchBlogsByPartialTitle(@RequestParam("title") String title) {
-        Iterable<BlogResponseDTO> response = blogService.searchBlogsByPartialTitle(title);
+    public ResponseEntity<Iterable<BlogSummaryDTO>> searchBlogsByPartialTitle(@RequestParam("title") String title) {
+        Iterable<BlogSummaryDTO> response = blogService.searchBlogsByPartialTitle(title);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @GetMapping(BlogUrlMapping.GET_BLOGS_BY_APPROVAL_STATUS)
-    public ResponseEntity<List<BlogResponseDTO>> getBlogsByApprovalStatus(@RequestParam("status") String status) {
-        List<BlogResponseDTO> response = blogService.getBlogsByApprovalStatus(status);
+    public ResponseEntity<List<BlogSummaryDTO>> getBlogsByApprovalStatus(@RequestParam("status") String status) {
+        List<BlogSummaryDTO> response = blogService.getBlogsByApprovalStatus(status);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
