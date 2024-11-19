@@ -10,7 +10,6 @@ import java.util.Optional;
 public  interface BlogRepository extends JpaRepository<Blog, Integer> {
     List<Blog> findByUserId(Integer userId);
     Optional<Blog> findById(Integer blogId);
-    List<Blog> findByTitleContaining(String title);
     List<Blog> findAllByApprovalStatus(ApprovalStatus approvalStatus);
     List<Blog> findByUserIdAndApprovalStatus(Integer userId, ApprovalStatus approvalStatus);
     List<Blog> findByTitleContainingIgnoreCase(String title);

@@ -4,7 +4,6 @@ import com.dbms.mentalhealth.dto.blog.request.BlogRequestDTO;
 import com.dbms.mentalhealth.dto.blog.response.BlogResponseDTO;
 import com.dbms.mentalhealth.dto.blog.response.BlogSummaryDTO;
 import com.dbms.mentalhealth.model.Blog;
-import org.springframework.web.multipart.MultipartFile;
 
 public class BlogMapper {
 

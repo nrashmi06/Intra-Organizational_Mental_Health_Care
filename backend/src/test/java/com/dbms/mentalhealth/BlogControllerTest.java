@@ -2,7 +2,7 @@ package com.dbms.mentalhealth.controller;
 
 import com.dbms.mentalhealth.dto.blog.request.BlogRequestDTO;
 import com.dbms.mentalhealth.dto.blog.response.BlogResponseDTO;
-import com.dbms.mentalhealth.service.BlogService;
+import com.dbms.mentalhealth.service.impl.BlogServiceImpl;
 import com.dbms.mentalhealth.urlMapper.blogUrl.BlogUrlMapping;
 import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,7 +37,7 @@ public class BlogControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
-    private BlogService blogService;
+    private BlogServiceImpl blogServiceImpl;
 
     @MockBean
     private JwtUtils jwtUtils;
@@ -64,7 +64,7 @@ public class BlogControllerTest {
         blogResponseDTO.setTitle("My Blog");
         blogResponseDTO.setContent("This is the content");
 
-        when(blogService.createBlog(any(BlogRequestDTO.class), any(MockMultipartFile.class))).thenReturn(blogResponseDTO);
+        when(blogServiceImpl.createBlog(any(BlogRequestDTO.class), any(MockMultipartFile.class))).thenReturn(blogResponseDTO);
 
         MockMultipartFile blog = new MockMultipartFile("blog", "", "application/json", "{\"title\": \"My Blog\", \"content\": \"This is the content\", \"userId\": 1, \"summary\": \"This is a summary\"}".getBytes());
         MockMultipartFile image = new MockMultipartFile("image", "image.jpg", "image/jpeg", new FileInputStream("C:\\Users\\ajayp\\Downloads\\S0949343.JPG"));

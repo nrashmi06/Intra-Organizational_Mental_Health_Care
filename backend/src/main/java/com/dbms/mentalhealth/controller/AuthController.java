@@ -10,6 +10,7 @@ import com.dbms.mentalhealth.dto.user.response.UserRegistrationResponseDTO;
 import com.dbms.mentalhealth.dto.user.response.VerifyEmailResponseDTO;
 import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.service.UserService;
+import com.dbms.mentalhealth.service.impl.UserServiceImpl;
 import com.dbms.mentalhealth.urlMapper.userUrl.UserUrlMapping;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

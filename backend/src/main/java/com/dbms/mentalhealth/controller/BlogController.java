@@ -20,7 +20,6 @@ import java.util.Optional;
 public class BlogController {
     private final BlogService blogService;
 
-
     @Autowired
     public BlogController(BlogService blogService) {
         this.blogService = blogService;
@@ -70,7 +69,6 @@ public class BlogController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PostMapping(BlogUrlMapping.UPDATE_BLOG_APPROVAL_STATUS)
     public ResponseEntity<BlogResponseDTO> updateBlogApprovalStatus(
@@ -97,5 +95,4 @@ public class BlogController {
         List<BlogSummaryDTO> response = blogService.getBlogsByApprovalStatus(status);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
-
 }
