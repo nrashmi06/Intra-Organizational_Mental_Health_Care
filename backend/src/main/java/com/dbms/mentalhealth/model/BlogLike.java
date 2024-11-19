@@ -14,7 +14,7 @@ public class BlogLike {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "blog_id", nullable = false) // Map to blog_id
     private Blog blog;
 

@@ -1,6 +1,7 @@
 package com.dbms.mentalhealth.security.jwt;
 
 import com.dbms.mentalhealth.service.UserService;
+import com.dbms.mentalhealth.service.impl.UserServiceImpl;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -26,7 +27,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
     private final UserService userService;
     private static final Logger logger = LoggerFactory.getLogger(AuthTokenFilter.class);
 
-    public AuthTokenFilter(JwtUtils jwtUtils, @Lazy UserService userService) {
+    public AuthTokenFilter(JwtUtils jwtUtils, @Lazy UserServiceImpl userService) {
         this.jwtUtils = jwtUtils;
         this.userService = userService;
     }

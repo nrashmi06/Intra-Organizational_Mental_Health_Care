@@ -5,6 +5,7 @@ import com.dbms.mentalhealth.dto.user.request.UserUpdateRequestDTO;
 import com.dbms.mentalhealth.dto.user.response.UserInfoResponseDTO;
 import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.service.UserService;
+import com.dbms.mentalhealth.service.impl.UserServiceImpl;
 import com.dbms.mentalhealth.urlMapper.userUrl.UserUrlMapping;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
@@ -19,7 +20,7 @@ public class UserManagementController {
     private final JwtUtils jwtUtils;
     private final UserService userService;
 
-    public UserManagementController(UserService userService, JwtUtils jwtUtils) {
+    public UserManagementController(UserServiceImpl userService, JwtUtils jwtUtils) {
         this.userService = userService;
         this.jwtUtils = jwtUtils;
     }
