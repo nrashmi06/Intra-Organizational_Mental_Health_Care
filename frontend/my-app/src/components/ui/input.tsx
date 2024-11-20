@@ -6,13 +6,15 @@ export const Input = ({
   type = 'text',
   placeholder,
   value,
-  onChange
+  onChange,
+  className
 }: {
   id: string
   type?: string
   placeholder?: string
   value?: string
   onChange?: React.ChangeEventHandler<HTMLInputElement>
+  className?: string
 }) => {
   return (
     <input
@@ -21,7 +23,7 @@ export const Input = ({
       placeholder={placeholder}
       value={value}
       onChange={onChange}
-      className="p-2 border border-gray-300 rounded-md w-full"
+      className={`p-2 border border-gray-300 rounded-md w-full ${className}`}
     />
   )
 }

@@ -49,12 +49,12 @@ export default function SignIn() {
             <form className="space-y-6">
               <div className="space-y-2">
                 <label className="text-sm font-medium" htmlFor="phone">
-                  Phone Number
+                  E-mail
                 </label>
                 <Input
-                  id="phone"
+                  id="email"
                   type="tel"
-                  placeholder="+91 1234567891"
+                  placeholder="example@example.com"
                 />
               </div>
 
@@ -93,7 +93,7 @@ export default function SignIn() {
                   </label>
                 </div>
                 <Link
-                  href="/forgotpass"
+                  href="/forgotpassword"
                   className="text-sm font-medium text-primary hover:underline"
                 >
                   Forgot Password?

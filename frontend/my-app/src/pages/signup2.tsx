@@ -1,17 +1,17 @@
 'use client'
 
-import Image from "next/image"
+import Image from "next/image";
 import { useState } from "react"; // Import useState
-import { Input } from "@/components/ui/input"
-import Footer from "@/components/footer/Footer"
-import Navbar from "@/components/navbar/NavBar" // Import the Navbar component
-import { Button } from "@/components/ui/button" // Import Button component
-import { Checkbox } from "@/components/ui/checkbox1" // Import Checkbox component
+import { Input } from "@/components/ui/input";
+import Footer from "@/components/footer/Footer";
+import Navbar from "@/components/navbar/NavBar"; // Import the Navbar component
+import { Button } from "@/components/ui/button"; // Import Button component
+import { Checkbox } from "@/components/ui/checkbox1"; // Import Checkbox component
 import "@/styles/global.css";
 
 export default function SignIn() {
-  const [phone, setPhone] = useState('');
-  const [confirmPhone, setConfirmPhone] = useState('');
+  const [email, setEmail] = useState('');
+  const [confirmEmail, setConfirmEmail] = useState('');
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
@@ -27,8 +27,8 @@ export default function SignIn() {
             <div className="flex justify-center mb-6">
               <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center">
                 <Image
-                  src="/phone.png"
-                  alt="Phone icon"
+                  src="/email-icon.png"
+                  alt="Email icon"
                   width={64}
                   height={64}
                   className="w-16 h-16"
@@ -46,47 +46,33 @@ export default function SignIn() {
               A Safe Place to Connect
             </h2>
 
-            {/* Phone Number Input */}
+            {/* Email Input */}
             <div className="space-y-2 mb-4">
-              <label className="text-sm font-medium" htmlFor="phone">
-                Phone Number
+              <label className="text-sm font-medium" htmlFor="email">
+                E-mail
               </label>
               <Input
-                id="phone"
-                type="tel"
-                placeholder="+91 1234567891"
+                id="email"
+                type="email"
+                placeholder="example@domain.com"
                 className="h-14"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
             </div>
 
+            {/* Confirm Email Input */}
             <div className="space-y-2 mb-4">
-              <label className="text-sm font-medium" htmlFor="confirm-phone">
-                Password
+              <label className="text-sm font-medium" htmlFor="confirm-email">
+                Confirm E-mail
               </label>
               <Input
-                id="confirm-phone"
-                type="tel"
-                placeholder="+91 1234567891"
+                id="confirm-email"
+                type="email"
+                placeholder="example@domain.com"
                 className="h-14"
-                value={confirmPhone}
-                onChange={(e) => setConfirmPhone(e.target.value)}
-              />
-            </div>
-
-            {/* Confirm Phone Number Input */}
-            <div className="space-y-2 mb-4">
-              <label className="text-sm font-medium" htmlFor="confirm-phone">
-                Confirm Password
-              </label>
-              <Input
-                id="confirm-phone"
-                type="tel"
-                placeholder="+91 1234567891"
-                className="h-14"
-                value={confirmPhone}
-                onChange={(e) => setConfirmPhone(e.target.value)}
+                value={confirmEmail}
+                onChange={(e) => setConfirmEmail(e.target.value)}
               />
             </div>
 
@@ -98,17 +84,17 @@ export default function SignIn() {
               </label>
             </div>
 
-            {/* Get OTP Button */}
+            {/* Create Account Button */}
             <Button className="w-full mt-4 bg-black text-white hover:bg-black/90">
               Create an Account
             </Button>
             <p className="text-center text-sm text-gray-500 mt-4">
-  Have an Account? <a href="/signin" className="text-blue-500 hover:underline">Sign in</a>
-</p>
+              Have an Account? <a href="/signin" className="text-blue-500 hover:underline">Sign in</a>
+            </p>
           </div>
         </div>
       </main>
       <Footer />
     </div>
-  )
+  );
 }
