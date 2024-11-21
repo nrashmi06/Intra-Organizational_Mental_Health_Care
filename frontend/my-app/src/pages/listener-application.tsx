@@ -9,8 +9,6 @@ import { Textarea } from "@/components/ui/textarea"
 import { ImagePlus } from 'lucide-react'
 import { useRouter } from 'next/router'
 import "@/styles/globals.css"
-
-// Import Navbar component
 import Navbar from "@/components/navbar/Navbar2"
 
 export default function Component() {
