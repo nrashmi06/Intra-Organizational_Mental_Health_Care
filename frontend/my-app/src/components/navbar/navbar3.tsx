@@ -70,7 +70,7 @@ export default function Navbar() {
                     <Link href="/profile" className="block px-4 py-2 text-sm hover:bg-gray-100">
                       Profile
                     </Link>
-                    <Link href="/logout" className="block px-4 py-2 text-sm hover:bg-gray-100">
+                    <Link href="/" className="block px-4 py-2 text-sm hover:bg-gray-100">
                       Logout
                     </Link>
                   </div>
