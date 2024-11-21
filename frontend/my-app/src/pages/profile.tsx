@@ -16,8 +16,9 @@ import "@/styles/global.css";
 export default function Profile() {
   return (
     <div className="min-h-screen bg-gradient-to-r from-pink-100 via-purple-100 to-purple-200">
+      <Navbar />
       <header className="w-full py-4">
-       <Navbar />
+       
           
           
       </header>
