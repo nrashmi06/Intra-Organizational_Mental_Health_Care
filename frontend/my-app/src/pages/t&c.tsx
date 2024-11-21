@@ -38,7 +38,7 @@ export default function TermsAndConditions() {
   // Function to handle popup acknowledgment
   const handlePopupClose = () => {
     setShowPopup(false); // Hide the popup
-    router.push('/welcome'); // Redirect to the "welcome" page
+    router.push('/signin'); // Redirect to the "welcome" page
   };
 
   return (
