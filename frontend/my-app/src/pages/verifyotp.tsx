@@ -1,19 +1,20 @@
 'use client'
 
-import Image from "next/image"
-import { useState, useEffect } from "react"; // Import useState and useEffect
-import { Input } from "@/components/ui/input"
-import Footer from "@/components/footer/Footer"
-import Navbar from "@/components/navbar/NavBar" // Import the Navbar component
-import { Button } from "@/components/ui/button" // Import Button component
+import Image from "next/image";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation"; // Import useRouter
+import { Input } from "@/components/ui/input";
+import Footer from "@/components/footer/Footer";
+import Navbar from "@/components/navbar/NavBar"; 
+import { Button } from "@/components/ui/button";
 import "@/styles/global.css";
 
 export default function VerifyOTP() {
-  const [otp, setOtp] = useState(["", "", "", ""]);
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [timeLeft, setTimeLeft] = useState(60); // Timer countdown starts from 60 seconds
+  const router = useRouter(); // Initialize the router for navigation
 
-  // Handle OTP input change
-  const handleOtpChange = (index, value) => {
+  const handleOtpChange = (index: number, value: string) => {
     if (value.length <= 1) {
       const newOtp = [...otp];
       newOtp[index] = value;
@@ -38,7 +39,10 @@ export default function VerifyOTP() {
   const handleConfirm = () => {
     const enteredOtp = otp.join("");
     console.log("Entered OTP:", enteredOtp);
-    // Add logic to verify the OTP
+
+    // Add your OTP verification logic here
+    // If OTP is valid, redirect to the "Enter Password" page
+    router.push("/enterpassword"); // Redirect to Enter Password page
   };
 
   return (
@@ -71,7 +75,7 @@ export default function VerifyOTP() {
             
             {/* Sub-heading */}
             <h2 className="text-center text-lg text-gray-500 mb-8">
-              Please enter the 4-digit code sent to your phone
+              Please enter the 6-digit code sent to your phone
             </h2>
 
             {/* OTP Input Boxes */}
@@ -81,7 +85,6 @@ export default function VerifyOTP() {
                   key={index}
                   id={`otp-${index}`}
                   type="text"
-                  maxLength={1}
                   className="w-12 h-12 text-center text-lg border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
                   value={digit}
                   onChange={(e) => handleOtpChange(index, e.target.value)}
@@ -108,5 +111,5 @@ export default function VerifyOTP() {
       </main>
       <Footer />
     </div>
-  )
+  );
 }
