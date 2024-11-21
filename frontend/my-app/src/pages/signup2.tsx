@@ -15,15 +15,12 @@ export default function SignIn() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      {/* Insert Navbar here */}
-      <Navbar /> {/* Add Navbar component */}
-
-      {/* Main Content */}
+      
+      <Navbar /> 
       <main className="flex flex-1 justify-center items-center pb-32">
         <div className="w-full max-w-md">
 
           <div className="bg-white rounded-3xl shadow-xl p-8">
-            {/* Icon */}
             <div className="flex justify-center mb-6">
               <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center">
                 <Image
@@ -35,18 +32,12 @@ export default function SignIn() {
                 />
               </div>
             </div>
-
-            {/* Signup Heading */}
             <h1 className="text-2xl font-bold text-center mb-2">
               Signup to SerenitySphere
             </h1>
-            
-            {/* Sub-heading */}
             <h2 className="text-center text-lg text-gray-500 mb-8">
               A Safe Place to Connect
             </h2>
-
-            {/* Email Input */}
             <div className="space-y-2 mb-4">
               <label className="text-sm font-medium" htmlFor="email">
                 E-mail
@@ -60,8 +51,6 @@ export default function SignIn() {
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
-
-            {/* Confirm Email Input */}
             <div className="space-y-2 mb-4">
               <label className="text-sm font-medium" htmlFor="confirm-email">
                 Confirm E-mail
