@@ -1,98 +1,54 @@
-// 'use client'
-
-// import { useState } from 'react'; // Import useState
-// import Footer from "@/components/footer/Footer"
-// import Navbar from "@/components/navbar/NavBar" // Import the Navbar component
-// import { Button } from "@/components/ui/button" // Import Button component
-// import { Checkbox } from "@/components/ui/checkbox1" // Import Checkbox component
-// import "@/styles/global.css";
-
-// export default function TermsAndConditions() {
-//   const [acceptTerms, setAcceptTerms] = useState(false);
-
-//   return (
-//     <div className="min-h-screen bg-white flex flex-col">
-//       {/* Insert Navbar here */}
-//       <Navbar /> {/* Add Navbar component */}
-
-//       {/* Main Content */}
-//       <main className="flex flex-1 justify-center items-start pb-32">
-//         <div className="w-full max-w-lg">
-
-//           <div className="bg-white rounded-3xl shadow-xl p-8">
-
-//             {/* Terms and Conditions Section */}
-//             <div className="mt-8">
-//               <h2 className="font-bold text-xl mb-2">Terms and Conditions</h2>
-//               <p className="text-sm text-gray-500 mb-6">
-//                 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla
-//                 vulputate tincidunt velit, ac suscipit orci tempus eget. Ut vel
-//                 dolor ut nisl convallis cursus. In hac habitasse platea dictumst.
-//                 Donec quis tortor eget eros euismod fermentum. Duis convallis
-//                 fringilla nisl, non fermentum lorem tincidunt eget. Suspendisse
-//                 potenti. Aenean nec justo at magna ullamcorper tempus. Integer
-//                 varius, sapien in ullamcorper posuere, risus eros laoreet odio,
-//                 ac facilisis elit lorem vitae ligula. Integer venenatis purus sit
-//                 amet lorem venenatis congue. Sed efficitur urna non odio finibus,
-//                 id venenatis ligula sodales. Integer imperdiet velit vitae dui
-//                 vestibulum, et consectetur urna facilisis.
-//               </p>
-
-//               {/* Checkbox and Confirm Button */}
-//               <div className="flex items-center space-x-2 mb-4">
-//                 <Checkbox
-//                   id="terms-accept"
-//                   checked={acceptTerms}
-//                   onChange={() => setAcceptTerms(!acceptTerms)}
-//                 />
-//                 <label htmlFor="terms-accept" className="text-sm text-gray-500">
-//                   I accept the Terms and Conditions
-//                 </label>
-//               </div>
-
-//               <Button
-//                 className="w-full mt-4 bg-black text-white hover:bg-black/90"
-//                 disabled={!acceptTerms}
-//               >
-//                 Confirm
-//               </Button>
-//             </div>
-//           </div>
-//         </div>
-//       </main>
-//       <Footer />
-//     </div>
-//   )
-// }
 'use client'
 
-import { useState } from 'react'; // Import useState
-import { useRouter } from 'next/navigation'; // Import useRouter for redirection
+import { useState } from 'react'; 
+import { useRouter } from 'next/navigation'; 
 import Footer from "@/components/footer/Footer"
-import Navbar from "@/components/navbar/NavBar" // Import the Navbar component
-import { Button } from "@/components/ui/button" // Import Button component
-import { Checkbox } from "@/components/ui/checkbox1" // Import Checkbox component
+import Navbar from "@/components/navbar/NavBar"
+import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox1"
 import "@/styles/global.css";
+
 export default function TermsAndConditions() {
   const [acceptTerms, setAcceptTerms] = useState(false);
-  const router = useRouter(); // Initialize the router
+  const [showPopup, setShowPopup] = useState(false); // State to manage the popup
+  const router = useRouter();
+
+  // Function to handle email sending
+  const sendConfirmationEmail = async () => {
+    try {
+      // Simulating an API call to send the email
+      await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: 'user@example.com' }) // Replace with actual user email
+      });
+    } catch (error) {
+      console.error('Error sending email:', error);
+    }
+  };
 
   // Function to handle confirm button click
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (acceptTerms) {
-      router.push('/welcome'); // Redirect to the "welcome" page
+      await sendConfirmationEmail(); // Trigger email sending
+      setShowPopup(true); // Show the popup after sending the email
     }
+  };
+
+  // Function to handle popup acknowledgment
+  const handlePopupClose = () => {
+    setShowPopup(false); // Hide the popup
+    router.push('/signin'); // Redirect to the "welcome" page
   };
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      {/* Insert Navbar here */}
-      <Navbar /> {/* Add Navbar component */}
+      {/* Navbar */}
+      <Navbar />
 
       {/* Main Content */}
       <main className="flex flex-1 justify-center items-start pb-32">
         <div className="w-full max-w-lg">
-
           <div className="bg-white rounded-3xl shadow-xl p-8">
 
             {/* Terms and Conditions Section */}
@@ -102,14 +58,7 @@ export default function TermsAndConditions() {
                 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla
                 vulputate tincidunt velit, ac suscipit orci tempus eget. Ut vel
                 dolor ut nisl convallis cursus. In hac habitasse platea dictumst.
-                Donec quis tortor eget eros euismod fermentum. Duis convallis
-                fringilla nisl, non fermentum lorem tincidunt eget. Suspendisse
-                potenti. Aenean nec justo at magna ullamcorper tempus. Integer
-                varius, sapien in ullamcorper posuere, risus eros laoreet odio,
-                ac facilisis elit lorem vitae ligula. Integer venenatis purus sit
-                amet lorem venenatis congue. Sed efficitur urna non odio finibus,
-                id venenatis ligula sodales. Integer imperdiet velit vitae dui
-                vestibulum, et consectetur urna facilisis.
+                Donec quis tortor eget eros euismod fermentum.
               </p>
 
               {/* Checkbox and Confirm Button */}
@@ -127,7 +76,7 @@ export default function TermsAndConditions() {
               <Button
                 className="w-full mt-4 bg-black text-white hover:bg-black/90"
                 disabled={!acceptTerms}
-                onClick={handleConfirm} // Attach the click handler
+                onClick={handleConfirm}
               >
                 Confirm
               </Button>
@@ -135,7 +84,26 @@ export default function TermsAndConditions() {
           </div>
         </div>
       </main>
+
+      {/* Popup for Email Notification */}
+      {showPopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white rounded-lg p-6 shadow-lg text-center">
+            <h2 className="text-lg font-bold mb-4">Email Sent!</h2>
+            <p className="text-sm text-gray-500 mb-6">
+              A confirmation email has been sent to your inbox. Please verify your email to continue.
+            </p>
+            <Button
+              className="bg-blue-500 text-white hover:bg-blue-600"
+              onClick={handlePopupClose}
+            >
+              OK
+            </Button>
+          </div>
+        </div>
+      )}
+
       <Footer />
     </div>
-  )
+  );
 }

@@ -49,12 +49,12 @@ export default function SignIn() {
             <form className="space-y-6">
               <div className="space-y-2">
                 <label className="text-sm font-medium" htmlFor="phone">
-                  Phone Number
+                  E-mail
                 </label>
                 <Input
-                  id="phone"
+                  id="email"
                   type="tel"
-                  placeholder="+91 1234567891"
+                  placeholder="example@example.com"
                 />
               </div>
 
@@ -82,7 +82,7 @@ export default function SignIn() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between p-4">
                 <div className="flex items-center space-x-2">
                   <Checkbox id="remember" />
                   <label
@@ -93,16 +93,18 @@ export default function SignIn() {
                   </label>
                 </div>
                 <Link
-                  href="/forgotpass"
+                  href="/forgotpassword"
                   className="text-sm font-medium text-primary hover:underline"
                 >
                   Forgot Password?
                 </Link>
               </div>
-
+                    <Link href= "/welcome">
               <Button className="w-full bg-black text-white hover:bg-black/90">
-                Create an Account
+              
+                Sign-in
               </Button>
+              </Link>
             </form>
           </div>
         </div>

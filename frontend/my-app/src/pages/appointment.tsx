@@ -8,8 +8,9 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from "@/components/ui/select";
+import "@/styles/global.css";
+import { Label } from "@/components/ui/label";
 
 export default function BookAppointment() {
   return (
@@ -26,14 +27,19 @@ export default function BookAppointment() {
           <CardContent>
             <form className="space-y-6">
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <Label htmlFor="first-name" className="text-grey-500">First Name
                 <div className="h-12 text-lg">
                   <Input id="first-name" placeholder="First Name" />
                 </div>
+                </Label>
+                <Label htmlFor="last-name" className="text-grey-500">Last Name
                 <div className="h-12 text-lg">
                   <Input id="last-name" placeholder="Last Name" />
                 </div>
+                </Label>
               </div>
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <Label htmlFor="phone-number" className="text-grey-500">Phone Number
                 <div className="h-12 text-lg">
                   <Input
                     id="phone-number"
@@ -41,6 +47,8 @@ export default function BookAppointment() {
                     type="tel"
                   />
                 </div>
+                </Label>
+                <Label htmlFor="email" className="text-grey-500">Email
                 <div className="h-12 text-lg">
                   <Input
                     id="email"
@@ -48,8 +56,10 @@ export default function BookAppointment() {
                     type="email"
                   />
                 </div>
+                </Label>
               </div>
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+              <Label htmlFor="service">Time
                 <Select className="mb-4">
                   <SelectTrigger onClick={() => {}}>
                     <span className="text-lg text-gray-600">Preferred Time</span>
@@ -62,6 +72,8 @@ export default function BookAppointment() {
                     <SelectItem value="evening">Evening (5PM - 8PM)</SelectItem>
                   </SelectContent>
                 </Select>
+                </Label>
+                <Label htmlFor="date" > Date
                 <Select className="mb-4">
                   <SelectTrigger onClick={() => {}}>
                     <span className="text-lg text-gray-600">Preferred Date</span>
@@ -72,7 +84,9 @@ export default function BookAppointment() {
                     <SelectItem value="next-week">Next Week</SelectItem>
                   </SelectContent>
                 </Select>
+                </Label>
               </div>
+              <Label htmlFor="Priority"> Priority
               <Select className="mb-4">
                 <SelectTrigger onClick={() => {}}>
                   <span className="text-lg text-gray-600">Urgency Level</span>
@@ -83,14 +97,17 @@ export default function BookAppointment() {
                   <SelectItem value="high">High Priority</SelectItem>
                 </SelectContent>
               </Select>
+              </Label>
               <div className="flex items-center space-x-4">
                 <Checkbox id="terms" />
-                <label
-                  htmlFor="terms"
-                  className="text-base text-gray-600"
-                >
-                  I agree to the Terms of Service and Privacy Policy.
-                </label>
+                <label htmlFor="terms" className="text-base text-gray-600">
+  I agree to the{" "}
+  <a href="/t&c" className="text-blue-600 hover:text-blue-800">
+    Terms of Service and Privacy Policy
+  </a>
+  .
+</label>
+
               </div>
               <Button className="w-full h-14 text-lg bg-purple-600 hover:bg-purple-700">
                 Leave a Request

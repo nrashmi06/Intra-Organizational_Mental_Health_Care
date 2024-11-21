@@ -15,9 +15,6 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     User findByAnonymousName(String anonymousName);
     User findByEmail(String email);
     boolean existsByEmail(String email);
+    boolean existsByAnonymousName(String anonymousName);
     List<User> findByRole(Role role);
-
-    List<User> findByIsActive(Boolean isActive);
-
-    List<User> findByProfileStatus(ProfileStatus profileStatus);
 }

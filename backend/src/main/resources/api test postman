@@ -1,0 +1,11 @@
+like-unlike
+POST http://localhost:8080/mental-health/api/v1/blogs/1/like-unlike?action=like
+POST http://localhost:8080/mental-health/api/v1/blogs/1/like-unlike?action=unlike
+
+retrive blog by status
+GET http://localhost:8080/mental-health/api/v1/blogs/status?status=approved
+GET http://localhost:8080/mental-health/api/v1/blogs/status?status=rejected
+GET http://localhost:8080/mental-health/api/v1/blogs/status?status=not-approved
+
+get blog by userid
+GET http://localhost:8080/mental-health/api/v1/blogs/user/1

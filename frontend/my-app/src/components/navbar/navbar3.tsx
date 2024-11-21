@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { ChevronDown } from 'lucide-react';
-import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
 export default function Navbar() {
@@ -36,21 +35,21 @@ export default function Navbar() {
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex md:flex-row md:items-center gap-6 z-20">
+          <div className="hidden md:flex md:flex-row md:items-center  gap-6 z-20">
             <nav className="flex flex-row items-center gap-6 px-4">
-              <Link href="/dashboard" className="text-sm font-medium text-white hover:underline">
+              <Link href="/dashboard" className="text-sm font-medium text-black hover:underline">
                 Dashboard
               </Link>
-              <Link href="/analytics" className="text-sm font-medium text-white hover:underline">
+              <Link href="/analytics" className="text-sm font-medium text-black hover:underline">
                 Analytics
               </Link>
               <Link
                 href="/records"
-                className="text-sm font-medium text-white hover:underline"
+                className="text-sm font-medium text-black hover:underline"
               >
                 Records
               </Link>
-              <Link href="/scheduler" className="text-sm font-medium text-white hover:underline">
+              <Link href="/scheduler" className="text-sm font-medium text-black hover:underline">
                 Scheduler
               </Link>
 
@@ -58,7 +57,7 @@ export default function Navbar() {
               <div className="relative">
                 <button
                   onClick={toggleSettingsDropdown}
-                  className="text-sm font-medium text-white flex items-center"
+                  className="text-sm font-medium text-black flex items-center"
                 >
                   Settings <ChevronDown className="ml-1" />
                 </button>
@@ -70,7 +69,7 @@ export default function Navbar() {
                     <Link href="/profile" className="block px-4 py-2 text-sm hover:bg-gray-100">
                       Profile
                     </Link>
-                    <Link href="/logout" className="block px-4 py-2 text-sm hover:bg-gray-100">
+                    <Link href="/" className="block px-4 py-2 text-sm hover:bg-gray-100">
                       Logout
                     </Link>
                   </div>

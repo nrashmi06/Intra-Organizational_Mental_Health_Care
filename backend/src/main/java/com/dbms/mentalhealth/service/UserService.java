@@ -2,128 +2,28 @@ package com.dbms.mentalhealth.service;
 
 import com.dbms.mentalhealth.dto.user.request.UserLoginRequestDTO;
 import com.dbms.mentalhealth.dto.user.request.UserRegistrationRequestDTO;
+import com.dbms.mentalhealth.dto.user.request.UserUpdateRequestDTO;
 import com.dbms.mentalhealth.dto.user.response.UserLoginResponseDTO;
 import com.dbms.mentalhealth.dto.user.response.UserRegistrationResponseDTO;
-import com.dbms.mentalhealth.enums.ProfileStatus;
-import com.dbms.mentalhealth.enums.Role;
-import com.dbms.mentalhealth.jwt.JwtUtils;
-import com.dbms.mentalhealth.model.User;
-import com.dbms.mentalhealth.repository.UserRepository;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import com.dbms.mentalhealth.dto.user.response.UserInfoResponseDTO;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
 
-import java.util.Collections;
-import java.util.List;
-
-@Service
-public class UserService implements UserDetailsService {
-
-    private final UserRepository userRepository;
-    private final JwtUtils jwtUtils;
-    private final AuthenticationManager authenticationManager;
-    private final PasswordEncoder passwordEncoder;
-
-    public UserService(UserRepository userRepository, JwtUtils jwtUtils, @Lazy AuthenticationManager authenticationManager, PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
-        this.jwtUtils = jwtUtils;
-        this.authenticationManager = authenticationManager;
-        this.passwordEncoder = passwordEncoder;
-    }
-
-    @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        User user = userRepository.findByEmail(email);
-        if (user == null) {
-            throw new UsernameNotFoundException("User not found with email: " + email);
-        }
-        return new org.springframework.security.core.userdetails.User(
-                user.getEmail(),
-                user.getPassword(),
-                createAuthorities(user.getRole())
-        );
-    }
-
-    private static List<GrantedAuthority> createAuthorities(Role role) {
-        return Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role.name()));
-    }
-
-
-    public UserLoginResponseDTO loginUser(UserLoginRequestDTO userLoginDTO) {
-        Authentication authentication;
-        try {
-            authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(userLoginDTO.getEmail(), userLoginDTO.getPassword())
-            );
-        } catch (Exception e) {
-            throw new UsernameNotFoundException("Invalid email or password");
-        }
-
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        User user = userRepository.findByEmail(userDetails.getUsername());
-
-        if (user == null) {
-            throw new UsernameNotFoundException("User not found with email: " + userDetails.getUsername());
-        }
-
-        // Check if the user is active
-        if (!user.getProfileStatus().equals(ProfileStatus.ACTIVE)) {
-            throw new IllegalStateException("User account is inactive. Please contact support.");
-        }
-
-        // Update active status
-        setUserActiveStatus(user.getEmail(), true);
-
-        // Generate JWT token
-        String token = jwtUtils.generateTokenFromUsername(userDetails);
-
-        return new UserLoginResponseDTO(
-                user.getUserId(),
-                user.getEmail(),
-                user.getAnonymousName(),
-                user.getRole().name(),
-                token
-        );
-    }
-
-
-    public UserRegistrationResponseDTO registerUser(UserRegistrationRequestDTO userRegistrationDTO) {
-        if (userRepository.existsByEmail(userRegistrationDTO.getEmail())) {
-            throw new IllegalArgumentException("Email is already in use: " + userRegistrationDTO.getEmail());
-        }
-
-        User user = new User();
-        user.setAnonymousName(userRegistrationDTO.getAnonymousName());
-        user.setPassword(passwordEncoder.encode(userRegistrationDTO.getPassword()));
-        user.setRole(Role.USER);
-        user.setEmail(userRegistrationDTO.getEmail());
-        user.setIsActive(false);
-        user.setProfileStatus(ProfileStatus.ACTIVE);
-
-        userRepository.save(user);
-
-        return new UserRegistrationResponseDTO(
-                user.getUserId(),
-                user.getEmail(),
-                user.getAnonymousName(),
-                user.getRole()
-        );
-    }
-
-    public void setUserActiveStatus(String email, boolean isActive) {
-        User user = userRepository.findByEmail(email);
-        if (user != null) {
-            user.setIsActive(isActive);
-            userRepository.save(user);
-        }
-    }
-
+public interface UserService {
+    UserLoginResponseDTO loginUser(UserLoginRequestDTO userLoginDTO);
+    UserRegistrationResponseDTO registerUser(UserRegistrationRequestDTO userRegistrationDTO);
+    void setUserActiveStatus(String email, boolean isActive);
+    void deleteUserById(Integer userId);
+    UserInfoResponseDTO getUserById(Integer userId);
+    void updateUserBasedOnRole(Integer userId, UserUpdateRequestDTO userUpdateDTO, Authentication authentication);
+    void changePasswordById(Integer userId, String oldPassword, String newPassword);
+    void sendVerificationEmail(String email);
+    void verifyUser(String verificationCode);
+    void resendVerificationEmail(String email);
+    void forgotPassword(String email);
+    void resetPassword(String token, String newPassword);
+    Integer getUserIdByUsername(String username);
+    boolean isAdmin(Integer userId);
+    UserDetails loadUserByUsername(String email);
+    String getUserNameFromAuthentication(Authentication authentication);
 }

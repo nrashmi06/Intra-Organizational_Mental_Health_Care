@@ -1,7 +1,8 @@
 package com.dbms.mentalhealth.config;
 
-import com.dbms.mentalhealth.jwt.AuthEntryPointJwt;
-import com.dbms.mentalhealth.jwt.AuthTokenFilter;
+import com.dbms.mentalhealth.security.jwt.AuthEntryPointJwt;
+import com.dbms.mentalhealth.security.jwt.AuthTokenFilter;
+import com.dbms.mentalhealth.urlMapper.blogUrl.BlogUrlMapping;
 import com.dbms.mentalhealth.urlMapper.userUrl.UserUrlMapping;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,7 +35,12 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .authorizeHttpRequests(requests -> requests
-                        .requestMatchers(UserUrlMapping.USER_REGISTER, UserUrlMapping.USER_LOGIN).permitAll()
+                        .requestMatchers(UserUrlMapping.FORGOT_PASSWORD,
+                                UserUrlMapping.RESET_PASSWORD,
+                                UserUrlMapping.USER_REGISTER,
+                                UserUrlMapping.VERIFY_EMAIL,
+                                UserUrlMapping.RESEND_VERIFICATION_EMAIL,
+                                UserUrlMapping.USER_LOGIN).permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -54,3 +60,4 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 }
+

@@ -5,7 +5,7 @@ import React, { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import "@/styles/global.css";
-import Navbar from "@/components/navbar/NavBar";
+import Navbar from "@/components/navbar/navbar3";
 import Footer from "@/components/footer/Footer"; 
 import {
   Table,
@@ -31,7 +31,7 @@ export default function SchedulerPage() {
       details: { name: "John Doe", phone: "+91 01234567892" },
       urgency: "Non-Urgent",
     },
-    // More appointments...
+    
   ]
 
   const renderWeekView = () => {
@@ -132,7 +132,6 @@ export default function SchedulerPage() {
           <div className="col-span-12 md:col-span-3 space-y-6">
             <div className="bg-white rounded-lg p-4 shadow-sm">
               <Calendar
-                mode="single"
                 selected={date}
                 onSelect={(date) => date && setDate(date)}
                 className="rounded-md"
