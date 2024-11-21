@@ -1,8 +1,6 @@
 'use client'
 import Footer from "@/components/footer/Footer"
-import Navbar from "@/components/navbar/navbar3" 
-import Image from "next/image"
-import Link from "next/link"
+import Navbar from "@/components/navbar/navbar3"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -18,14 +16,11 @@ import "@/styles/global.css";
 export default function Profile() {
   return (
     <div className="min-h-screen bg-gradient-to-r from-pink-100 via-purple-100 to-purple-200">
-      {/* Navigation */}
       <header className="w-full py-4">
        <Navbar />
           
           
       </header>
-
-      {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-2xl font-bold text-gray-800 mb-6">Profile</h1>
@@ -129,10 +124,9 @@ export default function Profile() {
 
               {/* Save Button */}
               <Button className="bg-black text-white hover:bg-black/90 flex items-center space-x-2">
-  <Save className="w-4 h-4" />
-  <span>Save Changes</span>
-</Button>
-
+               <Save className="w-4 h-4" />
+               <span>Save Changes</span>
+              </Button>
             </form>
           </div>
         </div>

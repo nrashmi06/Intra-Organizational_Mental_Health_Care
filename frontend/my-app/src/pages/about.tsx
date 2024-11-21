@@ -3,17 +3,15 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import Badge from "@/components/ui/badge"
 import { Users, Target, Heart, ArrowRight } from 'lucide-react'
-import Navbar from "@/components/navbar/Navbar2"  // Make sure to import Navbar
-import Footer from "@/components/footer/Footer"  // Make sure to import Footer
-import Link from "next/link"  // Import Link from Next.js
+import Navbar from "@/components/navbar/Navbar2"  
+import Footer from "@/components/footer/Footer"  
+import Link from "next/link"  
 import "@/styles/globals.css"
 
 export default function Component() {
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Navbar */}
       <Navbar />
-
       {/* Hero Section */}
       <section className="w-full py-12 md:py-24 lg:py-32" style={{ background: 'linear-gradient(90deg, rgba(224,201,232,1) 0%, rgba(232,204,240,1) 3%, rgba(235,231,231,1) 18%, rgba(202,202,255,1) 41%, rgba(216,247,254,1) 95%)' }}>
         <div className="container px-4 md:px-6 mx-auto">
@@ -31,7 +29,7 @@ export default function Component() {
       </section>
 
       {/* Mission Section */}
-      <section className="w-full py-12 md:py-24 lg:py-32">
+      <section className="flex m-5  w-full py-12 md:py-24 lg:py-32">
         <div className="container px-4 md:px-6 mx-auto">
           <div className="grid gap-6 items-center justify-center lg:grid-cols-2 lg:gap-12">
             <div className="flex flex-col justify-center space-y-4">
