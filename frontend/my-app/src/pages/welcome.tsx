@@ -1,13 +1,28 @@
-import Image from "next/image"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
+'use client';
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
 import "@/styles/global.css";
 import Footer from "@/components/footer/Footer"; // Import the Footer component
-import Navbar from "@/components/navbar/NavBar"
+import Navbar from "@/components/navbar/NavBar";
+
 export default function WelcomePage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    // Set a timer to redirect after 5 seconds
+    const timer = setTimeout(() => {
+      router.push('/'); // Redirect to the homepage
+    }, 5000);
+
+    // Cleanup the timer when the component is unmounted
+    return () => clearTimeout(timer);
+  }, [router]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-100 to-purple-100">
- <Navbar />
+      <Navbar />
 
       {/* Main Content */}
       <main className="container mx-auto px-4 flex items-center justify-between" style={{ minHeight: 'calc(100vh - 80px)' }}>
@@ -35,9 +50,12 @@ export default function WelcomePage() {
           <p className="text-xl text-gray-600">
             A place where you'll find a solution to all your problems!
           </p>
+          <p className="text-gray-500 text-sm">
+            Redirecting to the homepage in 5 seconds...
+          </p>
         </div>
       </main>
       <Footer />
     </div>
-  )
+  );
 }

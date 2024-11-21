@@ -2,7 +2,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Card, CardContent } from "@/components/ui/card"
-import Navbar from "@/components/navbar/NavBar" // Import the Navbar component
+import Navbar from "@/components/navbar/NavBar" 
 import "@/styles/global.css";
 import Footer from "@/components/footer/Footer";
 
