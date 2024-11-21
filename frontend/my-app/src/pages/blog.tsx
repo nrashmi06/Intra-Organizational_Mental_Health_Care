@@ -5,6 +5,11 @@ import Footer from "@/components/footer/Footer"; // Import the Footer component
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import "@/styles/global.css";
 
+// Function to generate a slug from a string (title)
+const generateSlug = (title: string) => {
+  return title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w\-]+/g, '');
+};
+
 export default function Component() {
   const trendingPosts = [
     {
@@ -13,6 +18,7 @@ export default function Component() {
       date: "07 Feb 2024",
       image: "/images/blog/mh5.avif",
       excerpt: "There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words which don't look even slightly believable",
+      slug: generateSlug("Mental Health:")  // Add slug here
     },
     {
       id: 2,
@@ -20,6 +26,7 @@ export default function Component() {
       date: "07 Feb 2024",
       image: "/images/blog/mh3.avif",
       excerpt: "There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words which don't look even slightly believable",
+      slug: generateSlug("Mental Health Matters")  // Add slug here
     },
     {
       id: 3,
@@ -27,6 +34,7 @@ export default function Component() {
       date: "07 Feb 2024",
       image: "/images/blog/mh4.avif",
       excerpt: "There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words which don't look even slightly believable",
+      slug: generateSlug("Know Your Mental Health:")  // Add slug here
     },
   ];
 
@@ -37,6 +45,7 @@ export default function Component() {
       date: "07 Feb 2024",
       image: "/images/blog/mh5.avif",
       excerpt: "There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words which don't look even slightly believable",
+      slug: generateSlug("Understanding Mental Health:")  // Add slug here
     },
     {
       id: 2,
@@ -44,6 +53,7 @@ export default function Component() {
       date: "07 Feb 2024",
       image: "/images/blog/mh4.avif",
       excerpt: "There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words which don't look even slightly believable",
+      slug: generateSlug("Mental Health Matters")  // Add slug here
     },
     {
       id: 3,
@@ -51,6 +61,7 @@ export default function Component() {
       date: "07 Feb 2024",
       image: "/images/blog/mh3.avif",
       excerpt: "There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words which don't look even slightly believable",
+      slug: generateSlug("Understanding Mental Health:")  // Add slug here
     },
   ];
 

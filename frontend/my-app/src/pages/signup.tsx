@@ -1,20 +1,20 @@
 'use client'
 
-import Image from "next/image"
+import Image from "next/image";
 import { useRouter } from "next/navigation"; 
-import { Input } from "@/components/ui/input"
-import Footer from "@/components/footer/Footer"
-import Navbar from "@/components/navbar/NavBar" 
-import { Button } from "@/components/ui/button" 
-import { Checkbox } from "@/components/ui/checkbox1" 
+import { Input } from "@/components/ui/input";
+import Footer from "@/components/footer/Footer";
+import Navbar from "@/components/navbar/NavBar"; 
+import { Button } from "@/components/ui/button"; 
+import { Checkbox } from "@/components/ui/checkbox1"; 
 import "@/styles/global.css";
 
 export default function SignIn() {
   const router = useRouter(); // Initialize the router
 
   // Handle Get OTP button click
-  const handleGetOtp = () => {
-    router.push("/verifyotp"); // Redirect to the Verify OTP page
+  const handleClick = () => {
+    router.push("/t&c"); // Redirect to the T&C page
   };
 
   return (
@@ -31,8 +31,8 @@ export default function SignIn() {
             <div className="flex justify-center mb-6">
               <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center">
                 <Image
-                  src="/phone.png"
-                  alt="Phone icon"
+                  src="/phone.png" // Update the icon to an email-relevant one
+                  alt="Email icon"
                   width={64}
                   height={64}
                   className="w-16 h-16"
@@ -50,16 +50,16 @@ export default function SignIn() {
               A Safe Place to Connect
             </h2>
 
-            {/* Phone Number Input */}
+            {/* Email Input */}
             <div className="space-y-2">
-              <label className="text-sm font-medium" htmlFor="phone">
-                Phone Number
+              <label className="text-sm font-medium" htmlFor="email">
+                E-mail
               </label>
               <div className="h-14">  {/* Increased height of the input field */}
                 <Input
-                  id="phone"
-                  type="tel"
-                  placeholder="+91 1234567891"
+                  id="email"
+                  type="email"
+                  placeholder="example@domain.com"
                 />
               </div>
             </div>
@@ -75,14 +75,14 @@ export default function SignIn() {
             {/* Get OTP Button */}
             <Button 
               className="w-full mt-4 bg-black text-white hover:bg-black/90"
-              onClick={handleGetOtp} // Call handleGetOtp on click
+              onClick={handleClick} // Call handleGetOtp on click
             >
-              Get OTP
+              Verify
             </Button>
           </div>
         </div>
       </main>
       <Footer />
     </div>
-  )
+  );
 }
