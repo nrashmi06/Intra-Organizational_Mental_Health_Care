@@ -26,8 +26,7 @@ export default function Component() {
   }
 
   return (
-    <div className=" ">
-      {/* Navbar */}
+    <div >
       <Navbar />
 
       <Card className='p-6 container mx-auto'>
