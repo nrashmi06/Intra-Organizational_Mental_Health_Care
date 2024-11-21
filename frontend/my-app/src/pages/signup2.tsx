@@ -1,12 +1,12 @@
 'use client'
 
 import Image from "next/image";
-import { useState } from "react"; // Import useState
+import { useState } from "react"; 
 import { Input } from "@/components/ui/input";
 import Footer from "@/components/footer/Footer";
-import Navbar from "@/components/navbar/NavBar"; // Import the Navbar component
-import { Button } from "@/components/ui/button"; // Import Button component
-import { Checkbox } from "@/components/ui/checkbox1"; // Import Checkbox component
+import Navbar from "@/components/navbar/NavBar"; 
+import { Button } from "@/components/ui/button"; 
+import { Checkbox } from "@/components/ui/checkbox1"; 
 import "@/styles/global.css";
 
 export default function SignIn() {
