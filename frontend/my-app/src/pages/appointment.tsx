@@ -8,8 +8,8 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from "@/components/ui/select";
+import "@/styles/global.css";
 
 export default function BookAppointment() {
   return (
@@ -85,12 +85,14 @@ export default function BookAppointment() {
               </Select>
               <div className="flex items-center space-x-4">
                 <Checkbox id="terms" />
-                <label
-                  htmlFor="terms"
-                  className="text-base text-gray-600"
-                >
-                  I agree to the Terms of Service and Privacy Policy.
-                </label>
+                <label htmlFor="terms" className="text-base text-gray-600">
+  I agree to the{" "}
+  <a href="/t&c" className="text-blue-600 hover:text-blue-800">
+    Terms of Service and Privacy Policy
+  </a>
+  .
+</label>
+
               </div>
               <Button className="w-full h-14 text-lg bg-purple-600 hover:bg-purple-700">
                 Leave a Request
