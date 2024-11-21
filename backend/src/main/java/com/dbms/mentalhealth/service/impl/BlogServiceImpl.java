@@ -212,7 +212,7 @@ public class BlogServiceImpl implements BlogService {
                         boolean likedByCurrentUser = blogLikeRepository.existsByBlogIdAndUserUserId(blog.getId(), currentUserId);
                         return BlogMapper.toSummaryDTO(blog, likedByCurrentUser);
                     })
-                    .collect(Collectors.toList());
+                    .toList();
         } else {
             return blogRepository.findByUserIdAndApprovalStatus(userId, ApprovalStatus.APPROVED)
                     .stream()
@@ -220,7 +220,7 @@ public class BlogServiceImpl implements BlogService {
                         boolean likedByCurrentUser = blogLikeRepository.existsByBlogIdAndUserUserId(blog.getId(), currentUserId);
                         return BlogMapper.toSummaryDTO(blog, likedByCurrentUser);
                     })
-                    .collect(Collectors.toList());
+                    .toList();
         }
     }
 
@@ -236,7 +236,7 @@ public class BlogServiceImpl implements BlogService {
                     boolean likedByCurrentUser = blogLikeRepository.existsByBlogIdAndUserUserId(blog.getId(), userId);
                     return BlogMapper.toSummaryDTO(blog, likedByCurrentUser);
                 })
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Transactional
@@ -272,7 +272,7 @@ public class BlogServiceImpl implements BlogService {
                     boolean likedByCurrentUser = blogLikeRepository.existsByBlogIdAndUserUserId(blog.getId(), userId);
                     return BlogMapper.toSummaryDTO(blog, likedByCurrentUser);
                 })
-                .collect(Collectors.toList());
+                .toList();
     }
 
 }
