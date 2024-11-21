@@ -99,10 +99,12 @@ export default function SignIn() {
                   Forgot Password?
                 </Link>
               </div>
-
+                    <Link href= "/welcome">
               <Button className="w-full bg-black text-white hover:bg-black/90">
+              
                 Sign-in
               </Button>
+              </Link>
             </form>
           </div>
         </div>
