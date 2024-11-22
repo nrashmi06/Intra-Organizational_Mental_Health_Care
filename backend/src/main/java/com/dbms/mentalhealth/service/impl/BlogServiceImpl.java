@@ -5,7 +5,7 @@ import com.cloudinary.utils.ObjectUtils;
 import com.dbms.mentalhealth.dto.blog.request.BlogRequestDTO;
 import com.dbms.mentalhealth.dto.blog.response.BlogResponseDTO;
 import com.dbms.mentalhealth.dto.blog.response.BlogSummaryDTO;
-import com.dbms.mentalhealth.enums.ApprovalStatus;
+import com.dbms.mentalhealth.enums.BlogApprovalStatus;
 import com.dbms.mentalhealth.mapper.BlogMapper;
 import com.dbms.mentalhealth.model.Blog;
 import com.dbms.mentalhealth.model.BlogLike;
@@ -13,6 +13,7 @@ import com.dbms.mentalhealth.repository.BlogLikeRepository;
 import com.dbms.mentalhealth.repository.BlogRepository;
 import com.dbms.mentalhealth.repository.UserRepository;
 import com.dbms.mentalhealth.service.BlogService;
+import com.dbms.mentalhealth.service.ImageStorageService;
 import com.dbms.mentalhealth.service.UserService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +26,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class BlogServiceImpl implements BlogService {
@@ -34,31 +34,30 @@ public class BlogServiceImpl implements BlogService {
     private final BlogRepository blogRepository;
     private final BlogLikeRepository blogLikeRepository;
     private final UserService userService;
-    private final Cloudinary cloudinary;
+    private final ImageStorageService imageStorageService;
 //    private static final Logger logger = LoggerFactory.getLogger(BlogServiceImpl.class);
     @Autowired
-    public BlogServiceImpl(UserRepository userRepository, BlogRepository blogRepository, BlogLikeRepository blogLikeRepository, UserServiceImpl userService, Cloudinary cloudinary) {
+    public BlogServiceImpl(UserRepository userRepository,ImageStorageService imageStorageService, BlogRepository blogRepository, BlogLikeRepository blogLikeRepository, UserServiceImpl userService, Cloudinary cloudinary) {
         this.blogRepository = blogRepository;
         this.blogLikeRepository = blogLikeRepository;
         this.userService = userService;
-        this.cloudinary = cloudinary;
+        this.imageStorageService = imageStorageService;
         this.userRepository = userRepository;
     }
 
     @Transactional
-    public BlogResponseDTO createBlog(BlogRequestDTO blogRequestDTO, MultipartFile image) {
+    public BlogResponseDTO createBlog(BlogRequestDTO blogRequestDTO, MultipartFile image) throws Exception {
         Blog blog = BlogMapper.toEntity(blogRequestDTO);
         if (image != null && !image.isEmpty()) {
-            String imageUrl = saveImage(image);
+            String imageUrl = imageStorageService.uploadImage(image);
             blog.setImageUrl(imageUrl);
         }
-        if (blog.getApprovalStatus() == null) {
-            blog.setApprovalStatus(ApprovalStatus.PENDING);
+        if (blog.getBlogApprovalStatus() == null) {
+            blog.setBlogApprovalStatus(BlogApprovalStatus.PENDING);
         }
         Blog createdBlog = blogRepository.save(blog);
         return BlogMapper.toResponseDTO(createdBlog,false);
     }
-
 
     public Optional<BlogResponseDTO> getBlogById(Integer blogId) {
         String username = getUsernameFromContext();
@@ -70,7 +69,7 @@ public class BlogServiceImpl implements BlogService {
 
         return blogRepository.findById(blogId)
                 .map(blog -> {
-                    if (blog.getApprovalStatus() == ApprovalStatus.APPROVED || isAdmin) {
+                    if (blog.getBlogApprovalStatus() == BlogApprovalStatus.APPROVED || isAdmin) {
                         blog.setViewCount(blog.getViewCount() + 1);
                         blogRepository.save(blog);
                         boolean likedByCurrentUser = blogLikeRepository.existsByBlogIdAndUserUserId(blogId, userId);
@@ -83,46 +82,32 @@ public class BlogServiceImpl implements BlogService {
 
 
     @Transactional
-    public BlogResponseDTO updateBlog(Integer blogId, BlogRequestDTO blogRequestDTO, MultipartFile image) {
+    public BlogResponseDTO updateBlog(Integer blogId, BlogRequestDTO blogRequestDTO, MultipartFile image) throws Exception {
         Blog blog = blogRepository.findById(blogId).orElseThrow(() -> new RuntimeException("Blog not found"));
 
         if (!isCurrentUserPublisher(blog.getUserId())) {
             throw new RuntimeException("You are not authorized to edit this blog");
         }
         if (image != null && !image.isEmpty()) {
-            deleteImageFromCloudinary(blog.getImageUrl());
-            String imageUrl = saveImage(image);
+            imageStorageService.deleteImage(blog.getImageUrl());
+            String imageUrl = imageStorageService.uploadImage(image);
             blog.setImageUrl(imageUrl);
         }
         blog.setTitle(blogRequestDTO.getTitle());
         blog.setContent(blogRequestDTO.getContent());
         blog.setSummary(blogRequestDTO.getSummary());
-        blog.setApprovalStatus(ApprovalStatus.PENDING);
+        blog.setBlogApprovalStatus(BlogApprovalStatus.PENDING);
         Blog updatedBlog = blogRepository.save(blog);
         boolean likedByCurrentUser = blogLikeRepository.existsByBlogIdAndUserUserId(blogId, userService.getUserIdByUsername(getUsernameFromContext()));
         return BlogMapper.toResponseDTO(updatedBlog, likedByCurrentUser);
     }
 
-    private void deleteImageFromCloudinary(String imageUrl) {
-        try {
-            String publicId = extractPublicIdFromUrl(imageUrl);
-            cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to delete image from Cloudinary", e);
-        }
-    }
-
-    private String extractPublicIdFromUrl(String imageUrl) {
-        String[] parts = imageUrl.split("/");
-        String publicIdWithExtension = parts[parts.length - 1];
-        return publicIdWithExtension.split("\\.")[0];
-    }
 
     @Transactional
-    public void deleteBlog(Integer blogId) {
+    public void deleteBlog(Integer blogId) throws Exception {
         Blog blog = blogRepository.findById(blogId).orElseThrow(() -> new RuntimeException("Blog not found"));
         if (blog.getImageUrl() != null) {
-            deleteImageFromCloudinary(blog.getImageUrl());
+            imageStorageService.deleteImage(blog.getImageUrl());
         }
         blogRepository.deleteById(blogId);
     }
@@ -137,22 +122,9 @@ public class BlogServiceImpl implements BlogService {
         return currentUserId.equals(blogUserId);
     }
 
-    private String saveImage(MultipartFile image) {
-        if (image == null || image.isEmpty()) {
-            throw new IllegalArgumentException("Image file must not be null or empty");
-        }
-        try {
-            Map<String, Object> uploadResult = cloudinary.uploader().upload(image.getBytes(), ObjectUtils.asMap(
-                    "format", "jpg"
-            ));
-            return uploadResult.get("url").toString();
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to upload image to Cloudinary", e);
-        }
-    }
     public BlogResponseDTO updateBlogApprovalStatus(Integer blogId, boolean isApproved) {
         Blog blog = blogRepository.findById(blogId).orElseThrow(() -> new RuntimeException("Blog not found"));
-        blog.setApprovalStatus(isApproved ? ApprovalStatus.APPROVED : ApprovalStatus.REJECTED);
+        blog.setBlogApprovalStatus(isApproved ? BlogApprovalStatus.APPROVED : BlogApprovalStatus.REJECTED);
         Blog updatedBlog = blogRepository.save(blog);
         boolean likedByCurrentUser = blogLikeRepository.existsByBlogIdAndUserUserId(blogId, userService.getUserIdByUsername(getUsernameFromContext()));
         return BlogMapper.toResponseDTO(updatedBlog, likedByCurrentUser);
@@ -214,7 +186,7 @@ public class BlogServiceImpl implements BlogService {
                     })
                     .toList();
         } else {
-            return blogRepository.findByUserIdAndApprovalStatus(userId, ApprovalStatus.APPROVED)
+            return blogRepository.findByUserIdAndBlogApprovalStatus(userId, BlogApprovalStatus.APPROVED)
                     .stream()
                     .map(blog -> {
                         boolean likedByCurrentUser = blogLikeRepository.existsByBlogIdAndUserUserId(blog.getId(), currentUserId);
@@ -252,21 +224,21 @@ public class BlogServiceImpl implements BlogService {
             throw new IllegalArgumentException("Only approved blogs can be retrieved by non-admin users");
         }
 
-        ApprovalStatus approvalStatus;
+        BlogApprovalStatus blogApprovalStatus;
         switch (status.toLowerCase()) {
             case "approved":
-                approvalStatus = ApprovalStatus.APPROVED;
+                blogApprovalStatus = BlogApprovalStatus.APPROVED;
                 break;
             case "pending":
-                approvalStatus = ApprovalStatus.PENDING;
+                blogApprovalStatus = BlogApprovalStatus.PENDING;
                 break;
             case "rejected":
-                approvalStatus = ApprovalStatus.REJECTED;
+                blogApprovalStatus = BlogApprovalStatus.REJECTED;
                 break;
             default:
                 throw new IllegalArgumentException("Invalid status: " + status);
         }
-        List<Blog> blogs = blogRepository.findAllByApprovalStatus(approvalStatus);
+        List<Blog> blogs = blogRepository.findAllByBlogApprovalStatus(blogApprovalStatus);
         return blogs.stream()
                 .map(blog -> {
                     boolean likedByCurrentUser = blogLikeRepository.existsByBlogIdAndUserUserId(blog.getId(), userId);

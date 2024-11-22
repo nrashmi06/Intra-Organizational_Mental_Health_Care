@@ -18,6 +18,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
@@ -111,6 +112,8 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 
         // Return response DTO with updated tokens
         User user = existingToken.getUser();  // No need to query again, already available
+        user.setLastSeen(LocalDateTime.now());
+        userRepository.save(user);
         return UserMapper.toUserLoginResponseDTO(user, newAccessToken, newRefreshToken);
     }
 

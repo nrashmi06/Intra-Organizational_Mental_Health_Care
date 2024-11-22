@@ -1,6 +1,6 @@
 package com.dbms.mentalhealth.model;
 
-import com.dbms.mentalhealth.enums.ApprovalStatus;
+import com.dbms.mentalhealth.enums.BlogApprovalStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.Data;
@@ -56,7 +56,7 @@ public class Blog {
     @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "approval_status", nullable = false, length = 50)
-    private ApprovalStatus approvalStatus;
+    private BlogApprovalStatus blogApprovalStatus;
 
     @Column(name = "approved_by")
     private Integer approvedBy;

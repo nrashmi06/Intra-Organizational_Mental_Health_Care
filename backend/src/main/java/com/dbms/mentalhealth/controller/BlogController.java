@@ -29,7 +29,7 @@ public class BlogController {
     public ResponseEntity<BlogResponseDTO> createBlog(
             @RequestPart("image") MultipartFile image,
             @RequestPart("blog") BlogRequestDTO blogRequestDTO
-    ) {
+    ) throws Exception {
         BlogResponseDTO response = blogService.createBlog(blogRequestDTO, image);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
@@ -46,13 +46,13 @@ public class BlogController {
             @PathVariable("blogId") Integer blogId,
             @RequestPart("image") MultipartFile image,
             @RequestPart("blog") BlogRequestDTO blogRequestDTO
-    ) {
+    ) throws Exception {
         BlogResponseDTO response = blogService.updateBlog(blogId, blogRequestDTO, image);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @DeleteMapping(BlogUrlMapping.DELETE_BLOG)
-    public void deleteBlog(@PathVariable("blogId") Integer blogId) {
+    public void deleteBlog(@PathVariable("blogId") Integer blogId) throws Exception {
         blogService.deleteBlog(blogId);
     }
 
