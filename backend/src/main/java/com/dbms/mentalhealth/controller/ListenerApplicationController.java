@@ -10,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 
 @RestController
 public class ListenerApplicationController {
@@ -31,10 +33,24 @@ public class ListenerApplicationController {
         return ResponseEntity.ok(responseDTO);
     }
 
+
     @DeleteMapping(ListenerApplicationUrlMapping.DELETE_APPLICATION)
     public void deleteApplication(@PathVariable("applicationId") Integer applicationId) {
         listenerApplicationService.deleteApplication(applicationId);
     }
 
+    @GetMapping(ListenerApplicationUrlMapping.GET_ALL_APPLICATIONS)
+    public ResponseEntity<List<ListenerApplicationResponseDTO>> getAllApplications() {
+        List<ListenerApplicationResponseDTO> responseDTO = listenerApplicationService.getAllApplications();
+        return ResponseEntity.ok(responseDTO);
+    }
 
+    @PutMapping(value = ListenerApplicationUrlMapping.UPDATE_APPLICATION,consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ListenerApplicationResponseDTO> updateApplication(
+            @PathVariable("applicationId") Integer applicationId,
+            @RequestPart("application") ListenerApplicationRequestDTO applicationRequestDTO,
+            @RequestPart("certificate") MultipartFile certificate) throws Exception {
+        ListenerApplicationResponseDTO responseDTO = listenerApplicationService.updateApplication(applicationId, applicationRequestDTO, certificate);
+        return ResponseEntity.ok(responseDTO);
+    }
 }

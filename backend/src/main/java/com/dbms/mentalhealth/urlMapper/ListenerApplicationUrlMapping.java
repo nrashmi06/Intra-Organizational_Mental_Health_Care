@@ -10,4 +10,5 @@ public class ListenerApplicationUrlMapping {
     public static final String GET_APPLICATION_BY_ID = BASE_API + APPLICATION_ID_PATH; // Get listener application by ID
     public static final String DELETE_APPLICATION = BASE_API + APPLICATION_ID_PATH; // Delete listener application by ID
     public static final String UPDATE_APPLICATION = BASE_API + APPLICATION_ID_PATH; // Update listener application details
+    public static final String GET_ALL_APPLICATIONS = BASE_API; // Get all listener applications
 }
