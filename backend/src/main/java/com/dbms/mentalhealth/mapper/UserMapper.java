@@ -9,6 +9,8 @@ import com.dbms.mentalhealth.enums.Role;
 import com.dbms.mentalhealth.model.User;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
+
 @Component
 public class UserMapper {
 
@@ -41,6 +43,7 @@ public class UserMapper {
                 user.getIsActive(),
                 user.getProfileStatus().name(),
                 user.getCreatedAt().toString(),
+                user.getLastSeen().toString(),
                 user.getUpdatedAt().toString(),
                 null
         );

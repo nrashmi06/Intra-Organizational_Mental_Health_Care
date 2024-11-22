@@ -158,7 +158,6 @@ public class UserServiceImpl implements UserService,UserDetailsService {
 
     public UserInfoResponseDTO getUserById(Integer userId) {
         Optional<User> user = userRepository.findById(userId);
-
         if (user.isEmpty()) {
             return new UserInfoResponseDTO("User not found with ID: " + userId);
         }
@@ -336,5 +335,13 @@ public class UserServiceImpl implements UserService,UserDetailsService {
     public User findByEmail(String email) {
         return userRepository.findByEmail(email);
 
+    }
+    @Override
+    public void updateLastSeen(String email) {
+        User user = userRepository.findByEmail(email);
+        if (user != null) {
+            user.setLastSeen(LocalDateTime.now());
+            userRepository.save(user);
+        }
     }
 }

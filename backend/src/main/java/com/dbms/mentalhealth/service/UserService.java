@@ -28,4 +28,5 @@ public interface UserService {
     UserDetails loadUserByUsername(String email);
     String getUserNameFromAuthentication(Authentication authentication);
     User findByEmail(String email);
+    void updateLastSeen(String email);
 }

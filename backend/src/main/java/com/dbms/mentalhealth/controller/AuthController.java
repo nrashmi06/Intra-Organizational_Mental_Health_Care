@@ -47,6 +47,7 @@ public class AuthController {
         return ResponseEntity.ok(userDTO);
     }
 
+    // AuthController.java
     @PostMapping(UserUrlMapping.USER_LOGIN)
     public ResponseEntity<UserLoginResponseDTO> authenticateUser(@RequestBody UserLoginRequestDTO loginRequest) {
         Authentication authentication = authenticationManager.authenticate(
@@ -59,6 +60,10 @@ public class AuthController {
 
         // Fetch your custom user model using the username
         User user = userService.findByEmail(userDetails.getUsername());
+
+        // Update last seen time
+        userService.updateLastSeen(user.getEmail());
+
         UserLoginResponseDTO response = UserMapper.toUserLoginResponseDTO(user, accessToken, refreshToken);
         return ResponseEntity.ok(response);
     }
