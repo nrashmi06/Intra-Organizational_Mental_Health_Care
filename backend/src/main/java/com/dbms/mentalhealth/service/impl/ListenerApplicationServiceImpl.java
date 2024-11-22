@@ -1,14 +1,18 @@
 package com.dbms.mentalhealth.service.impl;
 
+import com.dbms.mentalhealth.dto.Listener.response.ListenerDetailsResponseDTO;
 import com.dbms.mentalhealth.dto.listenerApplication.request.ListenerApplicationRequestDTO;
 import com.dbms.mentalhealth.dto.listenerApplication.response.ListenerApplicationResponseDTO;
 import com.dbms.mentalhealth.enums.ListenerApplicationStatus;
 import com.dbms.mentalhealth.exception.ApplicationAlreadySubmittedException;
 import com.dbms.mentalhealth.exception.UserNotFoundException;
 import com.dbms.mentalhealth.mapper.ListenerApplicationMapper;
+import com.dbms.mentalhealth.mapper.ListenerDetailsMapper;
+import com.dbms.mentalhealth.model.Listener;
 import com.dbms.mentalhealth.model.ListenerApplication;
 import com.dbms.mentalhealth.model.User;
 import com.dbms.mentalhealth.repository.ListenerApplicationRepository;
+import com.dbms.mentalhealth.repository.ListenerRepository;
 import com.dbms.mentalhealth.repository.UserRepository;
 import com.dbms.mentalhealth.service.ImageStorageService;
 import com.dbms.mentalhealth.service.ListenerApplicationService;
@@ -20,31 +24,32 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.security.core.GrantedAuthority;
+
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.toList;
 
 @Service
 public class ListenerApplicationServiceImpl implements ListenerApplicationService {
 
     private final ListenerApplicationRepository listenerApplicationRepository;
     private final ImageStorageService imageStorageService;
-    private final UserService userService;
     private final UserRepository userRepository;
+    private final ListenerRepository listenerRepository;
 
     @Autowired
     public ListenerApplicationServiceImpl(
             ListenerApplicationRepository listenerApplicationRepository,
             ImageStorageService imageStorageService,
             UserService userService,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            ListenerRepository listenerRepository) {
         this.listenerApplicationRepository = listenerApplicationRepository;
         this.imageStorageService = imageStorageService;
-        this.userService = userService;
         this.userRepository = userRepository;
+        this.listenerRepository = listenerRepository;
     }
 
     @Override
@@ -100,9 +105,18 @@ public class ListenerApplicationServiceImpl implements ListenerApplicationServic
 
     @Override
     public void deleteApplication(Integer applicationId) {
-        if (!listenerApplicationRepository.existsById(applicationId)) {
-            throw new RuntimeException("Listener Application not found for ID: " + applicationId);
+        // Extract email and role from security context
+        String email = getUsernameFromContext();
+        String role = getRoleFromContext();
+
+        Optional<ListenerApplication> optionalApplication = listenerApplicationRepository.findById(applicationId);
+        ListenerApplication listenerApplication = optionalApplication.orElseThrow(() ->
+                new RuntimeException("Listener Application not found for ID: " + applicationId));
+
+        if (!listenerApplication.getUser().getEmail().equals(email) && !"ROLE_ADMIN".equals(role)) {
+            throw new RuntimeException("Access denied for deleting Listener Application with ID: " + applicationId);
         }
+
         listenerApplicationRepository.deleteById(applicationId);
     }
 
@@ -151,6 +165,70 @@ public class ListenerApplicationServiceImpl implements ListenerApplicationServic
         // Convert Entity to Response DTO
         return ListenerApplicationMapper.toResponseDTO(savedApplication);
     }
+
+    @Override
+    @Transactional
+    public ListenerDetailsResponseDTO updateApplicationStatus(Integer applicationId, String status) {
+        // Fetch the ListenerApplication entity
+        ListenerApplication listenerApplication = listenerApplicationRepository.findById(applicationId)
+                .orElseThrow(() -> new RuntimeException("Listener Application not found for ID: " + applicationId));
+
+        // Get the applicant user from the ListenerApplication entity
+        User applicantUser = listenerApplication.getUser();
+        if (applicantUser == null) {
+            throw new RuntimeException("User associated with Listener Application not found");
+        }
+
+        Listener newListener = null;
+
+        // Update the application status
+        if ("APPROVED".equalsIgnoreCase(status)) {
+            listenerApplication.setApplicationStatus(ListenerApplicationStatus.APPROVED);
+
+            // Create and save a new Listener entity for the approved user
+            newListener = new Listener();
+            newListener.setUser(applicantUser); // Set the user associated with the application
+            newListener.setCanApproveBlogs(false); // Default value
+            newListener.setMaxDailySessions(0); // Default value
+            newListener.setTotalSessions(0); // Default value
+            newListener.setAverageRating(BigDecimal.ZERO); // Default value
+            newListener.setJoinedAt(LocalDateTime.now());
+            newListener.setApprovedBy(userRepository.findByEmail(getUsernameFromContext()).getAnonymousName());
+
+            // Save the Listener entity
+            listenerRepository.save(newListener);
+
+            // Save the updated ListenerApplication entity
+            listenerApplicationRepository.save(listenerApplication);
+
+            // Convert and return the ListenerDetailsResponseDTO using the mapper
+            return ListenerDetailsMapper.toResponseDTO(newListener);
+
+        } else if ("REJECTED".equalsIgnoreCase(status)) {
+            listenerApplication.setApplicationStatus(ListenerApplicationStatus.REJECTED);
+            listenerApplicationRepository.save(listenerApplication);
+            return null;
+        } else {
+            throw new IllegalArgumentException("Invalid status: " + status);
+        }
+    }
+
+
+    @Override
+    public List<ListenerApplicationResponseDTO> getApplicationByApprovalStatus(String status) {
+        try {
+            ListenerApplicationStatus applicationStatus = ListenerApplicationStatus.valueOf(status.toUpperCase());
+            List<ListenerApplication> applications = listenerApplicationRepository.findByApplicationStatus(applicationStatus);
+            return applications.stream()
+                    .map(ListenerApplicationMapper::toResponseDTO)
+                    .toList();
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid status: " + status, e);
+        } catch (Exception e) {
+            throw new RuntimeException("An error occurred while fetching applications by approval status", e);
+        }
+    }
+
 
     private String getUsernameFromContext() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();

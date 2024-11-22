@@ -2,8 +2,7 @@ package com.dbms.mentalhealth.config;
 
 import com.dbms.mentalhealth.security.jwt.AuthEntryPointJwt;
 import com.dbms.mentalhealth.security.jwt.AuthTokenFilter;
-import com.dbms.mentalhealth.urlMapper.blogUrl.BlogUrlMapping;
-import com.dbms.mentalhealth.urlMapper.userUrl.UserUrlMapping;
+import com.dbms.mentalhealth.urlMapper.UserUrlMapping;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;

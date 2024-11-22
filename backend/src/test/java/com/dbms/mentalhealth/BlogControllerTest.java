@@ -3,7 +3,7 @@
 //import com.dbms.mentalhealth.dto.blog.request.BlogRequestDTO;
 //import com.dbms.mentalhealth.dto.blog.response.BlogResponseDTO;
 //import com.dbms.mentalhealth.service.impl.BlogServiceImpl;
-//import com.dbms.mentalhealth.urlMapper.blogUrl.BlogUrlMapping;
+//import com.dbms.mentalhealth.urlMapper.BlogUrlMapping;
 //import com.dbms.mentalhealth.security.jwt.JwtUtils;
 //import org.junit.jupiter.api.BeforeEach;
 //import org.junit.jupiter.api.Test;

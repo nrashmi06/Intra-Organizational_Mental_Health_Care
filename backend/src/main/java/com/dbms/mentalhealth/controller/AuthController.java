@@ -14,7 +14,7 @@ import com.dbms.mentalhealth.model.User;
 import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.service.UserService;
 import com.dbms.mentalhealth.service.impl.RefreshTokenServiceImpl;
-import com.dbms.mentalhealth.urlMapper.userUrl.UserUrlMapping;
+import com.dbms.mentalhealth.urlMapper.UserUrlMapping;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;

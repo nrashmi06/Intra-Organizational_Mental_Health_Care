@@ -1,4 +1,4 @@
-package com.dbms.mentalhealth.urlMapper.userUrl;
+package com.dbms.mentalhealth.urlMapper;
 
 public class UserUrlMapping {
 

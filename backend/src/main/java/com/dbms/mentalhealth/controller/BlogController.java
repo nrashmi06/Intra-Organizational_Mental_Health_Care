@@ -4,7 +4,7 @@ import com.dbms.mentalhealth.dto.blog.request.BlogRequestDTO;
 import com.dbms.mentalhealth.dto.blog.response.BlogResponseDTO;
 import com.dbms.mentalhealth.dto.blog.response.BlogSummaryDTO;
 import com.dbms.mentalhealth.service.BlogService;
-import com.dbms.mentalhealth.urlMapper.blogUrl.BlogUrlMapping;
+import com.dbms.mentalhealth.urlMapper.BlogUrlMapping;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;

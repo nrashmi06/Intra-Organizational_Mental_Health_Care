@@ -6,7 +6,7 @@ import com.dbms.mentalhealth.dto.user.response.UserInfoResponseDTO;
 import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.service.UserService;
 import com.dbms.mentalhealth.service.impl.UserServiceImpl;
-import com.dbms.mentalhealth.urlMapper.userUrl.UserUrlMapping;
+import com.dbms.mentalhealth.urlMapper.UserUrlMapping;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
