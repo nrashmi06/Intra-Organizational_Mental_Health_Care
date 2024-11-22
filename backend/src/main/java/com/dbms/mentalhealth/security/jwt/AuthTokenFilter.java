@@ -2,6 +2,7 @@ package com.dbms.mentalhealth.security.jwt;
 
 import com.dbms.mentalhealth.service.UserService;
 import com.dbms.mentalhealth.service.impl.UserServiceImpl;
+import com.dbms.mentalhealth.service.RefreshTokenService;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -25,11 +26,13 @@ public class AuthTokenFilter extends OncePerRequestFilter {
 
     private final JwtUtils jwtUtils;
     private final UserService userService;
+    private final RefreshTokenService refreshTokenService;
     private static final Logger logger = LoggerFactory.getLogger(AuthTokenFilter.class);
 
-    public AuthTokenFilter(JwtUtils jwtUtils, @Lazy UserServiceImpl userService) {
+    public AuthTokenFilter(JwtUtils jwtUtils, @Lazy UserServiceImpl userService, RefreshTokenService refreshTokenService) {
         this.jwtUtils = jwtUtils;
         this.userService = userService;
+        this.refreshTokenService = refreshTokenService;
     }
 
     @Override
@@ -40,17 +43,10 @@ public class AuthTokenFilter extends OncePerRequestFilter {
         String jwt = parseJwt(request);
         if (jwt != null && jwtUtils.validateJwtToken(jwt)) {
             try {
-                String username = jwtUtils.getUserNameFromJwtToken(jwt);
+                String email = jwtUtils.getUserNameFromJwtToken(jwt);
                 String role = jwtUtils.getRoleFromJwtToken(jwt);
-                String jti = jwtUtils.getJtiFromToken(jwt);
 
-                if (jwtUtils.isBlacklisted(jti)) {
-                    logger.warn("Token with jti {} is blacklisted", jti);
-                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token has been revoked");
-                    return;
-                }
-
-                UserDetails userDetails = userService.loadUserByUsername(username);
+                UserDetails userDetails = userService.loadUserByUsername(email);
 
                 // Ensure role consistency
                 if (!userDetails.getAuthorities().contains(new SimpleGrantedAuthority(role))) {
@@ -67,8 +63,8 @@ public class AuthTokenFilter extends OncePerRequestFilter {
                 logger.warn("JWT expired: {}", ex.getMessage());
 
                 // Extract user email and update isActive status
-                String username = ex.getClaims().getSubject(); // Extract email from expired token
-                userService.setUserActiveStatus(username, false); // Set isActive = false
+                String email = ex.getClaims().getSubject(); // Extract email from expired token
+                userService.setUserActiveStatus(email, false); // Set isActive = false
             } catch (Exception e) {
                 logger.error("Error processing JWT: {}", e.getMessage());
             }

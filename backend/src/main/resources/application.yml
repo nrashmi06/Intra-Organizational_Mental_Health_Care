@@ -19,7 +19,7 @@ spring:
     name: mental-health
   app:
     jwtSecret: ${JWT_SECRET:8EBUtzmOnBj56DWepYHgxuNv8rJrOYFXkqptcCzW7LVyQUV1mNhrb1UlyP1qebfk}
-    jwtExpirationMs: ${JWT_EXPIRATION_MS:3600000}
+
 
   datasource:
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:mental_health}

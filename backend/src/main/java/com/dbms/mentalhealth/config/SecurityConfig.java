@@ -40,7 +40,8 @@ public class SecurityConfig {
                                 UserUrlMapping.USER_REGISTER,
                                 UserUrlMapping.VERIFY_EMAIL,
                                 UserUrlMapping.RESEND_VERIFICATION_EMAIL,
-                                UserUrlMapping.USER_LOGIN).permitAll()
+                                UserUrlMapping.USER_LOGIN,
+                                UserUrlMapping.RENEW_TOKEN).permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

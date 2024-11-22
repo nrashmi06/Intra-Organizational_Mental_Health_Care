@@ -6,6 +6,7 @@ import com.dbms.mentalhealth.dto.user.request.UserUpdateRequestDTO;
 import com.dbms.mentalhealth.dto.user.response.UserLoginResponseDTO;
 import com.dbms.mentalhealth.dto.user.response.UserRegistrationResponseDTO;
 import com.dbms.mentalhealth.dto.user.response.UserInfoResponseDTO;
+import com.dbms.mentalhealth.model.User;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -26,4 +27,5 @@ public interface UserService {
     boolean isAdmin(Integer userId);
     UserDetails loadUserByUsername(String email);
     String getUserNameFromAuthentication(Authentication authentication);
+    User findByEmail(String email);
 }

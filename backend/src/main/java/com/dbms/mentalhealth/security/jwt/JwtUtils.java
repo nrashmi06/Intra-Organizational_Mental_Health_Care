@@ -1,6 +1,5 @@
 package com.dbms.mentalhealth.security.jwt;
 
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import com.dbms.mentalhealth.config.ApplicationConfig;
 import io.jsonwebtoken.*;
@@ -15,9 +14,7 @@ import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.util.Date;
-import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 public class JwtUtils {
@@ -25,12 +22,12 @@ public class JwtUtils {
 
     private final ApplicationConfig applicationConfig;
 
+
+    private static final long JWT_EXPIRATION = 1_000L * 60 * 60; // 1 hour
     @Autowired
     public JwtUtils(ApplicationConfig applicationConfig) {
         this.applicationConfig = applicationConfig;
     }
-
-    private final Set<String> blacklistedJti = ConcurrentHashMap.newKeySet();
 
     public String getJwtFromHeader(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
@@ -47,19 +44,24 @@ public class JwtUtils {
                 .map(GrantedAuthority::getAuthority)
                 .findFirst()
                 .orElse("ROLE_USER"); // Default role if not found
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + JWT_EXPIRATION);
+
+        logger.debug("Current time: {}", now);
+        logger.debug("Token expiration time: {}", expiryDate);
 
         return Jwts.builder()
                 .claim("role", role) // Add role claim
                 .setSubject(username)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date((new Date()).getTime() + applicationConfig.getJwtExpirationMs()))
+                .setIssuedAt(now)
+                .setExpiration(expiryDate)
                 .setId(UUID.randomUUID().toString()) // Add unique ID (jti)
                 .signWith(key(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
     public String getUserNameFromJwtToken(String token) {
-        return Jwts.parser()
+        return Jwts.parserBuilder()
                 .setSigningKey(key())
                 .build()
                 .parseClaimsJws(token)
@@ -68,7 +70,7 @@ public class JwtUtils {
     }
 
     public String getRoleFromJwtToken(String token) {
-        return Jwts.parser()
+        return Jwts.parserBuilder()
                 .setSigningKey(key())
                 .build()
                 .parseClaimsJws(token)
@@ -77,7 +79,7 @@ public class JwtUtils {
     }
 
     public String getJtiFromToken(String token) {
-        return Jwts.parser()
+        return Jwts.parserBuilder()
                 .setSigningKey(key())
                 .build()
                 .parseClaimsJws(token)
@@ -91,10 +93,17 @@ public class JwtUtils {
 
     public boolean validateJwtToken(String authToken) {
         try {
-            Jwts.parser()
+            Jws<Claims> claimsJws = Jwts.parserBuilder()
                     .setSigningKey(key())
+                    .setAllowedClockSkewSeconds(60) // Allow 60 seconds clock skew
                     .build()
                     .parseClaimsJws(authToken);
+            Date expiration = claimsJws.getBody().getExpiration();
+            Date now = new Date();
+
+            logger.debug("Token expiration time: {}", expiration);
+            logger.debug("Current time: {}", now);
+
             return true;
         } catch (MalformedJwtException e) {
             logger.error("Invalid JWT token: {}", e.getMessage());
@@ -107,13 +116,4 @@ public class JwtUtils {
         }
         return false;
     }
-
-    public boolean isBlacklisted(String jti) {
-        return blacklistedJti.contains(jti);
-    }
-
-    public void addToBlacklist(String jti) {
-        blacklistedJti.add(jti);
-    }
-
 }

@@ -8,25 +8,37 @@ import com.dbms.mentalhealth.dto.user.response.ResetPasswordResponseDTO;
 import com.dbms.mentalhealth.dto.user.response.UserLoginResponseDTO;
 import com.dbms.mentalhealth.dto.user.response.UserRegistrationResponseDTO;
 import com.dbms.mentalhealth.dto.user.response.VerifyEmailResponseDTO;
+import com.dbms.mentalhealth.exception.UserNotFoundException;
+import com.dbms.mentalhealth.mapper.UserMapper;
+import com.dbms.mentalhealth.model.User;
 import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.service.UserService;
-import com.dbms.mentalhealth.service.impl.UserServiceImpl;
+import com.dbms.mentalhealth.service.impl.RefreshTokenServiceImpl;
 import com.dbms.mentalhealth.urlMapper.userUrl.UserUrlMapping;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 public class AuthController {
 
     private final JwtUtils jwtUtils;
     private final UserService userService;
+    private final AuthenticationManager authenticationManager;
+    private final RefreshTokenServiceImpl refreshTokenService;
 
-    public AuthController(UserService userService, JwtUtils jwtUtils) {
+    public AuthController(UserService userService, JwtUtils jwtUtils, AuthenticationManager authenticationManager, RefreshTokenServiceImpl refreshTokenService) {
         this.userService = userService;
         this.jwtUtils = jwtUtils;
+        this.authenticationManager = authenticationManager;
+        this.refreshTokenService = refreshTokenService;
     }
 
     @PostMapping(UserUrlMapping.USER_REGISTER)
@@ -37,22 +49,28 @@ public class AuthController {
 
     @PostMapping(UserUrlMapping.USER_LOGIN)
     public ResponseEntity<UserLoginResponseDTO> authenticateUser(@RequestBody UserLoginRequestDTO loginRequest) {
-        UserLoginResponseDTO response = userService.loginUser(loginRequest);
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        String accessToken = jwtUtils.generateTokenFromUsername(userDetails);
+        String refreshToken = refreshTokenService.createRefreshToken(loginRequest.getEmail()).getToken();
+
+        // Fetch your custom user model using the username
+        User user = userService.findByEmail(userDetails.getUsername());
+        UserLoginResponseDTO response = UserMapper.toUserLoginResponseDTO(user, accessToken, refreshToken);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping(UserUrlMapping.USER_LOGOUT)
-    public ResponseEntity<String> logoutUser(HttpServletRequest request, HttpServletResponse response) {
-        String token = jwtUtils.getJwtFromHeader(request);
-        if (token != null) {
-            String email = jwtUtils.getUserNameFromJwtToken(token);
-            jwtUtils.addToBlacklist(jwtUtils.getJtiFromToken(token));
-            userService.setUserActiveStatus(email, false);
+    public ResponseEntity<String> logoutUser(@RequestBody String refreshToken) {
+        if (refreshToken != null) {
+            refreshTokenService.deleteRefreshToken(refreshToken);
         }
         return ResponseEntity.ok("User logged out successfully.");
     }
 
-    //function overloading in springboot hehe
     @PostMapping(UserUrlMapping.VERIFY_EMAIL)
     public ResponseEntity<VerifyEmailResponseDTO> sendVerificationEmail(@RequestBody VerifyEmailRequestDTO verifyEmailRequestDTO) {
         userService.sendVerificationEmail(verifyEmailRequestDTO.getEmail());
@@ -71,7 +89,6 @@ public class AuthController {
         return ResponseEntity.ok(new VerifyEmailResponseDTO("Verification email sent successfully."));
     }
 
-    //forgot and reset password endpoints
     @PostMapping(UserUrlMapping.FORGOT_PASSWORD)
     @PreAuthorize("permitAll()")
     public ResponseEntity<VerifyEmailResponseDTO> forgotPassword(@RequestBody VerifyEmailRequestDTO verifyEmailRequestDTO) {
@@ -85,4 +102,17 @@ public class AuthController {
         return ResponseEntity.ok(new ResetPasswordResponseDTO("Password has been reset successfully."));
     }
 
+    @PreAuthorize("permitAll()")
+    @PostMapping(UserUrlMapping.RENEW_TOKEN)
+    public ResponseEntity<UserLoginResponseDTO> renewToken(@RequestBody Map<String, String> request) {
+        String refreshToken = request.get("refreshToken");
+        try {
+            UserLoginResponseDTO response = refreshTokenService.renewToken(refreshToken);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(401).body(null);
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.status(404).body(null);
+        }
+    }
 }
