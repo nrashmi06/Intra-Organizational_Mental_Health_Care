@@ -9,10 +9,10 @@ import java.util.List;
 import java.util.Optional;
 
 public interface BlogService {
-    BlogResponseDTO createBlog(BlogRequestDTO blogRequestDTO, MultipartFile image);
+    BlogResponseDTO createBlog(BlogRequestDTO blogRequestDTO, MultipartFile image) throws Exception;
     Optional<BlogResponseDTO> getBlogById(Integer blogId);
-    BlogResponseDTO updateBlog(Integer blogId, BlogRequestDTO blogRequestDTO, MultipartFile image);
-    void deleteBlog(Integer blogId);
+    BlogResponseDTO updateBlog(Integer blogId, BlogRequestDTO blogRequestDTO, MultipartFile image) throws Exception;
+    void deleteBlog(Integer blogId) throws Exception;
     BlogResponseDTO updateBlogApprovalStatus(Integer blogId, boolean isApproved);
     BlogResponseDTO likeBlog(Integer blogId);
     BlogResponseDTO unlikeBlog(Integer blogId);

@@ -35,7 +35,7 @@ public class User {
     private Role role;
 
     @Column(name = "is_active", nullable = false)
-    private Boolean isActive;
+    private Boolean isActive = false;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "profile_status", nullable = false)
@@ -47,6 +47,8 @@ public class User {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    @Column(name = "last_seen")
+    private LocalDateTime lastSeen;
     // PrePersist callback to set the createdAt field before the entity is saved
     @PrePersist
     public void onCreate() {

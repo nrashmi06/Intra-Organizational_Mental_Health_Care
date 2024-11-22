@@ -1,4 +1,4 @@
-package com.dbms.mentalhealth.urlMapper.blogUrl;
+package com.dbms.mentalhealth.urlMapper;
 
 public class BlogUrlMapping {
     private static final String BASE_API = "/api/v1/blogs";

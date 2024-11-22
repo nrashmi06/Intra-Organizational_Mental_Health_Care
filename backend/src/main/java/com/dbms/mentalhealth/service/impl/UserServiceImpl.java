@@ -12,11 +12,13 @@ import com.dbms.mentalhealth.exception.InvalidUserCredentialsException;
 import com.dbms.mentalhealth.exception.UserNotActiveException;
 import com.dbms.mentalhealth.mapper.UserMapper;
 import com.dbms.mentalhealth.model.EmailVerification;
+import com.dbms.mentalhealth.model.RefreshToken;
 import com.dbms.mentalhealth.repository.EmailVerificationRepository;
 import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.model.User;
 import com.dbms.mentalhealth.repository.UserRepository;
 import com.dbms.mentalhealth.service.EmailService;
+import com.dbms.mentalhealth.service.RefreshTokenService;
 import com.dbms.mentalhealth.service.UserService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -49,14 +51,16 @@ public class UserServiceImpl implements UserService,UserDetailsService {
     private final PasswordEncoder passwordEncoder;
     private final EmailVerificationRepository emailVerificationRepository;
     private final EmailService emailService;
+    private final RefreshTokenService refreshTokenService;
 
-    public UserServiceImpl(UserRepository userRepository, JwtUtils jwtUtils, @Lazy AuthenticationManager authenticationManager, PasswordEncoder passwordEncoder, EmailVerificationRepository emailVerificationRepository, EmailServiceImpl emailService) {
+    public UserServiceImpl(UserRepository userRepository, RefreshTokenService refreshTokenService, JwtUtils jwtUtils, @Lazy AuthenticationManager authenticationManager, PasswordEncoder passwordEncoder, EmailVerificationRepository emailVerificationRepository, EmailServiceImpl emailService) {
         this.userRepository = userRepository;
         this.jwtUtils = jwtUtils;
         this.authenticationManager = authenticationManager;
         this.passwordEncoder = passwordEncoder;
         this.emailVerificationRepository = emailVerificationRepository;
         this.emailService = emailService;
+        this.refreshTokenService = refreshTokenService;
     }
 
     @Override
@@ -104,9 +108,10 @@ public class UserServiceImpl implements UserService,UserDetailsService {
         }
 
         setUserActiveStatus(user.getEmail(), true);
-        String token = jwtUtils.generateTokenFromUsername(userDetails);
+        String accessToken = jwtUtils.generateTokenFromUsername(userDetails);
+        String refreshToken = refreshTokenService.createRefreshToken(user.getEmail()).getToken();
 
-        return UserMapper.toLoginResponseDTO(user, token);
+        return UserMapper.toUserLoginResponseDTO(user, accessToken, refreshToken);
     }
 
     @Transactional
@@ -153,7 +158,6 @@ public class UserServiceImpl implements UserService,UserDetailsService {
 
     public UserInfoResponseDTO getUserById(Integer userId) {
         Optional<User> user = userRepository.findById(userId);
-
         if (user.isEmpty()) {
             return new UserInfoResponseDTO("User not found with ID: " + userId);
         }
@@ -327,5 +331,17 @@ public class UserServiceImpl implements UserService,UserDetailsService {
 
     public String getUserNameFromAuthentication(Authentication authentication) {
         return authentication.getName();
+    }
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email);
+
+    }
+    @Override
+    public void updateLastSeen(String email) {
+        User user = userRepository.findByEmail(email);
+        if (user != null) {
+            user.setLastSeen(LocalDateTime.now());
+            userRepository.save(user);
+        }
     }
 }
