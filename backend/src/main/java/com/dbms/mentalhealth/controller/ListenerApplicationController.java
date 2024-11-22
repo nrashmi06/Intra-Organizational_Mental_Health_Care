@@ -31,5 +31,10 @@ public class ListenerApplicationController {
         return ResponseEntity.ok(responseDTO);
     }
 
+    @DeleteMapping(ListenerApplicationUrlMapping.DELETE_APPLICATION)
+    public void deleteApplication(@PathVariable("applicationId") Integer applicationId) {
+        listenerApplicationService.deleteApplication(applicationId);
+    }
+
 
 }

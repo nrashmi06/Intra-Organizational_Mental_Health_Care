@@ -7,4 +7,5 @@ import org.springframework.web.multipart.MultipartFile;
 public interface ListenerApplicationService {
     ListenerApplicationResponseDTO submitApplication(ListenerApplicationRequestDTO applicationRequestDTO, MultipartFile certificate) throws Exception;
     ListenerApplicationResponseDTO getApplicationById(Integer applicationId);
+    void deleteApplication(Integer applicationId);
 }

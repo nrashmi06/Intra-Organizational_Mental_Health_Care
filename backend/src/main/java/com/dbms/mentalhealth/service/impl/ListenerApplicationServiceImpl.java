@@ -3,6 +3,8 @@ package com.dbms.mentalhealth.service.impl;
 import com.dbms.mentalhealth.dto.listenerApplication.request.ListenerApplicationRequestDTO;
 import com.dbms.mentalhealth.dto.listenerApplication.response.ListenerApplicationResponseDTO;
 import com.dbms.mentalhealth.enums.ListenerApplicationStatus;
+import com.dbms.mentalhealth.exception.ApplicationAlreadySubmittedException;
+import com.dbms.mentalhealth.exception.UserNotFoundException;
 import com.dbms.mentalhealth.mapper.ListenerApplicationMapper;
 import com.dbms.mentalhealth.model.ListenerApplication;
 import com.dbms.mentalhealth.model.User;
@@ -25,7 +27,6 @@ import java.util.Optional;
 public class ListenerApplicationServiceImpl implements ListenerApplicationService {
 
     private final ListenerApplicationRepository listenerApplicationRepository;
-    private final ListenerApplicationMapper listenerApplicationMapper;
     private final ImageStorageService imageStorageService;
     private final UserService userService;
     private final UserRepository userRepository;
@@ -33,12 +34,10 @@ public class ListenerApplicationServiceImpl implements ListenerApplicationServic
     @Autowired
     public ListenerApplicationServiceImpl(
             ListenerApplicationRepository listenerApplicationRepository,
-            ListenerApplicationMapper listenerApplicationMapper,
             ImageStorageService imageStorageService,
             UserService userService,
             UserRepository userRepository) {
         this.listenerApplicationRepository = listenerApplicationRepository;
-        this.listenerApplicationMapper = listenerApplicationMapper;
         this.imageStorageService = imageStorageService;
         this.userService = userService;
         this.userRepository = userRepository;
@@ -50,11 +49,14 @@ public class ListenerApplicationServiceImpl implements ListenerApplicationServic
             ListenerApplicationRequestDTO applicationRequestDTO, MultipartFile certificate) throws Exception {
         // Extract email from security context
         String email = getUsernameFromContext(); // User name is email
-
-        // Find user by email
         User user = userRepository.findByEmail(email);
         if (user == null) {
-            throw new RuntimeException("User not found for email: " + email);
+            throw new UserNotFoundException("User not found for email: " + email);
+        }
+
+        // Check if the user has already submitted an application
+        if (listenerApplicationRepository.existsByUserEmail(email)) {
+            throw new ApplicationAlreadySubmittedException("Application already submitted for email: " + email);
         }
 
         // Map DTO to Entity with User
@@ -62,6 +64,7 @@ public class ListenerApplicationServiceImpl implements ListenerApplicationServic
 
         // Handle Certificate Upload
         String certificateUrl = imageStorageService.uploadImage(certificate);
+
         listenerApplication.setCertificateUrl(certificateUrl);
 
         // Set additional fields
@@ -81,6 +84,14 @@ public class ListenerApplicationServiceImpl implements ListenerApplicationServic
         Optional<ListenerApplication> listenerApplication = listenerApplicationRepository.findById(applicationId);
         return listenerApplication.map(ListenerApplicationMapper::toResponseDTO)
                 .orElseThrow(() -> new RuntimeException("Listener Application not found for ID: " + applicationId));
+    }
+
+    @Override
+    public void deleteApplication(Integer applicationId) {
+        if (!listenerApplicationRepository.existsById(applicationId)) {
+            throw new RuntimeException("Listener Application not found for ID: " + applicationId);
+        }
+        listenerApplicationRepository.deleteById(applicationId);
     }
 
     private String getUsernameFromContext() {
