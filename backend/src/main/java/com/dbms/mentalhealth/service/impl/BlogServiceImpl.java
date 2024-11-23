@@ -45,9 +45,14 @@ public class BlogServiceImpl implements BlogService {
         this.userRepository = userRepository;
     }
 
+
     @Transactional
     public BlogResponseDTO createBlog(BlogRequestDTO blogRequestDTO, MultipartFile image) throws Exception {
         Blog blog = BlogMapper.toEntity(blogRequestDTO);
+        String username = getUsernameFromContext();
+        Integer userId = userService.getUserIdByUsername(username);
+        blog.setUserId(userId);
+
         if (image != null && !image.isEmpty()) {
             String imageUrl = imageStorageService.uploadImage(image);
             blog.setImageUrl(imageUrl);
@@ -56,7 +61,7 @@ public class BlogServiceImpl implements BlogService {
             blog.setBlogApprovalStatus(BlogApprovalStatus.PENDING);
         }
         Blog createdBlog = blogRepository.save(blog);
-        return BlogMapper.toResponseDTO(createdBlog,false);
+        return BlogMapper.toResponseDTO(createdBlog, false);
     }
 
     public Optional<BlogResponseDTO> getBlogById(Integer blogId) {
