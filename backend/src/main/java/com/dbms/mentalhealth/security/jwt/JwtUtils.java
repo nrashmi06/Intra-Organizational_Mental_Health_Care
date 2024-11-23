@@ -14,7 +14,6 @@ import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.util.Date;
-import java.util.UUID;
 
 @Component
 public class JwtUtils {
@@ -22,8 +21,8 @@ public class JwtUtils {
 
     private final ApplicationConfig applicationConfig;
 
-
     private static final long JWT_EXPIRATION = 1_000L * 60 * 60; // 1 hour
+
     @Autowired
     public JwtUtils(ApplicationConfig applicationConfig) {
         this.applicationConfig = applicationConfig;
@@ -38,7 +37,7 @@ public class JwtUtils {
         return null;
     }
 
-    public String generateTokenFromUsername(UserDetails userDetails) {
+    public String generateTokenFromUsername(UserDetails userDetails, Integer userId) {
         String username = userDetails.getUsername();
         String role = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
@@ -52,10 +51,10 @@ public class JwtUtils {
 
         return Jwts.builder()
                 .claim("role", role) // Add role claim
+                .claim("userId", userId) // Add userId claim
                 .setSubject(username)
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
-                .setId(UUID.randomUUID().toString()) // Add unique ID (jti)
                 .signWith(key(), SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -78,13 +77,13 @@ public class JwtUtils {
                 .get("role", String.class);
     }
 
-    public String getJtiFromToken(String token) {
+    public Integer getUserIdFromJwtToken(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(key())
                 .build()
                 .parseClaimsJws(token)
                 .getBody()
-                .getId(); // Extract 'jti' claim
+                .get("userId", Integer.class);
     }
 
     private Key key() {

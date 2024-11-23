@@ -4,6 +4,7 @@ import com.dbms.mentalhealth.dto.Listener.response.ListenerDetailsResponseDTO;
 import com.dbms.mentalhealth.dto.listenerApplication.request.ListenerApplicationRequestDTO;
 import com.dbms.mentalhealth.dto.listenerApplication.response.ListenerApplicationResponseDTO;
 import com.dbms.mentalhealth.enums.ListenerApplicationStatus;
+import com.dbms.mentalhealth.enums.Role;
 import com.dbms.mentalhealth.exception.ApplicationAlreadySubmittedException;
 import com.dbms.mentalhealth.exception.UserNotFoundException;
 import com.dbms.mentalhealth.mapper.ListenerApplicationMapper;
@@ -186,6 +187,8 @@ public class ListenerApplicationServiceImpl implements ListenerApplicationServic
             listenerApplication.setApplicationStatus(ListenerApplicationStatus.APPROVED);
 
             // Create and save a new Listener entity for the approved user
+            applicantUser.setRole(Role.LISTENER);
+            userRepository.save(applicantUser);
             newListener = new Listener();
             newListener.setUser(applicantUser); // Set the user associated with the application
             newListener.setCanApproveBlogs(false); // Default value
