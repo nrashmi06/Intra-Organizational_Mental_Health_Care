@@ -59,8 +59,7 @@ public class AdminServiceImpl implements AdminService {
         // Upload image and get URL
         String profilePictureUrl = imageStorageService.uploadImage(profilePicture);
         Admin admin = adminMapper.toEntity(adminProfileRequestDTO, user, profilePictureUrl);
-        admin.setCreatedAt(LocalDateTime.now());
-        admin.setUpdatedAt(LocalDateTime.now());
+
 
         Admin savedAdmin = adminRepository.save(admin);
 
@@ -89,8 +88,6 @@ public class AdminServiceImpl implements AdminService {
         admin.setContactNumber(adminProfileRequestDTO.getContactNumber());
         admin.setEmail(adminProfileRequestDTO.getEmail());
         admin.setProfilePictureUrl(profilePictureUrl);
-        admin.setUpdatedAt(LocalDateTime.now());
-
         Admin savedAdmin = adminRepository.save(admin);
 
         return adminMapper.toResponseDTO(savedAdmin);

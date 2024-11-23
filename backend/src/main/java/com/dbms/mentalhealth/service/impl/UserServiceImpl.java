@@ -12,7 +12,6 @@ import com.dbms.mentalhealth.exception.InvalidUserCredentialsException;
 import com.dbms.mentalhealth.exception.UserNotActiveException;
 import com.dbms.mentalhealth.mapper.UserMapper;
 import com.dbms.mentalhealth.model.EmailVerification;
-import com.dbms.mentalhealth.model.RefreshToken;
 import com.dbms.mentalhealth.repository.EmailVerificationRepository;
 import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.model.User;
@@ -43,7 +42,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
-public class UserServiceImpl implements UserService,UserDetailsService {
+public class UserServiceImpl implements UserService, UserDetailsService {
 
     private final UserRepository userRepository;
     private final JwtUtils jwtUtils;
@@ -108,7 +107,7 @@ public class UserServiceImpl implements UserService,UserDetailsService {
         }
 
         setUserActiveStatus(user.getEmail(), true);
-        String accessToken = jwtUtils.generateTokenFromUsername(userDetails);
+        String accessToken = jwtUtils.generateTokenFromUsername(userDetails, user.getUserId());
         String refreshToken = refreshTokenService.createRefreshToken(user.getEmail()).getToken();
 
         return UserMapper.toUserLoginResponseDTO(user, accessToken, refreshToken);
@@ -119,7 +118,6 @@ public class UserServiceImpl implements UserService,UserDetailsService {
         if (userRepository.existsByEmail(userRegistrationDTO.getEmail())) {
             throw new IllegalArgumentException("Email is already in use: " + userRegistrationDTO.getEmail());
         }
-
 
         if (!isValidUsername(userRegistrationDTO.getAnonymousName())) {
             throw new IllegalArgumentException("Invalid username: " + userRegistrationDTO.getAnonymousName() + ". Please try another.");
@@ -214,7 +212,6 @@ public class UserServiceImpl implements UserService,UserDetailsService {
         userRepository.save(userToUpdate);
     }
 
-
     public void changePasswordById(Integer userId, String oldPassword, String newPassword) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found with ID: " + userId));
@@ -227,13 +224,12 @@ public class UserServiceImpl implements UserService,UserDetailsService {
         userRepository.save(user);
     }
 
-
     public void sendVerificationEmail(String email) {
         User user = userRepository.findByEmail(email);
         if (user == null) {
             throw new IllegalArgumentException("User not found with email: " + email);
         }
-        //check if user is already verified
+        // Check if user is already verified
         if (user.getProfileStatus().equals(ProfileStatus.ACTIVE)) {
             throw new IllegalArgumentException("User is already verified");
         }
@@ -251,7 +247,6 @@ public class UserServiceImpl implements UserService,UserDetailsService {
     }
 
     public void verifyUser(String verificationCode) {
-
         EmailVerification emailVerification = emailVerificationRepository.findByVerificationCode(verificationCode)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid verification code"));
 
@@ -295,12 +290,13 @@ public class UserServiceImpl implements UserService,UserDetailsService {
         if (user == null) {
             throw new IllegalArgumentException("User not found with email: " + email);
         }
-        String token = UUID.randomUUID().toString().replaceAll("[^0-9]", "").substring(0, 6);        EmailVerification emailVerification = new EmailVerification();
+        String token = UUID.randomUUID().toString().replaceAll("[^0-9]", "").substring(0, 6);
+        EmailVerification emailVerification = new EmailVerification();
         emailVerification.setUserId(user.getUserId());
         emailVerification.setVerificationCode(token);
         emailVerification.setEmail(email);
         emailVerification.setStatus("pending");
-        emailVerification.setExpiryTime(LocalDateTime.now().plusMinutes(5)); // Set less time for forgot password        emailVerification.setStatus("pending");
+        emailVerification.setExpiryTime(LocalDateTime.now().plusMinutes(5)); // Set less time for forgot password
         emailVerification.setCreatedAt(LocalDateTime.now());
         emailVerificationRepository.save(emailVerification);
 
@@ -332,10 +328,11 @@ public class UserServiceImpl implements UserService,UserDetailsService {
     public String getUserNameFromAuthentication(Authentication authentication) {
         return authentication.getName();
     }
+
     public User findByEmail(String email) {
         return userRepository.findByEmail(email);
-
     }
+
     @Override
     public void updateLastSeen(String email) {
         User user = userRepository.findByEmail(email);

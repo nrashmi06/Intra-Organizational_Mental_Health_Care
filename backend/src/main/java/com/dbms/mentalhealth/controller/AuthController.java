@@ -47,7 +47,6 @@ public class AuthController {
         return ResponseEntity.ok(userDTO);
     }
 
-    // AuthController.java
     @PostMapping(UserUrlMapping.USER_LOGIN)
     public ResponseEntity<UserLoginResponseDTO> authenticateUser(@RequestBody UserLoginRequestDTO loginRequest) {
         Authentication authentication = authenticationManager.authenticate(
@@ -55,13 +54,12 @@ public class AuthController {
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        String accessToken = jwtUtils.generateTokenFromUsername(userDetails);
+        User user = userService.findByEmail(userDetails.getUsername());
+        Integer userId = user.getUserId();
+
+        String accessToken = jwtUtils.generateTokenFromUsername(userDetails, userId);
         String refreshToken = refreshTokenService.createRefreshToken(loginRequest.getEmail()).getToken();
 
-        // Fetch your custom user model using the username
-        User user = userService.findByEmail(userDetails.getUsername());
-
-        // Update last seen time
         userService.updateLastSeen(user.getEmail());
 
         UserLoginResponseDTO response = UserMapper.toUserLoginResponseDTO(user, accessToken, refreshToken);
