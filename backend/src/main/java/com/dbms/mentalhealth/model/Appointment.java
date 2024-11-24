@@ -33,7 +33,7 @@ public class Appointment {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private AppointmentStatus status = AppointmentStatus.REQUESTED;  // Default status is REQUESTED
+    private AppointmentStatus status;
 
     @Column(name = "appointment_reason", length = 500)
     private String appointmentReason;  // Reason provided by the user (if any)

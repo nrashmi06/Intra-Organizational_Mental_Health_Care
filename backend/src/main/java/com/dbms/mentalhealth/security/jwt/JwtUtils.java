@@ -11,6 +11,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.security.Key;
 import java.util.Date;
@@ -114,5 +116,18 @@ public class JwtUtils {
             logger.error("JWT claims string is empty: {}", e.getMessage());
         }
         return false;
+    }
+
+    public Integer getUserIdFromContext() {
+        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+        String jwt = getJwtFromHeader(request);
+        return getUserIdFromJwtToken(jwt);
+    }
+
+    public boolean isAdminFromContext() {
+        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+        String jwt = getJwtFromHeader(request);
+        String role = getRoleFromJwtToken(jwt);
+        return role.equals("ROLE_ADMIN");
     }
 }
