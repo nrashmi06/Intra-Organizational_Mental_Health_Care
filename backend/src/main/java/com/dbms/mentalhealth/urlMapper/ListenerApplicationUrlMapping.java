@@ -2,6 +2,10 @@ package com.dbms.mentalhealth.urlMapper;
 
 public class ListenerApplicationUrlMapping {
 
+    private ListenerApplicationUrlMapping() {
+        throw new IllegalStateException("Utility class");
+    }
+
     private static final String BASE_API = "/api/v1/listener-applications";
     private static final String APPLICATION_ID_PATH = "/{applicationId}"; // Placeholder for applicationId
 

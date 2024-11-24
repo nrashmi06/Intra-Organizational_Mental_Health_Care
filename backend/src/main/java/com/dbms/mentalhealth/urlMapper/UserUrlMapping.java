@@ -1,7 +1,9 @@
 package com.dbms.mentalhealth.urlMapper;
 
 public class UserUrlMapping {
-
+    private UserUrlMapping() {
+        throw new IllegalStateException("Utility class");
+    }
     private static final String BASE_API = "/api/v1/users";
     private static final String USER_ID_PATH = "/{userId}"; // Placeholder for userId
 

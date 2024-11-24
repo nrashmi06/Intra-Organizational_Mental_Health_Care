@@ -10,8 +10,10 @@ import com.dbms.mentalhealth.model.User;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.Map;
+
 public interface UserService {
-    UserLoginResponseDTO loginUser(UserLoginRequestDTO userLoginDTO);
+    Map<String, Object> loginUser(UserLoginRequestDTO userLoginDTO);
     UserRegistrationResponseDTO registerUser(UserRegistrationRequestDTO userRegistrationDTO);
     void setUserActiveStatus(String email, boolean isActive);
     void deleteUserById(Integer userId);

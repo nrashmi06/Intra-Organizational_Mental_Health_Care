@@ -9,19 +9,15 @@ import com.dbms.mentalhealth.dto.user.response.UserLoginResponseDTO;
 import com.dbms.mentalhealth.dto.user.response.UserRegistrationResponseDTO;
 import com.dbms.mentalhealth.dto.user.response.VerifyEmailResponseDTO;
 import com.dbms.mentalhealth.exception.UserNotFoundException;
-import com.dbms.mentalhealth.mapper.UserMapper;
-import com.dbms.mentalhealth.model.User;
 import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.service.UserService;
 import com.dbms.mentalhealth.service.impl.RefreshTokenServiceImpl;
 import com.dbms.mentalhealth.urlMapper.UserUrlMapping;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -48,22 +44,24 @@ public class AuthController {
     }
 
     @PostMapping(UserUrlMapping.USER_LOGIN)
-    public ResponseEntity<UserLoginResponseDTO> authenticateUser(@RequestBody UserLoginRequestDTO loginRequest) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+    public ResponseEntity<UserLoginResponseDTO> authenticateUser(@RequestBody UserLoginRequestDTO loginRequest, HttpServletResponse response) {
+        Map<String, Object> loginResponse = userService.loginUser(loginRequest);
 
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        User user = userService.findByEmail(userDetails.getUsername());
-        Integer userId = user.getUserId();
+        String accessToken = (String) loginResponse.get("accessToken");
+        String refreshToken = (String) loginResponse.get("refreshToken");
+        UserLoginResponseDTO responseDTO = (UserLoginResponseDTO) loginResponse.get("user");
 
-        String accessToken = jwtUtils.generateTokenFromUsername(userDetails, userId);
-        String refreshToken = refreshTokenService.createRefreshToken(loginRequest.getEmail()).getToken();
+        Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setSecure(false);
+        refreshTokenCookie.setPath("/mental-health"+UserUrlMapping.RENEW_TOKEN); // Use the constant from UserUrlMapping
+        refreshTokenCookie.setMaxAge(24 * 60 * 60); // 1 day
 
-        userService.updateLastSeen(user.getEmail());
+        response.addCookie(refreshTokenCookie);
 
-        UserLoginResponseDTO response = UserMapper.toUserLoginResponseDTO(user, accessToken, refreshToken);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok()
+                .header("Authorization", "Bearer " + accessToken)
+                .body(responseDTO);
     }
 
     @PostMapping(UserUrlMapping.USER_LOGOUT)
@@ -107,11 +105,24 @@ public class AuthController {
 
     @PreAuthorize("permitAll()")
     @PostMapping(UserUrlMapping.RENEW_TOKEN)
-    public ResponseEntity<UserLoginResponseDTO> renewToken(@RequestBody Map<String, String> request) {
-        String refreshToken = request.get("refreshToken");
+    public ResponseEntity<UserLoginResponseDTO> renewToken(@CookieValue("refreshToken") String refreshToken, HttpServletResponse response) {
         try {
-            UserLoginResponseDTO response = refreshTokenService.renewToken(refreshToken);
-            return ResponseEntity.ok(response);
+            Map<String, Object> renewResponse = refreshTokenService.renewToken(refreshToken);
+
+            String newAccessToken = (String) renewResponse.get("accessToken");
+            String newRefreshToken = (String) renewResponse.get("refreshToken");
+            UserLoginResponseDTO responseDTO = (UserLoginResponseDTO) renewResponse.get("user");
+
+            Cookie newRefreshTokenCookie = new Cookie("refreshToken", newRefreshToken);
+            newRefreshTokenCookie.setHttpOnly(true);
+            newRefreshTokenCookie.setPath("/mental-health"+UserUrlMapping.RENEW_TOKEN);
+            newRefreshTokenCookie.setMaxAge((60 * 60 * 24 * 1000)); //same as refresh token valididyt
+
+            response.addCookie(newRefreshTokenCookie);
+
+            return ResponseEntity.ok()
+                    .header("Authorization", "Bearer " + newAccessToken)
+                    .body(responseDTO);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(401).body(null);
         } catch (UserNotFoundException e) {

@@ -49,14 +49,12 @@ public class UserMapper {
         );
     }
 
-    public static UserLoginResponseDTO toUserLoginResponseDTO(User user, String accessToken, String refreshToken) {
+    public static UserLoginResponseDTO toUserLoginResponseDTO(User user) {
         return new UserLoginResponseDTO(
                 user.getUserId(),
                 user.getEmail(),
                 user.getAnonymousName(),
-                user.getRole().name(),
-                accessToken,
-                refreshToken
+                user.getRole().name()
         );
     }
 }

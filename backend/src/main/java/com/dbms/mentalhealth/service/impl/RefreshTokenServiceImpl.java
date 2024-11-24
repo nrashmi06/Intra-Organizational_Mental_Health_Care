@@ -19,6 +19,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -81,7 +83,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 
     @Transactional
     @Override
-    public UserLoginResponseDTO renewToken(String refreshToken) {
+    public Map<String, Object> renewToken(String refreshToken) {
         RefreshToken existingToken = validateRefreshTokenAndGet(refreshToken);
 
         UserDetails userDetails = userService.loadUserByUsername(existingToken.getUser().getEmail());
@@ -93,7 +95,15 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         User user = existingToken.getUser();
         user.setLastSeen(LocalDateTime.now());
         userRepository.save(user);
-        return UserMapper.toUserLoginResponseDTO(user, newAccessToken, newRefreshToken);
+
+        UserLoginResponseDTO responseDTO = UserMapper.toUserLoginResponseDTO(user);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("user", responseDTO);
+        response.put("accessToken", newAccessToken);
+        response.put("refreshToken", newRefreshToken);
+
+        return response;
     }
 
     private RefreshToken createNewRefreshToken(User user) {

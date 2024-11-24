@@ -1,6 +1,10 @@
 package com.dbms.mentalhealth.urlMapper;
 
 public class BlogUrlMapping {
+
+    private BlogUrlMapping() {
+        throw new IllegalStateException("Utility class");
+    }
     private static final String BASE_API = "/api/v1/blogs";
     private static final String BLOG_ID_PATH = "/{blogId}"; // Placeholder for blogId
 
