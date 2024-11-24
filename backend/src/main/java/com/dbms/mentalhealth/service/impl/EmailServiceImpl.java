@@ -1,7 +1,7 @@
 package com.dbms.mentalhealth.service.impl;
 
 import com.dbms.mentalhealth.service.EmailService;
-import com.dbms.mentalhealth.urlMapper.userUrl.UserUrlMapping;
+import com.dbms.mentalhealth.urlMapper.UserUrlMapping;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;

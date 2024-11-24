@@ -7,7 +7,11 @@ import com.dbms.mentalhealth.dto.user.response.UserLoginResponseDTO;
 import com.dbms.mentalhealth.enums.ProfileStatus;
 import com.dbms.mentalhealth.enums.Role;
 import com.dbms.mentalhealth.model.User;
+import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
+
+@Component
 public class UserMapper {
 
     public static User toEntity(UserRegistrationRequestDTO dto, String encodedPassword) {
@@ -39,18 +43,20 @@ public class UserMapper {
                 user.getIsActive(),
                 user.getProfileStatus().name(),
                 user.getCreatedAt().toString(),
+                user.getLastSeen().toString(),
                 user.getUpdatedAt().toString(),
                 null
         );
     }
 
-    public static UserLoginResponseDTO toLoginResponseDTO(User user, String token) {
+    public static UserLoginResponseDTO toUserLoginResponseDTO(User user, String accessToken, String refreshToken) {
         return new UserLoginResponseDTO(
                 user.getUserId(),
                 user.getEmail(),
                 user.getAnonymousName(),
                 user.getRole().name(),
-                token
+                accessToken,
+                refreshToken
         );
     }
 }

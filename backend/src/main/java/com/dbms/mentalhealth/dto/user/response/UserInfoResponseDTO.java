@@ -16,6 +16,7 @@ public class UserInfoResponseDTO {
     private String profileStatus;
     private String createdAt;
     private String updatedAt;
+    private String lastSeen;
     private String error; // Add an error field for error messages
     //need to add session field later
 

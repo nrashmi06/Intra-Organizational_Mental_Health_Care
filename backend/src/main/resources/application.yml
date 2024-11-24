@@ -7,8 +7,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: ${MAIL_USERNAME:your-email@gmail.com}
-    password: ${MAIL_PASSWORD:your-email-password}
+    username: ajax81968@gmail.com
+    password: vlxv lrkn kuox xssz
     properties:
       mail:
         smtp:
@@ -16,46 +16,44 @@ spring:
           starttls:
             enable: true
   application:
-    name: ${APPLICATION_NAME:mental-health}
+    name: mental-health
   app:
-    jwtSecret: ${JWT_SECRET:your-jwt-secret}
-    jwtExpirationMs: ${JWT_EXPIRATION_MS:3600000}
+    jwtSecret: ${JWT_SECRET:8EBUtzmOnBj56DWepYHgxuNv8rJrOYFXkqptcCzW7LVyQUV1mNhrb1UlyP1qebfk}
+
 
   datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:your-database-name}
-    username: ${DB_USERNAME:your-db-username}
-    password: ${DB_PASSWORD:your-db-password}
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:mental_health}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:211004}
 
   jpa:
     hibernate:
-      ddl-auto: ${JPA_DDL_AUTO:none}
+      ddl-auto: none
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        show_sql: ${HIBERNATE_SHOW_SQL:false}
-        format_sql: ${HIBERNATE_FORMAT_SQL:true}
+        show_sql: true
+        format_sql: true
 
   logging:
     level:
-      org.springframework: ${LOGGING_LEVEL_SPRING:INFO}
+      org.springframework: INFO
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev}
 
 server:
   servlet:
-    context-path: ${SERVER_CONTEXT_PATH:/mental-health}
+    context-path: /mental-health
 
 management:
   endpoints:
     web:
       exposure:
-        include: ${MANAGEMENT_WEB_EXPOSURE:health,info}
-
+        include: health,info
 mvc:
-  throw-exception-if-no-handler-found: ${MVC_THROW_EXCEPTION_IF_NO_HANDLER_FOUND:true}
-
+  throw-exception-if-no-handler-found: true
 cloudinary:
-  cloud-name: ${CLOUDINARY_CLOUD_NAME:your-cloudinary-cloud-name}
-  api-key: ${CLOUDINARY_API_KEY:your-cloudinary-api-key}
-  api-secret: ${CLOUDINARY_API_SECRET:your-cloudinary-api-secret}
-  url: ${CLOUDINARY_URL:your-cloudinary-url}
+  cloud-name: dkadqnp9j
+  api-key: 146538996393818
+  api-secret: CHvCutfYZe_DTYAjulQB_GOYT7s
+  url: cloudinary://146538996393818:CHvCutfYZe_DTYAjulQB_GOYT7s@dkadqnp9j
