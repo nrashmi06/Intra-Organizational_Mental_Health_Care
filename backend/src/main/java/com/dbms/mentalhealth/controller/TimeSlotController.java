@@ -56,4 +56,25 @@ public class TimeSlotController {
         return ResponseEntity.noContent().build();
     }
 
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PutMapping(TimeSlotUrlMapping.UPDATE_TIME_SLOTS_BY_ID)
+    public ResponseEntity<TimeSlotResponseDTO> updateTimeSlot(
+            @PathVariable("adminId") Integer adminId,
+            @PathVariable("timeSlotId") Integer timeSlotId,
+            @RequestBody TimeSlotCreateRequestDTO.TimeSlotDTO timeSlotDTO
+    ) {
+        TimeSlotResponseDTO response = timeSlotService.updateTimeSlot(adminId, timeSlotId, timeSlotDTO);
+        return ResponseEntity.ok(response);
+    }
+
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @DeleteMapping(TimeSlotUrlMapping.DELETE_TIME_SLOT_BY_ID)
+    public ResponseEntity<Void> deleteTimeSlot(
+            @PathVariable("adminId") Integer adminId,
+            @PathVariable("timeSlotId") Integer timeSlotId
+    ) {
+        timeSlotService.deleteTimeSlot(adminId,timeSlotId);
+        return ResponseEntity.noContent().build();
+    }
+
 }

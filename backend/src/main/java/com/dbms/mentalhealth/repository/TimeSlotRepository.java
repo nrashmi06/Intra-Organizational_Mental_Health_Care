@@ -14,6 +14,9 @@ public interface TimeSlotRepository extends JpaRepository<TimeSlot, Integer> {
     boolean existsByDateAndStartTimeAndEndTimeAndAdmins_AdminId(LocalDate date, LocalTime startTime, LocalTime endTime, Integer adminId);
     List<TimeSlot> findByDateBetweenAndAdmins_AdminId(LocalDate startDate, LocalDate endDate, Integer adminId);
     List<TimeSlot> findByDateBetweenAndAdmins_AdminIdAndIsAvailable(LocalDate startDate, LocalDate endDate, Integer adminId, Boolean isAvailable);
+    boolean existsByDateAndAdmins_AdminIdAndStartTimeLessThanAndEndTimeGreaterThanAndTimeSlotIdNot(
+            LocalDate date, Integer adminId, LocalTime startTime, LocalTime endTime, Integer idNot);
+
 
 
 }

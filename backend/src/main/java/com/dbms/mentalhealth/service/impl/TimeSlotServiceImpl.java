@@ -84,4 +84,41 @@ public class TimeSlotServiceImpl implements TimeSlotService {
         }
         timeSlotRepository.deleteAll(timeSlots);
     }
+
+    @Override
+    @Transactional
+    public TimeSlotResponseDTO updateTimeSlot(Integer adminId, Integer timeSlotId, TimeSlotCreateRequestDTO.TimeSlotDTO timeSlotDTO) {
+        TimeSlot timeSlot = timeSlotRepository.findById(timeSlotId)
+                .orElseThrow(() -> new IllegalArgumentException("Time slot not found"));
+
+        if (timeSlot.getAdmins().stream().noneMatch(admin -> admin.getAdminId().equals(adminId))) {
+            throw new IllegalArgumentException("Admin ID mismatch");
+        }
+
+        timeSlot.setStartTime(timeSlotDTO.getStartTime());
+        timeSlot.setEndTime(timeSlotDTO.getEndTime());
+
+        // Check for overlapping time slots on the same date in the database
+        boolean overlaps = timeSlotRepository.existsByDateAndAdmins_AdminIdAndStartTimeLessThanAndEndTimeGreaterThanAndTimeSlotIdNot(
+                timeSlot.getDate(), adminId, timeSlot.getEndTime(), timeSlot.getStartTime(), timeSlotId);
+        if (overlaps) {
+            throw new IllegalArgumentException("Overlapping time slot found for date " + timeSlot.getDate() + " and time " + timeSlot.getStartTime() + " - " + timeSlot.getEndTime());
+        }
+
+        TimeSlot updatedTimeSlot = timeSlotRepository.save(timeSlot);
+        return timeSlotMapper.toTimeSlotResponseDTO(updatedTimeSlot);
+    }
+
+    @Override
+    @Transactional
+    public void deleteTimeSlot(Integer adminId, Integer timeSlotId) {
+        TimeSlot timeSlot = timeSlotRepository.findById(timeSlotId)
+                .orElseThrow(() -> new IllegalArgumentException("Time slot not found"));
+
+        if (timeSlot.getAdmins().stream().noneMatch(admin -> admin.getAdminId().equals(adminId))) {
+            throw new IllegalArgumentException("Admin ID mismatch");
+        }
+
+        timeSlotRepository.delete(timeSlot);
+    }
 }
