@@ -36,10 +36,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class UserServiceImpl implements UserService, UserDetailsService {
@@ -85,7 +82,8 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         return Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role.name()));
     }
 
-    public UserLoginResponseDTO loginUser(UserLoginRequestDTO userLoginDTO) {
+    @Override
+    public Map<String, Object> loginUser(UserLoginRequestDTO userLoginDTO) {
         Authentication authentication;
         try {
             authentication = authenticationManager.authenticate(
@@ -107,10 +105,20 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         }
 
         setUserActiveStatus(user.getEmail(), true);
+
         String accessToken = jwtUtils.generateTokenFromUsername(userDetails, user.getUserId());
         String refreshToken = refreshTokenService.createRefreshToken(user.getEmail()).getToken();
 
-        return UserMapper.toUserLoginResponseDTO(user, accessToken, refreshToken);
+        updateLastSeen(user.getEmail());
+
+        UserLoginResponseDTO responseDTO = UserMapper.toUserLoginResponseDTO(user);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("user", responseDTO);
+        response.put("accessToken", accessToken);
+        response.put("refreshToken", refreshToken);
+
+        return response;
     }
 
     @Transactional

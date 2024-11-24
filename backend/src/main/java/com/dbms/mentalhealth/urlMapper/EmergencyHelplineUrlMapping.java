@@ -3,6 +3,9 @@ package com.dbms.mentalhealth.urlMapper;
 
 public class EmergencyHelplineUrlMapping {
 
+    private EmergencyHelplineUrlMapping() {
+        throw new IllegalStateException("Utility class");
+    }
     private static final String BASE_API = "/api/v1/emergency-helpline";
     private static final String HELPLINE_ID_PATH = "/{helplineId}"; // Placeholder for helplineId
 

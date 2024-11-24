@@ -2,6 +2,9 @@ package com.dbms.mentalhealth.urlMapper;
 
 public class AdminUrlMapping {
 
+    private AdminUrlMapping() {
+        throw new IllegalStateException("Utility class");
+    }
     private static final String BASE_API = "/api/v1/admins";
     private static final String ADMIN_ID_PATH = "/{adminId}"; // Placeholder for adminId
 
