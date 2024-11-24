@@ -19,10 +19,11 @@ import com.dbms.mentalhealth.repository.AdminRepository;
 import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.service.AppointmentService;
 import com.dbms.mentalhealth.enums.AppointmentStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.sql.Time;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -45,17 +46,17 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     public AppointmentResponseDTO createAppointment(AppointmentRequestDTO appointmentRequestDTO) {
-        Integer UserId = jwtUtils.getUserIdFromContext();
-        User user = userRepository.findById(UserId)
+        Integer userId = jwtUtils.getUserIdFromContext();
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
         Admin admin = adminRepository.findById(appointmentRequestDTO.getAdminId())
                 .orElseThrow(() -> new AdminNotFoundException("Admin not found"));
         TimeSlot timeSlot = timeSlotRepository.findById(appointmentRequestDTO.getTimeSlotId())
                 .orElseThrow(() -> new TimeSlotNotFoundException("Time slot not found"));
 
-        boolean hasUnapprovedAppointment = appointmentRepository.existsByUserAndStatusNot(user, AppointmentStatus.CONFIRMED);
+        boolean hasUnapprovedAppointment = appointmentRepository.existsByUserAndStatusNot(user, AppointmentStatus.CANCELLED) && appointmentRepository.existsByUserAndStatusNot(user, AppointmentStatus.CONFIRMED);
         if (hasUnapprovedAppointment) {
-            throw new IllegalStateException("You have already submitted an appointment that is not approved. Please cancel it or wait for approval.");
+            throw new IllegalStateException("You have already submitted an appointment that is not approved or cancelled. Please cancel it or wait for approval.");
         }
 
         Appointment appointment = AppointmentMapper.toEntity(appointmentRequestDTO);
@@ -162,5 +163,29 @@ public class AppointmentServiceImpl implements AppointmentService {
         timeSlotRepository.save(timeSlot);
 
         appointmentRepository.save(appointment);
+    }
+
+    @Override
+    public List<AppointmentSummaryResponseDTO> getAppointmentsByDateRange(LocalDate startDate, LocalDate endDate) {
+        List<Appointment> appointments = appointmentRepository.findByTimeSlot_DateBetween(startDate, endDate);
+        return appointments.stream()
+                .map(AppointmentMapper::toSummaryDTO)
+                .toList();
+    }
+
+    @Override
+    public List<AppointmentSummaryResponseDTO> getUpcomingAppointmentsForAdmin() {
+        Integer userId = jwtUtils.getUserIdFromContext();
+        Admin admin = adminRepository.findByUser_UserId(userId)
+                .orElseThrow(() -> new AdminNotFoundException("Admin not found"));
+
+        LocalDate today = LocalDate.now();
+        LocalTime now = LocalTime.now();
+        LocalDate nextDate = today.plusDays(1);
+
+        List<Appointment> appointments = appointmentRepository.findByAdminAndTimeSlot_DateAndTimeSlot_StartTimeAfterOrTimeSlot_DateAfter(admin, today, now, nextDate);
+        return appointments.stream()
+                .map(AppointmentMapper::toSummaryDTO)
+                .collect(Collectors.toList());
     }
 }

@@ -17,4 +17,6 @@ public class AppointmentUrlMapping {
     public static final String GET_APPOINTMENT_BY_ID = BASE_API + APPOINTMENT_ID_PATH; // Get a specific appointment by ID
     public static final String UPDATE_APPOINTMENT_STATUS = BASE_API + APPOINTMENT_ID_PATH + "/status"; // Update appointment status (e.g., confirm/cancel)
     public static final String CANCEL_APPOINTMENT = BASE_API + APPOINTMENT_ID_PATH + "/cancel"; // Cancel an appointment with a reason
+    public static final String GET_APPOINTMENTS_BY_DATE_RANGE = BASE_API + "/date"; // Get all appointments within a date range
+    public static final String GET_CURRENT_ADMIN_UPCOMING_APPOINTMENTS = BASE_API + "/upcoming"; // Get all upcoming appointments for the current admin
 }

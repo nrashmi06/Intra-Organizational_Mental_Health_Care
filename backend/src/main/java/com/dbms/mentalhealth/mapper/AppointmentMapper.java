@@ -36,7 +36,10 @@ public class AppointmentMapper {
                 appointment.getAppointmentReason(),
                 appointment.getUser().getAnonymousName(),
                 appointment.getAdmin().getFullName(),
-                appointment.getStatus().name()
+                appointment.getStatus().name(),
+                appointment.getTimeSlot().getDate(),
+                appointment.getTimeSlot().getStartTime(),
+                appointment.getTimeSlot().getEndTime()
         );
     }
 }

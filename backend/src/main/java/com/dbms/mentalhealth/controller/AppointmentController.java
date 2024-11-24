@@ -8,8 +8,11 @@ import com.dbms.mentalhealth.service.AppointmentService;
 import com.dbms.mentalhealth.urlMapper.AppointmentUrlMapping;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -60,5 +63,21 @@ public class AppointmentController {
     public ResponseEntity<Void> cancelAppointment(@PathVariable Integer appointmentId, @RequestBody String cancellationReason) {
         appointmentService.cancelAppointment(appointmentId, cancellationReason);
         return ResponseEntity.noContent().build();
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping(AppointmentUrlMapping.GET_APPOINTMENTS_BY_DATE_RANGE)
+    public ResponseEntity<List<AppointmentSummaryResponseDTO>> getAppointmentsByDateRange(
+            @RequestParam("startDate") LocalDate startDate,
+            @RequestParam("endDate") LocalDate endDate) {
+        List<AppointmentSummaryResponseDTO> appointments = appointmentService.getAppointmentsByDateRange(startDate, endDate);
+        return ResponseEntity.ok(appointments);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping(AppointmentUrlMapping.GET_CURRENT_ADMIN_UPCOMING_APPOINTMENTS)
+    public ResponseEntity<List<AppointmentSummaryResponseDTO>> getCurrentAdminUpcomingAppointments(){
+        List<AppointmentSummaryResponseDTO> appointments = appointmentService.getUpcomingAppointmentsForAdmin();
+        return ResponseEntity.ok(appointments);
     }
 }
