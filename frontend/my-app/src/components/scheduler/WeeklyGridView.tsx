@@ -1,5 +1,19 @@
 import React from 'react';
 
+// Define the Appointment type
+interface Appointment {
+  date: string | Date; // The date of the appointment, can be a string or Date object
+  title: string; // Title of the appointment
+  patient: string; // Patient's name
+  color?: string; // Optional color for the appointment (e.g., for styling)
+}
+
+// Define the props type for the WeeklyGridView component
+interface WeeklyGridViewProps {
+  appointments: Appointment[]; // Array of Appointment objects
+  date: Date; // The current date passed to determine the current week
+}
+
 // Create time slots from 9:00 AM to 5:00 PM
 const timeSlots = Array.from({ length: 9 }, (_, i) => {
   const hour = i + 9; // Start from 9 AM
@@ -8,7 +22,7 @@ const timeSlots = Array.from({ length: 9 }, (_, i) => {
   return `${hour12}:00 ${suffix}`;
 });
 
-const WeeklyGridView = ({ appointments, date = new Date() }: any) => {
+const WeeklyGridView: React.FC<WeeklyGridViewProps> = ({ appointments, date = new Date() }) => {
   if (!date) {
     console.error('Invalid date prop:', date);
     return <div>Error: Date is not provided.</div>;
@@ -59,21 +73,14 @@ const WeeklyGridView = ({ appointments, date = new Date() }: any) => {
             {/* Appointment Cells */}
             {derivedWeekDays.map((day) => {
               // Filter appointments that match the current day and time slot
-              const slotAppointments = appointments.filter((apt: any) => {
+              const slotAppointments = appointments.filter((apt) => {
                 const appointmentDate = new Date(apt.date);
                 const appointmentDay = appointmentDate.toLocaleString('en-US', { weekday: 'long' });
-
-                // Log for debugging
-                console.log('Checking appointment:', apt);
-                console.log('Appointment day:', appointmentDay, 'vs', day.name);
 
                 // Check if the appointment is on the same day
                 if (appointmentDay === day.name) {
                   // Calculate appointment time in 12-hour format (e.g., 9:00 AM)
                   const appointmentTime = `${appointmentDate.getHours() % 12 === 0 ? 12 : appointmentDate.getHours() % 12}:00 ${appointmentDate.getHours() >= 12 ? "PM" : "AM"}`;
-
-                  // Log for debugging
-                  console.log('Appointment time:', appointmentTime, 'vs', time);
 
                   // Check if the appointment time matches the slot time
                   return appointmentTime === time;
@@ -86,8 +93,8 @@ const WeeklyGridView = ({ appointments, date = new Date() }: any) => {
                   {slotAppointments.length === 0 ? (
                     <span className="text-xs text-gray-400">No appointments</span>
                   ) : (
-                    slotAppointments.map((apt: any, idx: number) => (
-                      <div key={idx} className={`${apt.color} text-sm p-2 rounded shadow`}>
+                    slotAppointments.map((apt, idx) => (
+                      <div key={idx} className={`${apt.color || 'bg-gray-200'} text-sm p-2 rounded shadow`}>
                         <strong>{apt.title}</strong>
                         <br />
                         <span className="text-xs">{apt.patient}</span>

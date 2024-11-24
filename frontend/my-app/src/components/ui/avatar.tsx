@@ -1,14 +1,24 @@
 import * as React from 'react'
+import Image from 'next/image'
 
-export const Avatar: React.FC<{ className?: string; imageUrl?: string; name?: string }> = ({
-  className,
-  imageUrl,
-  name
-}) => {
+// Define the interface for the component props
+interface AvatarProps {
+  className?: string
+  imageUrl?: string
+  name?: string
+}
+
+// Create the Avatar component without using React.FC
+const Avatar = ({ className, imageUrl, name }: AvatarProps): JSX.Element => {
   return (
     <div className={`${className} relative`}>
       {imageUrl ? (
-        <img src={imageUrl} alt={name} className="h-full w-full object-cover rounded-full" />
+        <Image
+          src={imageUrl}
+          alt={name || 'Avatar'}
+          layout="fill"
+          className="object-cover rounded-full"
+        />
       ) : (
         <div className="h-full w-full flex items-center justify-center text-white bg-gray-600 rounded-full">
           {name ? name[0] : '?'}
@@ -17,3 +27,5 @@ export const Avatar: React.FC<{ className?: string; imageUrl?: string; name?: st
     </div>
   )
 }
+
+export default Avatar

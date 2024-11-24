@@ -2,21 +2,10 @@
 import '@/styles/globals.css';
 import { useState } from 'react';
 import {
-  CalendarIcon,
-  ChevronLeft,
-  ChevronRight,
-  Plus,
   Star,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/dashboard/Calendar';
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/dashboard/Tabs';
 import {
   Bar,
   BarChart,
@@ -160,7 +149,7 @@ export default function ImprovedAnalyticsDashboard() {
             <CardTitle>Listener Rating</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">4.2 / 5</div>
+          <div className="text-3xl font-bold">&quot;4.2 / 5&quot;</div>
             <div className="flex items-center mt-1">
               <StarRating rating={4} />
               <span className="ml-2 text-sm text-muted-foreground">(420 reviews)</span>

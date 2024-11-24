@@ -1,5 +1,19 @@
 import React from 'react';
 
+// Define the Appointment type
+interface Appointment {
+  date: string | Date; // The date of the appointment, can be a string or Date object
+  title: string; // Title of the appointment
+  patient: string; // Patient's name
+  color: string; // Color code for styling
+}
+
+// Define the props type for the DailyView component
+interface DailyViewProps {
+  appointments: Appointment[]; // Array of Appointment objects
+  date?: Date; // Optional date prop
+}
+
 const timeSlots = Array.from({ length: 9 }, (_, i) => {
   const hour = i + 9; // Start from 9 AM
   const suffix = hour >= 12 ? 'PM' : 'AM';
@@ -7,7 +21,7 @@ const timeSlots = Array.from({ length: 9 }, (_, i) => {
   return `${hour12}:00 ${suffix}`;
 });
 
-const DailyView = ({ appointments, date = new Date() }: any) => {
+const DailyView: React.FC<DailyViewProps> = ({ appointments, date = new Date() }) => {
   if (!date) {
     console.error('Invalid date prop:', date);
     return <div>Error: Date is not provided.</div>;
@@ -23,7 +37,7 @@ const DailyView = ({ appointments, date = new Date() }: any) => {
   const endOfDay = new Date(currentYear, currentMonth, currentDay, 17, 0, 0); // 5 PM of the current day
 
   // Filter appointments for the selected day
-  const filteredAppointments = appointments.filter((apt: any) => {
+  const filteredAppointments = appointments.filter((apt) => {
     const appointmentDate = new Date(apt.date);
     return appointmentDate >= startOfDay && appointmentDate <= endOfDay;
   });
@@ -45,7 +59,7 @@ const DailyView = ({ appointments, date = new Date() }: any) => {
             {/* Appointment Cells */}
             <div className="p-2 relative border border-gray-200 h-auto flex flex-col gap-2 col-span-7">
               {/* Map through the filtered appointments */}
-              {filteredAppointments.map((apt: any, idx: number) => {
+              {filteredAppointments.map((apt, idx) => {
                 const appointmentDate = new Date(apt.date);
                 const appointmentTime = `${appointmentDate.getHours() % 12 === 0 ? 12 : appointmentDate.getHours() % 12}:00 ${appointmentDate.getHours() >= 12 ? 'PM' : 'AM'}`;
 
@@ -63,7 +77,7 @@ const DailyView = ({ appointments, date = new Date() }: any) => {
               })}
 
               {/* If no appointments for this time slot */}
-              {filteredAppointments.every((apt: any) => {
+              {filteredAppointments.every((apt) => {
                 const appointmentDate = new Date(apt.date);
                 const appointmentTime = `${appointmentDate.getHours() % 12 === 0 ? 12 : appointmentDate.getHours() % 12}:00 ${appointmentDate.getHours() >= 12 ? 'PM' : 'AM'}`;
                 return appointmentTime !== time;

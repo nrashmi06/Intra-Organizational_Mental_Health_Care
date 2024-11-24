@@ -2,10 +2,11 @@
 
 import { useState } from "react"; 
 import { useRouter } from "next/navigation"; 
-import { Input } from "@/components/ui/input"
-import Footer from "@/components/footer/Footer"
-import Navbar from "@/components/navbar/NavBar" 
-import { Button } from "@/components/ui/button" 
+import { Input } from "@/components/ui/input";
+import Footer from "@/components/footer/Footer";
+import Navbar from "@/components/navbar/NavBar" ;
+import { Button } from "@/components/ui/button"; 
+import Image from "next/image";
 import "@/styles/global.css";
 
 export default function ForgotPassword() {
@@ -38,9 +39,9 @@ export default function ForgotPassword() {
         <div className="w-full max-w-md">
           <div className="bg-white rounded-3xl shadow-xl p-8">
             <div className="flex justify-center mb-6">
-              <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center">
-                <img src="/phone.png" alt="Lock icon" className="w-16 h-16" />
-              </div>
+                <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center">
+                <Image src="/phone.png" alt="Lock icon" width={64} height={64} className="w-16 h-16" />
+                </div>
             </div>
             <h1 className="text-2xl font-bold text-center mb-2">
               Forgot Your Password?

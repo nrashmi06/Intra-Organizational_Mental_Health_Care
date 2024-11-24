@@ -3,7 +3,6 @@ import Footer from "@/components/footer/Footer";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import BlogCard from "@/components/blog/BlogCard";  // Import BlogCard component
 import "@/styles/blog.css";
 import "@/styles/global.css";

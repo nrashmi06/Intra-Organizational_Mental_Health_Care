@@ -1,16 +1,15 @@
 import { useState } from "react";
 import { ChevronDown } from 'lucide-react';
 import Link from "next/link";
+import Image from "next/image";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isServicesDropdownOpen, setIsServicesDropdownOpen] = useState(false);
   const [isSettingsDropdownOpen, setIsSettingsDropdownOpen] = useState(false);
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
   // Toggle the services dropdown when the Services link is clicked
-  const toggleServicesDropdown = () => setIsServicesDropdownOpen(!isServicesDropdownOpen);
 
   // Toggle the settings dropdown when the Settings link is clicked
   const toggleSettingsDropdown = () => setIsSettingsDropdownOpen(!isSettingsDropdownOpen);
@@ -26,7 +25,7 @@ export default function Navbar() {
         <div className="mx-auto px-4 py-4 flex items-center justify-between">
           {/* Logo Section */}
           <div className="flex items-center gap-2">
-            <img
+            <Image
               src="/images/logo/logo.png"
               alt="SerenitySphere Logo"
               className="w-10 h-10"

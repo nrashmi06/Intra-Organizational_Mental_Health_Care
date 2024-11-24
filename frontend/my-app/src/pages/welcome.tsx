@@ -27,14 +27,15 @@ export default function WelcomePage() {
       {/* Main Content */}
       <main className="container mx-auto px-4 flex items-center justify-between" style={{ minHeight: 'calc(100vh - 80px)' }}>
         <div className="w-1/2">
-          <Image
-            src="/welcome.svg"
-            alt="Decorative 3D shapes and coffee cup illustration"
-            width={600}
-            height={600}
-            className="w-full h-auto"
-            priority
-          />
+        <Image
+              src="/welcome.svg"
+              alt="Decorative 3D shapes and coffee cup illustration" // No change needed here, but ensure proper escaping if there's any dynamic text
+              width={600}
+              height={600}
+              className="w-full h-auto"
+              priority
+        />
+
         </div>
         
         <div className="w-1/2 space-y-4">
@@ -48,7 +49,7 @@ export default function WelcomePage() {
             </span>
           </h1>
           <p className="text-xl text-gray-600">
-            A place where you'll find a solution to all your problems!
+            A place where you will find a solution to all your problems!
           </p>
           <p className="text-gray-500 text-sm">
             Redirecting to the homepage in 5 seconds...

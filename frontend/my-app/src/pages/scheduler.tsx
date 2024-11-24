@@ -15,9 +15,9 @@ export default function SchedulerPage() {
 
   // Example appointments with date information
   const appointments = [
-    { date: '2024-11-25T10:00:00', title: 'Dental Checkup', patient: 'Alice Smith', color: 'bg-blue-100' },
-    { date: '2024-11-23T10:30:00', title: 'Consultation', patient: 'John Doe', color: 'bg-green-100' },
-    { date: '2024-11-27T14:00:00', title: 'Therapy Session', patient: 'Mary Johnson', color: 'bg-yellow-100' },
+    { date: '2024-11-25T10:00:00', title: 'Dental Checkup', patient: 'Alice Smith', color: 'bg-blue-100', time: '10:00 AM' },
+    { date: '2024-11-23T10:30:00', title: 'Consultation', patient: 'John Doe', color: 'bg-green-100', time: '10:30 AM' },
+    { date: '2024-11-27T14:00:00', title: 'Therapy Session', patient: 'Mary Johnson', color: 'bg-yellow-100', time: '2:00 PM' },
   ];
 
   // Handle back and next navigation

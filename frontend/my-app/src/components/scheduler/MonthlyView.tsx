@@ -1,6 +1,19 @@
 import React from 'react';
 
-const MonthlyView = ({ appointments, date }: any) => {
+// Define the Appointment type
+interface Appointment {
+  date: string | Date; // The date of the appointment, can be a string or Date object
+  title: string; // Title of the appointment
+  color?: string; // Optional color code for styling
+}
+
+// Define the props type for the MonthlyView component
+interface MonthlyViewProps {
+  appointments: Appointment[]; // Array of Appointment objects
+  date: Date; // Date object representing the selected month and year
+}
+
+const MonthlyView: React.FC<MonthlyViewProps> = ({ appointments, date }) => {
   const currentMonth = date.getMonth();
   const currentYear = date.getFullYear();
 
@@ -16,8 +29,8 @@ const MonthlyView = ({ appointments, date }: any) => {
   const weekDays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
   // Function to get appointments for a specific day
-  const getAppointmentsForDay = (day: number) => {
-    return appointments.filter((apt: any) => {
+  const getAppointmentsForDay = (day: number): Appointment[] => {
+    return appointments.filter((apt) => {
       const aptDate = new Date(apt.date);
       return aptDate.getDate() === day && aptDate.getMonth() === currentMonth && aptDate.getFullYear() === currentYear;
     });
@@ -51,7 +64,7 @@ const MonthlyView = ({ appointments, date }: any) => {
               {/* Display appointments for the day */}
               {appointmentsForDay.length > 0 ? (
                 <div className="mt-2">
-                  {appointmentsForDay.map((apt: any, idx: number) => (
+                  {appointmentsForDay.map((apt, idx) => (
                     <div
                       key={idx}
                       className={`mt-1 p-1 rounded-md text-xs text-gray-700 ${apt.color || 'bg-gray-200'}`}
