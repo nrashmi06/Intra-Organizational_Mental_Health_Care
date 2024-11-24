@@ -45,9 +45,13 @@ public class TimeSlotServiceImpl implements TimeSlotService {
     }
 
     @Override
-    public List<TimeSlotResponseDTO> getTimeSlotsByDateRange(LocalDate startDate, LocalDate endDate) {
-        List<TimeSlot> timeSlots = timeSlotRepository.findByDateBetween(startDate, endDate);
-        return timeSlots.stream().map(timeSlotMapper::toTimeSlotResponseDTO).collect(Collectors.toList());
+    public List<TimeSlotResponseDTO> getTimeSlotsByDateRangeAndAvailability(Integer adminId, LocalDate startDate, LocalDate endDate, Boolean isAvailable) {
+        List<TimeSlot> timeSlots;
+        if (isAvailable == null) {
+            timeSlots = timeSlotRepository.findByDateBetweenAndAdmins_AdminId(startDate, endDate, adminId);
+        } else {
+            timeSlots = timeSlotRepository.findByDateBetweenAndAdmins_AdminIdAndIsAvailable(startDate, endDate, adminId, isAvailable);
+        }
+        return timeSlots.stream().map(timeSlotMapper::toTimeSlotResponseDTO).toList();
     }
-
 }

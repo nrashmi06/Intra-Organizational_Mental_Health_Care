@@ -22,7 +22,7 @@ public class TimeSlotController {
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @PostMapping(TimeSlotUrlMapping.CREATE_TIME_SLOTS)
+    @PostMapping(TimeSlotUrlMapping.CREATE_TIME_SLOTS_IN_DATE_RANGE)
     public ResponseEntity<List<TimeSlotResponseDTO>> createTimeSlots(
             @PathVariable("adminId") Integer adminId,
             @RequestParam("startDate") LocalDate startDate,
@@ -35,10 +35,12 @@ public class TimeSlotController {
 
     @GetMapping(TimeSlotUrlMapping.GET_TIME_SLOTS_BY_ADMIN_IN_DATE_RANGE)
     public ResponseEntity<List<TimeSlotResponseDTO>> getTimeSlotsByDateRange(
+            @PathVariable("adminId") Integer adminId,
             @RequestParam("startDate") LocalDate startDate,
-            @RequestParam("endDate") LocalDate endDate
+            @RequestParam("endDate") LocalDate endDate,
+            @RequestParam(value = "isAvailable", required = false) Boolean isAvailable
     ) {
-        List<TimeSlotResponseDTO> response = timeSlotService.getTimeSlotsByDateRange(startDate, endDate);
+        List<TimeSlotResponseDTO> response = timeSlotService.getTimeSlotsByDateRangeAndAvailability(adminId, startDate, endDate, isAvailable);
         return ResponseEntity.ok(response);
     }
 
