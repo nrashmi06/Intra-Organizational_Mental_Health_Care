@@ -44,5 +44,16 @@ public class TimeSlotController {
         return ResponseEntity.ok(response);
     }
 
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @DeleteMapping(TimeSlotUrlMapping.DELETE_TIME_SLOTS_IN_DATE_RANGE)
+    public ResponseEntity<Void> deleteTimeSlotsInDateRange(
+            @PathVariable("adminId") Integer adminId,
+            @RequestParam("startDate") LocalDate startDate,
+            @RequestParam("endDate") LocalDate endDate,
+            @RequestParam(value = "isAvailable", required = false) Boolean isAvailable
+    ) {
+        timeSlotService.deleteTimeSlotsInDateRangeAndAvailability(adminId, startDate, endDate, isAvailable);
+        return ResponseEntity.noContent().build();
+    }
 
 }
