@@ -34,6 +34,10 @@ public class EmergencyHelpline {
     @Column(name = "emergency_type", nullable = false, length = 100)
     private String emergencyType;
 
+    @ManyToOne
+    @JoinColumn(name = "admin_id", nullable = false)
+    private Admin admin;
+
     @NotNull
     @Column(name = "priority", nullable = false)
     private Integer priority;

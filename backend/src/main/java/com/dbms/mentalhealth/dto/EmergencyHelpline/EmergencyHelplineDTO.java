@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class EmergencyHelplineDTO {
     private Integer helplineId;
+
     @NotBlank
     @Size(max = 100)
     private String name;
@@ -28,4 +29,7 @@ public class EmergencyHelplineDTO {
 
     @NotNull
     private Integer priority;
+
+    @NotNull
+    private Integer adminId; // New field to link to the admin who added the helpline
 }

@@ -20,7 +20,7 @@ public class CustomExceptionHandler {
                 LocalDateTime.now(),
                 HttpStatus.UNAUTHORIZED.value(),
                 HttpStatus.UNAUTHORIZED.getReasonPhrase(),
-                ex.getMessage(),
+                "Unauthorized access",
                 request.getDescription(false)
         );
         return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
@@ -32,7 +32,7 @@ public class CustomExceptionHandler {
                 LocalDateTime.now(),
                 HttpStatus.NOT_FOUND.value(),
                 HttpStatus.NOT_FOUND.getReasonPhrase(),
-                "Endpoint not found",
+                "Resource not found",
                 request.getDescription(false)
         );
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
@@ -44,18 +44,19 @@ public class CustomExceptionHandler {
                 LocalDateTime.now(),
                 ex.getStatusCode().value(),
                 ex.getStatusCode().getClass().toString(),
-                ex.getReason(),
+                "An error occurred",
                 request.getDescription(false)
         );
         return new ResponseEntity<>(errorResponse, HttpStatus.valueOf(ex.getStatusCode().value()));
     }
+
     @ExceptionHandler(IncorrectResultSizeDataAccessException.class)
     public ResponseEntity<Object> handleIncorrectResultSizeDataAccessException(IncorrectResultSizeDataAccessException ex, WebRequest request) {
         CustomErrorResponse errorResponse = new CustomErrorResponse(
                 LocalDateTime.now(),
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
-                "Query did not return a unique result",
+                "Internal server error",
                 request.getDescription(false)
         );
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -67,7 +68,7 @@ public class CustomExceptionHandler {
                 LocalDateTime.now(),
                 HttpStatus.UNAUTHORIZED.value(),
                 HttpStatus.UNAUTHORIZED.getReasonPhrase(),
-                "JWT token has expired. Please renew your token.",
+                "Session expired. Please log in again.",
                 request.getDescription(false)
         );
         return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
@@ -79,7 +80,7 @@ public class CustomExceptionHandler {
                 LocalDateTime.now(),
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
-                ex.getMessage(),
+                "An unexpected error occurred",
                 request.getDescription(false)
         );
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
