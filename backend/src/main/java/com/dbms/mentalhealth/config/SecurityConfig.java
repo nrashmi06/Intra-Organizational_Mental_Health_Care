@@ -1,5 +1,6 @@
 package com.dbms.mentalhealth.config;
 
+import com.dbms.mentalhealth.security.CustomAccessDeniedHandler;
 import com.dbms.mentalhealth.security.jwt.AuthEntryPointJwt;
 import com.dbms.mentalhealth.security.jwt.AuthTokenFilter;
 import com.dbms.mentalhealth.urlMapper.UserUrlMapping;
@@ -24,10 +25,12 @@ public class SecurityConfig {
 
     private final AuthEntryPointJwt unauthorizedHandler;
     private final AuthTokenFilter authTokenFilter;
+    private final CustomAccessDeniedHandler accessDeniedHandler;
 
-    public SecurityConfig(AuthEntryPointJwt unauthorizedHandler, AuthTokenFilter authTokenFilter) {
+    public SecurityConfig(AuthEntryPointJwt unauthorizedHandler, AuthTokenFilter authTokenFilter, CustomAccessDeniedHandler accessDeniedHandler) {
         this.unauthorizedHandler = unauthorizedHandler;
         this.authTokenFilter = authTokenFilter;
+        this.accessDeniedHandler = accessDeniedHandler;
     }
 
     @Bean
@@ -44,7 +47,9 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(unauthorizedHandler)
+                        .accessDeniedHandler(accessDeniedHandler))
                 .csrf(AbstractHttpConfigurer::disable) // Disable CSRF for stateless JWT
                 .addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
@@ -60,4 +65,3 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 }
-

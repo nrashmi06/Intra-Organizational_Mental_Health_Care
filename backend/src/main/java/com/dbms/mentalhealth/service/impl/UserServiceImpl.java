@@ -18,6 +18,7 @@ import com.dbms.mentalhealth.model.User;
 import com.dbms.mentalhealth.repository.UserRepository;
 import com.dbms.mentalhealth.service.EmailService;
 import com.dbms.mentalhealth.service.RefreshTokenService;
+import com.dbms.mentalhealth.service.UserActivityService;
 import com.dbms.mentalhealth.service.UserService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -48,8 +49,9 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     private final EmailVerificationRepository emailVerificationRepository;
     private final EmailService emailService;
     private final RefreshTokenService refreshTokenService;
+    private final UserActivityService userActivityService;
 
-    public UserServiceImpl(UserRepository userRepository, RefreshTokenService refreshTokenService, JwtUtils jwtUtils, @Lazy AuthenticationManager authenticationManager, PasswordEncoder passwordEncoder, EmailVerificationRepository emailVerificationRepository, EmailServiceImpl emailService) {
+    public UserServiceImpl(UserRepository userRepository, UserActivityService userActivityService, RefreshTokenService refreshTokenService, JwtUtils jwtUtils, @Lazy AuthenticationManager authenticationManager, PasswordEncoder passwordEncoder, EmailVerificationRepository emailVerificationRepository, EmailService emailService) {
         this.userRepository = userRepository;
         this.jwtUtils = jwtUtils;
         this.authenticationManager = authenticationManager;
@@ -57,6 +59,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         this.emailVerificationRepository = emailVerificationRepository;
         this.emailService = emailService;
         this.refreshTokenService = refreshTokenService;
+        this.userActivityService = userActivityService;
     }
 
     @Override
@@ -146,6 +149,8 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         if (user != null) {
             user.setIsActive(isActive);
             userRepository.save(user);
+            userActivityService.sendUserCountsToAll();
+            userActivityService.sendRoleCountsToAll();
         }
     }
 
@@ -347,6 +352,18 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         if (user != null) {
             user.setLastSeen(LocalDateTime.now());
             userRepository.save(user);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void updateUserActivity(String email) {
+        User user = userRepository.findByEmail(email);
+        if (user != null) {
+            user.setLastSeen(LocalDateTime.now());
+            userRepository.save(user);
+            userActivityService.sendUserCountsToAll();
+            userActivityService.sendRoleCountsToAll();
         }
     }
 }

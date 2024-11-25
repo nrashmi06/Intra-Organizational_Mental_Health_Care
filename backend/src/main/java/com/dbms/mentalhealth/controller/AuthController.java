@@ -54,7 +54,7 @@ public class AuthController {
         Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
         refreshTokenCookie.setHttpOnly(true);
         refreshTokenCookie.setSecure(false);
-        refreshTokenCookie.setPath("/mental-health"+UserUrlMapping.RENEW_TOKEN); // Use the constant from UserUrlMapping
+        refreshTokenCookie.setPath("/mental-health/api/v1/users"); // Use the constant from UserUrlMapping
         refreshTokenCookie.setMaxAge(24 * 60 * 60); // 1 day
 
         response.addCookie(refreshTokenCookie);
@@ -65,8 +65,10 @@ public class AuthController {
     }
 
     @PostMapping(UserUrlMapping.USER_LOGOUT)
-    public ResponseEntity<String> logoutUser(@RequestBody String refreshToken) {
+    public ResponseEntity<String> logoutUser(@CookieValue("refreshToken") String refreshToken) {
         if (refreshToken != null) {
+            String email = refreshTokenService.getEmailFromRefreshToken(refreshToken);
+            userService.setUserActiveStatus(email, false); // Set isActive to false
             refreshTokenService.deleteRefreshToken(refreshToken);
         }
         return ResponseEntity.ok("User logged out successfully.");
@@ -115,7 +117,7 @@ public class AuthController {
 
             Cookie newRefreshTokenCookie = new Cookie("refreshToken", newRefreshToken);
             newRefreshTokenCookie.setHttpOnly(true);
-            newRefreshTokenCookie.setPath("/mental-health"+UserUrlMapping.RENEW_TOKEN);
+            newRefreshTokenCookie.setPath("/mental-health/api/v1/users");
             newRefreshTokenCookie.setMaxAge((60 * 60 * 24 * 1000)); //same as refresh token valididyt
 
             response.addCookie(newRefreshTokenCookie);
