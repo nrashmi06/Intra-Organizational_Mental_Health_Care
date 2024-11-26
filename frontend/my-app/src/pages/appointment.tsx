@@ -10,6 +10,7 @@ import {
   SelectTrigger,
 } from "@/components/ui/select";
 import "@/styles/global.css";
+import Link from "next/link";
 import { Label } from "@/components/ui/label";
 
 export default function BookAppointment() {
@@ -102,9 +103,9 @@ export default function BookAppointment() {
                 <Checkbox id="terms" />
                 <label htmlFor="terms" className="text-base text-gray-600">
   I agree to the{" "}
-  <a href="/t&c" className="text-blue-600 hover:text-blue-800">
+  <Link href="/t&c" className="text-blue-600 hover:text-blue-800">
     Terms of Service and Privacy Policy
-  </a>
+  </Link>
   .
 </label>
 

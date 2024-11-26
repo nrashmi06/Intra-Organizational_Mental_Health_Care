@@ -4,7 +4,7 @@ import * as React from "react"
 import { Home, Send } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Avatar } from "@/components/ui/avatar"
+import Avatar from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import Link from 'next/link' // Import Link for redirection
 import "@/styles/globals.css"
