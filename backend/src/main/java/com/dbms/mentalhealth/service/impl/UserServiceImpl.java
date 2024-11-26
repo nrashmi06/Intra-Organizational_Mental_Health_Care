@@ -149,8 +149,11 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         if (user != null) {
             user.setIsActive(isActive);
             userRepository.save(user);
-            userActivityService.sendUserCountsToAll();
-            userActivityService.sendRoleCountsToAll();
+            userActivityService.broadcastAllUsers();
+            userActivityService.broadcastRoleCounts();
+            userActivityService.broadcastAdminDetails();
+            userActivityService.broadcastListenerDetails();
+            userActivityService.broadcastUserDetails();
         }
     }
 
@@ -362,8 +365,11 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         if (user != null) {
             user.setLastSeen(LocalDateTime.now());
             userRepository.save(user);
-            userActivityService.sendUserCountsToAll();
-            userActivityService.sendRoleCountsToAll();
+            userActivityService.broadcastAllUsers();
+            userActivityService.broadcastRoleCounts();
+            userActivityService.broadcastAdminDetails();
+            userActivityService.broadcastListenerDetails();
+            userActivityService.broadcastUserDetails();
         }
     }
 }

@@ -15,19 +15,43 @@ public class UserActivityController {
         this.userActivityService = userActivityService;
     }
 
-    @GetMapping(SSEUrlMapping.SSE_ONLINE_USERS)
-    public SseEmitter streamOnlineUsers() {
+    @GetMapping(SSEUrlMapping.SSE_ALL_ONLINE_USERS)
+    public SseEmitter streamAllOnlineUsers() {
         SseEmitter emitter = userActivityService.createEmitter();
-        userActivityService.addUserEmitter(emitter); // Add emitter to the list
-        userActivityService.sendInitialCounts(emitter);
+        userActivityService.addAllUsersEmitter(emitter);
+        userActivityService.sendInitialAllUsers(emitter);
         return emitter;
     }
 
-    @GetMapping(SSEUrlMapping.SSE_ONLINE_USERS_BY_ROLE)
-    public SseEmitter streamOnlineUsersByRole() {
+    @GetMapping(SSEUrlMapping.SSE_ONLINE_USERS_COUNT_BY_ROLE)
+    public SseEmitter streamOnlineUsersByRoleCount() {
         SseEmitter emitter = userActivityService.createEmitter();
-        userActivityService.addRoleEmitter(emitter); // Add emitter to the list
+        userActivityService.addRoleCountEmitter(emitter);
         userActivityService.sendInitialRoleCounts(emitter);
+        return emitter;
+    }
+
+    @GetMapping(SSEUrlMapping.SSE_ONLINE_ADMINS)
+    public SseEmitter streamOnlineAdmins() {
+        SseEmitter emitter = userActivityService.createEmitter();
+        userActivityService.addAdminEmitter(emitter);
+        userActivityService.sendInitialAdminDetails(emitter);
+        return emitter;
+    }
+
+    @GetMapping(SSEUrlMapping.SSE_ONLINE_LISTENERS)
+    public SseEmitter streamOnlineListeners() {
+        SseEmitter emitter = userActivityService.createEmitter();
+        userActivityService.addListenerEmitter(emitter);
+        userActivityService.sendInitialListenerDetails(emitter);
+        return emitter;
+    }
+
+    @GetMapping(SSEUrlMapping.SSE_ONLINE_USERS)
+    public SseEmitter streamOnlineUsers() {
+        SseEmitter emitter = userActivityService.createEmitter();
+        userActivityService.addUserEmitter(emitter);
+        userActivityService.sendInitialUserDetails(emitter);
         return emitter;
     }
 }

@@ -28,8 +28,11 @@ public class UserActivityScheduler {
             if (user.getLastSeen() != null && user.getLastSeen().isBefore(fiveMinutesAgo)) {
                 user.setIsActive(false);
                 userRepository.save(user);
-                userActivityService.sendUserCountsToAll();
-                userActivityService.sendRoleCountsToAll();
+                userActivityService.broadcastAllUsers();
+                userActivityService.broadcastRoleCounts();
+                userActivityService.broadcastAdminDetails();
+                userActivityService.broadcastListenerDetails();
+                userActivityService.broadcastUserDetails();
             }
         }
     }
