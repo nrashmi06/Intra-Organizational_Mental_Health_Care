@@ -31,4 +31,5 @@ public interface UserService {
     String getUserNameFromAuthentication(Authentication authentication);
     User findByEmail(String email);
     void updateLastSeen(String email);
+    void updateUserActivity(String email);
 }

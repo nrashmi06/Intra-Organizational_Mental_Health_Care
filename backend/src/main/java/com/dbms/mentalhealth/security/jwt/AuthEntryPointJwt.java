@@ -1,5 +1,6 @@
 package com.dbms.mentalhealth.security.jwt;
 
+import com.dbms.mentalhealth.exception.JwtTokenExpiredException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -31,11 +32,16 @@ public class AuthEntryPointJwt implements AuthenticationEntryPoint {
         final Map<String, Object> body = new HashMap<>();
         body.put("status", HttpServletResponse.SC_UNAUTHORIZED);
         body.put("error", "Unauthorized");
-        body.put("message", authException.getMessage());
+
+        if (authException.getCause() instanceof JwtTokenExpiredException) {
+            body.put("message", "JWT token has expired. Please renew your token.");
+        } else {
+            body.put("message", authException.getMessage());
+        }
+
         body.put("path", request.getServletPath());
 
         final ObjectMapper mapper = new ObjectMapper();
         mapper.writeValue(response.getOutputStream(), body);
     }
-
 }
