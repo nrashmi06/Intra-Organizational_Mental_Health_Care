@@ -32,4 +32,7 @@ public interface UserActivityService {
     List<UserActivityDTO> getOnlineAdmins();
     List<UserActivityDTO> getOnlineListeners();
     List<UserActivityDTO> getOnlineUsers();
+
+    void updateLastSeen(String email);
+    void checkInactiveUsers();
 }
