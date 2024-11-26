@@ -16,9 +16,9 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 @Service
 public class UserActivityServiceImpl implements UserActivityService {
@@ -157,15 +157,16 @@ public class UserActivityServiceImpl implements UserActivityService {
     public void sendInitialUserDetails(SseEmitter emitter) {
         sendInitialData(emitter, "userDetails", userEmitters);
     }
+
     private void logCacheContents() {
         log.info("User Details Cache: {}", userDetailsCache.asMap());
         log.info("Role Based Details Cache: {}", roleBasedDetailsCache.asMap());
         log.info("Last Seen Cache: {}", lastSeenCache.asMap());
     }
+
     private <T> void broadcastData(String cacheKey, List<T> data, CopyOnWriteArrayList<SseEmitter> emitterList) {
         logCacheContents();
         if (data != null) {
-//            roleBasedDetailsCache.put(cacheKey, (List<UserActivityDTO>) data);
             for (SseEmitter emitter : emitterList) {
                 try {
                     emitter.send(SseEmitter.event().name(cacheKey).data(data));
@@ -267,6 +268,18 @@ public class UserActivityServiceImpl implements UserActivityService {
         broadcastUserDetails();
     }
 
+    @Override
+    public List<String> findExpiredUsers() {
+        LocalDateTime now = LocalDateTime.now();
+        return lastSeenCache.asMap().entrySet().stream()
+                .filter(entry -> {
+                    LocalDateTime lastSeen = entry.getValue();
+                    return lastSeen != null &&
+                            lastSeen.isBefore(now.minusSeconds(2));
+                })
+                .map(Map.Entry::getKey)
+                .toList();
+    }
 
     @Override
     public void markUserInactive(String email) {
@@ -274,11 +287,16 @@ public class UserActivityServiceImpl implements UserActivityService {
         if (user != null && user.getIsActive()) {
             user.setIsActive(false);
             userRepository.save(user);
+
             lastSeenCache.invalidate(email);
             userDetailsCache.invalidate(email);
-            roleBasedDetailsCache.asMap().values().forEach(list -> list.removeIf(dto -> dto.getUserId().equals(user.getUserId())));
+            roleBasedDetailsCache.asMap().values().forEach(list -> {
+                list.removeIf(dto -> dto.getUserId().equals(user.getUserId()));
+            });
+
             log.info("User marked as inactive: {}", email);
 
+            // Broadcast updates
             broadcastAllUsers();
             broadcastRoleCounts();
             broadcastAdminDetails();
@@ -288,3 +306,4 @@ public class UserActivityServiceImpl implements UserActivityService {
     }
 
 }
+

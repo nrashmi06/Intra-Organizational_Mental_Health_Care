@@ -21,25 +21,29 @@ public class CacheConfig {
     }
 
     @Bean
-    public Caffeine<String, Object> caffeineConfig() {
+    public Cache<String, UserActivityDTO> userDetailsCache() {
         return Caffeine.newBuilder()
-                .expireAfterWrite(1, TimeUnit.MINUTES)
+                .expireAfterWrite(10, TimeUnit.SECONDS)
                 .maximumSize(1000)
-                .removalListener(commonRemovalListener);
+                .removalListener(commonRemovalListener)
+                .build();
     }
 
     @Bean
-    public Cache<String, UserActivityDTO> userDetailsCache(Caffeine<String, Object> caffeineConfig) {
-        return caffeineConfig.build();
+    public Cache<String, List<UserActivityDTO>> roleBasedDetailsCache() {
+        return Caffeine.newBuilder()
+                .expireAfterWrite(10, TimeUnit.SECONDS)
+                .maximumSize(1000)
+                .removalListener(commonRemovalListener)
+                .build();
     }
 
     @Bean
-    public Cache<String, List<UserActivityDTO>> roleBasedDetailsCache(Caffeine<String, Object> caffeineConfig) {
-        return caffeineConfig.build();
-    }
-
-    @Bean
-    public Cache<String, LocalDateTime> lastSeenCache(Caffeine<String, Object> caffeineConfig) {
-        return caffeineConfig.build();
+    public Cache<String, LocalDateTime> lastSeenCache() {
+        return Caffeine.newBuilder()
+                .expireAfterWrite(10, TimeUnit.SECONDS)
+                .maximumSize(1000)
+                .removalListener(commonRemovalListener)
+                .build();
     }
 }

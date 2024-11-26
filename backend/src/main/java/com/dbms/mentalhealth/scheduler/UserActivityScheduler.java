@@ -1,27 +1,25 @@
-//package com.dbms.mentalhealth.scheduler;
-//
-//import com.dbms.mentalhealth.service.UserActivityService;
-//import lombok.extern.slf4j.Slf4j;
-//import org.springframework.scheduling.annotation.Scheduled;
-//import org.springframework.stereotype.Component;
-//
-//@Component
-//@Slf4j
-//public class UserActivityScheduler {
-//
-//    private final UserActivityService userActivityService;
-//
-//    public UserActivityScheduler(UserActivityService userActivityService) {
-//        this.userActivityService = userActivityService;
-//    }
-//
-//    @Scheduled(fixedRate = 60 * 1000) // Run every 1 minute
-//    public void checkInactiveUsers() {
-//        try {
-//            log.info("Running inactive users check");
-//            userActivityService.checkInactiveUsers();
-//        } catch (Exception e) {
-//            log.error("Error in checking inactive users", e);
-//        }
-//    }
-//}
+package com.dbms.mentalhealth.scheduler;
+
+import com.dbms.mentalhealth.service.UserActivityService;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.logging.Logger;
+
+@Component
+public class UserActivityScheduler {
+    UserActivityService userActivityService;
+    Logger logger = Logger.getLogger(UserActivityScheduler.class.getName());
+    public UserActivityScheduler(UserActivityService userActivityService) {
+        this.userActivityService = userActivityService;
+    }
+    @Scheduled(fixedRate = 5000) // 30 seconds
+    public void cleanupExpiredUsers() {
+        logger.info("Cleaning up expired users");
+        List<String> expiredUsers = userActivityService.findExpiredUsers();
+        logger.info("Expired users: " + expiredUsers);
+        expiredUsers.forEach(userActivityService::markUserInactive);
+
+    }
+}
