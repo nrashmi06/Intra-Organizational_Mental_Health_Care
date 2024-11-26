@@ -2,16 +2,26 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/router";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "@/store"; // Import RootState to access Redux state
+import { clearUser } from "@/store/authSlice"; // Import the clearUser action
 
 export default function Navbar() {
   const router = useRouter();
+  const dispatch = useDispatch();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isServicesDropdownOpen, setIsServicesDropdownOpen] = useState(false);
 
+  const user = useSelector((state: RootState) => state.auth); // Access user data from Redux state
+
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
-  // Toggle the services dropdown when the Services link is clicked
   const toggleServicesDropdown = () => setIsServicesDropdownOpen(!isServicesDropdownOpen);
+
+  const handleLogout = () => {
+    dispatch(clearUser()); // Clear user data from Redux state
+    router.push("/signin"); // Redirect to the sign-in page
+  };
 
   return (
     <header className="border-b z-50 relative">
@@ -100,15 +110,26 @@ export default function Navbar() {
 
               {/* Sign-in and Register links */}
               <div className="flex flex-row items-center gap-4">
-                <Link href="/signin" className="text-sm font-medium text-white">
-                  Sign-in
-                </Link>
-                <Link
-                  href="/signup"
-                  className="bg-black text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-800 transition-colors"
-                >
-                  Register
-                </Link>
+                {!user.accessToken ? (
+                  <>
+                    <Link href="/signin" className="text-sm font-medium text-white">
+                      Sign-in
+                    </Link>
+                    <Link
+                      href="/signup"
+                      className="bg-black text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-800 transition-colors"
+                    >
+                      Register
+                    </Link>
+                  </>
+                ) : (
+                  <button
+                    onClick={handleLogout}
+                    className="text-sm font-medium text-red-500"
+                  >
+                    Logout
+                  </button>
+                )}
               </div>
             </nav>
           </div>
@@ -201,15 +222,26 @@ export default function Navbar() {
 
             {/* Sign-in and Register links */}
             <div className="flex flex-col items-center gap-4">
-              <Link href="/sign-in" className="text-sm font-medium text-white">
-                Sign-in
-              </Link>
-              <Link
-                href="/register"
-                className="bg-black text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-800 transition-colors"
-              >
-                Register
-              </Link>
+              {!user.accessToken ? (
+                <>
+                  <Link href="/sign-in" className="text-sm font-medium text-white">
+                    Sign-in
+                  </Link>
+                  <Link
+                    href="/register"
+                    className="bg-black text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-800 transition-colors"
+                  >
+                    Register
+                  </Link>
+                </>
+              ) : (
+                <button
+                  onClick={handleLogout}
+                  className="text-sm font-medium text-red-500"
+                >
+                  Logout
+                </button>
+              )}
             </div>
           </nav>
         </div>
