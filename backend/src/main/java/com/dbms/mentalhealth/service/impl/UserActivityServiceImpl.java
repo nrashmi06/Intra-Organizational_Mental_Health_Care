@@ -275,7 +275,7 @@ public class UserActivityServiceImpl implements UserActivityService {
                 .filter(entry -> {
                     LocalDateTime lastSeen = entry.getValue();
                     return lastSeen != null &&
-                            lastSeen.isBefore(now.minusSeconds(2));
+                            lastSeen.isBefore(now.minusSeconds(4));
                 })
                 .map(Map.Entry::getKey)
                 .toList();

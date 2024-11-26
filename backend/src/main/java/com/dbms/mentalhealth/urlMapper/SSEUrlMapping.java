@@ -11,4 +11,5 @@ public class SSEUrlMapping {
     public static final String SSE_ONLINE_LISTENERS = BASE_URL + "/onlineListeners";
     public static final String SSE_ONLINE_ADMINS = BASE_URL + "/onlineAdmins";
     public static final String SSE_ONLINE_USERS = BASE_URL + "/onlineUsers";
+    public static final String HEARTBEAT = BASE_URL + "/heartbeat";
 }
