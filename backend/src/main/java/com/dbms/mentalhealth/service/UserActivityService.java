@@ -32,4 +32,8 @@ public interface UserActivityService {
     List<UserActivityDTO> getOnlineAdmins();
     List<UserActivityDTO> getOnlineListeners();
     List<UserActivityDTO> getOnlineUsers();
+    void markUserInactive(String email);
+    List<String> findExpiredUsers();
+    void updateLastSeen(String email);
+
 }

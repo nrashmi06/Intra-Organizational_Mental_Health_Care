@@ -54,4 +54,9 @@ public class UserActivityController {
         userActivityService.sendInitialUserDetails(emitter);
         return emitter;
     }
+
+    @GetMapping(SSEUrlMapping.HEARTBEAT)
+    public String heartbeat() {
+        return "OK";
+    }
 }

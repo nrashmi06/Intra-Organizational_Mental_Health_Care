@@ -111,9 +111,6 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
         String accessToken = jwtUtils.generateTokenFromUsername(userDetails, user.getUserId());
         String refreshToken = refreshTokenService.createRefreshToken(user.getEmail()).getToken();
-
-        updateLastSeen(user.getEmail());
-
         UserLoginResponseDTO responseDTO = UserMapper.toUserLoginResponseDTO(user);
 
         Map<String, Object> response = new HashMap<>();
@@ -144,18 +141,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         return username.matches("^[a-zA-Z0-9._-]{3,}$");
     }
 
-    public void setUserActiveStatus(String email, boolean isActive) {
-        User user = userRepository.findByEmail(email);
-        if (user != null) {
-            user.setIsActive(isActive);
-            userRepository.save(user);
-            userActivityService.broadcastAllUsers();
-            userActivityService.broadcastRoleCounts();
-            userActivityService.broadcastAdminDetails();
-            userActivityService.broadcastListenerDetails();
-            userActivityService.broadcastUserDetails();
-        }
-    }
+
 
     public void deleteUserById(Integer userId) {
         Optional<User> user = userRepository.findById(userId);
@@ -350,26 +336,28 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
-    public void updateLastSeen(String email) {
-        User user = userRepository.findByEmail(email);
-        if (user != null) {
-            user.setLastSeen(LocalDateTime.now());
-            userRepository.save(user);
-        }
-    }
-
-    @Override
     @Transactional
     public void updateUserActivity(String email) {
         User user = userRepository.findByEmail(email);
         if (user != null) {
             user.setLastSeen(LocalDateTime.now());
             userRepository.save(user);
-            userActivityService.broadcastAllUsers();
-            userActivityService.broadcastRoleCounts();
-            userActivityService.broadcastAdminDetails();
-            userActivityService.broadcastListenerDetails();
-            userActivityService.broadcastUserDetails();
+            userActivityService.updateLastSeen(email);
+        }
+    }
+
+    @Override
+    public void setUserActiveStatus(String email, boolean isActive) {
+        User user = userRepository.findByEmail(email);
+        if (user != null) {
+            if (isActive) {
+                user.setLastSeen(LocalDateTime.now());
+                userRepository.save(user);
+                userActivityService.updateLastSeen(email);
+            }else{
+                userRepository.save(user);
+                userActivityService.markUserInactive(email);
+            }
         }
     }
 }
