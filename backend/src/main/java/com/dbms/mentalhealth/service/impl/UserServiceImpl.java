@@ -111,9 +111,6 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
         String accessToken = jwtUtils.generateTokenFromUsername(userDetails, user.getUserId());
         String refreshToken = refreshTokenService.createRefreshToken(user.getEmail()).getToken();
-
-        updateUserActivity(user.getEmail());
-
         UserLoginResponseDTO responseDTO = UserMapper.toUserLoginResponseDTO(user);
 
         Map<String, Object> response = new HashMap<>();
@@ -353,15 +350,13 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     public void setUserActiveStatus(String email, boolean isActive) {
         User user = userRepository.findByEmail(email);
         if (user != null) {
-            user.setIsActive(isActive);
             if (isActive) {
                 user.setLastSeen(LocalDateTime.now());
-            }
-            userRepository.save(user);
-            if (isActive) {
+                userRepository.save(user);
                 userActivityService.updateLastSeen(email);
-            } else {
-                userActivityService.checkInactiveUsers();
+            }else{
+                userRepository.save(user);
+                userActivityService.markUserInactive(email);
             }
         }
     }
