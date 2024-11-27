@@ -14,12 +14,11 @@ public class UserActivityScheduler {
     public UserActivityScheduler(UserActivityService userActivityService) {
         this.userActivityService = userActivityService;
     }
-    @Scheduled(fixedRate = 10 * 1000) // 1 mins
+    @Scheduled(fixedRate = 60 * 1000) // 1 mins
     public void cleanupExpiredUsers() {
         logger.info("Cleaning up expired users");
         List<String> expiredUsers = userActivityService.findExpiredUsers();
         logger.info("Expired users: " + expiredUsers);
         expiredUsers.forEach(userActivityService::markUserInactive);
-
     }
 }

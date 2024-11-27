@@ -4,7 +4,7 @@ import com.dbms.mentalhealth.dto.TimeSlot.request.TimeSlotCreateRequestDTO;
 import com.dbms.mentalhealth.dto.TimeSlot.response.TimeSlotResponseDTO;
 import com.dbms.mentalhealth.model.TimeSlot;
 import com.dbms.mentalhealth.model.Admin;
-import com.dbms.mentalhealth.exception.AdminNotFoundException;
+import com.dbms.mentalhealth.exception.admin.AdminNotFoundException;
 import com.dbms.mentalhealth.repository.AdminRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

@@ -3,9 +3,11 @@ package com.dbms.mentalhealth.controller;
 import com.dbms.mentalhealth.dto.Admin.request.AdminProfileRequestDTO;
 import com.dbms.mentalhealth.dto.Admin.response.AdminProfileResponseDTO;
 import com.dbms.mentalhealth.dto.Admin.response.AdminProfileSummaryResponseDTO;
+import com.dbms.mentalhealth.exception.admin.AdminNotFoundException;
 import com.dbms.mentalhealth.service.AdminService;
 import com.dbms.mentalhealth.urlMapper.AdminUrlMapping;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -28,14 +30,22 @@ public class AdminController {
     public ResponseEntity<AdminProfileResponseDTO> createAdminProfile(
             @RequestPart("adminProfile") AdminProfileRequestDTO adminProfileRequestDTO,
             @RequestPart("profilePicture") MultipartFile profilePicture) throws Exception {
-        AdminProfileResponseDTO responseDTO = adminService.createAdminProfile(adminProfileRequestDTO, profilePicture);
-        return ResponseEntity.ok(responseDTO);
+        try {
+            AdminProfileResponseDTO responseDTO = adminService.createAdminProfile(adminProfileRequestDTO, profilePicture);
+            return ResponseEntity.ok(responseDTO);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 
     @GetMapping(AdminUrlMapping.GET_ADMIN_PROFILE)
     public ResponseEntity<AdminProfileResponseDTO> getAdminProfile(@PathVariable Integer adminId) {
-        AdminProfileResponseDTO responseDTO = adminService.getAdminProfile(adminId);
-        return ResponseEntity.ok(responseDTO);
+        try {
+            AdminProfileResponseDTO responseDTO = adminService.getAdminProfile(adminId);
+            return ResponseEntity.ok(responseDTO);
+        } catch (AdminNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -44,8 +54,14 @@ public class AdminController {
             @PathVariable Integer adminId,
             @RequestPart("adminProfile") AdminProfileRequestDTO adminProfileRequestDTO,
             @RequestPart("profilePicture") MultipartFile profilePicture) throws Exception {
-        AdminProfileResponseDTO responseDTO = adminService.updateAdminProfile(adminId, adminProfileRequestDTO, profilePicture);
-        return ResponseEntity.ok(responseDTO);
+        try {
+            AdminProfileResponseDTO responseDTO = adminService.updateAdminProfile(adminId, adminProfileRequestDTO, profilePicture);
+            return ResponseEntity.ok(responseDTO);
+        } catch (AdminNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 
     @GetMapping(AdminUrlMapping.GET_ALL_ADMINS)
@@ -57,9 +73,11 @@ public class AdminController {
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping(AdminUrlMapping.DELETE_ADMIN_PROFILE)
     public ResponseEntity<String> deleteAdminProfile(@PathVariable Integer adminId) {
-        adminService.deleteAdminProfile(adminId);
-        return ResponseEntity.ok("Admin profile deleted successfully");
+        try {
+            adminService.deleteAdminProfile(adminId);
+            return ResponseEntity.ok("Admin profile deleted successfully");
+        } catch (AdminNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Admin not found");
+        }
     }
-
-
 }

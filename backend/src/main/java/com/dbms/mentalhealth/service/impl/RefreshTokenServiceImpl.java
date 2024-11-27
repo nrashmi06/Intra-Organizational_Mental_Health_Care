@@ -1,8 +1,8 @@
 package com.dbms.mentalhealth.service.impl;
 
 import com.dbms.mentalhealth.dto.user.response.UserLoginResponseDTO;
-import com.dbms.mentalhealth.exception.UserNotFoundException;
-import com.dbms.mentalhealth.exception.RefreshTokenException;
+import com.dbms.mentalhealth.exception.user.UserNotFoundException;
+import com.dbms.mentalhealth.exception.token.RefreshTokenException;
 import com.dbms.mentalhealth.mapper.UserMapper;
 import com.dbms.mentalhealth.model.RefreshToken;
 import com.dbms.mentalhealth.model.User;

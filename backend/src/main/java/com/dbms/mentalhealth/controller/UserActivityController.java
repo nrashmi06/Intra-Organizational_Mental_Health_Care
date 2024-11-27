@@ -1,5 +1,6 @@
 package com.dbms.mentalhealth.controller;
 
+import com.dbms.mentalhealth.exception.sse.EmitterCreationException;
 import com.dbms.mentalhealth.service.UserActivityService;
 import com.dbms.mentalhealth.urlMapper.SSEUrlMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,42 +18,62 @@ public class UserActivityController {
 
     @GetMapping(SSEUrlMapping.SSE_ALL_ONLINE_USERS)
     public SseEmitter streamAllOnlineUsers() {
-        SseEmitter emitter = userActivityService.createEmitter();
-        userActivityService.addAllUsersEmitter(emitter);
-        userActivityService.sendInitialAllUsers(emitter);
-        return emitter;
+        try {
+            SseEmitter emitter = userActivityService.createEmitter();
+            userActivityService.addAllUsersEmitter(emitter);
+            userActivityService.sendInitialAllUsers(emitter);
+            return emitter;
+        } catch (Exception e) {
+            throw new EmitterCreationException("Failed to create emitter for all online users");
+        }
     }
 
     @GetMapping(SSEUrlMapping.SSE_ONLINE_USERS_COUNT_BY_ROLE)
     public SseEmitter streamOnlineUsersByRoleCount() {
-        SseEmitter emitter = userActivityService.createEmitter();
-        userActivityService.addRoleCountEmitter(emitter);
-        userActivityService.sendInitialRoleCounts(emitter);
-        return emitter;
+        try {
+            SseEmitter emitter = userActivityService.createEmitter();
+            userActivityService.addRoleCountEmitter(emitter);
+            userActivityService.sendInitialRoleCounts(emitter);
+            return emitter;
+        } catch (Exception e) {
+            throw new EmitterCreationException("Failed to create emitter for online users count by role");
+        }
     }
 
     @GetMapping(SSEUrlMapping.SSE_ONLINE_ADMINS)
     public SseEmitter streamOnlineAdmins() {
-        SseEmitter emitter = userActivityService.createEmitter();
-        userActivityService.addAdminEmitter(emitter);
-        userActivityService.sendInitialAdminDetails(emitter);
-        return emitter;
+        try {
+            SseEmitter emitter = userActivityService.createEmitter();
+            userActivityService.addAdminEmitter(emitter);
+            userActivityService.sendInitialAdminDetails(emitter);
+            return emitter;
+        } catch (Exception e) {
+            throw new EmitterCreationException("Failed to create emitter for online admins");
+        }
     }
 
     @GetMapping(SSEUrlMapping.SSE_ONLINE_LISTENERS)
     public SseEmitter streamOnlineListeners() {
-        SseEmitter emitter = userActivityService.createEmitter();
-        userActivityService.addListenerEmitter(emitter);
-        userActivityService.sendInitialListenerDetails(emitter);
-        return emitter;
+        try {
+            SseEmitter emitter = userActivityService.createEmitter();
+            userActivityService.addListenerEmitter(emitter);
+            userActivityService.sendInitialListenerDetails(emitter);
+            return emitter;
+        } catch (Exception e) {
+            throw new EmitterCreationException("Failed to create emitter for online listeners");
+        }
     }
 
     @GetMapping(SSEUrlMapping.SSE_ONLINE_USERS)
     public SseEmitter streamOnlineUsers() {
-        SseEmitter emitter = userActivityService.createEmitter();
-        userActivityService.addUserEmitter(emitter);
-        userActivityService.sendInitialUserDetails(emitter);
-        return emitter;
+        try {
+            SseEmitter emitter = userActivityService.createEmitter();
+            userActivityService.addUserEmitter(emitter);
+            userActivityService.sendInitialUserDetails(emitter);
+            return emitter;
+        } catch (Exception e) {
+            throw new EmitterCreationException("Failed to create emitter for online users");
+        }
     }
 
     @GetMapping(SSEUrlMapping.HEARTBEAT)

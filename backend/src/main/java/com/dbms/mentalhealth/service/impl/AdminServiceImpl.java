@@ -4,7 +4,7 @@ import com.dbms.mentalhealth.dto.Admin.request.AdminProfileRequestDTO;
 import com.dbms.mentalhealth.dto.Admin.response.AdminProfileResponseDTO;
 import com.dbms.mentalhealth.dto.Admin.response.AdminProfileSummaryResponseDTO;
 import com.dbms.mentalhealth.enums.Role;
-import com.dbms.mentalhealth.exception.AdminNotFoundException;
+import com.dbms.mentalhealth.exception.admin.AdminNotFoundException;
 import com.dbms.mentalhealth.mapper.AdminMapper;
 import com.dbms.mentalhealth.model.Admin;
 import com.dbms.mentalhealth.model.User;
@@ -19,7 +19,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 

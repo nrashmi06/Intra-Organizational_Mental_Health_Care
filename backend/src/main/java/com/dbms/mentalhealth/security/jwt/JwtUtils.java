@@ -1,6 +1,6 @@
 package com.dbms.mentalhealth.security.jwt;
 
-import com.dbms.mentalhealth.exception.JwtTokenExpiredException;
+import com.dbms.mentalhealth.exception.token.JwtTokenExpiredException;
 import org.springframework.security.core.GrantedAuthority;
 import com.dbms.mentalhealth.config.ApplicationConfig;
 import io.jsonwebtoken.*;

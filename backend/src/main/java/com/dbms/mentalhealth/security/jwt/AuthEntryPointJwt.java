@@ -1,6 +1,6 @@
 package com.dbms.mentalhealth.security.jwt;
 
-import com.dbms.mentalhealth.exception.JwtTokenExpiredException;
+import com.dbms.mentalhealth.exception.token.JwtTokenExpiredException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

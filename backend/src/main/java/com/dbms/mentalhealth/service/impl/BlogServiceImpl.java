@@ -4,6 +4,7 @@ import com.dbms.mentalhealth.dto.blog.request.BlogRequestDTO;
 import com.dbms.mentalhealth.dto.blog.response.BlogResponseDTO;
 import com.dbms.mentalhealth.dto.blog.response.BlogSummaryDTO;
 import com.dbms.mentalhealth.enums.BlogApprovalStatus;
+import com.dbms.mentalhealth.exception.blog.BlogNotFoundException;
 import com.dbms.mentalhealth.mapper.BlogMapper;
 import com.dbms.mentalhealth.model.Blog;
 import com.dbms.mentalhealth.model.BlogLike;
@@ -17,7 +18,6 @@ import com.dbms.mentalhealth.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -102,7 +102,7 @@ public class BlogServiceImpl implements BlogService {
 
     @Transactional
     public void deleteBlog(Integer blogId) throws Exception {
-        Blog blog = blogRepository.findById(blogId).orElseThrow(() -> new RuntimeException("Blog not found"));
+        Blog blog = blogRepository.findById(blogId).orElseThrow(() -> new BlogNotFoundException("Blog not found"));
         if (blog.getImageUrl() != null) {
             imageStorageService.deleteImage(blog.getImageUrl());
         }
