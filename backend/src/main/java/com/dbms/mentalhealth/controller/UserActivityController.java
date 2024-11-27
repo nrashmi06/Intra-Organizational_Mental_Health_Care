@@ -3,6 +3,7 @@ package com.dbms.mentalhealth.controller;
 import com.dbms.mentalhealth.exception.sse.EmitterCreationException;
 import com.dbms.mentalhealth.service.UserActivityService;
 import com.dbms.mentalhealth.urlMapper.SSEUrlMapping;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -16,6 +17,7 @@ public class UserActivityController {
         this.userActivityService = userActivityService;
     }
 
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping(SSEUrlMapping.SSE_ALL_ONLINE_USERS)
     public SseEmitter streamAllOnlineUsers() {
         try {
@@ -28,6 +30,7 @@ public class UserActivityController {
         }
     }
 
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping(SSEUrlMapping.SSE_ONLINE_USERS_COUNT_BY_ROLE)
     public SseEmitter streamOnlineUsersByRoleCount() {
         try {
@@ -40,6 +43,7 @@ public class UserActivityController {
         }
     }
 
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping(SSEUrlMapping.SSE_ONLINE_ADMINS)
     public SseEmitter streamOnlineAdmins() {
         try {
@@ -64,6 +68,7 @@ public class UserActivityController {
         }
     }
 
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping(SSEUrlMapping.SSE_ONLINE_USERS)
     public SseEmitter streamOnlineUsers() {
         try {

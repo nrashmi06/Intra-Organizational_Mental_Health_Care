@@ -18,6 +18,7 @@ import com.dbms.mentalhealth.exception.user.*;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MissingRequestCookieException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
@@ -147,5 +148,10 @@ public class CustomExceptionHandler {
     @ExceptionHandler(InvalidAdminSettingsException.class)
     public ResponseEntity<Object> handleInvalidAdminSettingsException(InvalidAdminSettingsException ex, WebRequest request) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(MissingRequestCookieException.class)
+    public ResponseEntity<String> handleMissingRequestCookieException(MissingRequestCookieException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Required cookie 'refreshToken' is not present");
     }
 }

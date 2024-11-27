@@ -8,6 +8,8 @@ import com.dbms.mentalhealth.dto.user.response.ResetPasswordResponseDTO;
 import com.dbms.mentalhealth.dto.user.response.UserLoginResponseDTO;
 import com.dbms.mentalhealth.dto.user.response.UserRegistrationResponseDTO;
 import com.dbms.mentalhealth.dto.user.response.VerifyEmailResponseDTO;
+import com.dbms.mentalhealth.exception.token.MissingRequestCookieException;
+import com.dbms.mentalhealth.exception.token.RefreshTokenException;
 import com.dbms.mentalhealth.exception.user.InvalidUserCredentialsException;
 import com.dbms.mentalhealth.exception.user.UserNotFoundException;
 import com.dbms.mentalhealth.security.jwt.JwtUtils;
@@ -113,12 +115,13 @@ public class AuthController {
         return ResponseEntity.ok(new ResetPasswordResponseDTO("Password has been reset successfully."));
     }
 
-    @PreAuthorize("permitAll()")
     @PostMapping(UserUrlMapping.RENEW_TOKEN)
     public ResponseEntity<?> renewToken(@CookieValue("refreshToken") String refreshToken, HttpServletResponse response) {
         try {
             Map<String, Object> renewResponse = refreshTokenService.renewToken(refreshToken);
-
+            if(refreshToken == null){
+                throw new MissingRequestCookieException("Required cookie 'refreshToken' is not present");
+            }
             String newAccessToken = (String) renewResponse.get("accessToken");
             String newRefreshToken = (String) renewResponse.get("refreshToken");
             UserLoginResponseDTO responseDTO = (UserLoginResponseDTO) renewResponse.get("user");
@@ -126,17 +129,19 @@ public class AuthController {
             Cookie newRefreshTokenCookie = new Cookie("refreshToken", newRefreshToken);
             newRefreshTokenCookie.setHttpOnly(true);
             newRefreshTokenCookie.setPath("/mental-health/api/v1/users");
-            newRefreshTokenCookie.setMaxAge((60 * 60 * 24 * 1000)); //same as refresh token validity
+            newRefreshTokenCookie.setMaxAge((60 * 60 * 24 * 1000)); // same as refresh token validity
 
             response.addCookie(newRefreshTokenCookie);
 
             return ResponseEntity.ok()
                     .header("Authorization", "Bearer " + newAccessToken)
                     .body(responseDTO);
-        } catch (IllegalArgumentException e) {
+        } catch (RefreshTokenException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         } catch (UserNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch(IllegalArgumentException e){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred");
         }
     }
 }
