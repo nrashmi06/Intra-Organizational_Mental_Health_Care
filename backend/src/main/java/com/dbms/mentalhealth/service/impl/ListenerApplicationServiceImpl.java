@@ -5,8 +5,8 @@ import com.dbms.mentalhealth.dto.listenerApplication.request.ListenerApplication
 import com.dbms.mentalhealth.dto.listenerApplication.response.ListenerApplicationResponseDTO;
 import com.dbms.mentalhealth.enums.ListenerApplicationStatus;
 import com.dbms.mentalhealth.enums.Role;
-import com.dbms.mentalhealth.exception.ApplicationAlreadySubmittedException;
-import com.dbms.mentalhealth.exception.UserNotFoundException;
+import com.dbms.mentalhealth.exception.listener.ApplicationAlreadySubmittedException;
+import com.dbms.mentalhealth.exception.user.UserNotFoundException;
 import com.dbms.mentalhealth.mapper.ListenerApplicationMapper;
 import com.dbms.mentalhealth.mapper.ListenerDetailsMapper;
 import com.dbms.mentalhealth.model.Listener;

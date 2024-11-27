@@ -2,8 +2,8 @@ package com.dbms.mentalhealth.service.impl;
 
 import com.dbms.mentalhealth.dto.adminSettings.request.AdminSettingsRequestDTO;
 import com.dbms.mentalhealth.dto.adminSettings.response.AdminSettingsResponseDTO;
-import com.dbms.mentalhealth.exception.AdminSettingAlreadyExistsException;
-import com.dbms.mentalhealth.exception.AdminSettingNotFoundException;
+import com.dbms.mentalhealth.exception.adminSettings.AdminSettingAlreadyExistsException;
+import com.dbms.mentalhealth.exception.adminSettings.AdminSettingNotFoundException;
 import com.dbms.mentalhealth.mapper.AdminSettingsMapper;
 import com.dbms.mentalhealth.model.Admin;
 import com.dbms.mentalhealth.model.AdminSettings;

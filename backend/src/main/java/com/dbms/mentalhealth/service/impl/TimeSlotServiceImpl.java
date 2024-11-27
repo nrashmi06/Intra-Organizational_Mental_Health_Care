@@ -2,6 +2,8 @@ package com.dbms.mentalhealth.service.impl;
 
 import com.dbms.mentalhealth.dto.TimeSlot.request.TimeSlotCreateRequestDTO;
 import com.dbms.mentalhealth.dto.TimeSlot.response.TimeSlotResponseDTO;
+import com.dbms.mentalhealth.exception.timeslot.DuplicateTimeSlotException;
+import com.dbms.mentalhealth.exception.timeslot.InvalidTimeSlotException;
 import com.dbms.mentalhealth.mapper.TimeSlotMapper;
 import com.dbms.mentalhealth.model.TimeSlot;
 import com.dbms.mentalhealth.repository.TimeSlotRepository;
@@ -12,7 +14,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class TimeSlotServiceImpl implements TimeSlotService {
@@ -41,7 +42,7 @@ public class TimeSlotServiceImpl implements TimeSlotService {
                 if (timeSlot.getDate().equals(otherTimeSlot.getDate()) &&
                         timeSlot.getStartTime().isBefore(otherTimeSlot.getEndTime()) &&
                         otherTimeSlot.getStartTime().isBefore(timeSlot.getEndTime())) {
-                    throw new IllegalArgumentException("Overlapping time slots found within the provided list for date " + timeSlot.getDate());
+                    throw new InvalidTimeSlotException("Overlapping time slots found within the provided list for date " + timeSlot.getDate());
                 }
             }
 
@@ -49,19 +50,20 @@ public class TimeSlotServiceImpl implements TimeSlotService {
             boolean exists = timeSlotRepository.existsByDateAndStartTimeAndEndTimeAndAdmins_AdminId(
                     timeSlot.getDate(), timeSlot.getStartTime(), timeSlot.getEndTime(), adminId);
             if (exists) {
-                throw new IllegalArgumentException("Duplicate time slot found for date " + timeSlot.getDate() + " and time " + timeSlot.getStartTime() + " - " + timeSlot.getEndTime());
+                throw new DuplicateTimeSlotException("Duplicate time slot found for date " + timeSlot.getDate() + " and time " + timeSlot.getStartTime() + " - " + timeSlot.getEndTime());
             }
 
             boolean overlaps = timeSlotRepository.existsByDateAndAdmins_AdminIdAndStartTimeLessThanAndEndTimeGreaterThan(
                     timeSlot.getDate(), adminId, timeSlot.getEndTime(), timeSlot.getStartTime());
             if (overlaps) {
-                throw new IllegalArgumentException("Overlapping time slot found for date " + timeSlot.getDate() + " and time " + timeSlot.getStartTime() + " - " + timeSlot.getEndTime());
+                throw new InvalidTimeSlotException("Overlapping time slot found for date " + timeSlot.getDate() + " and time " + timeSlot.getStartTime() + " - " + timeSlot.getEndTime());
             }
         }
 
         List<TimeSlot> savedTimeSlots = timeSlotRepository.saveAll(timeSlots);
         return savedTimeSlots.stream().map(timeSlotMapper::toTimeSlotResponseDTO).toList();
     }
+
     @Override
     public List<TimeSlotResponseDTO> getTimeSlotsByDateRangeAndAvailability(Integer adminId, LocalDate startDate, LocalDate endDate, Boolean isAvailable) {
         List<TimeSlot> timeSlots;

@@ -2,9 +2,13 @@ package com.dbms.mentalhealth.controller;
 
 import com.dbms.mentalhealth.dto.TimeSlot.request.TimeSlotCreateRequestDTO;
 import com.dbms.mentalhealth.dto.TimeSlot.response.TimeSlotResponseDTO;
+import com.dbms.mentalhealth.exception.timeslot.DuplicateTimeSlotException;
+import com.dbms.mentalhealth.exception.timeslot.InvalidTimeSlotException;
+import com.dbms.mentalhealth.exception.timeslot.TimeSlotNotFoundException;
 import com.dbms.mentalhealth.service.TimeSlotService;
 import com.dbms.mentalhealth.urlMapper.TimeSlotUrlMapping;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -29,8 +33,14 @@ public class TimeSlotController {
             @RequestParam("endDate") LocalDate endDate,
             @RequestBody TimeSlotCreateRequestDTO timeSlotCreateRequestDTO
     ) {
-        List<TimeSlotResponseDTO> response = timeSlotService.createTimeSlots(adminId, startDate, endDate, timeSlotCreateRequestDTO);
-        return ResponseEntity.status(201).body(response);
+        try {
+            List<TimeSlotResponseDTO> response = timeSlotService.createTimeSlots(adminId, startDate, endDate, timeSlotCreateRequestDTO);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (InvalidTimeSlotException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        } catch (DuplicateTimeSlotException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
+        }
     }
 
     @GetMapping(TimeSlotUrlMapping.GET_TIME_SLOTS_BY_ADMIN_IN_DATE_RANGE)
@@ -40,8 +50,12 @@ public class TimeSlotController {
             @RequestParam("endDate") LocalDate endDate,
             @RequestParam(value = "isAvailable", required = false) Boolean isAvailable
     ) {
-        List<TimeSlotResponseDTO> response = timeSlotService.getTimeSlotsByDateRangeAndAvailability(adminId, startDate, endDate, isAvailable);
-        return ResponseEntity.ok(response);
+        try {
+            List<TimeSlotResponseDTO> response = timeSlotService.getTimeSlotsByDateRangeAndAvailability(adminId, startDate, endDate, isAvailable);
+            return ResponseEntity.ok(response);
+        } catch (TimeSlotNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
@@ -52,8 +66,12 @@ public class TimeSlotController {
             @RequestParam("endDate") LocalDate endDate,
             @RequestParam(value = "isAvailable", required = false) Boolean isAvailable
     ) {
-        timeSlotService.deleteTimeSlotsInDateRangeAndAvailability(adminId, startDate, endDate, isAvailable);
-        return ResponseEntity.noContent().build();
+        try {
+            timeSlotService.deleteTimeSlotsInDateRangeAndAvailability(adminId, startDate, endDate, isAvailable);
+            return ResponseEntity.noContent().build();
+        } catch (TimeSlotNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
@@ -63,8 +81,16 @@ public class TimeSlotController {
             @PathVariable("timeSlotId") Integer timeSlotId,
             @RequestBody TimeSlotCreateRequestDTO.TimeSlotDTO timeSlotDTO
     ) {
-        TimeSlotResponseDTO response = timeSlotService.updateTimeSlot(adminId, timeSlotId, timeSlotDTO);
-        return ResponseEntity.ok(response);
+        try {
+            TimeSlotResponseDTO response = timeSlotService.updateTimeSlot(adminId, timeSlotId, timeSlotDTO);
+            return ResponseEntity.ok(response);
+        } catch (TimeSlotNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        } catch (InvalidTimeSlotException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        } catch (DuplicateTimeSlotException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
+        }
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
@@ -73,8 +99,11 @@ public class TimeSlotController {
             @PathVariable("adminId") Integer adminId,
             @PathVariable("timeSlotId") Integer timeSlotId
     ) {
-        timeSlotService.deleteTimeSlot(adminId,timeSlotId);
-        return ResponseEntity.noContent().build();
+        try {
+            timeSlotService.deleteTimeSlot(adminId, timeSlotId);
+            return ResponseEntity.noContent().build();
+        } catch (TimeSlotNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
     }
-
 }

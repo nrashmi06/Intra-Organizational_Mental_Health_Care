@@ -41,7 +41,7 @@ public class EmergencyHelplineServiceImpl implements EmergencyHelplineService {
     @Override
     public EmergencyHelplineDTO addEmergencyHelpline(EmergencyHelplineDTO emergencyHelplineDTO) {
         Integer userId = jwtUtils.getUserIdFromContext();
-        Admin admin = adminRepository.findById(userId)
+        Admin admin = adminRepository.findByUser_UserId(userId)
                 .orElseThrow(() -> new EntityNotFoundException("Admin not found with ID: " + userId));
         EmergencyHelpline emergencyHelpline = emergencyHelplineMapper.toEntity(emergencyHelplineDTO,admin);
         emergencyHelpline.setAdmin(admin);
@@ -51,7 +51,7 @@ public class EmergencyHelplineServiceImpl implements EmergencyHelplineService {
     @Override
     public EmergencyHelplineDTO updateEmergencyHelpline(Integer helplineId, EmergencyHelplineDTO emergencyHelplineDTO) {
         Integer userId = jwtUtils.getUserIdFromContext();
-        Admin admin = adminRepository.findById(userId)
+        Admin admin = adminRepository.findByUser_UserId(userId)
                 .orElseThrow(() -> new EntityNotFoundException("Admin not found with ID: " + userId));
         EmergencyHelpline existingHelpline = emergencyHelplineRepository.findById(helplineId)
                 .orElseThrow(() -> new EntityNotFoundException("Emergency Helpline not found with ID: " + helplineId));

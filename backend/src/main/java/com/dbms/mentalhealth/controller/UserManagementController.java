@@ -3,11 +3,12 @@ package com.dbms.mentalhealth.controller;
 import com.dbms.mentalhealth.dto.user.request.ChangePasswordRequestDTO;
 import com.dbms.mentalhealth.dto.user.request.UserUpdateRequestDTO;
 import com.dbms.mentalhealth.dto.user.response.UserInfoResponseDTO;
+import com.dbms.mentalhealth.exception.user.UserNotFoundException;
+import com.dbms.mentalhealth.exception.user.InvalidUserUpdateException;
 import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.service.UserService;
 import com.dbms.mentalhealth.service.impl.UserServiceImpl;
 import com.dbms.mentalhealth.urlMapper.UserUrlMapping;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -31,7 +32,7 @@ public class UserManagementController {
         try {
             userService.deleteUserById(userId);
             return ResponseEntity.ok("User deleted successfully.");
-        } catch (EntityNotFoundException e) {
+        } catch (UserNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body("User not found with ID: " + userId);
         }
@@ -40,11 +41,12 @@ public class UserManagementController {
     @GetMapping(UserUrlMapping.GET_USER_BY_ID)
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserInfoResponseDTO> getUserById(@PathVariable Integer userId) {
-        UserInfoResponseDTO userDTO = userService.getUserById(userId);
-        if (userDTO.getError() != null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(userDTO);
+        try {
+            UserInfoResponseDTO userDTO = userService.getUserById(userId);
+            return ResponseEntity.ok(userDTO);
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
-        return ResponseEntity.ok(userDTO);
     }
 
     @PutMapping(UserUrlMapping.UPDATE_USER)
@@ -56,10 +58,10 @@ public class UserManagementController {
         try {
             userService.updateUserBasedOnRole(userId, userUpdateDTO, authentication);
             return ResponseEntity.ok("User updated successfully.");
-        } catch (IllegalArgumentException e) {
+        } catch (InvalidUserUpdateException e) {
             return ResponseEntity.badRequest().body("Invalid update request: " + e.getMessage());
-        } catch (EntityNotFoundException e) {
-            return ResponseEntity.badRequest().body("Error updating user: " + e.getMessage());
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error updating user: " + e.getMessage());
         }
     }
 
@@ -68,7 +70,7 @@ public class UserManagementController {
         try {
             userService.changePasswordById(userId, changePasswordRequestDTO.getOldPassword(), changePasswordRequestDTO.getNewPassword());
             return ResponseEntity.ok("Password changed successfully.");
-        } catch (EntityNotFoundException e) {
+        } catch (UserNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found with ID: " + userId);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());

@@ -3,6 +3,8 @@ package com.dbms.mentalhealth.controller;
 import com.dbms.mentalhealth.dto.blog.request.BlogRequestDTO;
 import com.dbms.mentalhealth.dto.blog.response.BlogResponseDTO;
 import com.dbms.mentalhealth.dto.blog.response.BlogSummaryDTO;
+import com.dbms.mentalhealth.exception.blog.BlogNotFoundException;
+import com.dbms.mentalhealth.exception.blog.InvalidBlogActionException;
 import com.dbms.mentalhealth.service.BlogService;
 import com.dbms.mentalhealth.urlMapper.BlogUrlMapping;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,15 +32,23 @@ public class BlogController {
             @RequestPart("image") MultipartFile image,
             @RequestPart("blog") BlogRequestDTO blogRequestDTO
     ) throws Exception {
-        BlogResponseDTO response = blogService.createBlog(blogRequestDTO, image);
-        return new ResponseEntity<>(response, HttpStatus.CREATED);
+        try {
+            BlogResponseDTO response = blogService.createBlog(blogRequestDTO, image);
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
+        } catch (InvalidBlogActionException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
     }
 
     @GetMapping(BlogUrlMapping.GET_BLOG_BY_ID)
     public ResponseEntity<BlogResponseDTO> getBlogById(@PathVariable("blogId") Integer blogId) {
-        Optional<BlogResponseDTO> blogResponseDTO = blogService.getBlogById(blogId);
-        return blogResponseDTO.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+        try {
+            Optional<BlogResponseDTO> blogResponseDTO = blogService.getBlogById(blogId);
+            return blogResponseDTO.map(ResponseEntity::ok)
+                    .orElseThrow(() -> new BlogNotFoundException("Blog not found with ID: " + blogId));
+        } catch (BlogNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
     }
 
     @PutMapping(value = BlogUrlMapping.UPDATE_BLOG, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -47,26 +57,47 @@ public class BlogController {
             @RequestPart("image") MultipartFile image,
             @RequestPart("blog") BlogRequestDTO blogRequestDTO
     ) throws Exception {
-        BlogResponseDTO response = blogService.updateBlog(blogId, blogRequestDTO, image);
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        try {
+            BlogResponseDTO response = blogService.updateBlog(blogId, blogRequestDTO, image);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (BlogNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        } catch (InvalidBlogActionException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
     }
 
+
     @DeleteMapping(BlogUrlMapping.DELETE_BLOG)
-    public void deleteBlog(@PathVariable("blogId") Integer blogId) throws Exception {
-        blogService.deleteBlog(blogId);
+    public ResponseEntity<String> deleteBlog(@PathVariable("blogId") Integer blogId) {
+        try {
+            blogService.deleteBlog(blogId);
+            return ResponseEntity.noContent().build();
+        } catch (BlogNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred");
+        }
     }
+
 
     @PostMapping(BlogUrlMapping.LIKE_UNLIKE_BLOG)
     public ResponseEntity<BlogResponseDTO> likeOrUnlikeBlog(@PathVariable Integer blogId, @RequestParam("action") String action) {
-        BlogResponseDTO response;
-        if ("like".equalsIgnoreCase(action)) {
-            response = blogService.likeBlog(blogId);
-        } else if ("unlike".equalsIgnoreCase(action)) {
-            response = blogService.unlikeBlog(blogId);
-        } else {
-            throw new IllegalArgumentException("Invalid action: " + action);
+        try {
+            BlogResponseDTO response;
+            if ("like".equalsIgnoreCase(action)) {
+                response = blogService.likeBlog(blogId);
+            } else if ("unlike".equalsIgnoreCase(action)) {
+                response = blogService.unlikeBlog(blogId);
+            } else {
+                throw new InvalidBlogActionException("Invalid action: " + action);
+            }
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (BlogNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        } catch (InvalidBlogActionException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
-        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
@@ -74,8 +105,12 @@ public class BlogController {
     public ResponseEntity<BlogResponseDTO> updateBlogApprovalStatus(
             @PathVariable("blogId") Integer blogId,
             @RequestParam("isApproved") boolean isApproved) {
-        BlogResponseDTO response = blogService.updateBlogApprovalStatus(blogId, isApproved);
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        try {
+            BlogResponseDTO response = blogService.updateBlogApprovalStatus(blogId, isApproved);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (BlogNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
     }
 
     @GetMapping(BlogUrlMapping.GET_BLOGS_BY_USER)
