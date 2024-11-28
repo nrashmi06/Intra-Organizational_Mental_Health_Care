@@ -66,6 +66,7 @@ public class AuthController {
 
             return ResponseEntity.ok()
                     .header("Authorization", "Bearer " + accessToken)
+                    .header("Access-Control-Expose-Headers","Authorization")
                     .body(responseDTO);
         } catch (InvalidUserCredentialsException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());

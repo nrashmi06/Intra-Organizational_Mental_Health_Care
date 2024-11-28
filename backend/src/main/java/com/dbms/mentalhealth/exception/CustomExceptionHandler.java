@@ -10,6 +10,7 @@ import com.dbms.mentalhealth.exception.emergency.EmergencyHelplineNotFoundExcept
 import com.dbms.mentalhealth.exception.emergency.InvalidEmergencyHelplineException;
 import com.dbms.mentalhealth.exception.listener.InvalidListenerApplicationException;
 import com.dbms.mentalhealth.exception.listener.ListenerApplicationNotFoundException;
+import com.dbms.mentalhealth.exception.listener.ListenerNotFoundException;
 import com.dbms.mentalhealth.exception.sse.EmitterCreationException;
 import com.dbms.mentalhealth.exception.timeslot.InvalidTimeSlotException;
 import com.dbms.mentalhealth.exception.timeslot.TimeSlotNotFoundException;
@@ -153,5 +154,15 @@ public class CustomExceptionHandler {
     @ExceptionHandler(MissingRequestCookieException.class)
     public ResponseEntity<String> handleMissingRequestCookieException(MissingRequestCookieException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Required cookie 'refreshToken' is not present");
+    }
+
+    @ExceptionHandler(ListenerNotFoundException.class)
+    public ResponseEntity<Object> handleListenerNotFoundException(ListenerNotFoundException ex, WebRequest request) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Listener not found");
+    }
+
+    @ExceptionHandler(EmailAlreadyVerifiedException.class)
+    public ResponseEntity<Object> handleEmailAlreadyVerifiedException(EmailAlreadyVerifiedException ex, WebRequest request) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
 }

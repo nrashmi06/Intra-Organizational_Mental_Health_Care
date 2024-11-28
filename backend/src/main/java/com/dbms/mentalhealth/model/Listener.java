@@ -17,6 +17,7 @@ public class Listener {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "listener_id", nullable = false, updatable = false)
     private Integer listenerId;
 
     @ManyToOne
