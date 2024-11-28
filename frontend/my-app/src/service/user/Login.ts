@@ -1,38 +1,61 @@
-import axios from "axios";
+import { setUser } from "@/store/authSlice";
+import { AppDispatch } from "@/store/index";
 
-// Define the type for the login response
-interface LoginResponse {
-  token: string;  // Assuming the response contains a JWT token on successful login
-  message?: string; // Optional message, if the backend sends one
-}
-
-// Create a function to handle user login
-export const loginUser = async (email: string, password: string): Promise<LoginResponse | null> => {
+export const loginUser = (email: string, password: string) => async (dispatch: AppDispatch) => {
   try {
-    const response = await axios.post('http://localhost:8080/mental-health/api/v1/users/login', {
-      email,
-      password,
+    // API call to login
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/mental-health/api/v1/users/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include", // Ensures cookies are included in the request
+      body: JSON.stringify({ email, password }),
     });
 
-    if (response.status === 200) {
-      // Return the response data which includes the token and message
-      return response.data;
-    } else {
-      throw new Error("Login failed. Please check your credentials.");
+    // Check if the response is OK (status code 200-299)
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Login failed.");
     }
+
+    const data = await response.json();
+
+    // Extract the access token from the Authorization header
+    const authHeader = response.headers.get("authorization");
+    const accessToken = authHeader?.startsWith("Bearer ")
+      ? authHeader.slice(7) // Remove "Bearer " prefix
+      : null;
+
+    if (!accessToken) {
+      throw new Error("Access token is missing from the response headers.");
+    }
+
+    // Log the response for debugging
+    console.log("API Response:", data);
+    console.log("Authorization Header:", authHeader);
+    console.log("Access Token:", accessToken);
+
+    // Dispatch the action to store user details and token in Redux
+    dispatch(
+      setUser({
+        userId: data.userId,
+        email: data.email,
+        anonymousName: data.anonymousName,
+        role: data.role,
+        accessToken: accessToken,
+      })
+    );
+
+    // Return the response data for further processing
+    return data;
   } catch (error) {
-    // Handle errors, log them for debugging purposes
-    console.error("Error during login:", error);
-    
-    // Check if the error has a response object (from the server)
-    if (axios.isAxiosError(error) && error.response) {
-      // You can extract more information from error.response if needed
-      console.error("Response error:", error.response.data);
-      return null; // Or you can throw an error here to propagate further if you want
-    } else {
-      // Handle generic errors (e.g., network errors)
-      console.error("Network error or invalid login:", (error as Error).message);
-      return null; // Or throw a general error if you want to stop execution
+    console.error("Login error:", error);
+
+    if (error instanceof Error) {
+      throw new Error(error.message || "Login failed.");
     }
+
+    throw error;
   }
 };

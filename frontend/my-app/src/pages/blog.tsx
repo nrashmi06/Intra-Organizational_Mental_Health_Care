@@ -4,6 +4,7 @@ import BlogCard from "@/components/blog/BlogCard"; // Import the new BlogCard co
 import Footer from "@/components/footer/Footer"; // Import the Footer component
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import "@/styles/global.css";
+import Arrow from '@/components/blog/Arrow'
 
 // Function to generate a slug from a string (title)
 const generateSlug = (title: string) => {
@@ -124,6 +125,9 @@ export default function Component() {
             <BlogCard key={post.id} post={post} />
           ))}
         </div>
+      </div>
+      <div className="flex justify-center">
+        <Arrow />
       </div>
 
       {/* Footer */}

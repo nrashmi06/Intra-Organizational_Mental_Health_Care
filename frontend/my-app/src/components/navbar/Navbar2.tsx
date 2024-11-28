@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/router";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store"; // Import RootState to access Redux state
-import { clearUser } from "@/store/authSlice"; // Import the clearUser action
+import {clearUser} from "@/store/authSlice"; // Import the clearUser action
 
 export default function Navbar() {
   const router = useRouter();
@@ -20,6 +20,7 @@ export default function Navbar() {
 
   const handleLogout = () => {
     dispatch(clearUser()); // Clear user data from Redux state
+
     router.push("/signin"); // Redirect to the sign-in page
   };
 

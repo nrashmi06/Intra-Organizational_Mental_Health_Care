@@ -1,0 +1,52 @@
+.exploreMoreArrow {
+    display: flex;
+    justify-content: center;
+    margin-top: 2rem;
+  }
+  
+  .exploreLink {
+    display: inline-block;
+    text-decoration: none;
+    color: #000;
+    position: relative;
+  }
+  
+  .main {
+    display: flex;
+    align-items: center;
+  }
+  
+  .text {
+    font-size: 1.25rem;
+    font-weight: bold;
+    margin-right: 0.5rem;
+  }
+  
+  .theArrow {
+    position: relative;
+    width: 1.5rem;
+    height: 1.5rem;
+    border: 2px solid #000;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+  }
+  
+  .theArrow .shaft {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0.75rem;
+    height: 0.125rem;
+    background-color: #000;
+    transform: translate(-50%, -50%) rotate(45deg);
+  }
+  
+  .exploreLink:hover .theArrow {
+    border-color: #ff0;
+    box-shadow: 0 0 10px #ff0, 0 0 20px #ff0, 0 0 30px #ff0;
+  }
+  
+  .exploreLink:hover .theArrow .shaft {
+    background-color: #ff0;
+  }
+  
