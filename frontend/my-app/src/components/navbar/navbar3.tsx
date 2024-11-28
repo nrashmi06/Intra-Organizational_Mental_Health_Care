@@ -9,8 +9,6 @@ export default function Navbar() {
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
-  // Toggle the services dropdown when the Services link is clicked
-
   // Toggle the settings dropdown when the Settings link is clicked
   const toggleSettingsDropdown = () => setIsSettingsDropdownOpen(!isSettingsDropdownOpen);
 
@@ -28,13 +26,14 @@ export default function Navbar() {
             <Image
               src="/images/logo/logo.png"
               alt="SerenitySphere Logo"
-              className="w-10 h-10"
+              width={40} // Added width
+              height={40} // Added height
             />
             <h1 className="text-2xl font-bold text-purple-800">SerenitySphere</h1>
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex md:flex-row md:items-center  gap-6 z-20">
+          <div className="hidden md:flex md:flex-row md:items-center gap-6 z-20">
             <nav className="flex flex-row items-center gap-6 px-4">
               <Link href="/dashboard" className="text-sm font-medium text-black hover:underline">
                 Dashboard
@@ -106,7 +105,7 @@ export default function Navbar() {
           }}
         >
           <nav className="flex flex-col items-center gap-6 px-4">
-            <Link href="/" className="text-sm font-medium text-black hover:underline">
+            <Link href="/dashboard" className="text-sm font-medium text-black hover:underline">
               Dashboard
             </Link>
             <Link href="/analytics" className="text-sm font-medium text-black hover:underline">

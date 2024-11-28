@@ -1,13 +1,14 @@
-// File: pages/_app.tsx
 import { AppProps } from 'next/app';
 import { Provider } from 'react-redux';
-import store from '@/store'; // Import your Redux store
-import '@/styles/globals.css'; // Import global styles
+import { PersistGate } from 'redux-persist/integration/react';
+import { store, persistor } from '@/store'; // Import your store and persistor
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
     <Provider store={store}>
-      <Component {...pageProps} />
+      <PersistGate loading={null} persistor={persistor}>
+        <Component {...pageProps} />
+      </PersistGate>
     </Provider>
   );
 }

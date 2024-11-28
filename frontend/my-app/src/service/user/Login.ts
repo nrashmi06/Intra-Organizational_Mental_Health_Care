@@ -1,38 +1,43 @@
 import axios from "axios";
+import { setUser } from "@/store/authSlice";
+import { AppDispatch } from "@/store/index"; 
 
-// Define the type for the login response
-interface LoginResponse {
-  token: string;  // Assuming the response contains a JWT token on successful login
-  message?: string; // Optional message, if the backend sends one
-}
-
-// Create a function to handle user login
-export const loginUser = async (email: string, password: string): Promise<LoginResponse | null> => {
+export const loginUser = (email: string, password: string) => async (dispatch: AppDispatch) => {
   try {
+    // Make the actual API call to login
     const response = await axios.post('http://localhost:8080/mental-health/api/v1/users/login', {
       email,
       password,
     });
+    
+    if (response.status === 200 && response.data) {
+      // Extract the access token from the headers
+      const accessToken = response.headers['authorization']?.replace("Bearer ", "").trim() || "not retrived correctly ";
+      console.log("Response Headers:", response.headers);
+      console.log("API response:", response);
+      console.log("Authorization Header:", response.headers['authorization']);
+      console.log("accessToken :" , accessToken);
 
-    if (response.status === 200) {
-      // Return the response data which includes the token and message
+
+      // Dispatch the action to store user details and token in Redux
+      dispatch(setUser({
+        userId: response.data.userId,
+        email: response.data.email,
+        anonymousName: response.data.anonymousName,
+        role: response.data.role,
+        accessToken: accessToken,
+      }));
+
+      // Return the response data for further processing
       return response.data;
     } else {
-      throw new Error("Login failed. Please check your credentials.");
+      throw new Error("Invalid login credentials.");
     }
   } catch (error) {
-    // Handle errors, log them for debugging purposes
-    console.error("Error during login:", error);
-    
-    // Check if the error has a response object (from the server)
+    console.error("Login error:", error);
     if (axios.isAxiosError(error) && error.response) {
-      // You can extract more information from error.response if needed
       console.error("Response error:", error.response.data);
-      return null; // Or you can throw an error here to propagate further if you want
-    } else {
-      // Handle generic errors (e.g., network errors)
-      console.error("Network error or invalid login:", (error as Error).message);
-      return null; // Or throw a general error if you want to stop execution
     }
+    throw error;
   }
 };
