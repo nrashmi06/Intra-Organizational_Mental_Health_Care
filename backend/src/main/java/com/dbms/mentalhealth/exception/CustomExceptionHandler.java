@@ -12,6 +12,7 @@ import com.dbms.mentalhealth.exception.listener.InvalidListenerApplicationExcept
 import com.dbms.mentalhealth.exception.listener.ListenerApplicationNotFoundException;
 import com.dbms.mentalhealth.exception.listener.ListenerNotFoundException;
 import com.dbms.mentalhealth.exception.sse.EmitterCreationException;
+import com.dbms.mentalhealth.exception.sse.UserNotOnlineException;
 import com.dbms.mentalhealth.exception.timeslot.InvalidTimeSlotException;
 import com.dbms.mentalhealth.exception.timeslot.TimeSlotNotFoundException;
 import com.dbms.mentalhealth.exception.token.JwtTokenExpiredException;
@@ -164,5 +165,10 @@ public class CustomExceptionHandler {
     @ExceptionHandler(EmailAlreadyVerifiedException.class)
     public ResponseEntity<Object> handleEmailAlreadyVerifiedException(EmailAlreadyVerifiedException ex, WebRequest request) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(UserNotOnlineException.class)
+    public ResponseEntity<Object> handleUserNotOnlineException(UserNotOnlineException ex, WebRequest request) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
 }

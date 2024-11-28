@@ -1,11 +1,13 @@
 package com.dbms.mentalhealth.service.impl;
 
 import com.dbms.mentalhealth.enums.SessionStatus;
+import com.dbms.mentalhealth.exception.user.UserNotFoundException;
 import com.dbms.mentalhealth.model.Listener;
 import com.dbms.mentalhealth.model.Notification;
 import com.dbms.mentalhealth.model.Session;
 import com.dbms.mentalhealth.model.User;
 import com.dbms.mentalhealth.repository.ListenerRepository;
+import com.dbms.mentalhealth.repository.NotificationRepository;
 import com.dbms.mentalhealth.repository.SessionRepository;
 import com.dbms.mentalhealth.repository.UserRepository;
 import com.dbms.mentalhealth.security.jwt.JwtUtils;
@@ -15,7 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 @Service
 public class SessionServiceImpl implements SessionService {
@@ -25,14 +26,16 @@ public class SessionServiceImpl implements SessionService {
     private final UserRepository userRepository;
     private final ListenerRepository listenerRepository;
     private final SessionRepository sessionRepository;
+    private final NotificationRepository notificationRepository;
 
     @Autowired
-    public SessionServiceImpl(NotificationService notificationService, JwtUtils jwtUtils, UserRepository userRepository, ListenerRepository listenerRepository, SessionRepository sessionRepository) {
+    public SessionServiceImpl(NotificationService notificationService, JwtUtils jwtUtils, UserRepository userRepository, ListenerRepository listenerRepository, SessionRepository sessionRepository, NotificationRepository notificationRepository) {
         this.notificationService = notificationService;
         this.jwtUtils = jwtUtils;
         this.userRepository = userRepository;
         this.listenerRepository = listenerRepository;
         this.sessionRepository = sessionRepository;
+        this.notificationRepository = notificationRepository;
     }
 
     @Override
@@ -45,22 +48,8 @@ public class SessionServiceImpl implements SessionService {
         User sender = userRepository.findById(jwtUtils.getUserIdFromContext()).orElse(null);
         User receiver = userRepository.findById(listenerId).orElse(null);
         if (sender == null || receiver == null) {
-            return "Invalid sender or receiver";
+            throw new UserNotFoundException("User not found");
         }
-
-        Session session = new Session();
-        session.setListener(listenerRepository.findByUser_UserId(listenerId)
-                .orElseThrow(() -> new IllegalStateException("Listener not found")));
-        session.setUser(sender);
-        session.setSessionStatus(SessionStatus.INITIATED);
-        session.setSessionStart(LocalDateTime.now());
-
-        // Ensure sessionEnd is set appropriately if required by the constraint
-        if (session.getSessionStatus() == SessionStatus.INITIATED) {
-            session.setSessionEnd(null); // or set to a valid value if required
-        }
-
-        sessionRepository.save(session);
 
         Notification notification = new Notification();
         notification.setMessage(message);
@@ -73,35 +62,38 @@ public class SessionServiceImpl implements SessionService {
 
     @Override
     public String updateSessionStatus(Integer userId, String action) {
-        Integer listenerId = jwtUtils.getUserIdFromContext();
-        Listener listener = listenerRepository.findByUser_UserId(listenerId)
+        Integer loggedInUserId = jwtUtils.getUserIdFromContext();
+        Listener listener = listenerRepository.findByUser_UserId(loggedInUserId)
                 .orElseThrow(() -> new IllegalStateException("Listener not found"));
 
-        Session session = sessionRepository.findByUser_UserIdAndListener_ListenerId(userId, listener.getListenerId())
-                .orElseThrow(() -> new IllegalStateException("Session not found"));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalStateException("User not found"));
 
+        String message;
         if ("accept".equalsIgnoreCase(action)) {
+            Session session = new Session();
+            session.setListener(listener);
+            session.setUser(user);
             session.setSessionStatus(SessionStatus.ONGOING);
+            session.setSessionStart(LocalDateTime.now());
+            sessionRepository.save(session);
+
+            message = "Your session request has been accepted by listener " + listener.getUser().getAnonymousName() + ". Session starting soon.";
         } else if ("reject".equalsIgnoreCase(action)) {
-            session.setSessionStatus(SessionStatus.CANCELLED);
+            message = "Your session request has been rejected by listener " + listener.getUser().getAnonymousName() + ".";
         } else {
             return "Invalid action";
         }
 
-        sessionRepository.save(session);
-
         Notification notification = new Notification();
-        notification.setMessage("Your session request has been " + action + "ed by listener " +
-                userRepository.findById(listenerId)
-                        .orElseThrow(() -> new IllegalStateException("Listener not found"))
-                        .getAnonymousName());
-        notification.setReceiver(session.getUser());
-        notification.setSender(session.getListener().getUser());
+        notification.setMessage(message);
+        notification.setReceiver(user);
+        notification.setSender(listener.getUser());
+        notificationRepository.save(notification);
         notificationService.sendNotification(notification);
 
         return "Session " + action + "ed";
     }
-
 
     @Override
     public String getSessionById(Integer sessionId) {

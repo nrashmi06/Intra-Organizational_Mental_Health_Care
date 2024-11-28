@@ -56,17 +56,18 @@ public class AuthController {
             String refreshToken = (String) loginResponse.get("refreshToken");
             UserLoginResponseDTO responseDTO = (UserLoginResponseDTO) loginResponse.get("user");
 
+            // Corrected cookie configuration
             Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
             refreshTokenCookie.setHttpOnly(true);
-            refreshTokenCookie.setSecure(false);
-            refreshTokenCookie.setPath("/mental-health/api/v1/users");
-            refreshTokenCookie.setMaxAge(24 * 60 * 60); // 1 day
+            refreshTokenCookie.setSecure(false);     // Changed to true
+            refreshTokenCookie.setPath("/mental-health/api/v1/users"); // Available across user paths in the domain
+            refreshTokenCookie.setMaxAge(24 * 60 * 60); // 1 day expiration            refreshTokenCookie.setMaxAge(24 * 60 * 60);
+            refreshTokenCookie.setAttribute("SameSite", "None"); // Add for cross-origin
 
             response.addCookie(refreshTokenCookie);
 
             return ResponseEntity.ok()
                     .header("Authorization", "Bearer " + accessToken)
-                    .header("Access-Control-Expose-Headers","Authorization")
                     .body(responseDTO);
         } catch (InvalidUserCredentialsException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
@@ -74,6 +75,8 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
+
+
 
     @PostMapping(UserUrlMapping.USER_LOGOUT)
     public ResponseEntity<String> logoutUser(@CookieValue("refreshToken") String refreshToken) {
@@ -124,16 +127,17 @@ public class AuthController {
                 throw new MissingRequestCookieException("Required cookie 'refreshToken' is not present");
             }
             String newAccessToken = (String) renewResponse.get("accessToken");
-            String newRefreshToken = (String) renewResponse.get("refreshToken");
             UserLoginResponseDTO responseDTO = (UserLoginResponseDTO) renewResponse.get("user");
 
-            Cookie newRefreshTokenCookie = new Cookie("refreshToken", newRefreshToken);
-            newRefreshTokenCookie.setHttpOnly(true);
-            newRefreshTokenCookie.setPath("/mental-health/api/v1/users");
-            newRefreshTokenCookie.setMaxAge((60 * 60 * 24 * 1000)); // same as refresh token validity
+            Cookie refreshTokenCookie = new Cookie("refreshToken", renewResponse.get("refreshToken").toString());
+            refreshTokenCookie.setHttpOnly(true);   // Make sure it's not accessible via JavaScript
+            refreshTokenCookie.setSecure(false);     // Make sure it's only sent over HTTPS
+            refreshTokenCookie.setPath("/mental-health/api/v1/users"); // Available across user paths in the domain
+            refreshTokenCookie.setMaxAge(24 * 60 * 60); // 1 day expiration            refreshTokenCookie.setMaxAge(24 * 60 * 60); // 1 day expiration
+            refreshTokenCookie.setAttribute("SameSite", "None"); // Add for cross-origin
+            response.addCookie(refreshTokenCookie);
 
-            response.addCookie(newRefreshTokenCookie);
-
+            // Send the access token in the Authorization header for API calls
             return ResponseEntity.ok()
                     .header("Authorization", "Bearer " + newAccessToken)
                     .body(responseDTO);
