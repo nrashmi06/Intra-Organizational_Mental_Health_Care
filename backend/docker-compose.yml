@@ -17,8 +17,7 @@ services:
       - app-network
 
   app:
-    build:
-      context: .                                    # Builds app from the current directory
+    image: ajayprabhu2004/backend-app:latest # Use the pre-built image from Docker Hub
     depends_on:
       - db                                          # Ensures 'db' starts before the app
     environment:
@@ -28,10 +27,6 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-211004}
     ports:
       - "${APP_PORT:-8080}:8080"                    # Default app port, can be overridden
-    volumes:
-      - ./target:/app/target                        # Mounts the compiled app JARs
-    command: >
-      sh -c "java -jar /app/target/your-app.jar"    # Runs the Spring Boot app
     networks:
       - app-network
 
