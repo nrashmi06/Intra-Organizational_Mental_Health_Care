@@ -4,14 +4,11 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { ChevronRight, Mail, MapPin, Phone } from 'lucide-react'
 import "@/styles/globals.css"
-
-// Import Navbar Component
 import Navbar from "@/components/navbar/Navbar2"
 
 export default function Component() {
   return (
     <div className="flex min-h-screen flex-col">
-      {/* Import Navbar */}
       <Navbar />
 
       <main className="flex-1">
@@ -65,10 +62,12 @@ export default function Component() {
                 et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut
                 aliquip ex ea commodo consequat.
               </p>
-              <Button className="group">
-                Learn More
-                <ChevronRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-              </Button>
+              <Link href="/signin">
+                <Button className="group flex">
+                  Learn More
+                  <ChevronRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </Link>
             </div>
           </div>
         </section>
@@ -166,10 +165,10 @@ export default function Component() {
           <div className="mt-12 border-t pt-6 text-center text-sm text-gray-600">
             <p>© 2024 SerenitySphere. All rights reserved.</p>
             <div className="mt-4 space-x-6">
-              <Link href="/terms" className="hover:text-gray-900 transition">
+              <Link href="/t&c" className="hover:text-gray-900 transition">
                 Terms of Service
               </Link>
-              <Link href="/privacy" className="hover:text-gray-900 transition">
+              <Link href="/t&c" className="hover:text-gray-900 transition">
                 Privacy Policy
               </Link>
             </div>

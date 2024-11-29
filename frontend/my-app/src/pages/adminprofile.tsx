@@ -1,8 +1,6 @@
-import Image from "next/image"
-import Link from "next/link"
-import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { Card, CardContent } from "@/components/ui/card"
-import Navbar from "@/components/navbar/NavBar" // Import the Navbar component
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Card, CardContent } from "@/components/ui/card";
+import Navbar from "@/components/navbar/NavBar"; 
 import "@/styles/global.css";
 import Footer from "@/components/footer/Footer";
 
@@ -64,8 +62,8 @@ export default function CounselorProfile() {
                     </button>
                     <div className="px-8">
                       <blockquote className="text-gray-700 text-center">
-                        "Our site prioritizes data security and compliance with regulations, ensuring
-                        the safety and privacy of all users."
+                        &quot;Our site prioritizes data security and compliance with regulations, ensuring
+                        the safety and privacy of all users.&quot;
                       </blockquote>
                     </div>
                     <button className="absolute right-0 top-1/2 -translate-y-1/2 p-2 bg-white rounded-full shadow-lg">
@@ -85,8 +83,8 @@ export default function CounselorProfile() {
                     </button>
                     <div className="px-8">
                       <blockquote className="text-gray-700 text-center">
-                        "Our site prioritizes data security and compliance with regulations, ensuring
-                        the safety and privacy of all users."
+                        &quot;Our site prioritizes data security and compliance with regulations, ensuring
+                        the safety and privacy of all users.&quot;
                       </blockquote>
                     </div>
                     <button className="absolute right-0 top-1/2 -translate-y-1/2 p-2 bg-white rounded-full shadow-lg">
@@ -101,5 +99,5 @@ export default function CounselorProfile() {
       </main>
       <Footer />
     </div>
-  )
+  );
 }

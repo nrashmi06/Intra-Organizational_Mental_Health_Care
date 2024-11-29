@@ -3,11 +3,11 @@ FROM node:18-slim AS builder
 
 WORKDIR /app
 
-# Copy package.json and package-lock.json
+# Copy package.json and package-lock.json (if available)
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install --frozen-lockfile
+# Install dependencies (use --legacy-peer-deps if needed to handle peer dependency issues)
+RUN npm install --frozen-lockfile --legacy-peer-deps
 
 # Copy the rest of the app code
 COPY . .
@@ -24,7 +24,7 @@ WORKDIR /app
 COPY --from=builder /app /app
 
 # Install production dependencies only
-RUN npm install --production --frozen-lockfile
+RUN npm install --production --frozen-lockfile --legacy-peer-deps
 
 # Expose the port the app will run on
 EXPOSE 3000

@@ -1,37 +1,26 @@
-import Image from "next/image";
-import Link from "next/link";
+import Link from 'next/link';
+import Image from 'next/image';
 
-interface Post {
-  id: number;
-  title: string;
-  date: string;
-  image: string;
-  excerpt: string;
-}
-
-interface BlogCardProps {
-  post: Post;
-}
-
-const BlogCard: React.FC<BlogCardProps> = ({ post }) => {
+// In BlogCard Component
+const BlogCard: React.FC<{ post: { title: string; slug: string; image: string; date: string; excerpt: string; } }> = ({ post }) => {
   return (
-    <div className="space-y-4">
-      {/* Fixed size for the image box */}
-      <div className="relative w-full h-72">
+    <div className="flex flex-col h-full bg-white shadow-lg rounded-lg overflow-hidden">
+      <div className="relative w-full" style={{ height: '200px' }}>
         <Image
           src={post.image}
           alt={post.title}
-          layout="fill" // Makes image cover the fixed box size
-          objectFit="cover" // Ensures the image scales properly to fit the box
-          className="rounded-lg w-full h-full"
+          layout="fill"
+          objectFit="cover"
+          className="rounded-t-lg"
         />
       </div>
-      <div className="space-y-2">
-        <span className="text-sm text-gray-500">{post.date}</span>
-        <h3 className="text-xl font-semibold">{post.title}</h3>
-        <p className="text-gray-600">{post.excerpt}</p>
-        <Link href={`/blog/${post.id}`} className="text-blue-500 hover:underline block">
-          Read full article
+      <div className="p-4 flex flex-col h-full">
+        <h3 className="text-lg font-semibold">{post.title}</h3>
+        <p className="text-sm text-gray-600 mb-4">{post.date}</p>
+        <p className="text-gray-700 flex-grow">{post.excerpt}</p>
+        {/* Directly apply styles to the Link component */}
+        <Link href={`/blog/${post.slug}`} className="text-blue-500 mt-4">
+          Read More
         </Link>
       </div>
     </div>

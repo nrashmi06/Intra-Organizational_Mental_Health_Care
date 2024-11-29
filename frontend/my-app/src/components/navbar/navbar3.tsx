@@ -1,17 +1,13 @@
 import { useState } from "react";
 import { ChevronDown } from 'lucide-react';
-import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isServicesDropdownOpen, setIsServicesDropdownOpen] = useState(false);
   const [isSettingsDropdownOpen, setIsSettingsDropdownOpen] = useState(false);
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
-
-  // Toggle the services dropdown when the Services link is clicked
-  const toggleServicesDropdown = () => setIsServicesDropdownOpen(!isServicesDropdownOpen);
 
   // Toggle the settings dropdown when the Settings link is clicked
   const toggleSettingsDropdown = () => setIsSettingsDropdownOpen(!isSettingsDropdownOpen);
@@ -27,10 +23,11 @@ export default function Navbar() {
         <div className="mx-auto px-4 py-4 flex items-center justify-between">
           {/* Logo Section */}
           <div className="flex items-center gap-2">
-            <img
+            <Image
               src="/images/logo/logo.png"
               alt="SerenitySphere Logo"
-              className="w-10 h-10"
+              width={40} // Added width
+              height={40} // Added height
             />
             <h1 className="text-2xl font-bold text-purple-800">SerenitySphere</h1>
           </div>
@@ -38,19 +35,19 @@ export default function Navbar() {
           {/* Desktop Navigation */}
           <div className="hidden md:flex md:flex-row md:items-center gap-6 z-20">
             <nav className="flex flex-row items-center gap-6 px-4">
-              <Link href="/dashboard" className="text-sm font-medium text-white hover:underline">
+              <Link href="/dashboard" className="text-sm font-medium text-black hover:underline">
                 Dashboard
               </Link>
-              <Link href="/analytics" className="text-sm font-medium text-white hover:underline">
+              <Link href="/analytics" className="text-sm font-medium text-black hover:underline">
                 Analytics
               </Link>
               <Link
                 href="/records"
-                className="text-sm font-medium text-white hover:underline"
+                className="text-sm font-medium text-black hover:underline"
               >
                 Records
               </Link>
-              <Link href="/scheduler" className="text-sm font-medium text-white hover:underline">
+              <Link href="/scheduler" className="text-sm font-medium text-black hover:underline">
                 Scheduler
               </Link>
 
@@ -58,7 +55,7 @@ export default function Navbar() {
               <div className="relative">
                 <button
                   onClick={toggleSettingsDropdown}
-                  className="text-sm font-medium text-white flex items-center"
+                  className="text-sm font-medium text-black flex items-center"
                 >
                   Settings <ChevronDown className="ml-1" />
                 </button>
@@ -70,7 +67,7 @@ export default function Navbar() {
                     <Link href="/profile" className="block px-4 py-2 text-sm hover:bg-gray-100">
                       Profile
                     </Link>
-                    <Link href="/logout" className="block px-4 py-2 text-sm hover:bg-gray-100">
+                    <Link href="/" className="block px-4 py-2 text-sm hover:bg-gray-100">
                       Logout
                     </Link>
                   </div>
@@ -108,7 +105,7 @@ export default function Navbar() {
           }}
         >
           <nav className="flex flex-col items-center gap-6 px-4">
-            <Link href="/" className="text-sm font-medium text-black hover:underline">
+            <Link href="/dashboard" className="text-sm font-medium text-black hover:underline">
               Dashboard
             </Link>
             <Link href="/analytics" className="text-sm font-medium text-black hover:underline">

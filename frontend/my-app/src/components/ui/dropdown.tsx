@@ -1,13 +1,15 @@
 import * as React from "react";
 
+// DropdownMenu Component
 export const DropdownMenu = ({ children }: { children: React.ReactNode }) => (
   <div className="relative inline-block text-left">{children}</div>
 );
 
+// DropdownMenuTrigger Component
 export const DropdownMenuTrigger = React.forwardRef<
   HTMLButtonElement,
-  React.ButtonHTMLAttributes<HTMLButtonElement> & { asChild?: boolean } // Extend with `asChild`
->(({ children, asChild, className = "", ...props }, ref) => (
+  React.ButtonHTMLAttributes<HTMLButtonElement> & { asChild?: boolean }
+>(({ children, className = "", ...props }, ref) => (
   <button
     ref={ref}
     className={`inline-flex items-center justify-center rounded focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 ${className}`}
@@ -18,10 +20,10 @@ export const DropdownMenuTrigger = React.forwardRef<
 ));
 DropdownMenuTrigger.displayName = "DropdownMenuTrigger";
 
-
+// DropdownMenuContent Component
 export const DropdownMenuContent = React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement> & { align?: string } // Extend with `align`
+  React.HTMLAttributes<HTMLDivElement> & { align?: string }
 >(({ children, align = "start", className = "", ...props }, ref) => (
   <div
     ref={ref}
@@ -33,7 +35,7 @@ export const DropdownMenuContent = React.forwardRef<
 ));
 DropdownMenuContent.displayName = "DropdownMenuContent";
 
-
+// DropdownMenuItem Component
 export const DropdownMenuItem = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
