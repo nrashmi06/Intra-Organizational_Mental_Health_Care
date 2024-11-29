@@ -2,14 +2,25 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/router";
-/*With Swirl*/
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "@/store"; // Import RootState to access Redux state
+import { clearUser } from "@/store/authSlice"; // Import the clearUser action
+
 export default function Navbar() {
   const router = useRouter();
+  const dispatch = useDispatch();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isServicesDropdownOpen, setIsServicesDropdownOpen] = useState(false);
 
+  const user = useSelector((state: RootState) => state.auth); // Access user data from Redux state
+
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
   const toggleServicesDropdown = () => setIsServicesDropdownOpen(!isServicesDropdownOpen);
+
+  const handleLogout = () => {
+    dispatch(clearUser()); // Clear user data from Redux state
+    router.push("/signin"); // Redirect to the sign-in page
+  };
 
   return (
     <header className="border-b z-50 relative">
@@ -53,33 +64,24 @@ export default function Navbar() {
               >
                 Helpline
               </Link>
-              
+
               {/* Services Dropdown */}
               <div className="relative">
                 <button
-                  className={`text-sm font-medium text-white ${router.pathname.includes('/services') ? "underline" : ""}`}
                   onClick={toggleServicesDropdown}
+                  className={`text-sm font-medium text-white ${router.pathname.includes('/services') ? "underline" : ""}`}
                 >
                   Services
                 </button>
                 {isServicesDropdownOpen && (
                   <div className="absolute left-0 w-48 mt-2 bg-white text-black rounded-md shadow-lg">
-                    <Link
-                      href="/listener-application"
-                      className="block px-4 py-2 text-sm hover:bg-gray-100"
-                    >
+                    <Link href="/listener-application" className="block px-4 py-2 text-sm hover:bg-gray-100">
                       Listener Application
                     </Link>
-                    <Link
-                      href="/appointment"
-                      className="block px-4 py-2 text-sm hover:bg-gray-100"
-                    >
+                    <Link href="/appointment" className="block px-4 py-2 text-sm hover:bg-gray-100">
                       Appointment
                     </Link>
-                    <Link
-                      href="/match-a-listener"
-                      className="block px-4 py-2 text-sm hover:bg-gray-100"
-                    >
+                    <Link href="/match-a-listener" className="block px-4 py-2 text-sm hover:bg-gray-100">
                       Match a Listener
                     </Link>
                   </div>
@@ -93,26 +95,34 @@ export default function Navbar() {
                 About
               </Link>
 
-              {/* Sign-in and Register links */}
+              {/* User Authentication Links */}
               <div className="flex flex-row items-center gap-4">
-                <Link href="/signin" className="text-sm font-medium text-white">
-                  Sign-in
-                </Link>
-                <Link
-                  href="/signup"
-                  className="bg-black text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-800 transition-colors"
-                >
-                  Register
-                </Link>
+                {user.accessToken ? (
+                  <button
+                    onClick={handleLogout}
+                    className="text-sm font-medium text-white bg-black px-4 py-2 rounded-full hover:bg-gray-800 transition-colors"
+                  >
+                    Logout
+                  </button>
+                ) : (
+                  <>
+                    <Link href="/signin" className="text-sm font-medium text-white">
+                      Sign-in
+                    </Link>
+                    <Link
+                      href="/signup"
+                      className="bg-black text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-800 transition-colors"
+                    >
+                      Register
+                    </Link>
+                  </>
+                )}
               </div>
             </nav>
           </div>
 
           {/* Hamburger Icon for Mobile */}
-          <button
-            className="md:hidden text-white"
-            onClick={toggleMenu}
-          >
+          <button className="md:hidden text-white" onClick={toggleMenu}>
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
               <path
                 fill="none"
@@ -159,30 +169,31 @@ export default function Navbar() {
               Helpline
             </Link>
             <Link
-              href="/services"
-              className={`text-sm font-medium text-white ${router.pathname === "/services" ? "underline" : ""}`}
-            >
-              Services
-            </Link>
-            <Link
               href="/about"
               className={`text-sm font-medium text-white ${router.pathname === "/about" ? "underline" : ""}`}
             >
               About
             </Link>
-
-            {/* Sign-in and Register links */}
-            <div className="flex flex-col items-center gap-4">
-              <Link href="/signin" className="text-sm font-medium text-white">
-                Sign-in
-              </Link>
-              <Link
-                href="/signup"
-                className="bg-black text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-800 transition-colors"
+            {user.accessToken ? (
+              <button
+                onClick={handleLogout}
+                className="text-sm font-medium text-white bg-black px-4 py-2 rounded-full hover:bg-gray-800 transition-colors"
               >
-                Register
-              </Link>
-            </div>
+                Logout
+              </button>
+            ) : (
+              <>
+                <Link href="/signin" className="text-sm font-medium text-white">
+                  Sign-in
+                </Link>
+                <Link
+                  href="/signup"
+                  className="bg-black text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-800 transition-colors"
+                >
+                  Register
+                </Link>
+              </>
+            )}
           </nav>
         </div>
       </div>

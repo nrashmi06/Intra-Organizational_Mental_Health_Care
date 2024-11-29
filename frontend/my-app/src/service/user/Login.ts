@@ -31,11 +31,6 @@ export const loginUser = (email: string, password: string) => async (dispatch: A
       throw new Error("Access token is missing from the response headers.");
     }
 
-    // Log the response for debugging
-    console.log("API Response:", data);
-    console.log("Authorization Header:", authHeader);
-    console.log("Access Token:", accessToken);
-
     // Dispatch the action to store user details and token in Redux
     dispatch(
       setUser({
