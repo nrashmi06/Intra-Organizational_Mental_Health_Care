@@ -1,4 +1,4 @@
-package com.dbms.mentalhealth.dto.notification.response;
+package com.dbms.mentalhealth.dto.notification;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;

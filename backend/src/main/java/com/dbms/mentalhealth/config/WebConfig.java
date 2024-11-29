@@ -15,10 +15,24 @@ public class WebConfig {
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
                         .allowedOriginPatterns("http://localhost:3000")
-                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                        .allowedHeaders("*")
-                        .exposedHeaders("Authorization")
-                        .allowCredentials(true);
+                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
+                        .allowedHeaders(
+                                "Authorization",
+                                "Content-Type",
+                                "X-Requested-With",
+                                "accept",
+                                "Origin",
+                                "Access-Control-Request-Method",
+                                "Access-Control-Request-Headers"
+                        )
+                        .exposedHeaders(
+                                "Authorization",
+                                "Content-Type",
+                                "Access-Control-Allow-Origin",
+                                "Access-Control-Allow-Credentials"
+                        )
+                        .allowCredentials(true)
+                        .maxAge(3600); // Cache preflight request for 1 hour
             }
         };
     }

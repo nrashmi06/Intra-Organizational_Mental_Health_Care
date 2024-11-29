@@ -66,6 +66,9 @@ public class AuthTokenFilter extends OncePerRequestFilter {
 
         String jwt = parseJwt(request);
 
+        // Log the received JWT token
+        logger.info("Received JWT token: {}", jwt);
+
         // Validate and process JWT only if it exists
         if (jwt != null) {
             try {

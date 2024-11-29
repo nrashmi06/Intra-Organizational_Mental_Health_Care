@@ -1,5 +1,7 @@
 package com.dbms.mentalhealth.service.impl;
 
+import com.dbms.mentalhealth.dto.chatMessage.ChatMessageDTO;
+import com.dbms.mentalhealth.enums.MessageType;
 import com.dbms.mentalhealth.enums.SessionStatus;
 import com.dbms.mentalhealth.exception.user.UserNotFoundException;
 import com.dbms.mentalhealth.model.Listener;
@@ -14,6 +16,7 @@ import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.service.NotificationService;
 import com.dbms.mentalhealth.service.SessionService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -21,6 +24,7 @@ import java.time.LocalDateTime;
 @Service
 public class SessionServiceImpl implements SessionService {
 
+    private final SimpMessagingTemplate messageTemplate;
     private final NotificationService notificationService;
     private final JwtUtils jwtUtils;
     private final UserRepository userRepository;
@@ -29,7 +33,8 @@ public class SessionServiceImpl implements SessionService {
     private final NotificationRepository notificationRepository;
 
     @Autowired
-    public SessionServiceImpl(NotificationService notificationService, JwtUtils jwtUtils, UserRepository userRepository, ListenerRepository listenerRepository, SessionRepository sessionRepository, NotificationRepository notificationRepository) {
+    public SessionServiceImpl(SimpMessagingTemplate messageTemplate, NotificationService notificationService, JwtUtils jwtUtils, UserRepository userRepository, ListenerRepository listenerRepository, SessionRepository sessionRepository, NotificationRepository notificationRepository) {
+        this.messageTemplate = messageTemplate;
         this.notificationService = notificationService;
         this.jwtUtils = jwtUtils;
         this.userRepository = userRepository;
@@ -78,9 +83,23 @@ public class SessionServiceImpl implements SessionService {
             session.setSessionStart(LocalDateTime.now());
             sessionRepository.save(session);
 
-            message = "Your session request has been accepted by listener " + listener.getUser().getAnonymousName() + ". Session starting soon.";
+            // Notify users about the new WebSocket endpoint
+            String websocketEndpoint = "/topic/session/" + session.getSessionId();
+            message = "Your session request has been accepted by listener " + listener.getUser().getAnonymousName() + ". Session starting soon. Join the chat at: " + websocketEndpoint;
+
+            // Send WebSocket notification to both users
+            ChatMessageDTO chatMessageDTO = new ChatMessageDTO();
+            chatMessageDTO.setType(MessageType.JOIN);
+            chatMessageDTO.setSender(listener.getUser().getAnonymousName());
+            chatMessageDTO.setContent("Session started. Join the chat at: " + websocketEndpoint);
+            messageTemplate.convertAndSend(websocketEndpoint, chatMessageDTO);
+
+            // Send SSE notification to both users
+            sendSseNotification(user, listener.getUser(), message);
+            sendSseNotification(listener.getUser(), user, message);
         } else if ("reject".equalsIgnoreCase(action)) {
             message = "Your session request has been rejected by listener " + listener.getUser().getAnonymousName() + ".";
+            sendSseNotification(listener.getUser(), user, message);
         } else {
             return "Invalid action";
         }
@@ -93,6 +112,14 @@ public class SessionServiceImpl implements SessionService {
         notificationService.sendNotification(notification);
 
         return "Session " + action + "ed";
+    }
+
+    private void sendSseNotification(User sender, User receiver, String message) {
+        Notification notification = new Notification();
+        notification.setMessage(message);
+        notification.setReceiver(receiver);
+        notification.setSender(sender);
+        notificationService.sendNotification(notification);
     }
 
     @Override

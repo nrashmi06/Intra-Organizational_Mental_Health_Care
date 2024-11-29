@@ -44,7 +44,9 @@ public class SecurityConfig {
                                 UserUrlMapping.RESEND_VERIFICATION_EMAIL,
                                 UserUrlMapping.USER_LOGIN,
                                 UserUrlMapping.RENEW_TOKEN).permitAll()
+                        .requestMatchers("/chat/**").authenticated()
                         .anyRequest().authenticated()
+
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(exception -> exception

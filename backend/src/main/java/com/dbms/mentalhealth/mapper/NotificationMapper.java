@@ -1,6 +1,6 @@
 package com.dbms.mentalhealth.mapper;
 
-import com.dbms.mentalhealth.dto.notification.response.NotificationResponseDTO;
+import com.dbms.mentalhealth.dto.notification.NotificationResponseDTO;
 import com.dbms.mentalhealth.model.Notification;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

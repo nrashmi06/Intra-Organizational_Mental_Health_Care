@@ -1,6 +1,6 @@
 package com.dbms.mentalhealth.service.impl;
 
-import com.dbms.mentalhealth.dto.notification.response.NotificationResponseDTO;
+import com.dbms.mentalhealth.dto.notification.NotificationResponseDTO;
 import com.dbms.mentalhealth.enums.NotificationStatus;
 import com.dbms.mentalhealth.exception.sse.UserNotOnlineException;
 import com.dbms.mentalhealth.mapper.NotificationMapper;
@@ -78,10 +78,6 @@ public class NotificationServiceImpl implements NotificationService {
             throw new UserNotOnlineException("No active emitter found for user: " + receiverId);
         }
 
-        // Update notification status
-
-
-        // Check if emitter exists for the receiver
         try {
             NotificationResponseDTO responseDTO = NotificationMapper.toNotificationResponseDTO(notification);
             emitter.send(SseEmitter.event()
