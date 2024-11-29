@@ -171,4 +171,14 @@ public class CustomExceptionHandler {
     public ResponseEntity<Object> handleUserNotOnlineException(UserNotOnlineException ex, WebRequest request) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
+
+    @ExceptionHandler(EmailAlreadyInUseException.class)
+    public ResponseEntity<String> handleEmailAlreadyInUseException(EmailAlreadyInUseException ex, WebRequest request) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(InvalidUsernameException.class)
+    public ResponseEntity<String> handleInvalidUsernameException(InvalidUsernameException ex, WebRequest request) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
 }

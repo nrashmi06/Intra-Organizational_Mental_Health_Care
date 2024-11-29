@@ -8,10 +8,7 @@ import com.dbms.mentalhealth.dto.user.response.UserRegistrationResponseDTO;
 import com.dbms.mentalhealth.dto.user.response.UserInfoResponseDTO;
 import com.dbms.mentalhealth.enums.ProfileStatus;
 import com.dbms.mentalhealth.enums.Role;
-import com.dbms.mentalhealth.exception.user.EmailAlreadyVerifiedException;
-import com.dbms.mentalhealth.exception.user.InvalidUserCredentialsException;
-import com.dbms.mentalhealth.exception.user.UserNotActiveException;
-import com.dbms.mentalhealth.exception.user.UserNotFoundException;
+import com.dbms.mentalhealth.exception.user.*;
 import com.dbms.mentalhealth.mapper.UserMapper;
 import com.dbms.mentalhealth.model.EmailVerification;
 import com.dbms.mentalhealth.repository.EmailVerificationRepository;
@@ -126,16 +123,20 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     @Transactional
     public UserRegistrationResponseDTO registerUser(UserRegistrationRequestDTO userRegistrationDTO) {
         if (userRepository.existsByEmail(userRegistrationDTO.getEmail())) {
-            throw new IllegalArgumentException("Email is already in use: " + userRegistrationDTO.getEmail());
+            throw new EmailAlreadyInUseException("Email is already in use: " + userRegistrationDTO.getEmail());
         }
 
         if (!isValidUsername(userRegistrationDTO.getAnonymousName())) {
-            throw new IllegalArgumentException("Invalid username: " + userRegistrationDTO.getAnonymousName() + ". Please try another.");
+            throw new InvalidUsernameException("Invalid username: " + userRegistrationDTO.getAnonymousName() + ". Please try another.");
         }
 
-        User user = UserMapper.toEntity(userRegistrationDTO, passwordEncoder.encode(userRegistrationDTO.getPassword()));
-        userRepository.save(user);
-        return UserMapper.toRegistrationResponseDTO(user);
+        try {
+            User user = UserMapper.toEntity(userRegistrationDTO, passwordEncoder.encode(userRegistrationDTO.getPassword()));
+            userRepository.save(user);
+            return UserMapper.toRegistrationResponseDTO(user);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "An error occurred while registering the user", e);
+        }
     }
 
     private boolean isValidUsername(String username) {
