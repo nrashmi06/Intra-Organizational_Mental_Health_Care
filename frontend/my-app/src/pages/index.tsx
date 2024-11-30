@@ -8,10 +8,12 @@ import Navbar from "@/components/navbar/Navbar2"
 
 export default function Component() {
   return (
-    <div className="flex min-h-screen flex-col">
+    <div>
       <Navbar />
+    <div className="flex min-h-screen flex-col justify-center items-center">
+      
 
-      <main className="flex-1">
+      <main className="flex-1 w-full ">
         <section className="relative">
           <div className="absolute inset-0">
             <Image
@@ -21,7 +23,8 @@ export default function Component() {
               className="object-cover brightness-50"
               priority
             />
-          </div>
+            
+          </div><div className="flex justify-center px-4 sm:px-6 lg:px-8">
           <div className="relative container py-24 text-center text-white">
             <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl">
               Find Support Here
@@ -38,6 +41,7 @@ export default function Component() {
               allowing them to create their accounts securely. All members must complete a thorough verification process and be
               verified by an admin before granting access.
             </p>
+          </div>
           </div>
         </section>
 
@@ -175,6 +179,7 @@ export default function Component() {
           </div>
         </div>
       </footer>
+    </div>
     </div>
   )
 }
