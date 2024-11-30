@@ -75,39 +75,8 @@ export default function Component() {
             </div>
           </div>
         </section>
-
-        {/* Latest Posts */}
-        <section className="container py-12 pl-10">
-          <h2 className="text-3xl font-bold tracking-tighter mb-8">Our Latest Posts</h2>
-          <div className="grid gap-6 md:grid-cols-3">
-            {[1, 2, 3].map((i) => (
-              <Card key={i} className="overflow-hidden">
-                <Image
-                  src="/Blog1.jpg"
-                  alt={`Blog post ${i}`}
-                  width={400}
-                  height={300}
-                  className="object-cover aspect-video"
-                />
-                <CardContent className="mt-4">
-                  <div className="text-sm text-gray-500 mb-2">User</div>
-                  <h3 className="text-lg font-bold mb-2">Heading number {i} regarding post number {i}</h3>
-                  <p className="text-sm text-gray-500">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
-                    ut labore et dolore magna aliqua.
-                  </p>
-                </CardContent>
-                <CardFooter>
-                  <Button size="sm">
-                    Read More
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
-        </section>
       </main>
-
+      </div>
       {/* Footer */}
       <footer className="border-t bg-gray-300">
         <div className="container py-12">
@@ -179,7 +148,7 @@ export default function Component() {
           </div>
         </div>
       </footer>
-    </div>
+    
     </div>
   )
 }
