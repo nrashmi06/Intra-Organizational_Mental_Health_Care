@@ -5,10 +5,11 @@ import { updateBlog } from '@/service/blog/UpdateBlog';
 import { RootState } from '@/store';
 import { useSelector } from 'react-redux';
 import Navbar from '@/components/navbar/NavBar';
-import { Heart, Eye, Pencil } from 'lucide-react';
+import { Heart, Eye, Pencil ,Trash } from 'lucide-react';
 import '@/styles/global.css';
 import Head from 'next/head';
 import EditBlogModal from '@/components/blog/EditBlogModal';
+import DeleteBlogByID from '@/service/blog/DeleteBlogByID';
 
 const BlogPost = () => {
   const router = useRouter();
@@ -90,6 +91,11 @@ const BlogPost = () => {
     }
   };
 
+  const handleDeleteClick = async () => {
+    DeleteBlogByID(Number(postId), token);
+    console.log('Deleted');
+};
+
   const handleSaveChanges = async () => {
     if (!editedBlogData.title || !editedBlogData.content || !editedBlogData.summary) {
       setError('Please fill in all fields.');
@@ -170,8 +176,13 @@ const BlogPost = () => {
                 <span>{article.likeCount}</span>
               </button>
               {article.userId === Number(ReduxuserId) && (
-                <div className="flex items-center cursor-pointer" onClick={handleEditClick}>
-                  <Pencil className="w-5 h-5 mr-1 text-gray-600" />
+                <div className="flex items-center space-x-2">
+                  <div className="flex items-center cursor-pointer" onClick={handleEditClick}>
+                    <Pencil className="w-5 h-5 mr-1 text-gray-600" />
+                  </div>
+                  <div className="flex items-center cursor-pointer" onClick={handleDeleteClick}>
+                    <Trash className="w-5 h-5 mr-1 text-red-600" />
+                  </div>
                 </div>
               )}
             </div>
@@ -213,3 +224,4 @@ const BlogPost = () => {
 };
 
 export default BlogPost;
+
