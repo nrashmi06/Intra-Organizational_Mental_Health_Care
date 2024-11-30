@@ -1,23 +1,28 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import { fetchBlogById, toggleLikeOnBlog } from '@/service/blog/GetBlogBuID'; // Function to fetch blog and toggle like
+import { fetchBlogById, toggleLikeOnBlog } from '@/service/blog/GetBlogBuID'; 
+import { updateBlog } from '@/service/blog/UpdateBlog';
 import { RootState } from '@/store';
 import { useSelector } from 'react-redux';
 import Navbar from '@/components/navbar/NavBar';
-import { Heart, Eye } from 'lucide-react';
+import { Heart, Eye, Pencil ,Trash } from 'lucide-react';
 import '@/styles/global.css';
 import Head from 'next/head';
+import EditBlogModal from '@/components/blog/EditBlogModal';
+import DeleteBlogByID from '@/service/blog/DeleteBlogByID';
 
 const BlogPost = () => {
   const router = useRouter();
   const { postId } = router.query;
   const token = useSelector((state: RootState) => state.auth.accessToken); // Redux token
+  const ReduxuserId = useSelector((state: RootState) => state.auth.userId); // Redux userId
 
   interface Article {
     id: number;
     title: string;
     publishDate: string;
     viewCount: number;
+    userId: number;
     imageUrl: string;
     content: string;
     summary: string;
@@ -28,6 +33,16 @@ const BlogPost = () => {
   const [article, setArticle] = useState<Article | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [editMode, setEditMode] = useState<boolean>(false);
+  const [editedBlogData, setEditedBlogData] = useState<{
+    title: string;
+    content: string;
+    summary: string;
+  }>({
+    title: '',
+    content: '',
+    summary: '',
+  });
 
   useEffect(() => {
     if (!postId || !token || isNaN(Number(postId))) return;
@@ -52,13 +67,59 @@ const BlogPost = () => {
     if (!article || !token) return;
 
     try {
-      const updatedArticle = await toggleLikeOnBlog(Number(postId), token , article.likedByCurrentUser); // Backend updates like status
+      const updatedArticle = await toggleLikeOnBlog(
+        Number(postId),
+        token,
+        article.likedByCurrentUser
+      ); // Backend updates like status
       setArticle((prevArticle) =>
         prevArticle ? { ...prevArticle, ...updatedArticle } : null
       );
     } catch (error) {
       console.error('Failed to update like status:', error);
     }
+  };
+
+  const handleEditClick = () => {
+    if (article && article.userId === Number(ReduxuserId)) {
+      setEditMode(true);
+      setEditedBlogData({
+        title: article.title,
+        content: article.content,
+        summary: article.summary,
+      });
+    }
+  };
+
+  const handleDeleteClick = async () => {
+    DeleteBlogByID(Number(postId), token);
+    console.log('Deleted');
+};
+
+  const handleSaveChanges = async () => {
+    if (!editedBlogData.title || !editedBlogData.content || !editedBlogData.summary) {
+      setError('Please fill in all fields.');
+      return;
+    }
+
+    try {
+      const updatedArticle = await updateBlog(Number(postId), {
+        ...editedBlogData,
+        
+        userId: Number(ReduxuserId),
+      }, token);
+
+      setArticle(updatedArticle);
+      setEditMode(false);
+    } catch (error) {
+      console.error('Failed to save blog updates:', error);
+      setError('Failed to save blog updates.');
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditMode(false);
+    setError(null);
   };
 
   if (loading) {
@@ -97,12 +158,10 @@ const BlogPost = () => {
           <div className="flex justify-between items-center text-sm text-gray-600 mb-6">
             <span>{article.publishDate}</span>
             <div className="flex items-center space-x-4">
-              {/* Views */}
               <div className="flex items-center">
                 <Eye className="w-5 h-5 mr-1 text-gray-600" />
                 <span>{article.viewCount}</span>
               </div>
-              {/* Likes */}
               <button
                 className="flex items-center"
                 onClick={handleLikeToggle}
@@ -110,21 +169,25 @@ const BlogPost = () => {
               >
                 <Heart
                   className={`w-5 h-5 mr-1 transition-all duration-200 ${
-                    article.likedByCurrentUser
-                      ? 'text-red-500'
-                      : 'text-gray-600'
+                    article.likedByCurrentUser ? 'text-red-500' : 'text-gray-600'
                   }`}
                   fill={article.likedByCurrentUser ? 'currentColor' : 'none'}
                 />
                 <span>{article.likeCount}</span>
               </button>
+              {article.userId === Number(ReduxuserId) && (
+                <div className="flex items-center space-x-2">
+                  <div className="flex items-center cursor-pointer" onClick={handleEditClick}>
+                    <Pencil className="w-5 h-5 mr-1 text-gray-600" />
+                  </div>
+                  <div className="flex items-center cursor-pointer" onClick={handleDeleteClick}>
+                    <Trash className="w-5 h-5 mr-1 text-red-600" />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
-
-          <div
-            className="mb-8 relative w-full"
-            style={{ height: '25vh', overflow: 'hidden' }}
-          >
+          <div className="mb-8 relative w-full" style={{ height: '25vh', overflow: 'hidden' }}>
             <img
               src={article.imageUrl}
               alt={article.title}
@@ -132,7 +195,6 @@ const BlogPost = () => {
               className="rounded-lg w-full h-full transition-all duration-300"
             />
           </div>
-
           <div className="prose max-w-none text-justify">
             <h2 className="text-xl font-semibold mb-2">Content</h2>
             <p>{article.content}</p>
@@ -143,8 +205,23 @@ const BlogPost = () => {
           </div>
         </div>
       </main>
+      {editMode && (
+        <EditBlogModal
+          title={editedBlogData.title}
+          content={editedBlogData.content}
+          summary={editedBlogData.summary}
+          error={error}
+          image={null} // Add the image property
+          onClose={handleCancelEdit}
+          onSave={handleSaveChanges}
+          onChange={(field, value) =>
+            setEditedBlogData((prev) => ({ ...prev, [field]: value }))
+          }
+        />
+      )}
     </div>
   );
 };
 
 export default BlogPost;
+
