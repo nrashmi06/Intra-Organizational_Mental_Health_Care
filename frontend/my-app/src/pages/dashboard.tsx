@@ -85,7 +85,7 @@ export default function Component() {
     try {
       // Call API to update blog status
       await changeBlogApprovalStatus(id, newStatus, token);
-      // Refresh blogs after status update
+      console.log('Status updated successfully');
       loadBlogs();
     } catch (error) {
       console.error('Error updating status:', error);
@@ -238,7 +238,7 @@ export default function Component() {
             </div>
             <BlogApprovalTable
               blogs={blogs}
-              handleStatusChange={handleStatusChange}
+              statusFilter={statusFilter}
               handleView={(id) => console.log('View blog:', id)}
             />
           </div>

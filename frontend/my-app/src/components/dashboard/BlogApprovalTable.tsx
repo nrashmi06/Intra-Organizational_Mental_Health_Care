@@ -16,31 +16,28 @@ interface BlogApproval {
 
 interface BlogApprovalTableProps {
   blogs: BlogApproval[];
-  handleStatusChange: (id: number, newStatus: 'approved' | 'rejected') => void;
   handleView: (id: number) => void;
+  statusFilter: 'pending' | 'approved' | 'rejected';
 }
 
-const BlogApprovalTable: React.FC<BlogApprovalTableProps> = ({ blogs, handleStatusChange, handleView }) => {
+const BlogApprovalTable: React.FC<BlogApprovalTableProps> = ({ blogs,statusFilter, handleView }) => {
   const token = useSelector((state: RootState) => state.auth.accessToken); // Get token from Redux state
 
   // Function to handle status change
   const handleApproval = async (id: number, newStatus: 'approved' | 'rejected') => {
     try {
-      // Pass the post ID, new status, and token to the API function
       const response = await changeBlogApprovalStatus(id, newStatus, token);
-      
-      if (response.success) {
-        // If successful, update the local state
-        handleStatusChange(id, newStatus);
+       
+      if (response) {
+        console.log('changeBlogApprovalStatus response:', response);
       } else {
-        // Handle the case where the response is not successful
-        console.error("Failed to update approval status:", response.message);
+        console.error("Failed to update approval status:", response?.message || 'Unknown error');
       }
     } catch (error) {
-      // Handle the error if something goes wrong
       console.error("Error while updating approval status:", error);
     }
   };
+  
 
   return (
     <div className="bg-white rounded-lg shadow">
@@ -64,15 +61,15 @@ const BlogApprovalTable: React.FC<BlogApprovalTableProps> = ({ blogs, handleStat
               <TableCell>{blog.title}</TableCell>
               <TableCell>
                 <Badge color={ 
-                  blog.status === 'approved' ? 'green' :
-                  blog.status === 'rejected' ? 'red' :
+                  statusFilter === 'approved' ? 'green' :
+                  statusFilter === 'rejected' ? 'red' :
                   'gray' // Pending status is gray
                 }>
-                  {blog.status !== 'approved' && blog.status !== 'rejected' ? 'Pending' : blog.status}
+                  {statusFilter === 'pending' ? 'Pending' : statusFilter}
                 </Badge>
               </TableCell>
               <TableCell>
-                {blog.status !== 'approved' && blog.status !== 'rejected' ? (
+                {statusFilter === 'pending' ? (
                   <div className="flex space-x-2">
                     <Check
                       onClick={() => handleApproval(blog.id, 'approved')} // Call handleApproval here
