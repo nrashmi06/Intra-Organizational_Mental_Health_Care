@@ -75,7 +75,7 @@ public class SecurityConfig {
 
         // Get allowed origins from environment variable
         String allowedOrigins = System.getenv().getOrDefault("ALLOWED_ORIGINS",
-                "http://localhost:3000,http://127.0.0.1:3000");
+                "http://localhost:3000,http://127.0.0.1:5500");
 
         configuration.setAllowedOriginPatterns(
                 Arrays.stream(allowedOrigins.split(","))
