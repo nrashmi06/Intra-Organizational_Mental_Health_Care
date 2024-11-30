@@ -25,7 +25,8 @@ export default function AllBlogsPage() {
     id: number;
     title: string;
     date: string;
-    // Add other properties as needed
+    likeCount: number;
+    likedByCurrentUser: boolean;
   }
 
   const [allPosts, setAllPosts] = useState<BlogPost[]>([]);
@@ -132,7 +133,7 @@ export default function AllBlogsPage() {
         <div className="container mx-auto px-4 py-12">
           <div className="grid md:grid-cols-3 gap-8">
             {currentPosts.map((post) => (
-              <BlogCard key={post.id} post={{ ...post, slug: generateSlug(post.title), imageUrl: post.imageUrl || '', summary: post.summary || '' }} />
+              <BlogCard post={post} />
             ))}
           </div>
         </div>

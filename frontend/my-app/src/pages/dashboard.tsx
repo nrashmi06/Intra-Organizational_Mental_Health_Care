@@ -6,7 +6,7 @@ import Badge from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Grid2X2, List, Search, Check, X } from 'lucide-react';
+import { Grid2X2, List, Search,} from 'lucide-react';
 import ListenerCard from "@/components/record/ListenerCard";
 import Navbar from "@/components/navbar/navbar3";
 import "@/styles/globals.css";
