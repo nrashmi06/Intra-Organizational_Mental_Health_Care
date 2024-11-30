@@ -1,23 +1,43 @@
-import axios from "axios";
-
-// Define the API URL
-const API_URL = "http://localhost:8080/mental-health/api/v1/blogs";
-
+// Fetch a blog by ID
 export const fetchBlogById = async (id: number, token: string) => {
-  try {
-    console.log("path to fetch blog by id:", `${API_URL}/${id}`);
-    console.log("Fetching blog post with id:", id);
-    console.log("Token:", token);
-    const response = await axios.get(`${API_URL}/${id}`, {
+    console.log('id', id);
+    console.log('token', token);
+    const response = await fetch(
+      `http://localhost:8080/mental-health/api/v1/blogs/${id}`,
+      {
+        method: 'GET',
         headers: {
           Authorization: `Bearer ${token}`,
         },
       }
     );
-
-    return response.data; // Return the response data for further use
-  } catch (error) {
-    console.error("Error retriving ", error);
-    throw error; // Rethrow error to be handled by the caller
-  }
-};
+  
+    if (!response.ok) {
+      throw new Error('Failed to fetch blog.');
+    }
+  
+    return await response.json(); // Returns the blog data
+  };
+  
+  // Toggle like/unlike on a blog
+  export const toggleLikeOnBlog = async (id: number, token: string, toggle: boolean) => {
+    console.log('toggle', toggle);
+    console.log('id for toogle :', id);
+    const response = await fetch(
+      `http://localhost:8080/mental-health/api/v1/blogs/${id}/like-unlike?action=${toggle ? 'unlike' : 'like'}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+  
+    if (!response.ok) {
+      throw new Error('Failed to update like status.');
+    }
+  
+    return await response.json(); // Returns updated article details
+  };
+  

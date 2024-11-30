@@ -11,10 +11,7 @@ import { fetchBlogs } from "@/service/blog/FetchByStatus"; // Import the fetchBl
 import { RootState } from "@/store";
 import { useSelector } from "react-redux";
 
-// Function to generate a slug from a string (title)
-const generateSlug = (title: string) => {
-  return title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w\-]+/g, '');
-};
+
 
 export default function AllBlogsPage() {
   const router = useRouter();
