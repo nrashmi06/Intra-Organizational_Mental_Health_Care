@@ -4,6 +4,7 @@ import com.dbms.mentalhealth.enums.ListenerApplicationStatus;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.sql.Blob;
 import java.time.LocalDateTime;
 
 @Data

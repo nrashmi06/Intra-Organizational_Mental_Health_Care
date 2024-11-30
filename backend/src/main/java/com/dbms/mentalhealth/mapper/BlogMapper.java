@@ -40,6 +40,7 @@ public class BlogMapper {
         summaryDTO.setTitle(blog.getTitle());
         summaryDTO.setSummary(blog.getSummary());
         summaryDTO.setLikeCount(blog.getLikeCount());
+        summaryDTO.setImageUrl(blog.getImageUrl());
         summaryDTO.setLikedByCurrentUser(likedByCurrentUser);
         return summaryDTO;
     }

@@ -10,7 +10,9 @@ import com.dbms.mentalhealth.exception.emergency.EmergencyHelplineNotFoundExcept
 import com.dbms.mentalhealth.exception.emergency.InvalidEmergencyHelplineException;
 import com.dbms.mentalhealth.exception.listener.InvalidListenerApplicationException;
 import com.dbms.mentalhealth.exception.listener.ListenerApplicationNotFoundException;
+import com.dbms.mentalhealth.exception.listener.ListenerNotFoundException;
 import com.dbms.mentalhealth.exception.sse.EmitterCreationException;
+import com.dbms.mentalhealth.exception.sse.UserNotOnlineException;
 import com.dbms.mentalhealth.exception.timeslot.InvalidTimeSlotException;
 import com.dbms.mentalhealth.exception.timeslot.TimeSlotNotFoundException;
 import com.dbms.mentalhealth.exception.token.JwtTokenExpiredException;
@@ -18,6 +20,7 @@ import com.dbms.mentalhealth.exception.user.*;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MissingRequestCookieException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
@@ -146,6 +149,36 @@ public class CustomExceptionHandler {
 
     @ExceptionHandler(InvalidAdminSettingsException.class)
     public ResponseEntity<Object> handleInvalidAdminSettingsException(InvalidAdminSettingsException ex, WebRequest request) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(MissingRequestCookieException.class)
+    public ResponseEntity<String> handleMissingRequestCookieException(MissingRequestCookieException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Required cookie 'refreshToken' is not present");
+    }
+
+    @ExceptionHandler(ListenerNotFoundException.class)
+    public ResponseEntity<Object> handleListenerNotFoundException(ListenerNotFoundException ex, WebRequest request) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Listener not found");
+    }
+
+    @ExceptionHandler(EmailAlreadyVerifiedException.class)
+    public ResponseEntity<Object> handleEmailAlreadyVerifiedException(EmailAlreadyVerifiedException ex, WebRequest request) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(UserNotOnlineException.class)
+    public ResponseEntity<Object> handleUserNotOnlineException(UserNotOnlineException ex, WebRequest request) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(EmailAlreadyInUseException.class)
+    public ResponseEntity<String> handleEmailAlreadyInUseException(EmailAlreadyInUseException ex, WebRequest request) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(InvalidUsernameException.class)
+    public ResponseEntity<String> handleInvalidUsernameException(InvalidUsernameException ex, WebRequest request) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 }

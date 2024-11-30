@@ -14,7 +14,7 @@ public class UserActivityScheduler {
     public UserActivityScheduler(UserActivityService userActivityService) {
         this.userActivityService = userActivityService;
     }
-    @Scheduled(fixedRate = 60 * 1000) // 1 mins
+    @Scheduled(fixedRate = 60 * 60 * 1000) // 1 hr
     public void cleanupExpiredUsers() {
         logger.info("Cleaning up expired users");
         List<String> expiredUsers = userActivityService.findExpiredUsers();

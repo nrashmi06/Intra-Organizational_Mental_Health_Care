@@ -17,6 +17,7 @@ public class Listener {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "listener_id", nullable = false, updatable = false)
     private Integer listenerId;
 
     @ManyToOne
@@ -34,6 +35,9 @@ public class Listener {
 
     @Column(name = "average_rating", precision = 3, scale = 2)
     private BigDecimal averageRating;
+
+    @Column(name = "total_messages_sent")
+    private Integer totalMessagesSent;
 
     @Column(name = "joined_at", nullable = false)
     private LocalDateTime joinedAt;

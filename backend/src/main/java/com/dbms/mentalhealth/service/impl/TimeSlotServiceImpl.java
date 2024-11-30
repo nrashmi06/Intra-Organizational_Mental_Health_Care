@@ -46,7 +46,7 @@ public class TimeSlotServiceImpl implements TimeSlotService {
                 }
             }
 
-            // Check for duplicate and overlapping time slots in the database
+            // Check for duplicate and overlapping time slots in the database for the same admin
             boolean exists = timeSlotRepository.existsByDateAndStartTimeAndEndTimeAndAdmins_AdminId(
                     timeSlot.getDate(), timeSlot.getStartTime(), timeSlot.getEndTime(), adminId);
             if (exists) {
