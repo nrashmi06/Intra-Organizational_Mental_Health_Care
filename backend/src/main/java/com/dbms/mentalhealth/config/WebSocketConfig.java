@@ -1,34 +1,38 @@
 package com.dbms.mentalhealth.config;
 
-import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.messaging.simp.config.MessageBrokerRegistry;
-import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
-import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
-import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+import org.springframework.web.socket.server.standard.ServerEndpointExporter;
+
+import jakarta.websocket.server.HandshakeRequest;
+import jakarta.websocket.server.ServerEndpointConfig;
+import jakarta.websocket.HandshakeResponse;
+
+import java.util.Collections;
 
 @Configuration
-@EnableWebSocketMessageBroker
-@RequiredArgsConstructor
-public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
-    private final WebSocketAuthInterceptor webSocketAuthInterceptor;
+public class WebSocketConfig {
 
-    @Override
-    public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/chat")
-                .setAllowedOrigins("*")
-                .withSockJS(); // Added SockJS support for better browser compatibility
+    @Bean
+    public ServerEndpointExporter serverEndpointExporter() {
+        return new ServerEndpointExporter();
     }
 
-    @Override
-    public void configureMessageBroker(MessageBrokerRegistry registry) {
-        // More specific message broker configuration
-        registry.enableSimpleBroker("/topic/chat"); // Changed prefix to be more descriptive
-        registry.setApplicationDestinationPrefixes("/app");
+    @Bean
+    public ServerEndpointConfig.Configurator chatEndpointConfigurator() {
+        return new ChatEndpointConfigurator();
     }
 
-    @Override
-    public void configureClientInboundChannel(org.springframework.messaging.simp.config.ChannelRegistration registration) {
-        registration.interceptors(webSocketAuthInterceptor);
+    private static class ChatEndpointConfigurator extends ServerEndpointConfig.Configurator {
+        @Override
+        public void modifyHandshake(ServerEndpointConfig sec, HandshakeRequest request, HandshakeResponse response) {
+            // Add CORS headers to WebSocket handshake response
+            response.getHeaders().put("Access-Control-Allow-Origin", Collections.singletonList("*"));
+            response.getHeaders().put("Access-Control-Allow-Credentials", Collections.singletonList("true"));
+            response.getHeaders().put("Access-Control-Allow-Methods", Collections.singletonList("GET, POST, OPTIONS"));
+            response.getHeaders().put("Access-Control-Allow-Headers", Collections.singletonList("Content-Type, Authorization"));
+
+            super.modifyHandshake(sec, request, response);
+        }
     }
 }

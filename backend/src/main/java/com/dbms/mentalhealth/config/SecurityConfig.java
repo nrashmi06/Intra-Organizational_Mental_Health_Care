@@ -52,9 +52,9 @@ public class SecurityConfig {
                                 UserUrlMapping.VERIFY_EMAIL,
                                 UserUrlMapping.RESEND_VERIFICATION_EMAIL,
                                 UserUrlMapping.USER_LOGIN,
-                                UserUrlMapping.RENEW_TOKEN
+                                UserUrlMapping.RENEW_TOKEN,
+                                "/chat/**"
                         ).permitAll()
-                        .requestMatchers("/chat/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session ->

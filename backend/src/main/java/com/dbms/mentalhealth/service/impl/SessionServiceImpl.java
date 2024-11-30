@@ -1,7 +1,7 @@
 package com.dbms.mentalhealth.service.impl;
 
+import com.dbms.mentalhealth.config.WebSocketServer;
 import com.dbms.mentalhealth.dto.chatMessage.ChatMessageDTO;
-import com.dbms.mentalhealth.enums.MessageType;
 import com.dbms.mentalhealth.enums.SessionStatus;
 import com.dbms.mentalhealth.exception.user.UserNotFoundException;
 import com.dbms.mentalhealth.model.Listener;
@@ -15,16 +15,17 @@ import com.dbms.mentalhealth.repository.UserRepository;
 import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.service.NotificationService;
 import com.dbms.mentalhealth.service.SessionService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Service
+@Slf4j
 public class SessionServiceImpl implements SessionService {
 
-    private final SimpMessagingTemplate messageTemplate;
     private final NotificationService notificationService;
     private final JwtUtils jwtUtils;
     private final UserRepository userRepository;
@@ -33,8 +34,12 @@ public class SessionServiceImpl implements SessionService {
     private final NotificationRepository notificationRepository;
 
     @Autowired
-    public SessionServiceImpl(SimpMessagingTemplate messageTemplate, NotificationService notificationService, JwtUtils jwtUtils, UserRepository userRepository, ListenerRepository listenerRepository, SessionRepository sessionRepository, NotificationRepository notificationRepository) {
-        this.messageTemplate = messageTemplate;
+    public SessionServiceImpl(NotificationService notificationService,
+                              JwtUtils jwtUtils,
+                              UserRepository userRepository,
+                              ListenerRepository listenerRepository,
+                              SessionRepository sessionRepository,
+                              NotificationRepository notificationRepository) {
         this.notificationService = notificationService;
         this.jwtUtils = jwtUtils;
         this.userRepository = userRepository;
@@ -45,17 +50,18 @@ public class SessionServiceImpl implements SessionService {
 
     @Override
     public String getActiveSessions() {
-        return "Active sessions data";
+        // Implement logic to retrieve active sessions
+        return "Implement active sessions retrieval";
     }
 
     @Override
     public String initiateSession(Integer listenerId, String message) {
-        User sender = userRepository.findById(jwtUtils.getUserIdFromContext()).orElse(null);
-        User receiver = userRepository.findById(listenerId).orElse(null);
-        if (sender == null || receiver == null) {
-            throw new UserNotFoundException("User not found");
-        }
+        User sender = userRepository.findById(jwtUtils.getUserIdFromContext())
+                .orElseThrow(() -> new UserNotFoundException("Sender not found"));
+        User receiver = userRepository.findById(listenerId)
+                .orElseThrow(() -> new UserNotFoundException("Receiver not found"));
 
+        // Create a notification
         Notification notification = new Notification();
         notification.setMessage(message);
         notification.setReceiver(receiver);
@@ -76,6 +82,10 @@ public class SessionServiceImpl implements SessionService {
 
         String message;
         if ("accept".equalsIgnoreCase(action)) {
+            // Generate a unique session ID
+            String sessionId = UUID.randomUUID().toString();
+
+            // Create and save session
             Session session = new Session();
             session.setListener(listener);
             session.setUser(user);
@@ -83,35 +93,30 @@ public class SessionServiceImpl implements SessionService {
             session.setSessionStart(LocalDateTime.now());
             sessionRepository.save(session);
 
-            // Notify users about the new WebSocket endpoint
-            String websocketEndpoint = "/topic/session/" + session.getSessionId();
-            message = "Your session request has been accepted by listener " + listener.getUser().getAnonymousName() + ". Session starting soon. Join the chat at: " + websocketEndpoint;
+            // Prepare session notification
+            message = "Your session request has been accepted by listener " +
+                    listener.getUser().getAnonymousName() +
+                    ". Session starting soon. WebSocket Session ID: " + sessionId;
 
-            // Send WebSocket notification to both users
-            ChatMessageDTO chatMessageDTO = new ChatMessageDTO();
-            chatMessageDTO.setType(MessageType.JOIN);
-            chatMessageDTO.setSender(listener.getUser().getAnonymousName());
-            chatMessageDTO.setContent("Session started. Join the chat at: " + websocketEndpoint);
-            messageTemplate.convertAndSend(websocketEndpoint, chatMessageDTO);
-
-            // Send SSE notification to both users
+            // Send notifications
+            sendSseNotification(listener.getUser(), user, message);
             sendSseNotification(user, listener.getUser(), message);
-            sendSseNotification(listener.getUser(), user, message);
+
+            // Log the session details
+            log.info("New session created - Session ID: {}, User: {}, Listener: {}",
+                    sessionId, user.getAnonymousName(), listener.getUser().getAnonymousName());
+
+            return "Session accepted. WebSocket Session ID: " + sessionId;
         } else if ("reject".equalsIgnoreCase(action)) {
-            message = "Your session request has been rejected by listener " + listener.getUser().getAnonymousName() + ".";
+            message = "Your session request has been rejected by listener " +
+                    listener.getUser().getAnonymousName() + ".";
+
             sendSseNotification(listener.getUser(), user, message);
+
+            return "Session rejected";
         } else {
             return "Invalid action";
         }
-
-        Notification notification = new Notification();
-        notification.setMessage(message);
-        notification.setReceiver(user);
-        notification.setSender(listener.getUser());
-        notificationRepository.save(notification);
-        notificationService.sendNotification(notification);
-
-        return "Session " + action + "ed";
     }
 
     private void sendSseNotification(User sender, User receiver, String message) {
@@ -119,16 +124,19 @@ public class SessionServiceImpl implements SessionService {
         notification.setMessage(message);
         notification.setReceiver(receiver);
         notification.setSender(sender);
+        notificationRepository.save(notification);
         notificationService.sendNotification(notification);
     }
 
     @Override
     public String getSessionById(Integer sessionId) {
+        // Implement logic to retrieve session details
         return "Session details for ID: " + sessionId;
     }
 
     @Override
     public String getAllSessions() {
+        // Implement logic to retrieve all sessions
         return "All session details";
     }
 }
