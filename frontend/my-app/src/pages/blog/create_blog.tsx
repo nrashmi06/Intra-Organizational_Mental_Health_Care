@@ -23,7 +23,7 @@ export default function CreateBlogPage() {
   const router = useRouter();
 
   // Fetch access token from Redux
-  const accessToken = useSelector((state: RootState) => state.auth.accessToken);
+  const { userId, accessToken } = useSelector((state: RootState) => state.auth);
 
   const handleImageUpload = (file: File | null) => {
     if (!file) {
@@ -54,12 +54,11 @@ export default function CreateBlogPage() {
 
     setIsLoading(true);
     try {
-      const userId = 1; // Hardcoded for now; replace with actual user ID if applicable
-      const blogData = { title, content, summary, userId, image: imageFile };
+      const blogData = { title, content, summary, userId: Number(userId), image: imageFile };
 
       await createBlog(blogData, accessToken);
       setSuccessMessage('Blog created successfully! Sent to Admin for approval.');
-      setTimeout(() => router.push('/blogs'), 2000);
+      setTimeout(() => router.push('/blog/all'), 2000);
     } catch (error: any) {
       setErrorMessage(error.message || 'Failed to create blog');
     } finally {

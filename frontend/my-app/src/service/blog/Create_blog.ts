@@ -8,33 +8,36 @@ export const createBlog = async (
     content: string;
     summary: string;
     userId: number;
-    image: File;
+    image: File; // Ensure this is a File object
   },
-  accessToken: string // Pass the token as a parameter
+  accessToken: string
 ) => {
   try {
+    // Create FormData
     const formData = new FormData();
 
-    // Add the blog data as a JSON string
-    const blogJson = JSON.stringify({
+    // Add image first
+    formData.append('image', blogData.image);
+
+    // Prepare blog data as JSON
+    const blogRequestDTO = {
       title: blogData.title,
       content: blogData.content,
       summary: blogData.summary,
       userId: blogData.userId,
-    });
-    formData.append('blog', blogJson);
+    };
 
-    // Add the image
-    formData.append('image', blogData.image);
-    
-    //console form data
-    console.log(formData);
-    
-    // Debugging FormData contents
+    // Convert blog data to Blob
+    const blogBlob = new Blob([JSON.stringify(blogRequestDTO)], {
+      type: 'application/json'
+    });
+    formData.append('blog', blogBlob, 'blog.json');
+
+    // Debug: Log FormData contents
     for (const [key, value] of formData.entries()) {
-      console.log(`${key}:`, value);
+      console.log('FormData -${key}:', value);
     }
-    console.log('Access token:', accessToken);
+
     // Make the POST request
     const response = await axios.post(`${API_BASE_URL}/blogs/create`, formData, {
       headers: {
@@ -45,7 +48,24 @@ export const createBlog = async (
 
     return response.data;
   } catch (error: any) {
-    console.error('Error in createBlog:', error);
-    throw new Error(error.response?.data?.message || 'Failed to create blog');
+    // Enhanced error logging
+    if (error.response) {
+      // The request was made and the server responded with a status code
+      console.error('Error response data:', error.response.data);
+      console.error('Error response status:', error.response.status);
+      console.error('Error response headers:', error.response.headers);
+    } else if (error.request) {
+      // The request was made but no response was received
+      console.error('Error request:', error.request);
+    } else {
+      // Something happened in setting up the request that triggered an Error
+      console.error('Error message:', error.message);
+    }
+
+    throw new Error(
+      error.response?.data?.message ||
+      error.response?.data?.error ||
+      'Failed to create blog'
+    );
   }
 };
