@@ -1,0 +1,55 @@
+version: '1'
+
+services:
+  # Database service (PostgreSQL)
+  db:
+    image: postgres:17.0
+    container_name: postgres_database
+    environment:
+      POSTGRES_USER: ${DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-211004}
+      POSTGRES_DB: mentalhealth
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    networks:
+      - app-network
+
+   # Backend service
+  backend:
+    image: ajayprabhu2004/backend-app:latest
+    depends_on:
+      - db
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/mentalhealth
+      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-211004}
+      # Add this line to allow all origins during development
+      ALLOWED_ORIGINS: "http://localhost:3000,http://frontend:3000,http://127.0.0.1:3000"
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    networks:
+      - app-network
+
+  # Frontend service
+  frontend:
+    build:
+      context: ./frontend/my-app
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    networks:
+      - app-network
+    depends_on:
+      - backend
+    environment:
+      # Ensure the backend URL is correct
+      NEXT_PUBLIC_BACKEND_URL: http://backend:8080
+
+volumes:
+  postgres_data:
+networks:
+  app-network:
+    driver: bridge
