@@ -55,7 +55,7 @@ export default function Navbar() {
                 Home
               </Link>
               <Link
-                href="/blog"
+                href="/blog/all"
                 className={`text-sm font-medium text-white ${router.pathname === "/blog" ? "underline" : ""}`}
               >
                 Blog
