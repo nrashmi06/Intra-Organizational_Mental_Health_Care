@@ -12,7 +12,7 @@ export default function WelcomePage() {
     // Set a timer to redirect after 5 seconds
     const timer = setTimeout(() => {
       router.push('/'); // Redirect to the homepage
-    }, 5000);
+    }, 2000);
 
     // Cleanup the timer when the component is unmounted
     return () => clearTimeout(timer);
