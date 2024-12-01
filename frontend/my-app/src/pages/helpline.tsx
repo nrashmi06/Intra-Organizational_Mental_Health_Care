@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Lightbulb, Plus } from 'lucide-react';
+import { Lightbulb, Plus , Trash2 } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Navbar from "@/components/navbar/NavBar";
 import Footer from "@/components/footer/Footer";
@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { createEmergencyHelpline } from '@/service/emergency/CreateEmergencyHelpline';
 import { getAllHelplines } from '@/service/emergency/GetEmergencyHelpline';
 import '@/styles/global.css';
+import { deleteEmergencyHelpline } from '@/service/emergency/DeleteEmergencyHelpline';
 
 export default function Component() {
   const [isModalOpen, setModalOpen] = useState(false); // Modal state
@@ -35,9 +36,18 @@ export default function Component() {
   const userRole = useSelector((state: RootState) => state.auth.role);
   const token = useSelector((state: RootState) => state.auth.accessToken);
 
-  // Handle modal open/close
   const handleAddHelpline = () => setModalOpen(true);
   const handleCloseModal = () => setModalOpen(false);
+
+
+  const handleDeleteHelpline = async (helplineId: string) => {
+    try {
+      await deleteEmergencyHelpline(helplineId, token); // Call delete API
+      setShouldRefetch((prev) => !prev); // Trigger refetch to update the table
+    } catch (error) {
+      console.error("Failed to delete helpline:", error);
+    }
+  }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -97,6 +107,11 @@ export default function Component() {
                 <TableHead>Country Code</TableHead>
                 <TableHead>Emergency Type</TableHead>
                 <TableHead>Priority</TableHead>
+                {
+                  userRole === 'ADMIN' && (
+                    <TableHead>Action</TableHead>
+                  )
+                }
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -114,6 +129,16 @@ export default function Component() {
                     <TableCell>{helpline.countryCode}</TableCell>
                     <TableCell>{helpline.emergencyType}</TableCell>
                     <TableCell>{helpline.priority}</TableCell>
+                    {
+                      userRole === 'ADMIN' && (
+                        <TableCell>
+                          <Trash2
+                            className="h-6 w-6 text-red-500 cursor-pointer hover:text-red-700"
+                            onClick={() => handleDeleteHelpline(helpline.helplineId)} 
+                          />
+                        </TableCell>
+                      )
+                    }
                   </TableRow>
                 ))
               )}
