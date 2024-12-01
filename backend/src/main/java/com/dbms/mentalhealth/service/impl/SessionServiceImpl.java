@@ -1,6 +1,5 @@
 package com.dbms.mentalhealth.service.impl;
 
-import com.dbms.mentalhealth.config.WebSocketServer;
 import com.dbms.mentalhealth.dto.chatMessage.ChatMessageDTO;
 import com.dbms.mentalhealth.enums.SessionStatus;
 import com.dbms.mentalhealth.exception.listener.ListenerNotFoundException;

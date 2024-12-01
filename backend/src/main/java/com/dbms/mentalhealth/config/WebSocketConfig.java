@@ -1,40 +1,24 @@
 package com.dbms.mentalhealth.config;
 
-import com.dbms.mentalhealth.repository.ChatMessageRepository;
-import com.dbms.mentalhealth.repository.SessionRepository;
-import com.dbms.mentalhealth.repository.UserRepository;
-import org.springframework.context.annotation.Bean;
+import com.dbms.mentalhealth.handler.ChatWebSocketHandler;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.socket.server.standard.ServerEndpointExporter;
-
-import jakarta.websocket.server.HandshakeRequest;
-import jakarta.websocket.server.ServerEndpointConfig;
-import jakarta.websocket.HandshakeResponse;
-
-import java.util.Collections;
+import org.springframework.web.socket.config.annotation.EnableWebSocket;
+import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
+import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 
 @Configuration
-public class WebSocketConfig {
-    @Bean
-    public ServerEndpointExporter serverEndpointExporter() {
-        return new ServerEndpointExporter();
+@EnableWebSocket
+public class WebSocketConfig implements WebSocketConfigurer {
+
+    private final ChatWebSocketHandler chatWebSocketHandler;
+
+    public WebSocketConfig(ChatWebSocketHandler chatWebSocketHandler) {
+        this.chatWebSocketHandler = chatWebSocketHandler;
     }
 
-    @Bean
-    public ServerEndpointConfig.Configurator chatEndpointConfigurator() {
-        return new ChatEndpointConfigurator();
-    }
-
-    private static class ChatEndpointConfigurator extends ServerEndpointConfig.Configurator {
-        @Override
-        public void modifyHandshake(ServerEndpointConfig sec, HandshakeRequest request, HandshakeResponse response) {
-            // Add CORS headers to WebSocket handshake response
-            response.getHeaders().put("Access-Control-Allow-Origin", Collections.singletonList("*"));
-            response.getHeaders().put("Access-Control-Allow-Credentials", Collections.singletonList("true"));
-            response.getHeaders().put("Access-Control-Allow-Methods", Collections.singletonList("GET, POST, OPTIONS"));
-            response.getHeaders().put("Access-Control-Allow-Headers", Collections.singletonList("Content-Type, Authorization"));
-
-            super.modifyHandshake(sec, request, response);
-        }
+    @Override
+    public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
+        registry.addHandler(chatWebSocketHandler, "/chat/{sessionId}/{username}")
+                .setAllowedOrigins("*"); // Enable CORS
     }
 }
