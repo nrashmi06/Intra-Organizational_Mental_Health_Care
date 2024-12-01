@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Lightbulb, Plus } from 'lucide-react';
+import { Lightbulb, Plus , Trash2 , Pencil } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Navbar from "@/components/navbar/NavBar";
 import Footer from "@/components/footer/Footer";
@@ -8,6 +8,9 @@ import { useSelector } from 'react-redux';
 import { Button } from '@/components/ui/button';
 import { createEmergencyHelpline } from '@/service/emergency/CreateEmergencyHelpline';
 import { getAllHelplines } from '@/service/emergency/GetEmergencyHelpline';
+import '@/styles/global.css';
+import { deleteEmergencyHelpline } from '@/service/emergency/DeleteEmergencyHelpline';
+import { updateEmergencyHelpline } from '@/service/emergency/UpdateEmergencyHelpline';
 
 export default function Component() {
   const [isModalOpen, setModalOpen] = useState(false); // Modal state
@@ -29,34 +32,77 @@ export default function Component() {
   }
 
   const [helplines, setHelplines] = useState<Helpline[]>([]); // State to store the fetched helplines
-  
+  const [shouldRefetch, setShouldRefetch] = useState(false); // State to track refetch trigger
+
   const userRole = useSelector((state: RootState) => state.auth.role);
   const token = useSelector((state: RootState) => state.auth.accessToken);
+  const [isUpdateMode, setIsUpdateMode] = useState(false);
+  const [selectedHelplineId, setSelectedHelplineId] = useState<string | null>(null);
 
-  // Handle modal open/close
+// Open modal with existing data for update
+const handleEditHelpline = (helpline: Helpline) => {
+  setNewHelpline(helpline); // Populate modal with existing data
+  setSelectedHelplineId(helpline.helplineId); // Store the ID of the helpline being edited
+  setIsUpdateMode(true); // Set to update mode
+  setModalOpen(true); // Open modal
+};
+
+// Submit the update to the API
+const handleUpdateSubmit = async () => {
+  if (!selectedHelplineId) return;
+
+  try {
+    await updateEmergencyHelpline(selectedHelplineId, token, newHelpline); // Call the API
+    setModalOpen(false); // Close modal
+    setIsUpdateMode(false); // Exit update mode
+    setShouldRefetch((prev) => !prev); // Trigger data refetch
+  } catch (error) {
+    console.error("Failed to update helpline:", error);
+  }
+};
+
+
   const handleAddHelpline = () => setModalOpen(true);
   const handleCloseModal = () => setModalOpen(false);
+
+
+  const handleDeleteHelpline = async (helplineId: string) => {
+    try {
+      await deleteEmergencyHelpline(helplineId, token); // Call delete API
+      setShouldRefetch((prev) => !prev); // Trigger refetch to update the table
+    } catch (error) {
+      console.error("Failed to delete helpline:", error);
+    }
+  }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setNewHelpline({ ...newHelpline, [name]: value });
   };
 
-  const handleSubmit = () => {
-    // Call the createEmergencyHelpline function
-    createEmergencyHelpline(newHelpline, token);
-    setModalOpen(false); // Close modal after submission
+  const handleSubmit = async () => {
+    try {
+      await createEmergencyHelpline(newHelpline, token); // Call the createEmergencyHelpline function
+      setModalOpen(false); // Close modal after submission
+      setShouldRefetch((prev) => !prev); // Trigger refetch
+    } catch (error) {
+      console.error("Failed to create helpline:", error);
+    }
   };
 
-  // Fetch all helplines on component mount
+  // Fetch all helplines on component mount or when shouldRefetch changes
   useEffect(() => {
     const fetchHelplines = async () => {
-      const data = await getAllHelplines(token); // Get helplines data
-      setHelplines(data); // Store helplines in state
+      try {
+        const data = await getAllHelplines(token); // Get helplines data
+        setHelplines(data); // Store helplines in state
+      } catch (error) {
+        console.error("Failed to fetch helplines:", error);
+      }
     };
 
     fetchHelplines();
-  }, []);
+  }, [shouldRefetch]); // Rerun useEffect when shouldRefetch changes
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-600 via-blue-500 to-purple-600">
@@ -83,9 +129,15 @@ export default function Component() {
             <TableHeader>
               <TableRow>
                 <TableHead>Organization</TableHead>
+                <TableHead>Phone Number</TableHead>
                 <TableHead>Country Code</TableHead>
                 <TableHead>Emergency Type</TableHead>
                 <TableHead>Priority</TableHead>
+                {
+                  userRole === 'ADMIN' && (
+                    <TableHead>Action</TableHead>
+                  )
+                }
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -103,6 +155,24 @@ export default function Component() {
                     <TableCell>{helpline.countryCode}</TableCell>
                     <TableCell>{helpline.emergencyType}</TableCell>
                     <TableCell>{helpline.priority}</TableCell>
+                    {
+                      userRole === 'ADMIN' && (
+                        
+                        <TableCell>
+                          <div className='flex justify-around '>
+                            <Trash2
+                              className="h-6 w-6 text-red-500 cursor-pointer hover:text-red-700"
+                              onClick={() => handleDeleteHelpline(helpline.helplineId)} 
+                            />
+                            <Pencil
+                               className="h-6 w-6 text-blue-500 cursor-pointer hover:text-blue-700"
+                               onClick={() => handleEditHelpline(helpline)}
+                            />
+                          </div>
+                        </TableCell>
+                        
+                      )
+                    }
                   </TableRow>
                 ))
               )}
@@ -117,66 +187,25 @@ export default function Component() {
           <div className="bg-white p-6 rounded-lg shadow-lg w-96">
             <h2 className="text-2xl font-bold mb-4">Add New Helpline</h2>
             <form>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">
-                  Name
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  value={newHelpline.name}
-                  onChange={handleInputChange}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1"
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">
-                  Phone Number
-                </label>
-                <input
-                  type="text"
-                  name="phoneNumber"
-                  value={newHelpline.phoneNumber}
-                  onChange={handleInputChange}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1"
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">
-                  Country Code
-                </label>
-                <input
-                  type="text"
-                  name="countryCode"
-                  value={newHelpline.countryCode}
-                  onChange={handleInputChange}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1"
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">
-                  Emergency Type
-                </label>
-                <input
-                  type="text"
-                  name="emergencyType"
-                  value={newHelpline.emergencyType}
-                  onChange={handleInputChange}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1"
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">
-                  Priority
-                </label>
-                <input
-                  type="number"
-                  name="priority"
-                  value={newHelpline.priority}
-                  onChange={handleInputChange}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1"
-                />
-              </div>
+              {/* Input Fields */}
+              {[
+                { label: "Name", name: "name" },
+                { label: "Phone Number", name: "phoneNumber" },
+                { label: "Country Code", name: "countryCode" },
+                { label: "Emergency Type", name: "emergencyType" },
+                { label: "Priority", name: "priority", type: "number" },
+              ].map(({ label, name, type = "text" }) => (
+                <div key={name} className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700">{label}</label>
+                  <input
+                    type={type}
+                    name={name}
+                    value={(newHelpline as any)[name]}
+                    onChange={handleInputChange}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1"
+                  />
+                </div>
+              ))}
               <div className="flex justify-end">
                 <Button onClick={handleCloseModal} className="mr-2">
                   Cancel
