@@ -3,6 +3,8 @@ package com.dbms.mentalhealth.service.impl;
 import com.dbms.mentalhealth.config.WebSocketServer;
 import com.dbms.mentalhealth.dto.chatMessage.ChatMessageDTO;
 import com.dbms.mentalhealth.enums.SessionStatus;
+import com.dbms.mentalhealth.exception.listener.ListenerNotFoundException;
+import com.dbms.mentalhealth.exception.session.SessionNotFoundException;
 import com.dbms.mentalhealth.exception.user.UserNotFoundException;
 import com.dbms.mentalhealth.model.Listener;
 import com.dbms.mentalhealth.model.Notification;
@@ -59,7 +61,7 @@ public class SessionServiceImpl implements SessionService {
         User sender = userRepository.findById(jwtUtils.getUserIdFromContext())
                 .orElseThrow(() -> new UserNotFoundException("Sender not found"));
         User receiver = userRepository.findById(listenerId)
-                .orElseThrow(() -> new UserNotFoundException("Receiver not found"));
+                .orElseThrow(() -> new ListenerNotFoundException("Receiver not found"));
 
         // Create a notification
         Notification notification = new Notification();
@@ -75,16 +77,13 @@ public class SessionServiceImpl implements SessionService {
     public String updateSessionStatus(Integer userId, String action) {
         Integer loggedInUserId = jwtUtils.getUserIdFromContext();
         Listener listener = listenerRepository.findByUser_UserId(loggedInUserId)
-                .orElseThrow(() -> new IllegalStateException("Listener not found"));
+                .orElseThrow(() -> new ListenerNotFoundException("Listener not found"));
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalStateException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         String message;
         if ("accept".equalsIgnoreCase(action)) {
-            // Generate a unique session ID
-            String sessionId = UUID.randomUUID().toString();
-
             // Create and save session
             Session session = new Session();
             session.setListener(listener);
@@ -96,34 +95,34 @@ public class SessionServiceImpl implements SessionService {
             // Prepare session notification
             message = "Your session request has been accepted by listener " +
                     listener.getUser().getAnonymousName() +
-                    ". Session starting soon. WebSocket Session ID: " + sessionId;
+                    ". Session starting soon";
 
-            // Send notifications
-            sendSseNotification(listener.getUser(), user, message);
+            // Send notification to user only
             sendSseNotification(user, listener.getUser(), message);
 
             // Log the session details
             log.info("New session created - Session ID: {}, User: {}, Listener: {}",
-                    sessionId, user.getAnonymousName(), listener.getUser().getAnonymousName());
+                    session.getSessionId(), user.getAnonymousName(), listener.getUser().getAnonymousName());
 
-            return "Session accepted. WebSocket Session ID: " + sessionId;
+            return "Session starting soon";
         } else if ("reject".equalsIgnoreCase(action)) {
             message = "Your session request has been rejected by listener " +
                     listener.getUser().getAnonymousName() + ".";
 
-            sendSseNotification(listener.getUser(), user, message);
+            // Send notification to user only
+            sendSseNotification(user, listener.getUser(), message);
 
-            return "Session rejected";
+            return "Session not accepted";
         } else {
             return "Invalid action";
         }
     }
 
-    private void sendSseNotification(User sender, User receiver, String message) {
+    private void sendSseNotification(User receiver, User listener, String message) {
         Notification notification = new Notification();
         notification.setMessage(message);
         notification.setReceiver(receiver);
-        notification.setSender(sender);
+        notification.setSender(listener);
         notificationRepository.save(notification);
         notificationService.sendNotification(notification);
     }
@@ -132,6 +131,24 @@ public class SessionServiceImpl implements SessionService {
     public String getSessionById(Integer sessionId) {
         // Implement logic to retrieve session details
         return "Session details for ID: " + sessionId;
+    }
+
+    @Override
+    public String endSession(Integer sessionId) {
+        Session session = sessionRepository.findById(sessionId)
+                .orElseThrow(() -> new SessionNotFoundException("Session not found"));
+
+        session.setSessionStatus(SessionStatus.COMPLETED);
+        session.setSessionEnd(LocalDateTime.now());
+        sessionRepository.save(session);
+
+        // Notify users about session end
+        String message = "Session with ID " + sessionId + " has ended.";
+        sendSseNotification(session.getUser(), session.getListener().getUser(), message);
+        sendSseNotification(session.getListener().getUser(), session.getUser(), message);
+
+        log.info("Session ended - Session ID: {}", sessionId);
+        return "Session ended successfully";
     }
 
     @Override

@@ -1,9 +1,14 @@
 package com.dbms.mentalhealth.config;
 
+import com.dbms.mentalhealth.model.ChatMessage;
+import com.dbms.mentalhealth.repository.ChatMessageRepository;
+import com.dbms.mentalhealth.repository.SessionRepository;
+import com.dbms.mentalhealth.repository.UserRepository;
 import jakarta.websocket.*;
 import jakarta.websocket.server.PathParam;
 import jakarta.websocket.server.ServerEndpoint;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.net.URLDecoder;
@@ -16,6 +21,11 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public class WebSocketServer {
     private static final Map<String, Map<String, Session>> chatSessions = new ConcurrentHashMap<>();
+
+
+    public WebSocketServer() {
+        // Default constructor for WebSocket server
+    }
 
     @OnOpen
     public void onOpen(Session session, @PathParam("sessionId") String sessionId, @PathParam("username") String username) {

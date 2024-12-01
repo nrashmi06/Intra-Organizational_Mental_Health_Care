@@ -37,4 +37,10 @@ public class SessionController {
     public ResponseEntity<String> getAllSessions() {
         return ResponseEntity.ok(sessionService.getAllSessions());
     }
+
+    @PostMapping(SessionUrlMapping.END_SESSION)
+    public ResponseEntity<String> endSession(@PathVariable Integer sessionId) {
+        String response = sessionService.endSession(sessionId);
+        return ResponseEntity.ok(response);
+    }
 }

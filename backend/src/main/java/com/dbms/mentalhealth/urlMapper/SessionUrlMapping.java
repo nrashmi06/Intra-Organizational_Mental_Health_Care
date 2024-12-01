@@ -13,6 +13,7 @@ public class SessionUrlMapping {
 
     public static final String INITIATE_SESSION = BASE_API + "/initiate" + LISTENER_ID_PATH;
     public static final String UPDATE_SESSION_STATUS = BASE_API + "/status" + USER_ID_PATH;
+    public static final String END_SESSION = BASE_API + "/end" + SESSION_ID_PATH;
     public static final String GET_SESSION_BY_ID = BASE_API + SESSION_ID_PATH;
     public static final String GET_ALL_SESSIONS = BASE_API;
 }

@@ -6,4 +6,5 @@ public interface SessionService {
     String updateSessionStatus(Integer userId, String action);
     String getSessionById(Integer sessionId);
     String getAllSessions();
+    String endSession(Integer sessionId);
 }
