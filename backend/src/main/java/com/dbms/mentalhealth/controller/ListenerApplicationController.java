@@ -1,5 +1,6 @@
 package com.dbms.mentalhealth.controller;
 
+import com.dbms.mentalhealth.dto.Listener.response.ListenerApplicationSummaryResponseDTO;
 import com.dbms.mentalhealth.dto.Listener.response.ListenerDetailsResponseDTO;
 import com.dbms.mentalhealth.dto.listenerApplication.request.ListenerApplicationRequestDTO;
 import com.dbms.mentalhealth.dto.listenerApplication.request.UpdateApplicationStatusRequestDTO;
@@ -46,6 +47,7 @@ public class ListenerApplicationController {
         }
     }
 
+
     @DeleteMapping(ListenerApplicationUrlMapping.DELETE_APPLICATION)
     public ResponseEntity<Void> deleteApplication(@PathVariable("applicationId") Integer applicationId) {
         try {
@@ -58,8 +60,8 @@ public class ListenerApplicationController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping(ListenerApplicationUrlMapping.GET_ALL_APPLICATIONS)
-    public ResponseEntity<List<ListenerApplicationResponseDTO>> getAllApplications() {
-        List<ListenerApplicationResponseDTO> responseDTO = listenerApplicationService.getAllApplications();
+    public ResponseEntity<List<ListenerApplicationSummaryResponseDTO>> getAllApplications() {
+        List<ListenerApplicationSummaryResponseDTO> responseDTO = listenerApplicationService.getAllApplications();
         return ResponseEntity.ok(responseDTO);
     }
 
@@ -93,9 +95,9 @@ public class ListenerApplicationController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping(ListenerApplicationUrlMapping.GET_APPLICATION_BY_APPROVAL_STATUS)
-    public ResponseEntity<List<ListenerApplicationResponseDTO>> getApplicationByApprovalStatus(
+    public ResponseEntity<List<ListenerApplicationSummaryResponseDTO>> getApplicationByApprovalStatus(
             @RequestParam("status") String status) {
-        List<ListenerApplicationResponseDTO> responseDTO = listenerApplicationService.getApplicationByApprovalStatus(status);
+        List<ListenerApplicationSummaryResponseDTO> responseDTO = listenerApplicationService.getApplicationByApprovalStatus(status);
         return ResponseEntity.ok(responseDTO);
     }
 }
