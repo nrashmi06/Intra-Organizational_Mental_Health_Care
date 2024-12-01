@@ -8,10 +8,12 @@ import Navbar from "@/components/navbar/Navbar2"
 
 export default function Component() {
   return (
-    <div className="flex min-h-screen flex-col">
+    <div>
       <Navbar />
+    <div className="flex min-h-screen flex-col justify-center items-center">
+      
 
-      <main className="flex-1">
+      <main className="flex-1 w-full ">
         <section className="relative">
           <div className="absolute inset-0">
             <Image
@@ -21,7 +23,8 @@ export default function Component() {
               className="object-cover brightness-50"
               priority
             />
-          </div>
+            
+          </div><div className="flex justify-center px-4 sm:px-6 lg:px-8">
           <div className="relative container py-24 text-center text-white">
             <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl">
               Find Support Here
@@ -38,6 +41,7 @@ export default function Component() {
               allowing them to create their accounts securely. All members must complete a thorough verification process and be
               verified by an admin before granting access.
             </p>
+          </div>
           </div>
         </section>
 
@@ -71,39 +75,8 @@ export default function Component() {
             </div>
           </div>
         </section>
-
-        {/* Latest Posts */}
-        <section className="container py-12 pl-10">
-          <h2 className="text-3xl font-bold tracking-tighter mb-8">Our Latest Posts</h2>
-          <div className="grid gap-6 md:grid-cols-3">
-            {[1, 2, 3].map((i) => (
-              <Card key={i} className="overflow-hidden">
-                <Image
-                  src="/Blog1.jpg"
-                  alt={`Blog post ${i}`}
-                  width={400}
-                  height={300}
-                  className="object-cover aspect-video"
-                />
-                <CardContent className="mt-4">
-                  <div className="text-sm text-gray-500 mb-2">User</div>
-                  <h3 className="text-lg font-bold mb-2">Heading number {i} regarding post number {i}</h3>
-                  <p className="text-sm text-gray-500">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
-                    ut labore et dolore magna aliqua.
-                  </p>
-                </CardContent>
-                <CardFooter>
-                  <Button size="sm">
-                    Read More
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
-        </section>
       </main>
-
+      </div>
       {/* Footer */}
       <footer className="border-t bg-gray-300">
         <div className="container py-12">
@@ -175,6 +148,7 @@ export default function Component() {
           </div>
         </div>
       </footer>
+    
     </div>
   )
 }
