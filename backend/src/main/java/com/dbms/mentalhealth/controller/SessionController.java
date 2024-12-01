@@ -1,10 +1,13 @@
 package com.dbms.mentalhealth.controller;
-
+import com.dbms.mentalhealth.dto.session.SessionResponseDTO;
+import com.dbms.mentalhealth.dto.session.SessionSummaryDTO;
 import com.dbms.mentalhealth.service.SessionService;
 import com.dbms.mentalhealth.urlMapper.SessionUrlMapping;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 public class SessionController {
@@ -29,8 +32,9 @@ public class SessionController {
     }
 
     @GetMapping(SessionUrlMapping.GET_SESSION_BY_ID)
-    public ResponseEntity<String> getSessionById(@PathVariable Integer sessionId) {
-        return ResponseEntity.ok(sessionService.getSessionById(sessionId));
+    public ResponseEntity<SessionResponseDTO> getSessionById(@PathVariable Integer sessionId) {
+        SessionResponseDTO sessionResponseDTO = sessionService.getSessionById(sessionId);
+        return ResponseEntity.ok(sessionResponseDTO);
     }
 
     @GetMapping(SessionUrlMapping.GET_ALL_SESSIONS)
@@ -42,5 +46,19 @@ public class SessionController {
     public ResponseEntity<String> endSession(@PathVariable Integer sessionId) {
         String response = sessionService.endSession(sessionId);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping(SessionUrlMapping.GET_SESSIONS_BY_USER_ID_OR_LISTENER_ID)
+    public ResponseEntity<List<SessionSummaryDTO>> getSessionsByUserIdOrListenerId(
+            @PathVariable Integer userId,
+            @RequestParam String role) {
+        List<SessionSummaryDTO> sessions = sessionService.getSessionsByUserIdOrListenerId(userId, role);
+        return ResponseEntity.ok(sessions);
+    }
+
+    @GetMapping(SessionUrlMapping.GET_SESSIONS_BY_STATUS)
+    public ResponseEntity<List<SessionSummaryDTO>> getSessionsByStatus(@RequestParam String status) {
+        List<SessionSummaryDTO> sessions = sessionService.getSessionsByStatus(status);
+        return ResponseEntity.ok(sessions);
     }
 }

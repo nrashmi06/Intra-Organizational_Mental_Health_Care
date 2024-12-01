@@ -1,10 +1,11 @@
 package com.dbms.mentalhealth.service.impl;
-
-import com.dbms.mentalhealth.dto.chatMessage.ChatMessageDTO;
+import com.dbms.mentalhealth.dto.session.SessionResponseDTO;
+import com.dbms.mentalhealth.dto.session.SessionSummaryDTO;
 import com.dbms.mentalhealth.enums.SessionStatus;
 import com.dbms.mentalhealth.exception.listener.ListenerNotFoundException;
 import com.dbms.mentalhealth.exception.session.SessionNotFoundException;
 import com.dbms.mentalhealth.exception.user.UserNotFoundException;
+import com.dbms.mentalhealth.mapper.SessionMapper;
 import com.dbms.mentalhealth.model.Listener;
 import com.dbms.mentalhealth.model.Notification;
 import com.dbms.mentalhealth.model.Session;
@@ -21,7 +22,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -127,9 +129,35 @@ public class SessionServiceImpl implements SessionService {
     }
 
     @Override
-    public String getSessionById(Integer sessionId) {
-        // Implement logic to retrieve session details
-        return "Session details for ID: " + sessionId;
+    public SessionResponseDTO getSessionById(Integer sessionId) {
+        Session session = sessionRepository.findById(sessionId)
+                .orElseThrow(() -> new SessionNotFoundException("Session not found"));
+        return SessionMapper.toSessionResponseDTO(session);
+    }
+
+    @Override
+    public List<SessionSummaryDTO> getSessionsByUserIdOrListenerId(Integer id, String role) {
+        List<Session> sessions;
+        if ("listener".equalsIgnoreCase(role)) {
+            Listener listener = listenerRepository.findByUser_UserId(id)
+                    .orElseThrow(() -> new ListenerNotFoundException("Listener not found"));
+            sessions = sessionRepository.findByListener_ListenerId(listener.getListenerId());
+        } else if ("user".equalsIgnoreCase(role)) {
+            sessions = sessionRepository.findByUser_UserId(id);
+        } else {
+            throw new IllegalArgumentException("Invalid role: " + role);
+        }
+        return sessions.stream()
+                .map(SessionMapper::toSessionSummaryDTO)
+                .toList();
+    }
+
+    @Override
+    public List<SessionSummaryDTO> getSessionsByStatus(String status) {
+        List<Session> sessions = sessionRepository.findBySessionStatus(SessionStatus.valueOf(status.toUpperCase()));
+        return sessions.stream()
+                .map(SessionMapper::toSessionSummaryDTO)
+                .toList();
     }
 
     @Override
