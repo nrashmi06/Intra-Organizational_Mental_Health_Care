@@ -1,19 +1,15 @@
 package com.dbms.mentalhealth.service.impl;
+import com.dbms.mentalhealth.dto.chatMessage.ChatMessageDTO;
 import com.dbms.mentalhealth.dto.session.SessionResponseDTO;
 import com.dbms.mentalhealth.dto.session.SessionSummaryDTO;
 import com.dbms.mentalhealth.enums.SessionStatus;
 import com.dbms.mentalhealth.exception.listener.ListenerNotFoundException;
 import com.dbms.mentalhealth.exception.session.SessionNotFoundException;
 import com.dbms.mentalhealth.exception.user.UserNotFoundException;
+import com.dbms.mentalhealth.mapper.ChatMessageMapper;
 import com.dbms.mentalhealth.mapper.SessionMapper;
-import com.dbms.mentalhealth.model.Listener;
-import com.dbms.mentalhealth.model.Notification;
-import com.dbms.mentalhealth.model.Session;
-import com.dbms.mentalhealth.model.User;
-import com.dbms.mentalhealth.repository.ListenerRepository;
-import com.dbms.mentalhealth.repository.NotificationRepository;
-import com.dbms.mentalhealth.repository.SessionRepository;
-import com.dbms.mentalhealth.repository.UserRepository;
+import com.dbms.mentalhealth.model.*;
+import com.dbms.mentalhealth.repository.*;
 import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.service.NotificationService;
 import com.dbms.mentalhealth.service.SessionService;
@@ -35,6 +31,7 @@ public class SessionServiceImpl implements SessionService {
     private final ListenerRepository listenerRepository;
     private final SessionRepository sessionRepository;
     private final NotificationRepository notificationRepository;
+    private final ChatMessageRepository chatMessageRepository;
 
     @Autowired
     public SessionServiceImpl(NotificationService notificationService,
@@ -42,20 +39,16 @@ public class SessionServiceImpl implements SessionService {
                               UserRepository userRepository,
                               ListenerRepository listenerRepository,
                               SessionRepository sessionRepository,
-                              NotificationRepository notificationRepository) {
+                              NotificationRepository notificationRepository, ChatMessageRepository chatMessageRepository) {
         this.notificationService = notificationService;
         this.jwtUtils = jwtUtils;
         this.userRepository = userRepository;
         this.listenerRepository = listenerRepository;
         this.sessionRepository = sessionRepository;
         this.notificationRepository = notificationRepository;
+        this.chatMessageRepository = chatMessageRepository;
     }
 
-    @Override
-    public String getActiveSessions() {
-        // Implement logic to retrieve active sessions
-        return "Implement active sessions retrieval";
-    }
 
     @Override
     public String initiateSession(Integer listenerId, String message) {
@@ -179,8 +172,18 @@ public class SessionServiceImpl implements SessionService {
     }
 
     @Override
-    public String getAllSessions() {
-        // Implement logic to retrieve all sessions
-        return "All session details";
+    public List<SessionSummaryDTO> getAllSessions() {
+        return sessionRepository.findAll().stream()
+                .map(SessionMapper::toSessionSummaryDTO)
+                .toList();
     }
+
+    @Override
+    public List<ChatMessageDTO> getMessagesBySessionId(Integer sessionId) {
+        List<ChatMessage> messages = chatMessageRepository.findBySession_SessionId(sessionId);
+        return messages.stream()
+                .map(ChatMessageMapper::toChatMessageDTO)
+                .toList();
+    }
+
 }

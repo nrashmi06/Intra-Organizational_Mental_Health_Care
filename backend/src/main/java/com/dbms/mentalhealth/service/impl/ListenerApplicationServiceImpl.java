@@ -17,6 +17,7 @@ import com.dbms.mentalhealth.model.User;
 import com.dbms.mentalhealth.repository.ListenerApplicationRepository;
 import com.dbms.mentalhealth.repository.ListenerRepository;
 import com.dbms.mentalhealth.repository.UserRepository;
+import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.service.ImageStorageService;
 import com.dbms.mentalhealth.service.ListenerApplicationService;
 import com.dbms.mentalhealth.service.UserService;
@@ -41,6 +42,7 @@ public class ListenerApplicationServiceImpl implements ListenerApplicationServic
     private final ImageStorageService imageStorageService;
     private final UserRepository userRepository;
     private final ListenerRepository listenerRepository;
+    private final JwtUtils jwtUtils;
 
     @Autowired
     public ListenerApplicationServiceImpl(
@@ -48,11 +50,12 @@ public class ListenerApplicationServiceImpl implements ListenerApplicationServic
             ImageStorageService imageStorageService,
             UserService userService,
             UserRepository userRepository,
-            ListenerRepository listenerRepository) {
+            ListenerRepository listenerRepository, JwtUtils jwtUtils) {
         this.listenerApplicationRepository = listenerApplicationRepository;
         this.imageStorageService = imageStorageService;
         this.userRepository = userRepository;
         this.listenerRepository = listenerRepository;
+        this.jwtUtils = jwtUtils;
     }
 
     @Override
@@ -92,18 +95,34 @@ public class ListenerApplicationServiceImpl implements ListenerApplicationServic
 
     @Override
     public ListenerApplicationResponseDTO getApplicationById(Integer applicationId) {
-        // Extract email and role from security context
-        String email = getUsernameFromContext();
+        // Extract user ID and role from security context
+        Integer userId = jwtUtils.getUserIdFromContext();
         String role = getRoleFromContext();
 
-        // Find Listener Application by ID
-        Optional<ListenerApplication> listenerApplication = listenerApplicationRepository.findById(applicationId);
+        ListenerApplication listenerApplication;
 
-        // Check if the email matches or if the role is admin
-        return listenerApplication.filter(application -> application.getUser().getEmail().equals(email) || "ROLE_ADMIN".equals(role))
-                .map(ListenerApplicationMapper::toResponseDTO)
-                .orElseThrow(() -> new RuntimeException("Listener Application not found or access denied for ID: " + applicationId));
+        // If applicationId is null, find the application by user ID
+        if (applicationId == null) {
+            listenerApplication = listenerApplicationRepository.findByUser_UserId(userId)
+                    .orElseThrow(() -> new ListenerApplicationNotFoundException(
+                            "Listener Application not found for user ID: " + userId));
+        } else {
+            listenerApplication = listenerApplicationRepository.findById(applicationId)
+                    .orElseThrow(() -> new ListenerApplicationNotFoundException(
+                            "Listener Application not found for ID: " + applicationId));
+        }
+
+        // Check if the user has access to the application
+        if (!listenerApplication.getUser().getUserId().equals(userId) && !"ROLE_ADMIN".equals(role)) {
+            throw new ListenerApplicationNotFoundException(
+                    "Access denied for Listener Application ID: " + listenerApplication.getApplicationId());
+        }
+
+        // Map and return the Listener Application DTO
+        return ListenerApplicationMapper.toResponseDTO(listenerApplication);
     }
+
+
 
 
     @Override

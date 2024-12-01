@@ -1,4 +1,4 @@
-package com.dbms.mentalhealth.handler;
+package com.dbms.mentalhealth.config;
 
 import com.dbms.mentalhealth.model.ChatMessage;
 import com.dbms.mentalhealth.repository.ChatMessageRepository;

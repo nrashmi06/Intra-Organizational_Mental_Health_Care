@@ -1,4 +1,5 @@
 package com.dbms.mentalhealth.controller;
+import com.dbms.mentalhealth.dto.chatMessage.ChatMessageDTO;
 import com.dbms.mentalhealth.dto.session.SessionResponseDTO;
 import com.dbms.mentalhealth.dto.session.SessionSummaryDTO;
 import com.dbms.mentalhealth.service.SessionService;
@@ -38,7 +39,7 @@ public class SessionController {
     }
 
     @GetMapping(SessionUrlMapping.GET_ALL_SESSIONS)
-    public ResponseEntity<String> getAllSessions() {
+    public ResponseEntity<List<SessionSummaryDTO>> getAllSessions() {
         return ResponseEntity.ok(sessionService.getAllSessions());
     }
 
@@ -60,5 +61,11 @@ public class SessionController {
     public ResponseEntity<List<SessionSummaryDTO>> getSessionsByStatus(@RequestParam String status) {
         List<SessionSummaryDTO> sessions = sessionService.getSessionsByStatus(status);
         return ResponseEntity.ok(sessions);
+    }
+
+    @GetMapping(SessionUrlMapping.GET_MESSAGES_BY_SESSION_ID)
+    public ResponseEntity<List<ChatMessageDTO>> getMessagesBySessionId(@PathVariable Integer sessionId) {
+        List<ChatMessageDTO> messages = sessionService.getMessagesBySessionId(sessionId);
+        return ResponseEntity.ok(messages);
     }
 }

@@ -38,7 +38,7 @@ public class ListenerApplicationController {
     }
 
     @GetMapping(ListenerApplicationUrlMapping.GET_APPLICATION_BY_ID)
-    public ResponseEntity<ListenerApplicationResponseDTO> getApplicationById(@PathVariable("applicationId") Integer applicationId) {
+    public ResponseEntity<ListenerApplicationResponseDTO> getApplicationById(@RequestParam(value = "applicationId",required = false) Integer applicationId) {
         try {
             ListenerApplicationResponseDTO responseDTO = listenerApplicationService.getApplicationById(applicationId);
             return ResponseEntity.ok(responseDTO);
