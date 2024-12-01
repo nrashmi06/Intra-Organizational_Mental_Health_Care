@@ -116,7 +116,7 @@ public class BlogServiceImpl implements BlogService {
     }
 
     public BlogResponseDTO updateBlogApprovalStatus(Integer blogId, boolean isApproved) {
-        Blog blog = blogRepository.findById(blogId).orElseThrow(() -> new RuntimeException("Blog not found"));
+        Blog blog = blogRepository.findById(blogId).orElseThrow(() -> new BlogNotFoundException("Blog not found"));
         blog.setBlogApprovalStatus(isApproved ? BlogApprovalStatus.APPROVED : BlogApprovalStatus.REJECTED);
         Blog updatedBlog = blogRepository.save(blog);
         boolean likedByCurrentUser = blogLikeRepository.existsByBlogIdAndUserUserId(blogId, getUserIdFromContext());
