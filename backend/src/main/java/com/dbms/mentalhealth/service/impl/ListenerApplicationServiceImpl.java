@@ -127,18 +127,23 @@ public class ListenerApplicationServiceImpl implements ListenerApplicationServic
 
     @Override
     public void deleteApplication(Integer applicationId) {
-        // Extract email and role from security context
-        String email = getUsernameFromContext();
+        // Extract user ID and role from security context
+        Integer userId = jwtUtils.getUserIdFromContext();
         String role = getRoleFromContext();
 
-        Optional<ListenerApplication> optionalApplication = listenerApplicationRepository.findById(applicationId);
-        ListenerApplication listenerApplication = optionalApplication.orElseThrow(() ->
-                new ListenerApplicationNotFoundException("Listener Application not found for ID: " + applicationId));
+        ListenerApplication listenerApplication;
 
-        if (!listenerApplication.getUser().getEmail().equals(email) && !"ROLE_ADMIN".equals(role)) {
+        // Find Listener Application by ID
+        listenerApplication = listenerApplicationRepository.findById(applicationId)
+                .orElseThrow(() -> new ListenerApplicationNotFoundException(
+                        "Listener Application not found for ID: " + applicationId));
+
+        // Check if the user has access to delete the application
+        if (!listenerApplication.getUser().getUserId().equals(userId) && !"ROLE_ADMIN".equals(role)) {
             throw new RuntimeException("Access denied for deleting Listener Application with ID: " + applicationId);
         }
 
+        // Delete the Listener Application
         listenerApplicationRepository.deleteById(applicationId);
     }
 
@@ -172,15 +177,24 @@ public class ListenerApplicationServiceImpl implements ListenerApplicationServic
         User user = listenerApplication.getUser();
         ListenerApplication updatedApplication = ListenerApplicationMapper.toEntity(applicationRequestDTO, user);
 
-        // Handle Certificate Upload
-        String certificateUrl = imageStorageService.uploadImage(certificate);
-        updatedApplication.setCertificateUrl(certificateUrl);
+        // Handle Certificate Upload if present
+        if (certificate != null && !certificate.isEmpty()) {
+            // Delete current image if exists
+            if (listenerApplication.getCertificateUrl() != null) {
+                imageStorageService.deleteImage(listenerApplication.getCertificateUrl());
+            }
+            // Upload new image
+            String certificateUrl = imageStorageService.uploadImage(certificate);
+            updatedApplication.setCertificateUrl(certificateUrl);
+        } else {
+            // Retain the current certificate URL
+            updatedApplication.setCertificateUrl(listenerApplication.getCertificateUrl());
+        }
 
         // Set additional fields
         updatedApplication.setApplicationId(applicationId); // Ensure the ID remains the same
-        updatedApplication.setApplicationStatus(ListenerApplicationStatus.PENDING);
         updatedApplication.setSubmissionDate(LocalDateTime.now());
-
+        updatedApplication.setApplicationStatus(listenerApplication.getApplicationStatus());
         // Save updated Listener Application
         ListenerApplication savedApplication = listenerApplicationRepository.save(updatedApplication);
 
