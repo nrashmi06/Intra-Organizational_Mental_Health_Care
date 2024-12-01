@@ -9,5 +9,6 @@ public class ListenerApplicationRequestDTO {
     private String branch;
     private Integer semester;
     private String usn;
+    private String reasonForApplying;
     private String phoneNumber;
 }

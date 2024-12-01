@@ -1,5 +1,5 @@
 // ListenerApplicationSummaryResponseDTO.java
-package com.dbms.mentalhealth.dto.Listener.response;
+package com.dbms.mentalhealth.dto.listenerApplication.response;
 
 import lombok.Data;
 

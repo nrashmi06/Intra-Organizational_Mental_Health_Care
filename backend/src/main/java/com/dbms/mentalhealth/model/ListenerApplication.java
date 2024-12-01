@@ -36,6 +36,9 @@ public class ListenerApplication {
     @Column(name = "phone_number", nullable = false, length = 15)
     private String phoneNumber;
 
+    @Column(name ="reson_for_applying", nullable = false, columnDefinition = "TEXT")
+    private String reasonForApplying;
+
     @Column(name = "certificate_url", nullable = false, length = 255)
     private String certificateUrl;
 
