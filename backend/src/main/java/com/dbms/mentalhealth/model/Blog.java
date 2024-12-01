@@ -67,7 +67,7 @@ public class Blog {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "blog", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "blog")
     private Set<BlogLike> likes;
 
     @PrePersist

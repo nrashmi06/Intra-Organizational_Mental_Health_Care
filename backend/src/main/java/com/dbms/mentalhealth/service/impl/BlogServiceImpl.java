@@ -5,6 +5,7 @@ import com.dbms.mentalhealth.dto.blog.response.BlogResponseDTO;
 import com.dbms.mentalhealth.dto.blog.response.BlogSummaryDTO;
 import com.dbms.mentalhealth.enums.BlogApprovalStatus;
 import com.dbms.mentalhealth.exception.blog.BlogNotFoundException;
+import com.dbms.mentalhealth.exception.user.UserNotFoundException;
 import com.dbms.mentalhealth.mapper.BlogMapper;
 import com.dbms.mentalhealth.model.Blog;
 import com.dbms.mentalhealth.model.BlogLike;
@@ -115,7 +116,7 @@ public class BlogServiceImpl implements BlogService {
     }
 
     public BlogResponseDTO updateBlogApprovalStatus(Integer blogId, boolean isApproved) {
-        Blog blog = blogRepository.findById(blogId).orElseThrow(() -> new RuntimeException("Blog not found"));
+        Blog blog = blogRepository.findById(blogId).orElseThrow(() -> new BlogNotFoundException("Blog not found"));
         blog.setBlogApprovalStatus(isApproved ? BlogApprovalStatus.APPROVED : BlogApprovalStatus.REJECTED);
         Blog updatedBlog = blogRepository.save(blog);
         boolean likedByCurrentUser = blogLikeRepository.existsByBlogIdAndUserUserId(blogId, getUserIdFromContext());
@@ -125,14 +126,14 @@ public class BlogServiceImpl implements BlogService {
     public BlogResponseDTO likeBlog(Integer blogId) {
         Integer userId = getUserIdFromContext();
 
-        Blog blog = blogRepository.findById(blogId).orElseThrow(() -> new RuntimeException("Blog not found"));
+        Blog blog = blogRepository.findById(blogId).orElseThrow(() -> new BlogNotFoundException("Blog not found"));
         if (blogLikeRepository.existsByBlogIdAndUserUserId(blogId, userId)) {
             throw new RuntimeException("Blog already liked");
         }
 
         BlogLike blogLike = new BlogLike();
         blogLike.setBlog(blog);
-        blogLike.setUser(userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found")));
+        blogLike.setUser(userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found")));
         blog.setLikeCount(blog.getLikeCount() + 1);
         blogLikeRepository.save(blogLike);
         blogRepository.save(blog);
@@ -143,8 +144,8 @@ public class BlogServiceImpl implements BlogService {
     public BlogResponseDTO unlikeBlog(Integer blogId) {
         Integer userId = getUserIdFromContext();
 
-        Blog blog = blogRepository.findById(blogId).orElseThrow(() -> new RuntimeException("Blog not found"));
-        BlogLike blogLike = blogLikeRepository.findByBlogIdAndUserUserId(blogId, userId).orElseThrow(() -> new RuntimeException("Like not found"));
+        Blog blog = blogRepository.findById(blogId).orElseThrow(() -> new BlogNotFoundException("Blog not found"));
+        BlogLike blogLike = blogLikeRepository.findByBlogIdAndUserUserId(blogId, userId).orElseThrow(() -> new UserNotFoundException("Like not found"));
 
         blogLikeRepository.delete(blogLike);
 
