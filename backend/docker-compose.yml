@@ -17,16 +17,22 @@ services:
       - app-network
 
   app:
-    image: ajayprabhu2004/backend-app:latest # Use the pre-built image from Docker Hub
+    build:
+      context: .                                    # Builds app from the current directory
     depends_on:
       - db                                          # Ensures 'db' starts before the app
     environment:
-      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod} # Default to 'prod', can override
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev} # Default to 'prod', can override
       SPRING_DATASOURCE_URL: jdbc:postgresql://${DB_HOST:-db}:${DB_PORT:-5432}/mentalhealth
       SPRING_DATASOURCE_USERNAME: ${DB_USERNAME:-postgres}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-211004}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:3000,http://127.0.0.1:5500}
     ports:
       - "${APP_PORT:-8080}:8080"                    # Default app port, can be overridden
+    volumes:
+      - ./target:/app/target                        # Mounts the compiled app JARs
+    command: >
+      sh -c "java -jar /app/target/your-app.jar"    # Runs the Spring Boot app
     networks:
       - app-network
 
@@ -35,4 +41,4 @@ volumes:
 
 networks:
   app-network:
-    driver: bridge                                  # Default bridge network for container communication
+    driver: bridge                                  # Default network driver for app services
