@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Lightbulb, Plus , Trash2 } from 'lucide-react';
+import { Lightbulb, Plus , Trash2 , Pencil } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Navbar from "@/components/navbar/NavBar";
 import Footer from "@/components/footer/Footer";
@@ -10,6 +10,7 @@ import { createEmergencyHelpline } from '@/service/emergency/CreateEmergencyHelp
 import { getAllHelplines } from '@/service/emergency/GetEmergencyHelpline';
 import '@/styles/global.css';
 import { deleteEmergencyHelpline } from '@/service/emergency/DeleteEmergencyHelpline';
+import { updateEmergencyHelpline } from '@/service/emergency/UpdateEmergencyHelpline';
 
 export default function Component() {
   const [isModalOpen, setModalOpen] = useState(false); // Modal state
@@ -35,6 +36,31 @@ export default function Component() {
 
   const userRole = useSelector((state: RootState) => state.auth.role);
   const token = useSelector((state: RootState) => state.auth.accessToken);
+  const [isUpdateMode, setIsUpdateMode] = useState(false);
+  const [selectedHelplineId, setSelectedHelplineId] = useState<string | null>(null);
+
+// Open modal with existing data for update
+const handleEditHelpline = (helpline: Helpline) => {
+  setNewHelpline(helpline); // Populate modal with existing data
+  setSelectedHelplineId(helpline.helplineId); // Store the ID of the helpline being edited
+  setIsUpdateMode(true); // Set to update mode
+  setModalOpen(true); // Open modal
+};
+
+// Submit the update to the API
+const handleUpdateSubmit = async () => {
+  if (!selectedHelplineId) return;
+
+  try {
+    await updateEmergencyHelpline(selectedHelplineId, token, newHelpline); // Call the API
+    setModalOpen(false); // Close modal
+    setIsUpdateMode(false); // Exit update mode
+    setShouldRefetch((prev) => !prev); // Trigger data refetch
+  } catch (error) {
+    console.error("Failed to update helpline:", error);
+  }
+};
+
 
   const handleAddHelpline = () => setModalOpen(true);
   const handleCloseModal = () => setModalOpen(false);
@@ -131,12 +157,20 @@ export default function Component() {
                     <TableCell>{helpline.priority}</TableCell>
                     {
                       userRole === 'ADMIN' && (
+                        
                         <TableCell>
-                          <Trash2
-                            className="h-6 w-6 text-red-500 cursor-pointer hover:text-red-700"
-                            onClick={() => handleDeleteHelpline(helpline.helplineId)} 
-                          />
+                          <div className='flex justify-around '>
+                            <Trash2
+                              className="h-6 w-6 text-red-500 cursor-pointer hover:text-red-700"
+                              onClick={() => handleDeleteHelpline(helpline.helplineId)} 
+                            />
+                            <Pencil
+                               className="h-6 w-6 text-blue-500 cursor-pointer hover:text-blue-700"
+                               onClick={() => handleEditHelpline(helpline)}
+                            />
+                          </div>
                         </TableCell>
+                        
                       )
                     }
                   </TableRow>
