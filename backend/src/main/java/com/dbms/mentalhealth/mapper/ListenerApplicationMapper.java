@@ -46,6 +46,7 @@ public class ListenerApplicationMapper {
         summaryDTO.setFullName(entity.getFullName());
         summaryDTO.setBranch(entity.getBranch());
         summaryDTO.setSemester(entity.getSemester());
+        summaryDTO.setApplicationStatus(entity.getApplicationStatus());
         summaryDTO.setCertificateUrl(entity.getCertificateUrl());
         return summaryDTO;
     }

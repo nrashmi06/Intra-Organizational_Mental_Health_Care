@@ -10,6 +10,7 @@ import com.dbms.mentalhealth.model.Admin;
 import com.dbms.mentalhealth.model.User;
 import com.dbms.mentalhealth.repository.AdminRepository;
 import com.dbms.mentalhealth.repository.UserRepository;
+import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.service.AdminService;
 import com.dbms.mentalhealth.service.ImageStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,13 +30,15 @@ public class AdminServiceImpl implements AdminService {
     private final UserRepository userRepository;
     private final AdminMapper adminMapper;
     private final ImageStorageService imageStorageService;
+    private final JwtUtils jwtUtils;
 
     @Autowired
-    public AdminServiceImpl(AdminRepository adminRepository, UserRepository userRepository, AdminMapper adminMapper, ImageStorageService imageStorageService) {
+    public AdminServiceImpl(AdminRepository adminRepository, UserRepository userRepository, AdminMapper adminMapper, ImageStorageService imageStorageService, JwtUtils jwtUtils) {
         this.adminRepository = adminRepository;
         this.userRepository = userRepository;
         this.adminMapper = adminMapper;
         this.imageStorageService = imageStorageService;
+        this.jwtUtils = jwtUtils;
     }
 
     @Override
@@ -67,19 +70,41 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public AdminProfileResponseDTO getAdminProfile(Integer adminId) {
+        if (adminId == null) {
+            Integer userId = jwtUtils.getUserIdFromContext();
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+            Admin admin = adminRepository.findByUser(user)
+                    .orElseThrow(() -> new AdminNotFoundException("Admin profile not found"));
+            return adminMapper.toResponseDTO(admin);
+        }
         Admin admin = adminRepository.findByAdminId(adminId)
                 .orElseThrow(() -> new AdminNotFoundException("Admin profile not found"));
-
         return adminMapper.toResponseDTO(admin);
     }
 
     @Override
     public AdminProfileResponseDTO updateAdminProfile(Integer adminId, AdminProfileRequestDTO adminProfileRequestDTO, MultipartFile profilePicture) throws Exception {
+        if (adminId == null) {
+            Integer userId = jwtUtils.getUserIdFromContext();
+            Admin admin = adminRepository.findByUser_UserId(userId)
+                    .orElseThrow(() -> new AdminNotFoundException("Admin profile not found"));
+            adminId = admin.getAdminId();
+        }
+
         Admin admin = adminRepository.findByAdminId(adminId)
                 .orElseThrow(() -> new AdminNotFoundException("Admin profile not found"));
 
         // Update image if provided
-        String profilePictureUrl = profilePicture != null ? imageStorageService.uploadImage(profilePicture) : admin.getProfilePictureUrl();
+        String profilePictureUrl = admin.getProfilePictureUrl();
+        if (profilePicture != null) {
+            // Delete current image if exists
+            if (profilePictureUrl != null) {
+                imageStorageService.deleteImage(profilePictureUrl);
+            }
+            // Upload new image
+            profilePictureUrl = imageStorageService.uploadImage(profilePicture);
+        }
 
         admin.setAdminNotes(adminProfileRequestDTO.getAdminNotes());
         admin.setQualifications(adminProfileRequestDTO.getQualifications());

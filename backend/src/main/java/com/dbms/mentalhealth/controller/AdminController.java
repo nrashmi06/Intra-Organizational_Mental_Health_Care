@@ -39,7 +39,7 @@ public class AdminController {
     }
 
     @GetMapping(AdminUrlMapping.GET_ADMIN_PROFILE)
-    public ResponseEntity<AdminProfileResponseDTO> getAdminProfile(@PathVariable Integer adminId) {
+    public ResponseEntity<AdminProfileResponseDTO> getAdminProfile(@RequestParam(value = "adminId", required = false) Integer adminId) {
         try {
             AdminProfileResponseDTO responseDTO = adminService.getAdminProfile(adminId);
             return ResponseEntity.ok(responseDTO);
@@ -51,7 +51,7 @@ public class AdminController {
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping(AdminUrlMapping.UPDATE_ADMIN_PROFILE)
     public ResponseEntity<AdminProfileResponseDTO> updateAdminProfile(
-            @PathVariable Integer adminId,
+            @RequestParam(value = "adminId", required = false) Integer adminId,
             @RequestPart("adminProfile") AdminProfileRequestDTO adminProfileRequestDTO,
             @RequestPart("profilePicture") MultipartFile profilePicture) throws Exception {
         try {
