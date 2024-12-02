@@ -1,5 +1,6 @@
 package com.dbms.mentalhealth.controller;
 
+import com.dbms.mentalhealth.dto.listenerApplication.response.ListenerApplicationSummaryResponseDTO;
 import com.dbms.mentalhealth.dto.Listener.response.ListenerDetailsResponseDTO;
 import com.dbms.mentalhealth.dto.listenerApplication.request.ListenerApplicationRequestDTO;
 import com.dbms.mentalhealth.dto.listenerApplication.request.UpdateApplicationStatusRequestDTO;
@@ -37,7 +38,7 @@ public class ListenerApplicationController {
     }
 
     @GetMapping(ListenerApplicationUrlMapping.GET_APPLICATION_BY_ID)
-    public ResponseEntity<ListenerApplicationResponseDTO> getApplicationById(@PathVariable("applicationId") Integer applicationId) {
+    public ResponseEntity<ListenerApplicationResponseDTO> getApplicationById(@RequestParam(value = "applicationId",required = false) Integer applicationId) {
         try {
             ListenerApplicationResponseDTO responseDTO = listenerApplicationService.getApplicationById(applicationId);
             return ResponseEntity.ok(responseDTO);
@@ -45,6 +46,7 @@ public class ListenerApplicationController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
     }
+
 
     @DeleteMapping(ListenerApplicationUrlMapping.DELETE_APPLICATION)
     public ResponseEntity<Void> deleteApplication(@PathVariable("applicationId") Integer applicationId) {
@@ -58,8 +60,8 @@ public class ListenerApplicationController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping(ListenerApplicationUrlMapping.GET_ALL_APPLICATIONS)
-    public ResponseEntity<List<ListenerApplicationResponseDTO>> getAllApplications() {
-        List<ListenerApplicationResponseDTO> responseDTO = listenerApplicationService.getAllApplications();
+    public ResponseEntity<List<ListenerApplicationSummaryResponseDTO>> getAllApplications() {
+        List<ListenerApplicationSummaryResponseDTO> responseDTO = listenerApplicationService.getAllApplications();
         return ResponseEntity.ok(responseDTO);
     }
 
@@ -67,7 +69,7 @@ public class ListenerApplicationController {
     public ResponseEntity<ListenerApplicationResponseDTO> updateApplication(
             @PathVariable("applicationId") Integer applicationId,
             @RequestPart("application") ListenerApplicationRequestDTO applicationRequestDTO,
-            @RequestPart("certificate") MultipartFile certificate) throws Exception {
+            @RequestPart(value = "certificate",required = false) MultipartFile certificate) throws Exception {
         try {
             ListenerApplicationResponseDTO responseDTO = listenerApplicationService.updateApplication(applicationId, applicationRequestDTO, certificate);
             return ResponseEntity.ok(responseDTO);
@@ -93,9 +95,9 @@ public class ListenerApplicationController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping(ListenerApplicationUrlMapping.GET_APPLICATION_BY_APPROVAL_STATUS)
-    public ResponseEntity<List<ListenerApplicationResponseDTO>> getApplicationByApprovalStatus(
+    public ResponseEntity<List<ListenerApplicationSummaryResponseDTO>> getApplicationByApprovalStatus(
             @RequestParam("status") String status) {
-        List<ListenerApplicationResponseDTO> responseDTO = listenerApplicationService.getApplicationByApprovalStatus(status);
+        List<ListenerApplicationSummaryResponseDTO> responseDTO = listenerApplicationService.getApplicationByApprovalStatus(status);
         return ResponseEntity.ok(responseDTO);
     }
 }

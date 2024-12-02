@@ -54,7 +54,7 @@ public class BlogController {
     @PutMapping(value = BlogUrlMapping.UPDATE_BLOG, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<BlogResponseDTO> updateBlog(
             @PathVariable("blogId") Integer blogId,
-            @RequestPart("image") MultipartFile image,
+            @RequestPart(value = "image", required = false) MultipartFile image,
             @RequestPart("blog") BlogRequestDTO blogRequestDTO
     ) throws Exception {
         try {

@@ -1,6 +1,8 @@
 package com.dbms.mentalhealth.service.impl;
 
 import com.dbms.mentalhealth.dto.EmergencyHelpline.EmergencyHelplineDTO;
+import com.dbms.mentalhealth.exception.admin.AdminNotFoundException;
+import com.dbms.mentalhealth.exception.emergency.EmergencyHelplineNotFoundException;
 import com.dbms.mentalhealth.mapper.EmergencyHelplineMapper;
 import com.dbms.mentalhealth.model.Admin;
 import com.dbms.mentalhealth.model.EmergencyHelpline;
@@ -42,7 +44,7 @@ public class EmergencyHelplineServiceImpl implements EmergencyHelplineService {
     public EmergencyHelplineDTO addEmergencyHelpline(EmergencyHelplineDTO emergencyHelplineDTO) {
         Integer userId = jwtUtils.getUserIdFromContext();
         Admin admin = adminRepository.findByUser_UserId(userId)
-                .orElseThrow(() -> new EntityNotFoundException("Admin not found with ID: " + userId));
+                .orElseThrow(() -> new AdminNotFoundException("Admin not found with ID: " + userId));
         EmergencyHelpline emergencyHelpline = emergencyHelplineMapper.toEntity(emergencyHelplineDTO,admin);
         emergencyHelpline.setAdmin(admin);
         return emergencyHelplineMapper.toDTO(emergencyHelplineRepository.save(emergencyHelpline));
@@ -52,9 +54,9 @@ public class EmergencyHelplineServiceImpl implements EmergencyHelplineService {
     public EmergencyHelplineDTO updateEmergencyHelpline(Integer helplineId, EmergencyHelplineDTO emergencyHelplineDTO) {
         Integer userId = jwtUtils.getUserIdFromContext();
         Admin admin = adminRepository.findByUser_UserId(userId)
-                .orElseThrow(() -> new EntityNotFoundException("Admin not found with ID: " + userId));
+                .orElseThrow(() -> new AdminNotFoundException("Admin not found with ID: " + userId));
         EmergencyHelpline existingHelpline = emergencyHelplineRepository.findById(helplineId)
-                .orElseThrow(() -> new EntityNotFoundException("Emergency Helpline not found with ID: " + helplineId));
+                .orElseThrow(() -> new EmergencyHelplineNotFoundException("Emergency Helpline not found with ID: " + helplineId));
         existingHelpline.setName(emergencyHelplineDTO.getName());
         existingHelpline.setPhoneNumber(emergencyHelplineDTO.getPhoneNumber());
         existingHelpline.setCountryCode(emergencyHelplineDTO.getCountryCode());

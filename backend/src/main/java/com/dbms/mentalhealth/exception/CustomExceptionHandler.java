@@ -11,6 +11,7 @@ import com.dbms.mentalhealth.exception.emergency.InvalidEmergencyHelplineExcepti
 import com.dbms.mentalhealth.exception.listener.InvalidListenerApplicationException;
 import com.dbms.mentalhealth.exception.listener.ListenerApplicationNotFoundException;
 import com.dbms.mentalhealth.exception.listener.ListenerNotFoundException;
+import com.dbms.mentalhealth.exception.session.SessionNotFoundException;
 import com.dbms.mentalhealth.exception.sse.EmitterCreationException;
 import com.dbms.mentalhealth.exception.sse.UserNotOnlineException;
 import com.dbms.mentalhealth.exception.timeslot.InvalidTimeSlotException;
@@ -180,5 +181,10 @@ public class CustomExceptionHandler {
     @ExceptionHandler(InvalidUsernameException.class)
     public ResponseEntity<String> handleInvalidUsernameException(InvalidUsernameException ex, WebRequest request) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(SessionNotFoundException.class)
+    public ResponseEntity<String> handleSessionNotFoundException(SessionNotFoundException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
     }
 }
