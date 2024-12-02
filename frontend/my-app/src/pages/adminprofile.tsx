@@ -16,7 +16,7 @@ interface AdminProfile {
   qualifications: string;
   contactNumber: string;
   email: string;
-  profilePicture: File | null; // For file upload when creating
+  profilePicture?: File | null; // For file upload when creating
   profilePictureUrl?: string;  // For URL when fetching the profile
 }
 
@@ -27,8 +27,7 @@ export default function AdminProfile() {
     qualifications: "",
     contactNumber: "",
     email: "",
-    profilePicture: null,
-    profilePictureUrl: "",
+    profilePicture: null
   });
   const [isEditing, setIsEditing] = useState(false);
   const userID = useSelector((state: RootState) => state.auth.userId);
@@ -51,20 +50,24 @@ export default function AdminProfile() {
 
   const handleSave = async () => {
     try {
-      if (profile.profilePictureUrl) {
-        // Update existing profile if a profilePictureUrl exists
-        await updateAdminProfile(profile,adminID as string, token);
-      } else {
-        // Create new profile if profilePictureUrl does not exist
-        await createAdminProfile(profile, token);
-      }
-      // Fetch the updated profile after save
+      const updatedProfile = { ...profile, profilePicture: profile.profilePicture ?? null };
+  
+        // Remove profilePicture field from the update payload if not provided
+        delete updatedProfile.profilePictureUrl;
+
+  
+      // Update profile only with necessary fields
+      await updateAdminProfile(updatedProfile, token);
+  
+      // After successful update, fetch and set the updated profile
       await fetchProfile();
       setIsEditing(false);
     } catch (error) {
       console.error("Error saving profile:", error);
     }
   };
+  
+  
 
   const handleCancel = () => {
     setIsEditing(false);
