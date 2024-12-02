@@ -15,6 +15,7 @@ public class ListenerApplicationResponseDTO {
     private String phoneNumber;
     private String certificateUrl;
     private ListenerApplicationStatus applicationStatus;
+    private String reasonForApplying;
     private LocalDateTime submissionDate;
     private String reviewedBy;
     private LocalDateTime reviewedAt;

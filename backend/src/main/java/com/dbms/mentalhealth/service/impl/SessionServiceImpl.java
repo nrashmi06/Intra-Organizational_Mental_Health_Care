@@ -1,17 +1,15 @@
 package com.dbms.mentalhealth.service.impl;
-
-import com.dbms.mentalhealth.config.WebSocketServer;
 import com.dbms.mentalhealth.dto.chatMessage.ChatMessageDTO;
+import com.dbms.mentalhealth.dto.session.SessionResponseDTO;
+import com.dbms.mentalhealth.dto.session.SessionSummaryDTO;
 import com.dbms.mentalhealth.enums.SessionStatus;
+import com.dbms.mentalhealth.exception.listener.ListenerNotFoundException;
+import com.dbms.mentalhealth.exception.session.SessionNotFoundException;
 import com.dbms.mentalhealth.exception.user.UserNotFoundException;
-import com.dbms.mentalhealth.model.Listener;
-import com.dbms.mentalhealth.model.Notification;
-import com.dbms.mentalhealth.model.Session;
-import com.dbms.mentalhealth.model.User;
-import com.dbms.mentalhealth.repository.ListenerRepository;
-import com.dbms.mentalhealth.repository.NotificationRepository;
-import com.dbms.mentalhealth.repository.SessionRepository;
-import com.dbms.mentalhealth.repository.UserRepository;
+import com.dbms.mentalhealth.mapper.ChatMessageMapper;
+import com.dbms.mentalhealth.mapper.SessionMapper;
+import com.dbms.mentalhealth.model.*;
+import com.dbms.mentalhealth.repository.*;
 import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.service.NotificationService;
 import com.dbms.mentalhealth.service.SessionService;
@@ -20,7 +18,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -32,6 +31,7 @@ public class SessionServiceImpl implements SessionService {
     private final ListenerRepository listenerRepository;
     private final SessionRepository sessionRepository;
     private final NotificationRepository notificationRepository;
+    private final ChatMessageRepository chatMessageRepository;
 
     @Autowired
     public SessionServiceImpl(NotificationService notificationService,
@@ -39,27 +39,23 @@ public class SessionServiceImpl implements SessionService {
                               UserRepository userRepository,
                               ListenerRepository listenerRepository,
                               SessionRepository sessionRepository,
-                              NotificationRepository notificationRepository) {
+                              NotificationRepository notificationRepository, ChatMessageRepository chatMessageRepository) {
         this.notificationService = notificationService;
         this.jwtUtils = jwtUtils;
         this.userRepository = userRepository;
         this.listenerRepository = listenerRepository;
         this.sessionRepository = sessionRepository;
         this.notificationRepository = notificationRepository;
+        this.chatMessageRepository = chatMessageRepository;
     }
 
-    @Override
-    public String getActiveSessions() {
-        // Implement logic to retrieve active sessions
-        return "Implement active sessions retrieval";
-    }
 
     @Override
     public String initiateSession(Integer listenerId, String message) {
         User sender = userRepository.findById(jwtUtils.getUserIdFromContext())
                 .orElseThrow(() -> new UserNotFoundException("Sender not found"));
         User receiver = userRepository.findById(listenerId)
-                .orElseThrow(() -> new UserNotFoundException("Receiver not found"));
+                .orElseThrow(() -> new ListenerNotFoundException("Receiver not found"));
 
         // Create a notification
         Notification notification = new Notification();
@@ -75,16 +71,13 @@ public class SessionServiceImpl implements SessionService {
     public String updateSessionStatus(Integer userId, String action) {
         Integer loggedInUserId = jwtUtils.getUserIdFromContext();
         Listener listener = listenerRepository.findByUser_UserId(loggedInUserId)
-                .orElseThrow(() -> new IllegalStateException("Listener not found"));
+                .orElseThrow(() -> new ListenerNotFoundException("Listener not found"));
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalStateException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         String message;
         if ("accept".equalsIgnoreCase(action)) {
-            // Generate a unique session ID
-            String sessionId = UUID.randomUUID().toString();
-
             // Create and save session
             Session session = new Session();
             session.setListener(listener);
@@ -96,47 +89,101 @@ public class SessionServiceImpl implements SessionService {
             // Prepare session notification
             message = "Your session request has been accepted by listener " +
                     listener.getUser().getAnonymousName() +
-                    ". Session starting soon. WebSocket Session ID: " + sessionId;
+                    ". Session starting soon";
 
-            // Send notifications
-            sendSseNotification(listener.getUser(), user, message);
+            // Send notification to user only
             sendSseNotification(user, listener.getUser(), message);
 
             // Log the session details
             log.info("New session created - Session ID: {}, User: {}, Listener: {}",
-                    sessionId, user.getAnonymousName(), listener.getUser().getAnonymousName());
+                    session.getSessionId(), user.getAnonymousName(), listener.getUser().getAnonymousName());
 
-            return "Session accepted. WebSocket Session ID: " + sessionId;
+            return "Session starting soon";
         } else if ("reject".equalsIgnoreCase(action)) {
             message = "Your session request has been rejected by listener " +
                     listener.getUser().getAnonymousName() + ".";
 
-            sendSseNotification(listener.getUser(), user, message);
+            // Send notification to user only
+            sendSseNotification(user, listener.getUser(), message);
 
-            return "Session rejected";
+            return "Session not accepted";
         } else {
             return "Invalid action";
         }
     }
 
-    private void sendSseNotification(User sender, User receiver, String message) {
+    private void sendSseNotification(User receiver, User listener, String message) {
         Notification notification = new Notification();
         notification.setMessage(message);
         notification.setReceiver(receiver);
-        notification.setSender(sender);
+        notification.setSender(listener);
         notificationRepository.save(notification);
         notificationService.sendNotification(notification);
     }
 
     @Override
-    public String getSessionById(Integer sessionId) {
-        // Implement logic to retrieve session details
-        return "Session details for ID: " + sessionId;
+    public SessionResponseDTO getSessionById(Integer sessionId) {
+        Session session = sessionRepository.findById(sessionId)
+                .orElseThrow(() -> new SessionNotFoundException("Session not found"));
+        return SessionMapper.toSessionResponseDTO(session);
     }
 
     @Override
-    public String getAllSessions() {
-        // Implement logic to retrieve all sessions
-        return "All session details";
+    public List<SessionSummaryDTO> getSessionsByUserIdOrListenerId(Integer id, String role) {
+        List<Session> sessions;
+        if ("listener".equalsIgnoreCase(role)) {
+            Listener listener = listenerRepository.findByUser_UserId(id)
+                    .orElseThrow(() -> new ListenerNotFoundException("Listener not found"));
+            sessions = sessionRepository.findByListener_ListenerId(listener.getListenerId());
+        } else if ("user".equalsIgnoreCase(role)) {
+            sessions = sessionRepository.findByUser_UserId(id);
+        } else {
+            throw new IllegalArgumentException("Invalid role: " + role);
+        }
+        return sessions.stream()
+                .map(SessionMapper::toSessionSummaryDTO)
+                .toList();
     }
+
+    @Override
+    public List<SessionSummaryDTO> getSessionsByStatus(String status) {
+        List<Session> sessions = sessionRepository.findBySessionStatus(SessionStatus.valueOf(status.toUpperCase()));
+        return sessions.stream()
+                .map(SessionMapper::toSessionSummaryDTO)
+                .toList();
+    }
+
+    @Override
+    public String endSession(Integer sessionId) {
+        Session session = sessionRepository.findById(sessionId)
+                .orElseThrow(() -> new SessionNotFoundException("Session not found"));
+
+        session.setSessionStatus(SessionStatus.COMPLETED);
+        session.setSessionEnd(LocalDateTime.now());
+        sessionRepository.save(session);
+
+        // Notify users about session end
+        String message = "Session with ID " + sessionId + " has ended.";
+        sendSseNotification(session.getUser(), session.getListener().getUser(), message);
+        sendSseNotification(session.getListener().getUser(), session.getUser(), message);
+
+        log.info("Session ended - Session ID: {}", sessionId);
+        return "Session ended successfully";
+    }
+
+    @Override
+    public List<SessionSummaryDTO> getAllSessions() {
+        return sessionRepository.findAll().stream()
+                .map(SessionMapper::toSessionSummaryDTO)
+                .toList();
+    }
+
+    @Override
+    public List<ChatMessageDTO> getMessagesBySessionId(Integer sessionId) {
+        List<ChatMessage> messages = chatMessageRepository.findBySession_SessionId(sessionId);
+        return messages.stream()
+                .map(ChatMessageMapper::toChatMessageDTO)
+                .toList();
+    }
+
 }

@@ -1,7 +1,9 @@
+// ListenerApplicationMapper.java
 package com.dbms.mentalhealth.mapper;
 
 import com.dbms.mentalhealth.dto.listenerApplication.request.ListenerApplicationRequestDTO;
 import com.dbms.mentalhealth.dto.listenerApplication.response.ListenerApplicationResponseDTO;
+import com.dbms.mentalhealth.dto.listenerApplication.response.ListenerApplicationSummaryResponseDTO;
 import com.dbms.mentalhealth.model.ListenerApplication;
 import com.dbms.mentalhealth.model.User;
 import org.springframework.stereotype.Component;
@@ -16,6 +18,7 @@ public class ListenerApplicationMapper {
         entity.setBranch(requestDTO.getBranch());
         entity.setSemester(requestDTO.getSemester());
         entity.setUsn(requestDTO.getUsn());
+        entity.setReasonForApplying(requestDTO.getReasonForApplying());
         entity.setPhoneNumber(requestDTO.getPhoneNumber());
         return entity;
     }
@@ -31,7 +34,19 @@ public class ListenerApplicationMapper {
         responseDTO.setCertificateUrl(entity.getCertificateUrl());
         responseDTO.setApplicationStatus(entity.getApplicationStatus());
         responseDTO.setSubmissionDate(entity.getSubmissionDate());
-        responseDTO.setReviewedBy(entity.getReviewedBy() != null ? entity.getReviewedBy().getAnonymousName(): null);        responseDTO.setReviewedAt(entity.getReviewedAt());
+        responseDTO.setReasonForApplying(entity.getReasonForApplying());
+        responseDTO.setReviewedBy(entity.getReviewedBy() != null ? entity.getReviewedBy().getAnonymousName() : null);
+        responseDTO.setReviewedAt(entity.getReviewedAt());
         return responseDTO;
+    }
+
+    public static ListenerApplicationSummaryResponseDTO toSummaryResponseDTO(ListenerApplication entity) {
+        ListenerApplicationSummaryResponseDTO summaryDTO = new ListenerApplicationSummaryResponseDTO();
+        summaryDTO.setApplicationId(entity.getApplicationId());
+        summaryDTO.setFullName(entity.getFullName());
+        summaryDTO.setBranch(entity.getBranch());
+        summaryDTO.setSemester(entity.getSemester());
+        summaryDTO.setCertificateUrl(entity.getCertificateUrl());
+        return summaryDTO;
     }
 }
