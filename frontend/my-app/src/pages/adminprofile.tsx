@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Pencil, Phone, Mail, GraduationCap, Save, X } from "lucide-react";
-import Navbar from "@/components/navbar/NavBar";
+import Navbar from "@/components/navbar/navbar3";
 import Footer from "@/components/footer/Footer";
 import "@/styles/global.css";
 import Image from "next/image";
 import { createAdminProfile } from "@/service/adminProfile/CreateAdminProfile";
 import { fetchAdminProfile } from "@/service/adminProfile/GetAdminProfile";
+import { updateAdminProfile } from "@/service/adminProfile/UpdateAdminProfile"; // Add an update function
 import { RootState } from "@/store";
 import { useSelector } from "react-redux";
 
@@ -32,6 +33,7 @@ export default function AdminProfile() {
   const [isEditing, setIsEditing] = useState(false);
   const userID = useSelector((state: RootState) => state.auth.userId);
   const token = useSelector((state: RootState) => state.auth.accessToken);
+  const [adminID, setAdminID] = useState<string | null>(null);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -49,7 +51,15 @@ export default function AdminProfile() {
 
   const handleSave = async () => {
     try {
-      await createAdminProfile(profile, token);
+      if (profile.profilePictureUrl) {
+        // Update existing profile if a profilePictureUrl exists
+        await updateAdminProfile(profile,adminID as string, token);
+      } else {
+        // Create new profile if profilePictureUrl does not exist
+        await createAdminProfile(profile, token);
+      }
+      // Fetch the updated profile after save
+      await fetchProfile();
       setIsEditing(false);
     } catch (error) {
       console.error("Error saving profile:", error);
@@ -60,16 +70,18 @@ export default function AdminProfile() {
     setIsEditing(false);
   };
 
-  // Fetch admin profile on page load
+  // Fetch admin profile on page load or when token/userID changes
+  const fetchProfile = async () => {
+    try {
+      const fetchedProfile = await fetchAdminProfile(token);
+      setProfile(fetchedProfile);
+      setAdminID(fetchedProfile.adminId.toString());
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+    }
+  };
+
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const fetchedProfile = await fetchAdminProfile(token);
-        setProfile(fetchedProfile);
-      } catch (error) {
-        console.error("Error fetching profile:", error);
-      }
-    };
     fetchProfile();
   }, [userID, token]);
 
@@ -79,21 +91,21 @@ export default function AdminProfile() {
       <main className="container mx-auto px-4 py-12">
         <div className="bg-white rounded-lg shadow-lg overflow-hidden flex flex-col md:flex-row">
           {/* Profile Picture Section */}
-          <div className="bg-gradient-to-t from-gray-300 to-gray-100 p-6 flex flex-col items-center md:w-1/3">
+          <div className="bg-gradient-to-t from-gray-300 to-gray-100 p-6 flex flex-col items-center md:w-2/5">
             {profile.profilePictureUrl ? (
               <Image
                 src={profile.profilePictureUrl}
                 alt="Profile"
-                width={192}
-                height={192}
+                width={300}
+                height={300}
                 className="rounded-full object-cover shadow-lg"
               />
             ) : profile.profilePicture ? (
               <Image
                 src={URL.createObjectURL(profile.profilePicture)}
                 alt="Profile"
-                width={192}
-                height={192}
+                width={300}
+                height={250}
                 className="rounded-full object-cover shadow-lg"
               />
             ) : (
