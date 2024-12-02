@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Pencil, Phone, Mail, GraduationCap, Save, X } from "lucide-react";
-import Navbar from "@/components/navbar/NavBar";
-import Footer from "@/components/footer/Footer";
+import Navbar from "@/components/navbar/navbar4";
 import "@/styles/global.css";
 import Image from "next/image";
 import { createAdminProfile } from "@/service/adminProfile/CreateAdminProfile";
 import { fetchAdminProfile } from "@/service/adminProfile/GetAdminProfile";
+import { updateAdminProfile } from "@/service/adminProfile/UpdateAdminProfile"; // Add an update function
 import { RootState } from "@/store";
 import { useSelector } from "react-redux";
 
@@ -15,7 +15,7 @@ interface AdminProfile {
   qualifications: string;
   contactNumber: string;
   email: string;
-  profilePicture: File | null; // For file upload when creating
+  profilePicture?: File | null; // For file upload when creating
   profilePictureUrl?: string;  // For URL when fetching the profile
 }
 
@@ -26,12 +26,12 @@ export default function AdminProfile() {
     qualifications: "",
     contactNumber: "",
     email: "",
-    profilePicture: null,
-    profilePictureUrl: "",
+    profilePicture: null
   });
   const [isEditing, setIsEditing] = useState(false);
   const userID = useSelector((state: RootState) => state.auth.userId);
   const token = useSelector((state: RootState) => state.auth.accessToken);
+  const [adminID, setAdminID] = useState<string | null>(null);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -49,51 +49,70 @@ export default function AdminProfile() {
 
   const handleSave = async () => {
     try {
-      await createAdminProfile(profile, token);
+      const updatedProfile = { ...profile, profilePicture: profile.profilePicture ?? null };
+  
+        // Remove profilePicture field from the update payload if not provided
+        delete updatedProfile.profilePictureUrl;
+
+  
+      // Update profile only with necessary fields
+      await updateAdminProfile(updatedProfile, token);
+  
+      // After successful update, fetch and set the updated profile
+      await fetchProfile();
       setIsEditing(false);
     } catch (error) {
       console.error("Error saving profile:", error);
     }
   };
+  
+  
 
   const handleCancel = () => {
     setIsEditing(false);
   };
 
-  // Fetch admin profile on page load
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const fetchedProfile = await fetchAdminProfile(token);
+   // Fetch admin profile on page load or when token/userID changes
+   const fetchProfile = async () => {
+    try {
+      const fetchedProfile = await fetchAdminProfile(token);
+      if (fetchedProfile) {
         setProfile(fetchedProfile);
-      } catch (error) {
-        console.error("Error fetching profile:", error);
+        setAdminID(fetchedProfile.adminId.toString());
+      } else {
+        // If no profile exists, create one
+        await createAdminProfile({ ...profile, profilePicture: profile.profilePicture ?? null }, token);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+    }
+  };
+
+  useEffect(() => {
     fetchProfile();
   }, [userID, token]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-purple-500 to-cyan-500">
+    <div className=" flex-col min-h-screen bg-gradient-to-r from-purple-300 to-blue-300">
       <Navbar />
-      <main className="container mx-auto px-4 py-12">
+      <main className="container mx-auto px-4 py-12 flex-1">
         <div className="bg-white rounded-lg shadow-lg overflow-hidden flex flex-col md:flex-row">
           {/* Profile Picture Section */}
-          <div className="bg-gradient-to-t from-gray-300 to-gray-100 p-6 flex flex-col items-center md:w-1/3">
+          <div className="bg-gradient-to-t from-gray-300 to-gray-100 p-6 flex flex-col items-center md:w-2/5">
             {profile.profilePictureUrl ? (
               <Image
                 src={profile.profilePictureUrl}
                 alt="Profile"
-                width={192}
-                height={192}
+                width={300}
+                height={300}
                 className="rounded-full object-cover shadow-lg"
               />
             ) : profile.profilePicture ? (
               <Image
                 src={URL.createObjectURL(profile.profilePicture)}
                 alt="Profile"
-                width={192}
-                height={192}
+                width={300}
+                height={250}
                 className="rounded-full object-cover shadow-lg"
               />
             ) : (
@@ -210,7 +229,6 @@ export default function AdminProfile() {
           </div>
         </div>
       </main>
-      <Footer />
     </div>
   );
 }
