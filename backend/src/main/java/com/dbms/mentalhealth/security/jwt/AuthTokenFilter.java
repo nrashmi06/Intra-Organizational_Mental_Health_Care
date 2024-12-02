@@ -3,6 +3,7 @@ package com.dbms.mentalhealth.security.jwt;
 import com.dbms.mentalhealth.service.UserService;
 import com.dbms.mentalhealth.service.impl.UserServiceImpl;
 import com.dbms.mentalhealth.service.RefreshTokenService;
+import com.dbms.mentalhealth.urlMapper.NotificationUrlMapping;
 import com.dbms.mentalhealth.urlMapper.UserUrlMapping;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
@@ -19,9 +20,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -47,7 +46,8 @@ public class AuthTokenFilter extends OncePerRequestFilter {
             CONTEXT_PATH + UserUrlMapping.VERIFY_EMAIL,
             CONTEXT_PATH + UserUrlMapping.RESEND_VERIFICATION_EMAIL,
             CONTEXT_PATH + UserUrlMapping.USER_LOGIN,
-            CONTEXT_PATH + UserUrlMapping.RENEW_TOKEN
+            CONTEXT_PATH + UserUrlMapping.RENEW_TOKEN,
+            CONTEXT_PATH + NotificationUrlMapping.SUBSCRIBE_NOTIFICATIONS
     );
 
     @Override
