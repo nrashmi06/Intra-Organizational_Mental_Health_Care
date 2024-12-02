@@ -27,6 +27,10 @@ public class SessionFeedback {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @ManyToOne
+    @JoinColumn(name = "listener_id", nullable = false)
+    private Listener listener;
+
     @Column(name = "rating", nullable = false)
     private Integer rating;
 
@@ -35,4 +39,9 @@ public class SessionFeedback {
 
     @Column(name = "submitted_at", nullable = false)
     private LocalDateTime submittedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        submittedAt = LocalDateTime.now();
+    }
 }

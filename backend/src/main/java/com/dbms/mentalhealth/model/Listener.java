@@ -39,6 +39,9 @@ public class Listener {
     @Column(name = "total_messages_sent")
     private Integer totalMessagesSent;
 
+    @Column(name = "feedback_count")
+    private Integer feedbackCount;
+
     @Column(name = "joined_at", nullable = false)
     private LocalDateTime joinedAt;
 
