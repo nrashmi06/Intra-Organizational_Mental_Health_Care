@@ -80,21 +80,20 @@ export default function Component() {
         </section>
       </div>
       {/* Centered Container */}
-      <div className="flex min-h-screen items-center justify-center">
-        <main className="flex-1 w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-          {/* Motivation Section */}
-          <section className="container flex justify-center py-12 md:py-24">
+      {/* Motivation Section */}
+      <div className="bg-gray-200 flex items-center justify-center w-full">
+          <section className="  container flex justify-center py-12 md:py-24">
             <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 items-center">
               <div className="flex justify-center">
                 <Image
                   src="/Motivation1.webp"
                   alt="Motivation Group"
-                  width={600}
+                  width={400}
                   height={400}
                   className="rounded-lg object-cover"
                 />
               </div>
-              <div className="space-y-4 text-center lg:text-left">
+              <div className=" space-y-4 text-center lg:text-left">
                 <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">OUR MOTIVATION</h2>
                 <p className="text-gray-500 md:text-xl lg:text-base xl:text-xl">
                   Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
@@ -110,6 +109,10 @@ export default function Component() {
               </div>
             </div>
           </section>
+          </div>
+      <div className="flex  items-center justify-center">
+        <main className="flex-1 w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+          
           {/* Verified Admins Section (Visible Only When Logged In) */}
           {token && (
             <section className="container py-12 mt-12">

@@ -1,18 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useSelector } from "react-redux"; // Import useSelector to access Redux state
-import Badge from "@/components/ui/badge";
+import { useSelector } from "react-redux";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import Image from "next/image";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Grid2X2, List, Search } from "lucide-react";
 import ListenerCard from "@/components/record/ListenerCard";
 import Navbar from "@/components/navbar/navbar3";
@@ -20,8 +10,9 @@ import "@/styles/globals.css";
 import { fetchBlogs } from "@/service/blog/FetchByStatus";
 import { RootState } from "@/store";
 import BlogApprovalTable from "@/components/dashboard/BlogApprovalTable";
-import { changeBlogApprovalStatus } from "@/service/blog/UpdateBlogStatus";
+
 import { fetchListeners } from "@/service/listener/fetchListeners";
+import ListenerApprovalTable from "@/components/listener/ListenerApproveTable";
 
 interface Listener {
   applicationId: number;
@@ -29,6 +20,9 @@ interface Listener {
   branch: string;
   semester: number;
   certificateUrl: string;
+  reasonForApplying: string;
+  certifcateUrl: string;
+  applicationStatus: "PENDING" | "APPROVED" | "REJECTED";
 }
 
 interface BlogApproval {
@@ -47,8 +41,6 @@ export default function Component() {
     "pending" | "approved" | "rejected"
   >("pending");
   const [listeners, setListeners] = useState([] as Listener[]);
-  const [listenersCount] = useState(0);
-  const [isImageDropdownOpen, setIsImageDropdownOpen] = useState(false);
   const token = useSelector((state: RootState) => state.auth.accessToken); // Retrieve the token from Redux store
 
   useEffect(() => {
@@ -56,11 +48,6 @@ export default function Component() {
       try {
         const response = await fetchListeners(token);
         setListeners(response);
-        // response.forEach((listener: Listener) => {
-        //   if (listener.status === "pending") {
-        //     setListenersCount((prevCount) => prevCount + 1);
-        //   }
-        // });
       } catch (error) {
         console.error("Error fetching listeners:", error);
       }
@@ -70,7 +57,10 @@ export default function Component() {
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentListeners = listeners.slice(indexOfFirstItem, indexOfLastItem);
+  const currentListeners =
+    listeners.length > 0
+      ? listeners.slice(indexOfFirstItem, indexOfLastItem)
+      : [];
 
   const nextPage = () => {
     if (currentListeners.length === itemsPerPage) {
@@ -81,20 +71,6 @@ export default function Component() {
   const prevPage = () => {
     if (currentPage > 1) {
       setCurrentPage(currentPage - 1);
-    }
-  };
-
-  const handleStatusChange = async (
-    id: number,
-    newStatus: "approved" | "rejected"
-  ) => {
-    try {
-      // Call API to update blog status
-      await changeBlogApprovalStatus(id, newStatus, token);
-      console.log("Status updated successfully");
-      loadBlogs();
-    } catch (error) {
-      console.error("Error updating status:", error);
     }
   };
 
@@ -117,10 +93,6 @@ export default function Component() {
   useEffect(() => {
     loadBlogs();
   }, [token, statusFilter]); // Refresh whenever token or statusFilter changes
-
-  function handleView(id: number): void {
-    throw new Error("Function not implemented.");
-  }
 
   return (
     <div>
@@ -169,9 +141,16 @@ export default function Component() {
                 : "grid-cols-1"
             }`}
           >
-            {currentListeners.map((listener) => (
-              <ListenerCard key={listener.applicationId} listener={listener} />
-            ))}
+            {currentListeners.length > 0 ? (
+              currentListeners.map((listener) => (
+                <ListenerCard
+                  key={listener.applicationId}
+                  listener={listener}
+                />
+              ))
+            ) : (
+              <div className="text-gray-500">No listeners found</div>
+            )}
           </div>
 
           {/* Pagination Controls */}
@@ -191,69 +170,7 @@ export default function Component() {
         </section>
 
         {/* Listener Requests Section */}
-        <section>
-          <div className="bg-white rounded-lg shadow">
-            <div className="p-4 border-b">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold">Listener Requests</h2>
-                <div className="flex items-center gap-4">
-                  <Badge>Pending {listenersCount}</Badge>
-                  <Button variant="outline">History</Button>
-                  <Button variant="outline">
-                    <Search className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </div>
-
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Request ID</TableHead>
-                  <TableHead>Full Name</TableHead>
-                  <TableHead>Semester</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {listeners.map((request) => (
-                  <TableRow key={request.applicationId}>
-                    <TableCell>{request.applicationId}</TableCell>
-                    <TableCell>{request.fullName}</TableCell>
-                    <TableCell>{request.semester}</TableCell>
-                    <TableCell>
-                      <Badge color="gray">Pending</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-4">Certificate</div>
-                      {isImageDropdownOpen && (
-                        <div
-                          className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
-                          onClick={() => setIsImageDropdownOpen(false)}
-                        >
-                          <div
-                            className="bg-white p-4 rounded-lg shadow-lg"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <Image
-                              src={request.certificateUrl}
-                              alt="Certificate"
-                              className="max-w-full max-h-full"
-                              sizes="(max-width: 640px) 100vw, (max-width: 768px) 90vw, 80vw"
-                              height={500}
-                              width={500}
-                            />
-                          </div>
-                        </div>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </section>
+        <ListenerApprovalTable listeners={listeners} />
 
         <section>
           <div className="bg-white rounded-lg shadow">

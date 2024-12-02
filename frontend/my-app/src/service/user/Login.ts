@@ -43,7 +43,7 @@ export const loginUser = (email: string, password: string) => async (dispatch: A
     );
 
     // Return the response data for further processing
-    return data;
+    return {data,accessToken};
   } catch (error) {
     console.error("Login error:", error);
 

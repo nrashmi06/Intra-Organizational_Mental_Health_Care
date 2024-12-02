@@ -22,7 +22,7 @@ export default function ListenerApplication() {
 
   useEffect(() => {
     if (!accessToken) {
-      router.push("/login");
+      router.push("/signin");
       return;
     }
 

@@ -3,9 +3,15 @@ import axios from "axios";
 const API_BASE_URL =
   "http://localhost:8080/mental-health/api/v1/listener-applications/application";
 
-export const fetchApplication = async (accessToken: string) => {
+export const fetchApplication = async (
+  accessToken: string,
+  applicationId?: number
+) => {
   try {
-    const response = await axios.get(API_BASE_URL, {
+    const url = applicationId
+      ? `${API_BASE_URL}?applicationId=${applicationId}`
+      : API_BASE_URL;
+    const response = await axios.get(url, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },

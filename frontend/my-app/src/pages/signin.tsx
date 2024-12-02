@@ -1,23 +1,19 @@
-'use client';
-
-import Image from "next/image";
-import Link from "next/link";
 import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { useRouter } from "next/router";
+import { useDispatch } from "react-redux";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import Footer from "@/components/footer/Footer";
-import { Checkbox } from "@/components/ui/checkbox1";
-import Navbar from "@/components/navbar/NavBar";
-import { useRouter } from 'next/router';
-import "@/styles/global.css";
 import { loginUser } from "@/service/user/Login"; // Import login function
-import { useDispatch } from "react-redux";
+import { subscribeToNotifications } from "@/service/notification/subscribeNotification"; // Import subscribe function
+import Navbar from "@/components/navbar/NavBar";
+import Footer from "@/components/footer/Footer";
+import { Eye, EyeOff } from "lucide-react"; // Eye icon for password toggle
+import Image from "next/image"; // Import Image from next/image
 
 export default function SignIn() {
   const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isErrorPopupVisible, setIsErrorPopupVisible] = useState(false);
@@ -37,17 +33,27 @@ export default function SignIn() {
     setError(null);
 
     try {
-      const response = await loginUser(email, password)(dispatch);  // Pass dispatch here to call the action
+      // Call login function
+      const response = await loginUser(email, password)(dispatch);
       if (response) {
-        // Successful login, now navigate to the welcome page
+        // Assuming response contains token
+        const token = response.accessToken
+        console.log("Login successful. Token:", token);
+  
+        // Call the subscribe function to register for notifications
+        const eventSource = subscribeToNotifications(token);
+
+        // Navigate to the welcome page
         router.push("/welcome");
-      } else {
+  
+        }
+      else {
         setError("Login failed. Please try again.");
         setIsErrorPopupVisible(true);
       }
     } catch (error) {
-      console.error("Login error:", error);
-      setError((error as Error).message || "Login failed. Please try again.");
+      console.error("Error:", error);
+      setError((error as Error).message || "Something went wrong.");
       setIsErrorPopupVisible(true);
     } finally {
       setLoading(false);
@@ -78,9 +84,7 @@ export default function SignIn() {
               </div>
             </div>
 
-            <h1 className="text-2xl font-bold text-center mb-2">
-              Sign in to SerenitySphere
-            </h1>
+            <h1 className="text-2xl font-bold text-center mb-2">Sign in to SerenitySphere</h1>
             <p className="text-gray-500 text-center mb-8">A Safe Place to Connect</p>
 
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -119,18 +123,6 @@ export default function SignIn() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between p-4">
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="remember" />
-                  <label htmlFor="remember" className="text-sm font-medium leading-none">
-                    Remember me
-                  </label>
-                </div>
-                <Link href="/forgotpassword" className="text-sm font-medium text-primary hover:underline">
-                  Forgot Password?
-                </Link>
-              </div>
-
               <Button type="submit" className="w-full bg-black text-white hover:bg-black/90" disabled={loading}>
                 {loading ? "Signing In..." : "Sign In"}
               </Button>
@@ -155,4 +147,3 @@ export default function SignIn() {
     </div>
   );
 }
-
