@@ -45,14 +45,4 @@ public class SessionFeedbackMapper {
         dto.setSubmittedAt(entity.getSubmittedAt());
         return dto;
     }
-
-    public SessionFeedbackSummaryResponseDTO toSummaryResponseDTO(SessionFeedback entity) {
-        SessionFeedbackSummaryResponseDTO dto = new SessionFeedbackSummaryResponseDTO();
-        dto.setFeedbackId(entity.getFeedbackId());
-        dto.setSessionId(entity.getSession().getSessionId());
-        dto.setUserId(entity.getUser().getUserId());
-        dto.setRating(entity.getRating());
-        dto.setComments(entity.getComments());
-        return dto;
-    }
 }

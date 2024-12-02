@@ -2,6 +2,7 @@ package com.dbms.mentalhealth.service.impl;
 
 import com.dbms.mentalhealth.dto.sessionFeedback.request.SessionFeedbackRequestDTO;
 import com.dbms.mentalhealth.dto.sessionFeedback.response.SessionFeedbackResponseDTO;
+import com.dbms.mentalhealth.dto.sessionFeedback.response.SessionFeedbackSummaryResponseDTO;
 import com.dbms.mentalhealth.exception.listener.ListenerNotFoundException;
 import com.dbms.mentalhealth.exception.session.FeedbackNotFoundException;
 import com.dbms.mentalhealth.exception.session.SessionNotFoundException;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -90,5 +92,28 @@ public class SessionFeedbackServiceImpl implements SessionFeedbackService {
         } catch (ListenerNotFoundException e) {
             throw new ListenerNotFoundException("Listener with ID " + listenerId + " not found");
         }
+    }
+
+    @Override
+    public SessionFeedbackSummaryResponseDTO getFeedbackSummary() {
+        List<SessionFeedback> feedbacks = sessionFeedbackRepository.findAll();
+
+        BigDecimal avgRating = feedbacks.stream()
+                .map(SessionFeedback::getRating)
+                .map(BigDecimal::valueOf)
+                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                .divide(BigDecimal.valueOf(feedbacks.size()), 2, BigDecimal.ROUND_HALF_UP);
+
+        Map<Integer, Long> feedbacksByRating = feedbacks.stream()
+                .collect(Collectors.groupingBy(SessionFeedback::getRating, Collectors.counting()));
+
+        return new SessionFeedbackSummaryResponseDTO(
+                avgRating,
+                feedbacksByRating.getOrDefault(5, 0L).intValue(),
+                feedbacksByRating.getOrDefault(4, 0L).intValue(),
+                feedbacksByRating.getOrDefault(3, 0L).intValue(),
+                feedbacksByRating.getOrDefault(2, 0L).intValue(),
+                feedbacksByRating.getOrDefault(1, 0L).intValue()
+        );
     }
 }

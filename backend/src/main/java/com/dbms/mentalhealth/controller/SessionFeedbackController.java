@@ -2,6 +2,7 @@ package com.dbms.mentalhealth.controller;
 
 import com.dbms.mentalhealth.dto.sessionFeedback.request.SessionFeedbackRequestDTO;
 import com.dbms.mentalhealth.dto.sessionFeedback.response.SessionFeedbackResponseDTO;
+import com.dbms.mentalhealth.dto.sessionFeedback.response.SessionFeedbackSummaryResponseDTO;
 import com.dbms.mentalhealth.service.SessionFeedbackService;
 import com.dbms.mentalhealth.urlMapper.SessionFeedbackUrlMapping;
 import org.springframework.http.ResponseEntity;
@@ -40,5 +41,11 @@ public class SessionFeedbackController {
     public ResponseEntity<List<SessionFeedbackResponseDTO>> getAllListenerFeedback(@PathVariable Integer listenerId) {
         List<SessionFeedbackResponseDTO> feedbackList = sessionFeedbackService.getAllListenerFeedback(listenerId);
         return ResponseEntity.ok(feedbackList);
+    }
+    
+    @GetMapping(SessionFeedbackUrlMapping.GET_FEEDBACK_SUMMARY)
+    public ResponseEntity<SessionFeedbackSummaryResponseDTO> getFeedbackSummary() {
+        SessionFeedbackSummaryResponseDTO summaryDTO = sessionFeedbackService.getFeedbackSummary();
+        return ResponseEntity.ok(summaryDTO);
     }
 }
