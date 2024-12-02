@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Pencil, Phone, Mail, GraduationCap, Save, X } from "lucide-react";
-import Navbar from "@/components/navbar/navbar3";
-import Footer from "@/components/footer/Footer";
+import Navbar from "@/components/navbar/navbar4";
 import "@/styles/global.css";
 import Image from "next/image";
 import { createAdminProfile } from "@/service/adminProfile/CreateAdminProfile";
@@ -73,12 +72,17 @@ export default function AdminProfile() {
     setIsEditing(false);
   };
 
-  // Fetch admin profile on page load or when token/userID changes
-  const fetchProfile = async () => {
+   // Fetch admin profile on page load or when token/userID changes
+   const fetchProfile = async () => {
     try {
       const fetchedProfile = await fetchAdminProfile(token);
-      setProfile(fetchedProfile);
-      setAdminID(fetchedProfile.adminId.toString());
+      if (fetchedProfile) {
+        setProfile(fetchedProfile);
+        setAdminID(fetchedProfile.adminId.toString());
+      } else {
+        // If no profile exists, create one
+        await createAdminProfile({ ...profile, profilePicture: profile.profilePicture ?? null }, token);
+      }
     } catch (error) {
       console.error("Error fetching profile:", error);
     }
@@ -89,9 +93,9 @@ export default function AdminProfile() {
   }, [userID, token]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-purple-500 to-cyan-500">
+    <div className=" flex-col min-h-screen bg-gradient-to-r from-purple-300 to-blue-300">
       <Navbar />
-      <main className="container mx-auto px-4 py-12">
+      <main className="container mx-auto px-4 py-12 flex-1">
         <div className="bg-white rounded-lg shadow-lg overflow-hidden flex flex-col md:flex-row">
           {/* Profile Picture Section */}
           <div className="bg-gradient-to-t from-gray-300 to-gray-100 p-6 flex flex-col items-center md:w-2/5">
@@ -225,7 +229,6 @@ export default function AdminProfile() {
           </div>
         </div>
       </main>
-      <Footer />
     </div>
   );
 }
