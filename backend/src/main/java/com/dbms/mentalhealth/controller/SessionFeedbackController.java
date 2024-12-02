@@ -4,7 +4,6 @@ import com.dbms.mentalhealth.dto.sessionFeedback.request.SessionFeedbackRequestD
 import com.dbms.mentalhealth.dto.sessionFeedback.response.SessionFeedbackResponseDTO;
 import com.dbms.mentalhealth.service.SessionFeedbackService;
 import com.dbms.mentalhealth.urlMapper.SessionFeedbackUrlMapping;
-import com.dbms.mentalhealth.urlMapper.SessionUrlMapping;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

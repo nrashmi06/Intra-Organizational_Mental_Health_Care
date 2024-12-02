@@ -6,4 +6,5 @@ import lombok.Data;
 @Data
 public class UpdateApplicationStatusRequestDTO {
     private String status;
+    private String rejectionReason;
 }
