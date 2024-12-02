@@ -8,7 +8,6 @@ public class ListenerApplicationUrlMapping {
 
     private static final String BASE_API = "/api/v1/listener-applications";
     private static final String APPLICATION_ID_PATH = "/{applicationId}"; // Placeholder for applicationId
-
     // Listener application endpoints
     public static final String SUBMIT_APPLICATION = BASE_API + "/submit"; // Submit a new listener application
     public static final String GET_APPLICATION_BY_ID = BASE_API + "/application"; // Get listener application by ID

@@ -69,7 +69,7 @@ public class ListenerApplicationController {
     public ResponseEntity<ListenerApplicationResponseDTO> updateApplication(
             @PathVariable("applicationId") Integer applicationId,
             @RequestPart("application") ListenerApplicationRequestDTO applicationRequestDTO,
-            @RequestPart("certificate") MultipartFile certificate) throws Exception {
+            @RequestPart(value = "certificate",required = false) MultipartFile certificate) throws Exception {
         try {
             ListenerApplicationResponseDTO responseDTO = listenerApplicationService.updateApplication(applicationId, applicationRequestDTO, certificate);
             return ResponseEntity.ok(responseDTO);
