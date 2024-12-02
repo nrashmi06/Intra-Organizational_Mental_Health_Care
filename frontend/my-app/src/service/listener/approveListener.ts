@@ -5,23 +5,27 @@ const API_BASE_URL =
 
 export const approveListener = async (
   applicationId: number,
-  accessToken: string
+  accessToken: string,
+  status: "APPROVED" | "REJECTED" | "PENDING"
 ) => {
   try {
-    const url = `${API_BASE_URL}/${applicationId}/status`;
-    const response = await axios.put(url, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
+    const url = `${API_BASE_URL}/${applicationId}/update-status?status=${status}`;
+    const response = await axios.put(
+      url,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
 
-    return response.data;
+    return response;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      console.error("Error approving listener:", error.response?.data);
+      console.error("Error approving listener:");
     } else {
-      console.error("Error approving listener:", error);
+      console.error("Error approving listener:");
     }
-    throw error;
   }
 };

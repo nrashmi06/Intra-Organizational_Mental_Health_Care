@@ -7,6 +7,7 @@ import Image from "next/image";
 import { deleteApplication } from "@/service/listener/deleteAndUpdate";
 import { RootState } from "@/store";
 import { useSelector } from "react-redux";
+import { useRouter } from "next/router";
 interface Listener {
   applicationId: number;
   fullName: string;
@@ -21,6 +22,10 @@ export default function ListenerCard({ listener }: { listener: Listener }) {
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isImageDropdownOpen, setIsImageDropdownOpen] = useState(false);
+  const [deletePopUp, setDeletePopUp] = useState(false);
+  const [successMessage, setSuccessMessage] = useState(false);
+  const router = useRouter();
+
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);
   };
@@ -31,7 +36,12 @@ export default function ListenerCard({ listener }: { listener: Listener }) {
         accessToken
       );
       if (response.status === 204) {
-        console.log("Application deleted successfully");
+        setDeletePopUp(false);
+        setSuccessMessage(true);
+        setIsDropdownOpen(false);
+        setTimeout(() => {
+          router.reload();
+        }, 1000);
       } else {
         console.log("Application not deleted");
       }
@@ -118,10 +128,10 @@ export default function ListenerCard({ listener }: { listener: Listener }) {
                 Edit
               </div> */}
               <div
-                onClick={() => handleDelete()}
+                onClick={() => setDeletePopUp(true)}
                 className="px-4 py-2 text-sm text-red-500 hover:bg-red-100 cursor-pointer"
               >
-                Delete
+                Delete Listener
               </div>
             </div>
           )}
@@ -145,6 +155,40 @@ export default function ListenerCard({ listener }: { listener: Listener }) {
           )}
         </div>
       </CardContent>
+      {deletePopUp && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-10">
+          <div className="bg-white p-6 flex gap-4 rounded-lg shadow-lg text-center">
+            <h3 className="text-lg font-semibold text-red-600">
+              Are you sure you want to delete this listener?
+            </h3>
+            <Button
+              onClick={handleDelete}
+              className="text-sm bg-red-800 text-left  text-blue-800"
+            >
+              Delete
+            </Button>
+
+            <Button
+              onClick={() => {
+                setDeletePopUp(false);
+                setIsDropdownOpen(false);
+              }}
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
+      )}
+      {successMessage && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-10">
+          <div className="bg-white p-6 flex gap-4 rounded-lg shadow-lg text-center">
+            <h3 className="text-lg font-semibold flex flex-col space-y-4 text-red-600">
+              User deleted Successfully!
+            </h3>
+            <div className="text-sm text-gray-600">Back to dashboard...</div>
+          </div>
+        </div>
+      )}
     </Card>
   );
 }
