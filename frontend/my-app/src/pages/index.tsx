@@ -15,19 +15,25 @@ type Admin = {
   fullName: string;
   adminNotes: string;
   contactNumber: string;
-  avatar?: string; // Optionally include an avatar image
 };
 
 export default function Component() {
-  const token = useSelector((state: RootState) => state.auth.accessToken) || "";
+  const token = useSelector((state: RootState) => state.auth.accessToken);
   const [admins, setAdmins] = useState<Admin[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [isClient, setIsClient] = useState(false);
+
+  // Ensure the component is client-side rendered
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   useEffect(() => {
     async function loadAdmins() {
       if (!token) return; // Skip fetching if the token is not available
       try {
         const data = await fetchAdmins(token);
+        console.log(data);
         setAdmins(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred");
@@ -36,45 +42,46 @@ export default function Component() {
     loadAdmins();
   }, [token]);
 
+  if (!isClient) return null; // Render nothing on the server-side to avoid hydration mismatch
+
   return (
     <div>
       <Navbar />
       <div>
-      <section className="relative">
-            <div className="absolute inset-0">
-              <Image
-                src="/Home1.jpg"
-                alt="Support Group Background"
-                fill
-                className="object-cover brightness-50"
-                priority
-              />
+        <section className="relative">
+          <div className="absolute inset-0">
+            <Image
+              src="/Home1.jpg"
+              alt="Support Group Background"
+              fill
+              className="object-cover brightness-50"
+              priority
+            />
+          </div>
+          <div className="flex justify-center px-4 sm:px-6 lg:px-8">
+            <div className="relative container py-24 text-center text-white">
+              <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl">
+                Find Support Here
+              </h1>
+              <p className="mx-auto mt-4 max-w-[700px] text-lg text-gray-200">
+                A Safe Place to Connect
+              </p>
+              <Button size="lg" className="mt-6">
+                Join Now
+              </Button>
+              <p className="mx-auto mt-4 max-w-[800px] text-sm text-gray-200">
+                At SerenitySphere, we provide a secure and personalized platform for patients and families to connect.
+                Our Support Group is designed to streamline the registration process for patients through phone number
+                verification and OTP, allowing them to create their accounts securely. All members must complete a
+                thorough verification process and be verified by an admin before granting access.
+              </p>
             </div>
-            <div className="flex justify-center px-4 sm:px-6 lg:px-8">
-              <div className="relative container py-24 text-center text-white">
-                <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl">
-                  Find Support Here
-                </h1>
-                <p className="mx-auto mt-4 max-w-[700px] text-lg text-gray-200">
-                  A Safe Place to Connect
-                </p>
-                <Button size="lg" className="mt-6">
-                  Join Now
-                </Button>
-                <p className="mx-auto mt-4 max-w-[800px] text-sm text-gray-200">
-                  At SerenitySphere, we provide a secure and personalized platform for patients and families to connect.
-                  Our Support Group is designed to streamline the registration process for patients through phone number
-                  verification and OTP, allowing them to create their accounts securely. All members must complete a
-                  thorough verification process and be verified by an admin before granting access.
-                </p>
-              </div>
-            </div>
-          </section>
+          </div>
+        </section>
       </div>
       {/* Centered Container */}
       <div className="flex min-h-screen items-center justify-center">
         <main className="flex-1 w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-          
           {/* Motivation Section */}
           <section className="container flex justify-center py-12 md:py-24">
             <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 items-center">
@@ -129,7 +136,7 @@ export default function Component() {
                       <div className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 top-12">
                         <div className="w-20 h-20 rounded-full bg-white p-1.5 shadow-lg">
                           <Image
-                            src={admin.avatar || "/Motivation1.webp" }
+                            src={"/Motivation1.webp"}
                             alt={admin.fullName}
                             width={80}
                             height={80}
