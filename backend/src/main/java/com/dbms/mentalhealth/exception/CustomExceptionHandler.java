@@ -8,9 +8,11 @@ import com.dbms.mentalhealth.exception.blog.BlogNotFoundException;
 import com.dbms.mentalhealth.exception.blog.InvalidBlogActionException;
 import com.dbms.mentalhealth.exception.emergency.EmergencyHelplineNotFoundException;
 import com.dbms.mentalhealth.exception.emergency.InvalidEmergencyHelplineException;
+import com.dbms.mentalhealth.exception.listener.AccessDeniedException;
 import com.dbms.mentalhealth.exception.listener.InvalidListenerApplicationException;
 import com.dbms.mentalhealth.exception.listener.ListenerApplicationNotFoundException;
 import com.dbms.mentalhealth.exception.listener.ListenerNotFoundException;
+import com.dbms.mentalhealth.exception.session.FeedbackNotFoundException;
 import com.dbms.mentalhealth.exception.session.SessionNotFoundException;
 import com.dbms.mentalhealth.exception.sse.EmitterCreationException;
 import com.dbms.mentalhealth.exception.sse.UserNotOnlineException;
@@ -41,6 +43,7 @@ public class CustomExceptionHandler {
     public ResponseEntity<Object> handleResponseStatusException(ResponseStatusException ex, WebRequest request) {
         return new ResponseEntity<>("An error occurred", ex.getStatusCode());
     }
+
 
     @ExceptionHandler(IncorrectResultSizeDataAccessException.class)
     public ResponseEntity<Object> handleIncorrectResultSizeDataAccessException(IncorrectResultSizeDataAccessException ex, WebRequest request) {
@@ -185,6 +188,15 @@ public class CustomExceptionHandler {
 
     @ExceptionHandler(SessionNotFoundException.class)
     public ResponseEntity<String> handleSessionNotFoundException(SessionNotFoundException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<String> handleAccessDeniedException(AccessDeniedException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.FORBIDDEN);
+    }
+    @ExceptionHandler(FeedbackNotFoundException.class)
+    public ResponseEntity<String> handleFeedbackNotFoundException(FeedbackNotFoundException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
     }
 }

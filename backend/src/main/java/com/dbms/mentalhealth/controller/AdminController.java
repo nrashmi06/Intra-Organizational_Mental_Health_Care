@@ -51,11 +51,10 @@ public class AdminController {
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping(AdminUrlMapping.UPDATE_ADMIN_PROFILE)
     public ResponseEntity<AdminProfileResponseDTO> updateAdminProfile(
-            @RequestParam(value = "adminId", required = false) Integer adminId,
             @RequestPart("adminProfile") AdminProfileRequestDTO adminProfileRequestDTO,
-            @RequestPart("profilePicture") MultipartFile profilePicture) throws Exception {
+            @RequestPart(value = "profilePicture",required = false) MultipartFile profilePicture) throws Exception {
         try {
-            AdminProfileResponseDTO responseDTO = adminService.updateAdminProfile(adminId, adminProfileRequestDTO, profilePicture);
+            AdminProfileResponseDTO responseDTO = adminService.updateAdminProfile(adminProfileRequestDTO, profilePicture);
             return ResponseEntity.ok(responseDTO);
         } catch (AdminNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);

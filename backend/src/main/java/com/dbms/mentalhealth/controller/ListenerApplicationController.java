@@ -84,9 +84,9 @@ public class ListenerApplicationController {
     @PutMapping(ListenerApplicationUrlMapping.UPDATE_APPLICATION_STATUS)
     public ResponseEntity<ListenerDetailsResponseDTO> updateApplicationStatus(
             @PathVariable("applicationId") Integer applicationId,
-            @RequestBody UpdateApplicationStatusRequestDTO status) {
+            @RequestParam(value = "status", required = false) String status) {
         try {
-            ListenerDetailsResponseDTO responseDTO = listenerApplicationService.updateApplicationStatus(applicationId, status.getStatus());
+            ListenerDetailsResponseDTO responseDTO = listenerApplicationService.updateApplicationStatus(applicationId,status);
             return ResponseEntity.ok(responseDTO);
         } catch (ListenerApplicationNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);

@@ -84,18 +84,11 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public AdminProfileResponseDTO updateAdminProfile(Integer adminId, AdminProfileRequestDTO adminProfileRequestDTO, MultipartFile profilePicture) throws Exception {
-        if (adminId == null) {
-            Integer userId = jwtUtils.getUserIdFromContext();
-            Admin admin = adminRepository.findByUser_UserId(userId)
-                    .orElseThrow(() -> new AdminNotFoundException("Admin profile not found"));
-            adminId = admin.getAdminId();
-        }
-
-        Admin admin = adminRepository.findByAdminId(adminId)
+    public AdminProfileResponseDTO updateAdminProfile(AdminProfileRequestDTO adminProfileRequestDTO, MultipartFile profilePicture) throws Exception {
+        Integer userId = jwtUtils.getUserIdFromContext();
+        Admin admin = adminRepository.findByUser_UserId(userId)
                 .orElseThrow(() -> new AdminNotFoundException("Admin profile not found"));
 
-        // Update image if provided
         String profilePictureUrl = admin.getProfilePictureUrl();
         if (profilePicture != null) {
             // Delete current image if exists
@@ -132,6 +125,7 @@ public class AdminServiceImpl implements AdminService {
         List<Admin> admins = adminRepository.findAll();
         return admins.stream().map(adminMapper::toSummaryResponseDTO).toList();
     }
+
     private String getCurrentUserEmail() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return (principal instanceof UserDetails) ? ((UserDetails) principal).getUsername() : principal.toString();
