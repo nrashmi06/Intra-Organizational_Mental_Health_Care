@@ -6,8 +6,10 @@ import com.dbms.mentalhealth.dto.listenerApplication.request.ListenerApplication
 import com.dbms.mentalhealth.dto.listenerApplication.response.ListenerApplicationResponseDTO;
 import com.dbms.mentalhealth.enums.ListenerApplicationStatus;
 import com.dbms.mentalhealth.enums.Role;
+import com.dbms.mentalhealth.exception.listener.AccessDeniedException;
 import com.dbms.mentalhealth.exception.listener.ApplicationAlreadySubmittedException;
 import com.dbms.mentalhealth.exception.listener.ListenerApplicationNotFoundException;
+import com.dbms.mentalhealth.exception.listener.ListenerNotFoundException;
 import com.dbms.mentalhealth.exception.user.UserNotFoundException;
 import com.dbms.mentalhealth.mapper.ListenerApplicationMapper;
 import com.dbms.mentalhealth.mapper.ListenerDetailsMapper;
@@ -140,7 +142,7 @@ public class ListenerApplicationServiceImpl implements ListenerApplicationServic
 
         // Check if the user has access to delete the application
         if (!listenerApplication.getUser().getUserId().equals(userId) && !"ROLE_ADMIN".equals(role)) {
-            throw new RuntimeException("Access denied for deleting Listener Application with ID: " + applicationId);
+            throw new AccessDeniedException("Access denied for deleting Listener Application with ID: " + applicationId);
         }
 
         // Delete the Listener Application
@@ -166,11 +168,11 @@ public class ListenerApplicationServiceImpl implements ListenerApplicationServic
         // Find Listener Application by ID
         Optional<ListenerApplication> optionalApplication = listenerApplicationRepository.findById(applicationId);
         ListenerApplication listenerApplication = optionalApplication.orElseThrow(() ->
-                new RuntimeException("Listener Application not found for ID: " + applicationId));
+                new ListenerApplicationNotFoundException("Listener Application not found for ID: " + applicationId));
 
         // Check if the email matches or if the role is admin
         if (!listenerApplication.getUser().getEmail().equals(email) && !"ROLE_ADMIN".equals(role)) {
-            throw new RuntimeException("Access denied for updating Listener Application with ID: " + applicationId);
+            throw new AccessDeniedException("Access denied for updating Listener Application with ID: " + applicationId);
         }
 
         // Map DTO to Entity with User
@@ -249,7 +251,7 @@ public class ListenerApplicationServiceImpl implements ListenerApplicationServic
 
                 // Return the existing ListenerDetailsResponseDTO
                 Listener existingListener = listenerRepository.findByUser(applicantUser)
-                        .orElseThrow(() -> new RuntimeException("Listener not found for user: " + applicantUser.getEmail()));
+                        .orElseThrow(() -> new ListenerNotFoundException("Listener not found for user: " + applicantUser.getEmail()));
                 return ListenerDetailsMapper.toResponseDTO(existingListener);
             }
 
