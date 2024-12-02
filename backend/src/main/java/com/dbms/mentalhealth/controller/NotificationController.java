@@ -4,6 +4,7 @@ import com.dbms.mentalhealth.service.NotificationService;
 import com.dbms.mentalhealth.urlMapper.NotificationUrlMapping;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -18,8 +19,8 @@ public class NotificationController {
     }
 
     @GetMapping(NotificationUrlMapping.SUBSCRIBE_NOTIFICATIONS)
-    public SseEmitter subscribeToNotifications() {
-        return notificationService.createEmitter();
+    public SseEmitter subscribeToNotifications(@RequestParam("token") String token, @RequestParam("userId") Integer userId) {
+        return notificationService.createEmitter(userId);
     }
 
 }

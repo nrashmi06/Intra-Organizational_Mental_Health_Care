@@ -29,9 +29,7 @@ public class NotificationServiceImpl implements NotificationService {
     private final ConcurrentMap<Integer, SseEmitter> emitters = new ConcurrentHashMap<>();
 
     @Override
-    public SseEmitter createEmitter() {
-        Integer userId = jwtUtils.getUserIdFromContext();
-
+    public SseEmitter createEmitter(Integer userId) {
         // Create SseEmitter with a specific timeout (e.g., 30 seconds)
         SseEmitter emitter = new SseEmitter((long)Integer.MAX_VALUE);
 
