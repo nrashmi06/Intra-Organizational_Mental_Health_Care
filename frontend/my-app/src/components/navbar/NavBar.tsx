@@ -15,7 +15,8 @@ export default function Navbar() {
   const user = useSelector((state: RootState) => state.auth); // Access user data from Redux state
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
-  const toggleServicesDropdown = () => setIsServicesDropdownOpen(!isServicesDropdownOpen);
+  const toggleServicesDropdown = () =>
+    setIsServicesDropdownOpen(!isServicesDropdownOpen);
 
   const handleLogout = () => {
     dispatch(clearUser()); // Clear user data from Redux state
@@ -40,7 +41,9 @@ export default function Navbar() {
               height={40}
               className="rounded-full"
             />
-            <span className="text-xl font-semibold text-white">SerenitySphere</span>
+            <span className="text-xl font-semibold text-white">
+              SerenitySphere
+            </span>
           </div>
 
           {/* Desktop Navigation */}
@@ -48,19 +51,25 @@ export default function Navbar() {
             <nav className="flex flex-row items-center gap-6 px-4">
               <Link
                 href="/"
-                className={`text-sm font-medium text-white ${router.pathname === "/" ? "underline" : ""}`}
+                className={`text-sm font-medium text-white ${
+                  router.pathname === "/" ? "underline" : ""
+                }`}
               >
                 Home
               </Link>
               <Link
-                href="/blog"
-                className={`text-sm font-medium text-white ${router.pathname === "/blog" ? "underline" : ""}`}
+                href="/blog/all"
+                className={`text-sm font-medium text-white ${
+                  router.pathname === "/blog" ? "underline" : ""
+                }`}
               >
                 Blog
               </Link>
               <Link
                 href="/helpline"
-                className={`text-sm font-medium text-white ${router.pathname === "/helpline" ? "underline" : ""}`}
+                className={`text-sm font-medium text-white ${
+                  router.pathname === "/helpline" ? "underline" : ""
+                }`}
               >
                 Helpline
               </Link>
@@ -69,19 +78,31 @@ export default function Navbar() {
               <div className="relative">
                 <button
                   onClick={toggleServicesDropdown}
-                  className={`text-sm font-medium text-white ${router.pathname.includes('/services') ? "underline" : ""}`}
+                  className={`text-sm font-medium text-white ${
+                    router.pathname.includes("/services") ? "underline" : ""
+                  }`}
                 >
                   Services
                 </button>
                 {isServicesDropdownOpen && (
                   <div className="absolute left-0 w-48 mt-2 bg-white text-black rounded-md shadow-lg">
-                    <Link href="/listener-application" className="block px-4 py-2 text-sm hover:bg-gray-100">
+                    <Link
+                      href="/listener-application"
+                      className="block px-4 py-2 text-sm hover:bg-gray-100"
+                    >
                       Listener Application
                     </Link>
-                    <Link href="/appointment" className="block px-4 py-2 text-sm hover:bg-gray-100">
+
+                    <Link
+                      href="/appointment"
+                      className="block px-4 py-2 text-sm hover:bg-gray-100"
+                    >
                       Appointment
                     </Link>
-                    <Link href="/match-a-listener" className="block px-4 py-2 text-sm hover:bg-gray-100">
+                    <Link
+                      href="/match-a-listener"
+                      className="block px-4 py-2 text-sm hover:bg-gray-100"
+                    >
                       Match a Listener
                     </Link>
                   </div>
@@ -90,7 +111,9 @@ export default function Navbar() {
 
               <Link
                 href="/about"
-                className={`text-sm font-medium text-white ${router.pathname === "/about" ? "underline" : ""}`}
+                className={`text-sm font-medium text-white ${
+                  router.pathname === "/about" ? "underline" : ""
+                }`}
               >
                 About
               </Link>
@@ -106,7 +129,10 @@ export default function Navbar() {
                   </button>
                 ) : (
                   <>
-                    <Link href="/signin" className="text-sm font-medium text-white">
+                    <Link
+                      href="/signin"
+                      className="text-sm font-medium text-white"
+                    >
                       Sign-in
                     </Link>
                     <Link
@@ -123,7 +149,12 @@ export default function Navbar() {
 
           {/* Hamburger Icon for Mobile */}
           <button className="md:hidden text-white" onClick={toggleMenu}>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              width="24"
+              height="24"
+            >
               <path
                 fill="none"
                 stroke="currentColor"
@@ -152,25 +183,33 @@ export default function Navbar() {
           <nav className="flex flex-col items-center gap-6 px-4">
             <Link
               href="/"
-              className={`text-sm font-medium text-white ${router.pathname === "/" ? "underline" : ""}`}
+              className={`text-sm font-medium text-white ${
+                router.pathname === "/" ? "underline" : ""
+              }`}
             >
               Home
             </Link>
             <Link
-              href="/blog"
-              className={`text-sm font-medium text-white ${router.pathname === "/blog" ? "underline" : ""}`}
+              href="/blog/all"
+              className={`text-sm font-medium text-white ${
+                router.pathname === "/blog" ? "underline" : ""
+              }`}
             >
               Blog
             </Link>
             <Link
               href="/helpline"
-              className={`text-sm font-medium text-white ${router.pathname === "/helpline" ? "underline" : ""}`}
+              className={`text-sm font-medium text-white ${
+                router.pathname === "/helpline" ? "underline" : ""
+              }`}
             >
               Helpline
             </Link>
             <Link
               href="/about"
-              className={`text-sm font-medium text-white ${router.pathname === "/about" ? "underline" : ""}`}
+              className={`text-sm font-medium text-white ${
+                router.pathname === "/about" ? "underline" : ""
+              }`}
             >
               About
             </Link>
@@ -202,11 +241,29 @@ export default function Navbar() {
       <div className="relative bottom-0 w-full left-0 z-10">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
           <defs>
-            <linearGradient id="header-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" style={{ stopColor: "rgb(179,91,189)", stopOpacity: 1 }} />
-              <stop offset="18%" style={{ stopColor: "rgb(175,89,189)", stopOpacity: 1 }} />
-              <stop offset="41%" style={{ stopColor: "rgb(22,22,193)", stopOpacity: 1 }} />
-              <stop offset="95%" style={{ stopColor: "rgb(0,212,255)", stopOpacity: 1 }} />
+            <linearGradient
+              id="header-gradient"
+              x1="0%"
+              y1="0%"
+              x2="100%"
+              y2="0%"
+            >
+              <stop
+                offset="0%"
+                style={{ stopColor: "rgb(179,91,189)", stopOpacity: 1 }}
+              />
+              <stop
+                offset="18%"
+                style={{ stopColor: "rgb(175,89,189)", stopOpacity: 1 }}
+              />
+              <stop
+                offset="41%"
+                style={{ stopColor: "rgb(22,22,193)", stopOpacity: 1 }}
+              />
+              <stop
+                offset="95%"
+                style={{ stopColor: "rgb(0,212,255)", stopOpacity: 1 }}
+              />
             </linearGradient>
           </defs>
           <path

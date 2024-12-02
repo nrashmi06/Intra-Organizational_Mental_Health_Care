@@ -1,103 +1,234 @@
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { Card, CardContent } from "@/components/ui/card";
-import Navbar from "@/components/navbar/NavBar"; 
+import React, { useState, useEffect } from "react";
+import { Pencil, Phone, Mail, GraduationCap, Save, X } from "lucide-react";
+import Navbar from "@/components/navbar/navbar4";
 import "@/styles/global.css";
-import Footer from "@/components/footer/Footer";
+import Image from "next/image";
+import { createAdminProfile } from "@/service/adminProfile/CreateAdminProfile";
+import { fetchAdminProfile } from "@/service/adminProfile/GetAdminProfile";
+import { updateAdminProfile } from "@/service/adminProfile/UpdateAdminProfile"; // Add an update function
+import { RootState } from "@/store";
+import { useSelector } from "react-redux";
 
-export default function CounselorProfile() {
+interface AdminProfile {
+  fullName: string;
+  adminNotes: string;
+  qualifications: string;
+  contactNumber: string;
+  email: string;
+  profilePicture?: File | null; // For file upload when creating
+  profilePictureUrl?: string;  // For URL when fetching the profile
+}
+
+export default function AdminProfile() {
+  const [profile, setProfile] = useState<AdminProfile>({
+    fullName: "",
+    adminNotes: "",
+    qualifications: "",
+    contactNumber: "",
+    email: "",
+    profilePicture: null
+  });
+  const [isEditing, setIsEditing] = useState(false);
+  const userID = useSelector((state: RootState) => state.auth.userId);
+  const token = useSelector((state: RootState) => state.auth.accessToken);
+  const [adminID, setAdminID] = useState<string | null>(null);
+
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setProfile((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files[0]) {
+      setProfile((prev) => ({ ...prev, profilePicture: files[0] }));
+    }
+  };
+
+  const handleSave = async () => {
+    try {
+      const updatedProfile = { ...profile, profilePicture: profile.profilePicture ?? null };
+  
+        // Remove profilePicture field from the update payload if not provided
+        delete updatedProfile.profilePictureUrl;
+
+  
+      // Update profile only with necessary fields
+      await updateAdminProfile(updatedProfile, token);
+  
+      // After successful update, fetch and set the updated profile
+      await fetchProfile();
+      setIsEditing(false);
+    } catch (error) {
+      console.error("Error saving profile:", error);
+    }
+  };
+  
+  
+
+  const handleCancel = () => {
+    setIsEditing(false);
+  };
+
+   // Fetch admin profile on page load or when token/userID changes
+   const fetchProfile = async () => {
+    try {
+      const fetchedProfile = await fetchAdminProfile(token);
+      if (fetchedProfile) {
+        setProfile(fetchedProfile);
+        setAdminID(fetchedProfile.adminId.toString());
+      } else {
+        // If no profile exists, create one
+        await createAdminProfile({ ...profile, profilePicture: profile.profilePicture ?? null }, token);
+      }
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchProfile();
+  }, [userID, token]);
+
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Header */}
+    <div className=" flex-col min-h-screen bg-gradient-to-r from-purple-300 to-blue-300">
       <Navbar />
-
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold text-gray-800 mb-6">Counselor Profile</h1>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Left Column */}
-          <div className="space-y-6">
-            <Card className="bg-gray-200">
-              <CardContent className="p-6 flex flex-col items-center">
-                <div className="w-32 h-32 bg-white rounded-lg mb-4 flex items-center justify-center">
-                  <span className="text-gray-400">photo</span>
-                </div>
-                <h2 className="text-xl font-semibold">Name</h2>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gray-200">
-              <CardContent className="p-6">
-                <h2 className="text-xl font-semibold mb-4">Repertoire</h2>
-                <p className="text-gray-700 text-center">
-                  Our site prioritizes data security and compliance with regulations, ensuring
-                  the safety and privacy of all users. Our site prioritizes data security and
-                  compliance with regulations, ensuring the safety and privacy of all users.
-                </p>
-              </CardContent>
-            </Card>
+      <main className="container mx-auto px-4 py-12 flex-1">
+        <div className="bg-white rounded-lg shadow-lg overflow-hidden flex flex-col md:flex-row">
+          {/* Profile Picture Section */}
+          <div className="bg-gradient-to-t from-gray-300 to-gray-100 p-6 flex flex-col items-center md:w-2/5">
+            {profile.profilePictureUrl ? (
+              <Image
+                src={profile.profilePictureUrl}
+                alt="Profile"
+                width={300}
+                height={300}
+                className="rounded-full object-cover shadow-lg"
+              />
+            ) : profile.profilePicture ? (
+              <Image
+                src={URL.createObjectURL(profile.profilePicture)}
+                alt="Profile"
+                width={300}
+                height={250}
+                className="rounded-full object-cover shadow-lg"
+              />
+            ) : (
+              <div className="w-48 h-48 bg-gray-200 rounded-full flex items-center justify-center shadow-lg">
+                <span className="text-gray-400">No photo</span>
+              </div>
+            )}
+            {isEditing && (
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="mt-4"
+              />
+            )}
+            <h1 className="mt-4 text-2xl font-semibold text-gray-800">{profile.fullName}</h1>
           </div>
 
-          {/* Right Column */}
-          <div className="md:col-span-2 space-y-6">
-            <Card className="bg-gray-200">
-              <CardContent className="p-6">
-                <h2 className="text-xl font-semibold mb-4">About Counselor</h2>
-                <p className="text-gray-700 text-center">
-                  Our site prioritizes data security and compliance with regulations, ensuring the safety
-                  and privacy of all users. Our site prioritizes data security and compliance with
-                  regulations, ensuring the safety and privacy of all users.
-                </p>
-              </CardContent>
-            </Card>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* User Testimonials */}
-              <Card className="bg-gray-200">
-                <CardContent className="p-6">
-                  <h2 className="text-xl font-semibold mb-4">User Testimonials</h2>
-                  <div className="relative">
-                    <button className="absolute left-0 top-1/2 -translate-y-1/2 p-2 bg-white rounded-full shadow-lg">
-                      <ChevronLeft className="h-4 w-4" />
-                    </button>
-                    <div className="px-8">
-                      <blockquote className="text-gray-700 text-center">
-                        &quot;Our site prioritizes data security and compliance with regulations, ensuring
-                        the safety and privacy of all users.&quot;
-                      </blockquote>
-                    </div>
-                    <button className="absolute right-0 top-1/2 -translate-y-1/2 p-2 bg-white rounded-full shadow-lg">
-                      <ChevronRight className="h-4 w-4" />
-                    </button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Listener Testimonials */}
-              <Card className="bg-gray-200">
-                <CardContent className="p-6">
-                  <h2 className="text-xl font-semibold mb-4">Listener Testimonials</h2>
-                  <div className="relative">
-                    <button className="absolute left-0 top-1/2 -translate-y-1/2 p-2 bg-white rounded-full shadow-lg">
-                      <ChevronLeft className="h-4 w-4" />
-                    </button>
-                    <div className="px-8">
-                      <blockquote className="text-gray-700 text-center">
-                        &quot;Our site prioritizes data security and compliance with regulations, ensuring
-                        the safety and privacy of all users.&quot;
-                      </blockquote>
-                    </div>
-                    <button className="absolute right-0 top-1/2 -translate-y-1/2 p-2 bg-white rounded-full shadow-lg">
-                      <ChevronRight className="h-4 w-4" />
-                    </button>
-                  </div>
-                </CardContent>
-              </Card>
+          {/* Profile Details Section */}
+          <div className="p-6 flex-1">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-gray-800">Counselor Profile</h2>
+              {!isEditing && (
+                <Pencil
+                  className="h-6 w-6 cursor-pointer text-gray-500"
+                  onClick={() => setIsEditing(true)}
+                />
+              )}
             </div>
+            <div className="mt-6 space-y-6">
+              {/* About Counselor */}
+              <div>
+                <h3 className="text-xl font-semibold text-gray-800">About Counselor</h3>
+                {isEditing ? (
+                  <textarea
+                    name="adminNotes"
+                    value={profile.adminNotes}
+                    onChange={handleInputChange}
+                    className="w-full mt-2 border rounded p-2"
+                  />
+                ) : (
+                  <p className="text-gray-700 mt-2">{profile.adminNotes}</p>
+                )}
+              </div>
+              {/* Contact Information */}
+              <div>
+                <h3 className="text-xl font-semibold text-gray-800">Contact Information</h3>
+                <div className="mt-4 space-y-2">
+                  <div className="flex items-center">
+                    <GraduationCap className="h-5 w-5 text-purple-600 mr-2" />
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        name="qualifications"
+                        value={profile.qualifications}
+                        onChange={handleInputChange}
+                        className="w-full border rounded p-2"
+                      />
+                    ) : (
+                      <p>{profile.qualifications}</p>
+                    )}
+                  </div>
+                  <div className="flex items-center">
+                    <Phone className="h-5 w-5 text-purple-600 mr-2" />
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        name="contactNumber"
+                        value={profile.contactNumber}
+                        onChange={handleInputChange}
+                        className="w-full border rounded p-2"
+                      />
+                    ) : (
+                      <p>{profile.contactNumber}</p>
+                    )}
+                  </div>
+                  <div className="flex items-center">
+                    <Mail className="h-5 w-5 text-purple-600 mr-2" />
+                    {isEditing ? (
+                      <input
+                        type="email"
+                        name="email"
+                        value={profile.email}
+                        onChange={handleInputChange}
+                        className="w-full border rounded p-2"
+                      />
+                    ) : (
+                      <p>{profile.email}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Save/Cancel Buttons */}
+            {isEditing && (
+              <div className="mt-6 flex justify-end space-x-4">
+                <button
+                  onClick={handleCancel}
+                  className="flex items-center px-4 py-2 bg-gray-400 text-white rounded shadow"
+                >
+                  <X className="h-5 w-5 mr-2" />
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSave}
+                  className="flex items-center px-4 py-2 bg-blue-500 text-white rounded shadow"
+                >
+                  <Save className="h-5 w-5 mr-2" />
+                  Save
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </main>
-      <Footer />
     </div>
   );
 }
