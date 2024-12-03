@@ -34,69 +34,64 @@ public class SessionFeedbackServiceImpl implements SessionFeedbackService {
 
     @Override
     public SessionFeedbackResponseDTO createFeedback(SessionFeedbackRequestDTO requestDTO) {
-        try {
-            SessionFeedback sessionFeedback = sessionFeedbackMapper.toEntity(requestDTO);
-            Listener listener = sessionFeedback.getSession().getListener();
+        SessionFeedback sessionFeedback = sessionFeedbackMapper.toEntity(requestDTO);
+        Listener listener = sessionFeedback.getSession().getListener();
 
-            // Calculate the new average rating
-            BigDecimal currentTotalRating = listener.getAverageRating().multiply(BigDecimal.valueOf(listener.getFeedbackCount()));
-            BigDecimal newTotalRating = currentTotalRating.add(BigDecimal.valueOf(sessionFeedback.getRating()));
-            BigDecimal newAverageRating = newTotalRating.divide(BigDecimal.valueOf(listener.getFeedbackCount() + 1), 2, BigDecimal.ROUND_HALF_UP);
-
-            // Update listener's average rating and feedback count
-            listener.setAverageRating(newAverageRating);
-            listener.setFeedbackCount(listener.getFeedbackCount() + 1);
-
-            // Save the updated listener details
-            listenerRepository.save(listener);
-
-            sessionFeedback = sessionFeedbackRepository.save(sessionFeedback);
-            return sessionFeedbackMapper.toResponseDTO(sessionFeedback);
-        } catch (Exception e) {
-            throw new RuntimeException("Error creating feedback", e);
+        if (listener == null) {
+            throw new ListenerNotFoundException("Listener not found for the session");
         }
+
+        // Calculate the new average rating
+        BigDecimal currentTotalRating = listener.getAverageRating().multiply(BigDecimal.valueOf(listener.getFeedbackCount()));
+        BigDecimal newTotalRating = currentTotalRating.add(BigDecimal.valueOf(sessionFeedback.getRating()));
+        BigDecimal newAverageRating = newTotalRating.divide(BigDecimal.valueOf(listener.getFeedbackCount() + 1), 2, BigDecimal.ROUND_HALF_UP);
+
+        // Update listener's average rating and feedback count
+        listener.setAverageRating(newAverageRating);
+        listener.setFeedbackCount(listener.getFeedbackCount() + 1);
+
+        // Save the updated listener details
+        listenerRepository.save(listener);
+
+        sessionFeedback = sessionFeedbackRepository.save(sessionFeedback);
+        return sessionFeedbackMapper.toResponseDTO(sessionFeedback);
     }
 
     @Override
     public List<SessionFeedbackResponseDTO> getFeedbackBySessionId(Integer sessionId) {
-        try {
-            List<SessionFeedback> feedbackList = sessionFeedbackRepository.findBySession_SessionId(sessionId);
-            return feedbackList.stream()
-                    .map(sessionFeedbackMapper::toResponseDTO)
-                    .toList();
-        } catch (FeedbackNotFoundException e) {
+        List<SessionFeedback> feedbackList = sessionFeedbackRepository.findBySession_SessionId(sessionId);
+        if (feedbackList.isEmpty()) {
             throw new FeedbackNotFoundException("Feedback for session with ID " + sessionId + " not found");
         }
+        return feedbackList.stream()
+                .map(sessionFeedbackMapper::toResponseDTO)
+                .toList();
     }
 
     @Override
     public SessionFeedbackResponseDTO getFeedbackById(Integer feedbackId) {
-        try {
-            SessionFeedback sessionFeedback = sessionFeedbackRepository.findById(feedbackId)
-                    .orElseThrow(() -> new FeedbackNotFoundException("Feedback with id " + feedbackId + " not found"));
-            return sessionFeedbackMapper.toResponseDTO(sessionFeedback);
-        } catch (FeedbackNotFoundException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new RuntimeException("Error retrieving feedback by ID " + feedbackId, e);
-        }
+        SessionFeedback sessionFeedback = sessionFeedbackRepository.findById(feedbackId)
+                .orElseThrow(() -> new FeedbackNotFoundException("Feedback with id " + feedbackId + " not found"));
+        return sessionFeedbackMapper.toResponseDTO(sessionFeedback);
     }
 
     @Override
     public List<SessionFeedbackResponseDTO> getAllListenerFeedback(Integer listenerId) {
-        try{
-            List<SessionFeedback> feedbackList = sessionFeedbackRepository.findByListener_ListenerId(listenerId);
-            return feedbackList.stream()
-                    .map(sessionFeedbackMapper::toResponseDTO)
-                    .toList();
-        } catch (ListenerNotFoundException e) {
+        List<SessionFeedback> feedbackList = sessionFeedbackRepository.findByListener_ListenerId(listenerId);
+        if (feedbackList.isEmpty()) {
             throw new ListenerNotFoundException("Listener with ID " + listenerId + " not found");
         }
+        return feedbackList.stream()
+                .map(sessionFeedbackMapper::toResponseDTO)
+                .toList();
     }
 
     @Override
     public SessionFeedbackSummaryResponseDTO getFeedbackSummary() {
         List<SessionFeedback> feedbacks = sessionFeedbackRepository.findAll();
+        if (feedbacks.isEmpty()) {
+            throw new FeedbackNotFoundException("No feedback found");
+        }
 
         BigDecimal avgRating = feedbacks.stream()
                 .map(SessionFeedback::getRating)

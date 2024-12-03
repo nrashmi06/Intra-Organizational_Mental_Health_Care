@@ -189,6 +189,7 @@ public class UserActivityServiceImpl implements UserActivityService {
             for (SseEmitter emitter : roleEmitters) {
                 try {
                     emitter.send(SseEmitter.event().name("roleCounts").data(cachedData));
+                    log.info("User Details Cache: {}", cachedData);
                 } catch (IOException e) {
                     roleEmitters.remove(emitter);
                 }

@@ -155,16 +155,39 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         if (sessionsForId != null) {
             sessionsForId.forEach((username, wsSession) -> {
                 if (!username.equals(excludeUser) && wsSession.isOpen()) {
-                    try {
-                        wsSession.sendMessage(new TextMessage(message));
-                    } catch (IOException e) {
-                        log.error("Error broadcasting message", e);
+                    synchronized (wsSession) {
+                        try {
+                            wsSession.sendMessage(new TextMessage(message));
+                        } catch (IOException e) {
+                            log.error("Error broadcasting message", e);
+                        } catch (IllegalStateException e) {
+                            log.error("WebSocket session in invalid state for sending message", e);
+                        }
                     }
                 }
             });
         }
     }
-
+    // ChatWebSocketHandler.java
+    public boolean endSession(String sessionId) {
+        Map<String, WebSocketSession> sessionsForId = chatSessions.remove(sessionId);
+        if (sessionsForId != null) {
+            sessionsForId.forEach((username, wsSession) -> {
+                if (wsSession.isOpen()) {
+                    try {
+                        wsSession.close(CloseStatus.NORMAL);
+                    } catch (IOException e) {
+                        log.error("Error closing WebSocket session", e);
+                    }
+                }
+            });
+            log.info("Session {} ended and removed from chatSessions", sessionId);
+            return true;
+        } else {
+            log.warn("Session {} not found in chatSessions", sessionId);
+            return false;
+        }
+    }
     private String createSystemMessage(String content) {
         return "SYSTEM: " + content;
     }

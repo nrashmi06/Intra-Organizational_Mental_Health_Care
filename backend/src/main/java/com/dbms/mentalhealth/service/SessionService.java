@@ -15,4 +15,5 @@ public interface SessionService {
     List<SessionSummaryDTO> getSessionsByUserIdOrListenerId(Integer userId, String role);
     List<SessionSummaryDTO> getSessionsByStatus(String status);
     List<ChatMessageDTO> getMessagesBySessionId(Integer sessionId);
+    String getAverageSessionDuration();
 }
