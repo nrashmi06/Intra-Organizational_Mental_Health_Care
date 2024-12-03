@@ -1,3 +1,5 @@
+//fetch the application of the user with or without the application ID.
+
 import axios from "axios";
 
 const API_BASE_URL =
