@@ -12,7 +12,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import Navbar from "@/components/navbar/navbar3";
 import "@/styles/globals.css";
 import { fetchListeners } from "@/service/listener/fetchListeners";
 import { RootState } from "@/store";

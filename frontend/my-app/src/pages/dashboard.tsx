@@ -12,7 +12,7 @@ import { RootState } from "@/store";
 import BlogApprovalTable from "@/components/dashboard/BlogApprovalTable";
 
 import { fetchListeners } from "@/service/listener/fetchListeners";
-import ListenerApprovalTable from "@/components/listener/ListenerApproveTable";
+import ListenerApprovalTable from "@/components/dashboard/ListenerApproveTable";
 
 interface Listener {
   applicationId: number;

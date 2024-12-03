@@ -1,7 +1,6 @@
 import { useState } from "react";
-import Badge from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle2, MoreVertical } from "lucide-react";
 import Image from "next/image";
 import { deleteApplication } from "@/service/listener/deleteAndUpdate";
@@ -115,18 +114,6 @@ export default function ListenerCard({ listener }: { listener: Listener }) {
               className="absolute right-0 mt-2 bg-white border border-gray-200 shadow-md rounded-md z-50"
               style={{ minWidth: "150px" }}
             >
-              {/* <div
-                onClick={() => setIsDropdownOpen(false)}
-                className="px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer"
-              >
-                Settings
-              </div> */}
-              {/* <div
-                onClick={() => setIsDropdownOpen(false)}
-                className="px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer"
-              >
-                Edit
-              </div> */}
               <div
                 onClick={() => setDeletePopUp(true)}
                 className="px-4 py-2 text-sm text-red-500 hover:bg-red-100 cursor-pointer"
@@ -138,7 +125,7 @@ export default function ListenerCard({ listener }: { listener: Listener }) {
         </div>
       </CardHeader>
 
-      <CardContent>
+      {/* <CardContent>
         <div className="space-y-2">
           {["Listeners Assigned", "Case History", "Appointments"].map(
             (item) => (
@@ -154,7 +141,7 @@ export default function ListenerCard({ listener }: { listener: Listener }) {
             )
           )}
         </div>
-      </CardContent>
+      </CardContent> */}
       {deletePopUp && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-10">
           <div className="bg-white p-6 flex gap-4 rounded-lg shadow-lg text-center">
