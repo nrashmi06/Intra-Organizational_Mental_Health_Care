@@ -5,7 +5,7 @@ import { CheckCircle2 } from "lucide-react";
 import { getListenersByProfileStatus } from "@/service/listener/getListenersByProfileStatus";
 import { RootState } from "@/store";
 import { useSelector } from "react-redux";
-import { View, X } from "lucide-react";
+import { View } from "lucide-react";
 import ViewListener from "./ViewListener";
 
 interface Listener {
@@ -107,7 +107,11 @@ const ListenerProfileStatusTable: React.FC = () => {
       </div>
 
       {selectedListener && (
-        <ViewListener listener={selectedListener} closeModal={closeModal} />
+        <ViewListener
+          selectedListener={selectedListener}
+          closeModal={closeModal}
+          action={statusFilter === "ACTIVE" ? "suspend" : "unsuspend"}
+        />
       )}
     </div>
   );
