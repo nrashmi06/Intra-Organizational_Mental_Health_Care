@@ -69,18 +69,25 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public AdminProfileResponseDTO getAdminProfile(Integer adminId) {
-        if (adminId == null) {
-            Integer userId = jwtUtils.getUserIdFromContext();
+    public AdminProfileResponseDTO getAdminProfile(Integer userId, Integer adminId) {
+        if (userId != null) {
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new UsernameNotFoundException("User not found"));
             Admin admin = adminRepository.findByUser(user)
                     .orElseThrow(() -> new AdminNotFoundException("Admin profile not found"));
             return adminMapper.toResponseDTO(admin);
+        } else if (adminId != null) {
+            Admin admin = adminRepository.findById(adminId)
+                    .orElseThrow(() -> new AdminNotFoundException("Admin profile not found"));
+            return adminMapper.toResponseDTO(admin);
+        } else {
+            Integer currentUserId = jwtUtils.getUserIdFromContext();
+            User currentUser = userRepository.findById(currentUserId)
+                    .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+            Admin admin = adminRepository.findByUser(currentUser)
+                    .orElseThrow(() -> new AdminNotFoundException("Admin profile not found"));
+            return adminMapper.toResponseDTO(admin);
         }
-        Admin admin = adminRepository.findByAdminId(adminId)
-                .orElseThrow(() -> new AdminNotFoundException("Admin profile not found"));
-        return adminMapper.toResponseDTO(admin);
     }
 
     @Override

@@ -39,13 +39,11 @@ public class AdminController {
     }
 
     @GetMapping(AdminUrlMapping.GET_ADMIN_PROFILE)
-    public ResponseEntity<AdminProfileResponseDTO> getAdminProfile(@RequestParam(value = "adminId", required = false) Integer adminId) {
-        try {
-            AdminProfileResponseDTO responseDTO = adminService.getAdminProfile(adminId);
-            return ResponseEntity.ok(responseDTO);
-        } catch (AdminNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        }
+    public ResponseEntity<AdminProfileResponseDTO> getAdminProfile(
+            @RequestParam(value = "userId", required = false) Integer userId,
+            @RequestParam(value = "adminId", required = false) Integer adminId) {
+        AdminProfileResponseDTO adminProfile = adminService.getAdminProfile(userId, adminId);
+        return ResponseEntity.ok(adminProfile);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
