@@ -24,6 +24,10 @@ public class SessionReport {
     private Session session;
 
     @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    @ManyToOne
     @JoinColumn(name = "listener_id", nullable = false)
     private Listener listener;
 
@@ -31,7 +35,7 @@ public class SessionReport {
     private String reportContent;
 
     @Column(name = "severity_level", nullable = false, length = 20)
-    private String severityLevel;
+    private Integer severityLevel;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
