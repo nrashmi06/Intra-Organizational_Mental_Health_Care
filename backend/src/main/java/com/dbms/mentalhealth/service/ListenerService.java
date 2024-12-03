@@ -9,4 +9,5 @@ public interface ListenerService {
     ListenerDetailsResponseDTO getListenerDetails(String type, Integer id);
     List<UserActivityDTO> getAllListeners();
     String suspendOrUnsuspendListener(Integer listenerId, String action);
+    void incrementMessageCount(String username);
 }

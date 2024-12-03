@@ -398,4 +398,5 @@ public class UserServiceImpl implements UserService, UserDetailsService {
                 .filter(user -> user.getRole().equals(Role.USER))
                 .toList();
     }
+
 }

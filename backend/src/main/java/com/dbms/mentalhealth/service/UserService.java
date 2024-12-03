@@ -34,4 +34,5 @@ public interface UserService {
     void suspendOrUnSuspendUser(Integer userId, String action);
     List<User> getAllUsers();
     List<User> getUsersByProfileStatus(String status);
+
 }

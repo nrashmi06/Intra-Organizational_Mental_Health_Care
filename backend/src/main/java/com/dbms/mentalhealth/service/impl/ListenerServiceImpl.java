@@ -77,4 +77,9 @@ public class ListenerServiceImpl implements ListenerService {
             throw new IllegalArgumentException("Invalid action: " + action);
         }
     }
+
+    @Override
+    public void incrementMessageCount(String username) {
+        listenerRepository.incrementMessageCount(username);
+    }
 }
