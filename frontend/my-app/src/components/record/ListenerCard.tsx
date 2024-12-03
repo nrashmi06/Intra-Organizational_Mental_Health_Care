@@ -1,54 +1,62 @@
+//Individual listener card in dashboard
 import { useState } from "react";
-import Badge from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle2, MoreVertical } from "lucide-react";
-import Image from "next/image";
-import { deleteApplication } from "@/service/listener/deleteAndUpdate";
 import { RootState } from "@/store";
 import { useSelector } from "react-redux";
-import { useRouter } from "next/router";
-interface Listener {
-  applicationId: number;
-  fullName: string;
-  branch: string;
-  semester: number;
-  certificateUrl: string;
+import { getListenerDetails } from "@/service/listener/getListenerDetails";
+import ViewListener from "../listener/ListenerDetails";
+interface anonymousListener {
+  userId: number;
+  anonymousName: string;
 }
-
+interface FullListener {
+  listenerId: number;
+  userEmail: string;
+  canApproveBlogs: boolean;
+  maxDailySessions: number;
+  totalSessions: number;
+  totalMessagesSent: number | null;
+  feedbackCount: number;
+  averageRating: number;
+  joinedAt: string;
+  approvedBy: string;
+  anonymousName: string;
+  userId: number;
+}
 const isOnline = true;
-export default function ListenerCard({ listener }: { listener: Listener }) {
+export default function ListenerCard({
+  listener,
+}: {
+  listener: anonymousListener;
+}) {
   const { accessToken } = useSelector((state: RootState) => state.auth);
-
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isImageDropdownOpen, setIsImageDropdownOpen] = useState(false);
-  const [deletePopUp, setDeletePopUp] = useState(false);
-  const [successMessage, setSuccessMessage] = useState(false);
-  const router = useRouter();
+  const [viewListener, setViewListener] = useState(false);
 
+  const [currentListener, setCurrentListener] = useState<FullListener>();
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);
   };
-  const handleDelete = async () => {
+  const handleView = async () => {
     try {
-      const response = await deleteApplication(
-        listener.applicationId,
-        accessToken
-      );
-      if (response.status === 204) {
-        setDeletePopUp(false);
-        setSuccessMessage(true);
-        setIsDropdownOpen(false);
-        setTimeout(() => {
-          router.reload();
-        }, 1000);
+      const response = await getListenerDetails(listener.userId, accessToken);
+      if (response) {
+        setViewListener(true);
+        console.log(response);
+        setCurrentListener(response);
       } else {
-        console.log("Application not deleted");
+        console.log("User not found");
       }
     } catch (error) {
       console.error("Failed to delete application:", error);
     }
   };
+
+  function closeModal(): void {
+    setViewListener(false);
+  }
 
   return (
     <Card className="p-4 bg-white shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out relative">
@@ -63,39 +71,10 @@ export default function ListenerCard({ listener }: { listener: Listener }) {
             />
             <CheckCircle2 className="absolute right-0 bottom-0 h-4 w-4 text-gray-500" />
           </div>
-          <CardTitle>{listener.fullName}</CardTitle>
+          <CardTitle>{listener.anonymousName}</CardTitle>
           <div className="text-sm text-gray-500">
-            Application ID: {listener.applicationId}
+            Listener user ID: {listener.userId}
           </div>
-          <div className="text-sm text-gray-500">Sem: {listener.semester}</div>
-          <div className="text-sm text-gray-500">Branch: {listener.branch}</div>
-          <button
-            onClick={() => setIsImageDropdownOpen(true)}
-            className="text-sm  text-left hover:underline text-blue-800"
-          >
-            View Certificate
-          </button>
-
-          {isImageDropdownOpen && (
-            <div
-              className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
-              onClick={() => setIsImageDropdownOpen(false)}
-            >
-              <div
-                className="bg-white p-4 rounded-lg shadow-lg"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <Image
-                  src={listener.certificateUrl}
-                  alt="Certificate"
-                  className="max-w-full max-h-full"
-                  sizes="(max-width: 640px) 100vw, (max-width: 768px) 90vw, 80vw"
-                  height={500}
-                  width={500}
-                />
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Dropdown Trigger */}
@@ -115,79 +94,22 @@ export default function ListenerCard({ listener }: { listener: Listener }) {
               className="absolute right-0 mt-2 bg-white border border-gray-200 shadow-md rounded-md z-50"
               style={{ minWidth: "150px" }}
             >
-              {/* <div
-                onClick={() => setIsDropdownOpen(false)}
-                className="px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer"
-              >
-                Settings
-              </div> */}
-              {/* <div
-                onClick={() => setIsDropdownOpen(false)}
-                className="px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer"
-              >
-                Edit
-              </div> */}
               <div
-                onClick={() => setDeletePopUp(true)}
-                className="px-4 py-2 text-sm text-red-500 hover:bg-red-100 cursor-pointer"
+                onClick={() => handleView()}
+                className="px-4 py-2 text-sm  hover:bg-gray-100 cursor-pointer"
               >
-                Delete Listener
+                View Listener
               </div>
             </div>
           )}
         </div>
       </CardHeader>
 
-      <CardContent>
-        <div className="space-y-2">
-          {["Listeners Assigned", "Case History", "Appointments"].map(
-            (item) => (
-              <div
-                key={item}
-                className="flex items-center justify-between py-2"
-              >
-                <span className="text-sm text-gray-700">{item}</span>
-                <Badge className="bg-black text-white hover:bg-gray-800 rounded-full px-3 py-0.5 text-xs font-normal cursor-pointer">
-                  View
-                </Badge>
-              </div>
-            )
-          )}
-        </div>
-      </CardContent>
-      {deletePopUp && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-10">
-          <div className="bg-white p-6 flex gap-4 rounded-lg shadow-lg text-center">
-            <h3 className="text-lg font-semibold text-red-600">
-              Are you sure you want to delete this listener?
-            </h3>
-            <Button
-              onClick={handleDelete}
-              className="text-sm bg-red-800 text-left  text-blue-800"
-            >
-              Delete
-            </Button>
-
-            <Button
-              onClick={() => {
-                setDeletePopUp(false);
-                setIsDropdownOpen(false);
-              }}
-            >
-              Cancel
-            </Button>
-          </div>
-        </div>
-      )}
-      {successMessage && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-10">
-          <div className="bg-white p-6 flex gap-4 rounded-lg shadow-lg text-center">
-            <h3 className="text-lg font-semibold flex flex-col space-y-4 text-red-600">
-              User deleted Successfully!
-            </h3>
-            <div className="text-sm text-gray-600">Back to dashboard...</div>
-          </div>
-        </div>
+      {viewListener && currentListener && (
+        <ViewListener
+          selectedListener={currentListener}
+          closeModal={closeModal}
+        />
       )}
     </Card>
   );

@@ -4,17 +4,16 @@ import { useSelector } from "react-redux";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Grid2X2, List, Search } from "lucide-react";
-import ListenerCard from "@/components/record/ListenerCard";
 import Navbar from "@/components/navbar/navbar3";
 import "@/styles/globals.css";
 import { fetchBlogs } from "@/service/blog/FetchByStatus";
 import { RootState } from "@/store";
 import BlogApprovalTable from "@/components/dashboard/BlogApprovalTable";
-
 import { fetchListeners } from "@/service/listener/fetchListeners";
-import ListenerApprovalTable from "@/components/listener/ListenerApproveTable";
+import ListenerApprovalTable from "@/components/dashboard/ListenerApproveTable";
+import ProfileStatus from "@/components/listener/ProfileStatus";
 
-interface Listener {
+export interface ListenerApplication {
   applicationId: number;
   fullName: string;
   branch: string;
@@ -35,12 +34,12 @@ export default function Component() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 4; // Number of cards to show per page
+  const itemsPerPage = 4;
   const [blogs, setBlogs] = useState<BlogApproval[]>([]);
   const [statusFilter, setStatusFilter] = useState<
     "pending" | "approved" | "rejected"
   >("pending");
-  const [listeners, setListeners] = useState([] as Listener[]);
+  const [listeners, setListeners] = useState([] as ListenerApplication[]);
   const token = useSelector((state: RootState) => state.auth.accessToken); // Retrieve the token from Redux store
 
   useEffect(() => {
@@ -101,7 +100,7 @@ export default function Component() {
         {/* Listeners Section */}
         <section>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold">Listeners</h2>
+            <h2 className="text-xl font-bold">Admin Dashboard</h2>
             <div className="flex items-center gap-4">
               <div className="relative">
                 <div className="relative flex items-center">
@@ -140,19 +139,8 @@ export default function Component() {
                 ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
                 : "grid-cols-1"
             }`}
-          >
-            {currentListeners.length > 0 ? (
-              currentListeners.map((listener) => (
-                <ListenerCard
-                  key={listener.applicationId}
-                  listener={listener}
-                />
-              ))
-            ) : (
-              <div className="text-gray-500">No listeners found</div>
-            )}
-          </div>
-
+          ></div>
+          <ProfileStatus />
           {/* Pagination Controls */}
           <div className="flex justify-between items-center mt-4">
             <Button
