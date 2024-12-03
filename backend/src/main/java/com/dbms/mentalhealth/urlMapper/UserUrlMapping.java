@@ -17,6 +17,7 @@ public class UserUrlMapping {
     public static final String GET_USER_BY_ID = BASE_API + USER_ID_PATH; // Get user by ID
     public static final String UPDATE_USER = BASE_API + USER_ID_PATH; // Update user details
     public static final String DELETE_USER = BASE_API + USER_ID_PATH; // Delete user
+    public static final String SUSPEND_USER_OR_UN_SUSPEND_USER = BASE_API + "/suspend" + USER_ID_PATH; // Suspend user
 
     // Password management endpoints
     public static final String CHANGE_PASSWORD = BASE_API + USER_ID_PATH + "/change-password"; // Change user password (requires userId)

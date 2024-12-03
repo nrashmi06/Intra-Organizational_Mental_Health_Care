@@ -232,7 +232,6 @@ public class ListenerApplicationServiceImpl implements ListenerApplicationServic
                 Listener newListener = new Listener();
                 newListener.setUser(applicantUser); // Set the user associated with the application
                 newListener.setCanApproveBlogs(false); // Default value
-                newListener.setMaxDailySessions(0); // Default value
                 newListener.setTotalSessions(0); // Default value
                 newListener.setAverageRating(BigDecimal.ZERO); // Default value
                 newListener.setJoinedAt(LocalDateTime.now());

@@ -105,6 +105,9 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         if (!user.getProfileStatus().equals(ProfileStatus.ACTIVE)) {
             throw new UserNotActiveException("User is not active");
         }
+        if(user.getProfileStatus().equals(ProfileStatus.SUSPENDED)){
+            throw new UserAccountSuspendedException("User Account Suspended");
+        }
 
         setUserActiveStatus(user.getEmail(), true);
 
@@ -264,6 +267,9 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
         User user = userRepository.findById(emailVerification.getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        if(user.getProfileStatus().equals(ProfileStatus.SUSPENDED)){
+            throw new UserAccountSuspendedException("User Account Suspended");
+        }
         user.setProfileStatus(ProfileStatus.ACTIVE);
         userRepository.save(user);
     }
@@ -362,5 +368,19 @@ public class UserServiceImpl implements UserService, UserDetailsService {
                 userActivityService.markUserInactive(email);
             }
         }
+    }
+
+    @Override
+    public void suspendOrUnSuspendUser(Integer userId, String action) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + userId));
+        if (action.equals("suspend")) {
+            user.setProfileStatus(ProfileStatus.SUSPENDED);
+        } else if (action.equals("unsuspend")) {
+            user.setProfileStatus(ProfileStatus.ACTIVE);
+        } else {
+            throw new IllegalArgumentException("Invalid action: " + action);
+        }
+        userRepository.save(user);
     }
 }

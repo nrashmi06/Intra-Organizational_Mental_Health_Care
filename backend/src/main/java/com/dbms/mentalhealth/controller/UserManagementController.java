@@ -76,4 +76,15 @@ public class UserManagementController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    @PutMapping(UserUrlMapping.SUSPEND_USER_OR_UN_SUSPEND_USER)
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<String> suspendOrUnSuspendUser(@RequestParam String action, @PathVariable Integer userId) {
+        try {
+            userService.suspendOrUnSuspendUser(userId, action);
+            return ResponseEntity.ok("User suspended successfully.");
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found with ID: " + userId);
+        }
+    }
 }
