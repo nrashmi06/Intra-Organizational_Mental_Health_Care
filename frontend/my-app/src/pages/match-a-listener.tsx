@@ -4,10 +4,21 @@ import { RootState } from "@/store";
 import Navbar from "@/components/navbar/navbar3";
 import { getActiveListeners } from "@/service/SSE/getActiveListeners";
 import { Button } from "@/components/ui/button";
+import ListenerDetails from "@/components/listener/ListenerDetails";
 
-interface Listener {
-  userId: string;
+export interface Listener {
+  listenerId: number;
+  userEmail: string;
+  canApproveBlogs: boolean;
+  maxDailySessions: number;
+  totalSessions: number;
+  totalMessagesSent: number | null;
+  feedbackCount: number;
+  averageRating: number;
+  joinedAt: string; // ISO date string
+  approvedBy: string;
   anonymousName: string;
+  userId: number;
 }
 
 const ListenerCard: React.FC<{ listener: Listener; onView: () => void }> = ({
@@ -71,37 +82,11 @@ export default function Component() {
           ))}
         </div>
       </div>
-
       {selectedListener && (
-        <div
-          className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
-          onClick={closeModal}
-        >
-          <div
-            className="bg-white max-w-sm w-full rounded-lg shadow-xl p-6 relative"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              onClick={closeModal}
-              className="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
-            >
-              ✕
-            </button>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-              Listener Details
-            </h2>
-            <div className="space-y-2">
-              <p className="font-medium text-gray-900">Anonymous Name:</p>
-              <p className="text-gray-700">{selectedListener.anonymousName}</p>
-            </div>
-            <button
-              onClick={closeModal}
-              className="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
-            >
-              Close
-            </button>
-          </div>
-        </div>
+        <ListenerDetails
+          selectedListener={selectedListener}
+          closeModal={closeModal}
+        />
       )}
     </div>
   );

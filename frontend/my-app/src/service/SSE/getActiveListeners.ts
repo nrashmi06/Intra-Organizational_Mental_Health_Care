@@ -7,7 +7,9 @@ export const getActiveListeners = (
   onMessage: (data: any) => void
 ) => {
   const eventSource = new EventSource(
-    `http://localhost:8080/mental-health/api/v1/sse/onlineListeners?token=${token}&ts=${new Date().getTime()}`
+    `http://localhost:8080/mental-health/api/v1/sse/onlineListeners?token=${encodeURIComponent(
+      token
+    )}`
   );
 
   eventSource.onopen = () => {
