@@ -1,7 +1,5 @@
 package com.dbms.mentalhealth.urlMapper;
 
-import static com.dbms.mentalhealth.urlMapper.SSEUrlMapping.BASE_URL;
-
 public class SessionFeedbackUrlMapping {
 
     private SessionFeedbackUrlMapping() {
@@ -17,6 +15,6 @@ public class SessionFeedbackUrlMapping {
     public static final String GET_FEEDBACK_BY_SESSION_ID = BASE_API + "/session" + SESSION_ID_PATH;
     public static final String GET_FEEDBACK_BY_ID = BASE_API + "/feedback" + FEEDBACK_ID_PATH;
     public static final String GET_ALL_LISTENER_FEEDBACK = BASE_API + "/listener" + LISTENER_ID_PATH;
-    public static final String GET_FEEDBACK_SUMMARY = BASE_API + "/summary"; // New URL mapping
+    public static final String GET_ALL_FEEDBACK_SUMMARY = BASE_API + "/summary"; // New URL mapping
 
 }

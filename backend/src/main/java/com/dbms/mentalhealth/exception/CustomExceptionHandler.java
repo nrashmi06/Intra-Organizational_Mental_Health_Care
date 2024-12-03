@@ -13,6 +13,7 @@ import com.dbms.mentalhealth.exception.listener.InvalidListenerApplicationExcept
 import com.dbms.mentalhealth.exception.listener.ListenerApplicationNotFoundException;
 import com.dbms.mentalhealth.exception.listener.ListenerNotFoundException;
 import com.dbms.mentalhealth.exception.session.FeedbackNotFoundException;
+import com.dbms.mentalhealth.exception.session.ReportNotFoundException;
 import com.dbms.mentalhealth.exception.session.SessionNotFoundException;
 import com.dbms.mentalhealth.exception.sse.EmitterCreationException;
 import com.dbms.mentalhealth.exception.sse.UserNotOnlineException;
@@ -201,5 +202,10 @@ public class CustomExceptionHandler {
     @ExceptionHandler(FeedbackNotFoundException.class)
     public ResponseEntity<String> handleFeedbackNotFoundException(FeedbackNotFoundException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(ReportNotFoundException.class)
+    public ResponseEntity<String> handleReportNotFoundException(ReportNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
 }
