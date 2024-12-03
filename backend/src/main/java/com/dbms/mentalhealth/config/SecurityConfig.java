@@ -1,5 +1,6 @@
 package com.dbms.mentalhealth.config;
 import com.dbms.mentalhealth.security.CustomAccessDeniedHandler;
+import com.dbms.mentalhealth.security.SseAuthenticationFilter;
 import com.dbms.mentalhealth.security.jwt.AuthEntryPointJwt;
 import com.dbms.mentalhealth.security.jwt.AuthTokenFilter;
 import com.dbms.mentalhealth.urlMapper.UserUrlMapping;
@@ -29,15 +30,18 @@ public class SecurityConfig {
     private final AuthEntryPointJwt unauthorizedHandler;
     private final AuthTokenFilter authTokenFilter;
     private final CustomAccessDeniedHandler accessDeniedHandler;
+    private final SseAuthenticationFilter sseAuthenticationFilter;
 
     public SecurityConfig(
             AuthEntryPointJwt unauthorizedHandler,
             AuthTokenFilter authTokenFilter,
-            CustomAccessDeniedHandler accessDeniedHandler
+            CustomAccessDeniedHandler accessDeniedHandler,
+            SseAuthenticationFilter sseAuthenticationFilter
     ) {
         this.unauthorizedHandler = unauthorizedHandler;
         this.authTokenFilter = authTokenFilter;
         this.accessDeniedHandler = accessDeniedHandler;
+        this.sseAuthenticationFilter = sseAuthenticationFilter;
     }
 
     @Bean
@@ -66,6 +70,7 @@ public class SecurityConfig {
                 )
                 .csrf(AbstractHttpConfigurer::disable)
                 .addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(sseAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 

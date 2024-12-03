@@ -7,7 +7,7 @@ public class NotificationUrlMapping {
     }
 
     // Base path for all notification-related APIs
-    private static final String BASE_API = "/api/v1/notifications";
+    private static final String BASE_API = "/api/v1/sse/notifications";
 
     // Placeholder for listener ID
     private static final String LISTENER_ID_PATH = "/{listenerId}";
