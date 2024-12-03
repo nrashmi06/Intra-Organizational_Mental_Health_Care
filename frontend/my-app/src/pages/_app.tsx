@@ -1,13 +1,21 @@
-// src/pages/_app.tsx
 import { Provider } from "react-redux";
-import { store } from "@/store"; // Adjust the path to your store file.
+import { PersistGate } from "redux-persist/integration/react";
+import { store, persistor } from "../store";
 import "@/styles/globals.css";
 import type { AppProps } from "next/app";
+import NotificationWrapper from "@/components/notification/notificationWrapper";
+import NotificationPopup from "@/components/notification/NotificationPopup";
+
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   return (
     <Provider store={store}>
-      <Component {...pageProps} />
+      <PersistGate loading={null} persistor={persistor}>
+        <NotificationWrapper>
+          <NotificationPopup />
+          <Component {...pageProps} />
+        </NotificationWrapper>
+      </PersistGate>
     </Provider>
   );
 }
