@@ -78,4 +78,10 @@ public class SessionController {
     public String getAverageSessionDuration() {
         return sessionService.getAverageSessionDuration();
     }
+
+    @GetMapping(SessionUrlMapping.GET_SESSIONS_BY_LISTENERS_USER_ID)
+    public ResponseEntity<List<SessionResponseDTO>> getSessionsByListenersUserId(@PathVariable Integer userId) {
+        List<SessionResponseDTO> sessions = sessionService.getSessionsByListenersUserId(userId);
+        return ResponseEntity.ok(sessions);
+    }
 }
