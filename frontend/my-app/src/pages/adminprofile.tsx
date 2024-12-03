@@ -5,7 +5,7 @@ import "@/styles/global.css";
 import Image from "next/image";
 import { createAdminProfile } from "@/service/adminProfile/CreateAdminProfile";
 import { fetchAdminProfile } from "@/service/adminProfile/GetAdminProfile";
-import { updateAdminProfile } from "@/service/adminProfile/UpdateAdminProfile"; // Add an update function
+import { updateAdminProfile } from "@/service/adminProfile/UpdateAdminProfile";
 import { RootState } from "@/store";
 import { useSelector } from "react-redux";
 
@@ -15,76 +15,87 @@ interface AdminProfile {
   qualifications: string;
   contactNumber: string;
   email: string;
-  profilePicture?: File | null; // For file upload when creating
-  profilePictureUrl?: string;  // For URL when fetching the profile
+  profilePicture: File | null;
+  profilePictureUrl?: string;
 }
 
 export default function AdminProfile() {
-  const [profile, setProfile] = useState<AdminProfile>({
-    fullName: "",
-    adminNotes: "",
-    qualifications: "",
-    contactNumber: "",
-    email: "",
-    profilePicture: null
-  });
+  const [profile, setProfile] = useState<AdminProfile | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
   const userID = useSelector((state: RootState) => state.auth.userId);
   const token = useSelector((state: RootState) => state.auth.accessToken);
-  const [adminID, setAdminID] = useState<string | null>(null);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setProfile((prev) => ({ ...prev, [name]: value }));
+    setProfile((prev) => (prev ? { ...prev, [name]: value } : null));
   };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files[0]) {
-      setProfile((prev) => ({ ...prev, profilePicture: files[0] }));
+      setProfile((prev) =>
+        prev ? { ...prev, profilePicture: files[0] } : null
+      );
     }
   };
 
   const handleSave = async () => {
-    try {
-      const updatedProfile = { ...profile, profilePicture: profile.profilePicture ?? null };
-  
-        // Remove profilePicture field from the update payload if not provided
-        delete updatedProfile.profilePictureUrl;
+    if (!profile) return;
 
-  
-      // Update profile only with necessary fields
-      await updateAdminProfile(updatedProfile, token);
-  
-      // After successful update, fetch and set the updated profile
-      await fetchProfile();
+    try {
+      const { profilePictureUrl, profilePicture = null, ...profileData } = profile;
+      if (isCreating) {
+        const createdProfile = await createAdminProfile({ ...profileData, profilePicture }, token);
+        setProfile({
+          ...createdProfile,
+          profilePicture: null,
+        });
+        setIsCreating(false);
+      } else {
+        await updateAdminProfile(profile, token);
+        await fetchProfile();
+      }
       setIsEditing(false);
     } catch (error) {
       console.error("Error saving profile:", error);
     }
   };
-  
-  
 
   const handleCancel = () => {
     setIsEditing(false);
+    setIsCreating(false);
   };
 
-   // Fetch admin profile on page load or when token/userID changes
-   const fetchProfile = async () => {
+  const fetchProfile = async () => {
     try {
       const fetchedProfile = await fetchAdminProfile(token);
       if (fetchedProfile) {
         setProfile(fetchedProfile);
-        setAdminID(fetchedProfile.adminId.toString());
       } else {
-        // If no profile exists, create one
-        await createAdminProfile({ ...profile, profilePicture: profile.profilePicture ?? null }, token);
+        setIsCreating(true);
+        setProfile({
+          fullName: "",
+          adminNotes: "",
+          qualifications: "",
+          contactNumber: "",
+          email: "",
+          profilePicture: null,
+        });
       }
     } catch (error) {
       console.error("Error fetching profile:", error);
+      setIsCreating(true);
+      setProfile({
+        fullName: "",
+        adminNotes: "",
+        qualifications: "",
+        contactNumber: "",
+        email: "",
+        profilePicture: null,
+      });
     }
   };
 
@@ -93,142 +104,169 @@ export default function AdminProfile() {
   }, [userID, token]);
 
   return (
-    <div className=" flex-col min-h-screen bg-gradient-to-r from-purple-300 to-blue-300">
+    <div className="flex flex-col min-h-screen bg-gradient-to-r from-purple-300 to-blue-300">
       <Navbar />
       <main className="container mx-auto px-4 py-12 flex-1">
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden flex flex-col md:flex-row">
-          {/* Profile Picture Section */}
-          <div className="bg-gradient-to-t from-gray-300 to-gray-100 p-6 flex flex-col items-center md:w-2/5">
-            {profile.profilePictureUrl ? (
-              <Image
-                src={profile.profilePictureUrl}
-                alt="Profile"
-                width={300}
-                height={300}
-                className="rounded-full object-cover shadow-lg"
+        {isCreating || isEditing ? (
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <h2 className="text-2xl font-bold mb-4">
+              {isCreating ? "Create Your Profile" : "Edit Your Profile"}
+            </h2>
+            <div className="space-y-4">
+              <InputField
+                label="Full Name"
+                name="fullName"
+                value={profile?.fullName || ""}
+                onChange={handleInputChange}
               />
-            ) : profile.profilePicture ? (
-              <Image
-                src={URL.createObjectURL(profile.profilePicture)}
-                alt="Profile"
-                width={300}
-                height={250}
-                className="rounded-full object-cover shadow-lg"
+              <TextAreaField
+                label="About You"
+                name="adminNotes"
+                value={profile?.adminNotes || ""}
+                onChange={handleInputChange}
               />
-            ) : (
-              <div className="w-48 h-48 bg-gray-200 rounded-full flex items-center justify-center shadow-lg">
-                <span className="text-gray-400">No photo</span>
-              </div>
-            )}
-            {isEditing && (
-              <input
-                type="file"
-                accept="image/*"
+              <InputField
+                label="Qualifications"
+                name="qualifications"
+                value={profile?.qualifications || ""}
+                onChange={handleInputChange}
+              />
+              <InputField
+                label="Contact Number"
+                name="contactNumber"
+                value={profile?.contactNumber || ""}
+                onChange={handleInputChange}
+              />
+              <InputField
+                label="Email"
+                name="email"
+                type="email"
+                value={profile?.email || ""}
+                onChange={handleInputChange}
+              />
+              <FileInputField
+                label="Profile Picture"
                 onChange={handleFileChange}
-                className="mt-4"
               />
-            )}
-            <h1 className="mt-4 text-2xl font-semibold text-gray-800">{profile.fullName}</h1>
+            </div>
+            <div className="mt-6 flex justify-end space-x-4">
+              <button
+                onClick={handleCancel}
+                className="px-4 py-2 bg-gray-400 text-white rounded shadow"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSave}
+                className="px-4 py-2 bg-blue-500 text-white rounded shadow"
+              >
+                Save
+              </button>
+            </div>
           </div>
-
-          {/* Profile Details Section */}
-          <div className="p-6 flex-1">
-            <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-gray-800">Counselor Profile</h2>
-              {!isEditing && (
-                <Pencil
-                  className="h-6 w-6 cursor-pointer text-gray-500"
-                  onClick={() => setIsEditing(true)}
+        ) : profile ? (
+          <div className="bg-white rounded-lg shadow-lg overflow-hidden flex flex-col md:flex-row">
+            <div className="p-6">
+              <h2 className="text-2xl font-bold mb-4">{profile.fullName}</h2>
+              {profile.profilePictureUrl && (
+                <Image
+                  src={profile.profilePictureUrl}
+                  alt="Profile Picture"
+                  width={100}
+                  height={100}
+                  className="rounded-full mb-4"
                 />
               )}
+              <p className="text-gray-700 mb-2">
+                <GraduationCap className="inline-block mr-2" />
+                {profile.qualifications}
+              </p>
+              <p className="text-gray-700 mb-2">
+                <Phone className="inline-block mr-2" />
+                {profile.contactNumber}
+              </p>
+              <p className="text-gray-700 mb-2">
+                <Mail className="inline-block mr-2" />
+                {profile.email}
+              </p>
+              <p className="text-gray-700">{profile.adminNotes}</p>
+              <button
+                onClick={() => setIsEditing(true)}
+                className="mt-4 px-4 py-2 bg-green-500 text-white rounded shadow"
+              >
+                Edit Profile
+              </button>
             </div>
-            <div className="mt-6 space-y-6">
-              {/* About Counselor */}
-              <div>
-                <h3 className="text-xl font-semibold text-gray-800">About Counselor</h3>
-                {isEditing ? (
-                  <textarea
-                    name="adminNotes"
-                    value={profile.adminNotes}
-                    onChange={handleInputChange}
-                    className="w-full mt-2 border rounded p-2"
-                  />
-                ) : (
-                  <p className="text-gray-700 mt-2">{profile.adminNotes}</p>
-                )}
-              </div>
-              {/* Contact Information */}
-              <div>
-                <h3 className="text-xl font-semibold text-gray-800">Contact Information</h3>
-                <div className="mt-4 space-y-2">
-                  <div className="flex items-center">
-                    <GraduationCap className="h-5 w-5 text-purple-600 mr-2" />
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        name="qualifications"
-                        value={profile.qualifications}
-                        onChange={handleInputChange}
-                        className="w-full border rounded p-2"
-                      />
-                    ) : (
-                      <p>{profile.qualifications}</p>
-                    )}
-                  </div>
-                  <div className="flex items-center">
-                    <Phone className="h-5 w-5 text-purple-600 mr-2" />
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        name="contactNumber"
-                        value={profile.contactNumber}
-                        onChange={handleInputChange}
-                        className="w-full border rounded p-2"
-                      />
-                    ) : (
-                      <p>{profile.contactNumber}</p>
-                    )}
-                  </div>
-                  <div className="flex items-center">
-                    <Mail className="h-5 w-5 text-purple-600 mr-2" />
-                    {isEditing ? (
-                      <input
-                        type="email"
-                        name="email"
-                        value={profile.email}
-                        onChange={handleInputChange}
-                        className="w-full border rounded p-2"
-                      />
-                    ) : (
-                      <p>{profile.email}</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Save/Cancel Buttons */}
-            {isEditing && (
-              <div className="mt-6 flex justify-end space-x-4">
-                <button
-                  onClick={handleCancel}
-                  className="flex items-center px-4 py-2 bg-gray-400 text-white rounded shadow"
-                >
-                  <X className="h-5 w-5 mr-2" />
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSave}
-                  className="flex items-center px-4 py-2 bg-blue-500 text-white rounded shadow"
-                >
-                  <Save className="h-5 w-5 mr-2" />
-                  Save
-                </button>
-              </div>
-            )}
           </div>
-        </div>
+        ) : (
+          <p>Loading...</p>
+        )}
       </main>
     </div>
   );
 }
+
+const InputField = ({
+  label,
+  name,
+  value,
+  onChange,
+  type = "text",
+}: {
+  label: string;
+  name: string;
+  value: string;
+  onChange: React.ChangeEventHandler<HTMLInputElement>;
+  type?: string;
+}) => (
+  <div>
+    <label className="block text-gray-700">{label}</label>
+    <input
+      type={type}
+      name={name}
+      value={value}
+      onChange={onChange}
+      className="w-full border rounded p-2"
+    />
+  </div>
+);
+
+const TextAreaField = ({
+  label,
+  name,
+  value,
+  onChange,
+}: {
+  label: string;
+  name: string;
+  value: string;
+  onChange: React.ChangeEventHandler<HTMLTextAreaElement>;
+}) => (
+  <div>
+    <label className="block text-gray-700">{label}</label>
+    <textarea
+      name={name}
+      value={value}
+      onChange={onChange}
+      className="w-full border rounded p-2"
+    />
+  </div>
+);
+
+const FileInputField = ({
+  label,
+  onChange,
+}: {
+  label: string;
+  onChange: React.ChangeEventHandler<HTMLInputElement>;
+}) => (
+  <div>
+    <label className="block text-gray-700">{label}</label>
+    <input
+      type="file"
+      accept="image/*"
+      onChange={onChange}
+      className="w-full border rounded p-2"
+    />
+  </div>
+);
