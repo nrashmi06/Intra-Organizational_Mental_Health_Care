@@ -12,6 +12,7 @@ import BlogApprovalTable from "@/components/dashboard/BlogApprovalTable";
 import { fetchListeners } from "@/service/listener/fetchListeners";
 import ListenerApprovalTable from "@/components/dashboard/ListenerApproveTable";
 import ProfileStatus from "@/components/listener/ProfileStatus";
+import ActiveUsers from "@/components/dashboard/ActiveUsers";
 
 export interface ListenerApplication {
   applicationId: number;
@@ -141,6 +142,7 @@ export default function Component() {
             }`}
           ></div>
           <ProfileStatus />
+          <ActiveUsers />
           {/* Pagination Controls */}
           <div className="flex justify-between items-center mt-4">
             <Button

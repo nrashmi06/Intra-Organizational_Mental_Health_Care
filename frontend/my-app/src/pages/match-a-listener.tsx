@@ -25,7 +25,7 @@ const Details: React.FC<{ listener: Listener; onView: () => void }> = ({
   listener,
   onView,
 }) => (
-  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-5 rounded-xl shadow-lg mb-6 max-w-sm mx-auto transition-transform transform hover:scale-105">
+  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-5 shadow-lg mb-6 max-w-sm mx-auto transition-transform transform hover:scale-105">
     <div className="flex items-center space-x-4">
       <div className="w-12 h-12 bg-indigo-200 rounded-full flex items-center justify-center text-indigo-800 font-bold text-lg shadow-sm">
         {listener.anonymousName.charAt(0).toUpperCase()}
@@ -39,7 +39,7 @@ const Details: React.FC<{ listener: Listener; onView: () => void }> = ({
     </div>
     <Button
       onClick={onView}
-      className="mt-4 w-full bg-indigo-500 text-white py-2 px-4 rounded-lg hover:bg-indigo-600 focus:ring-2 focus:ring-indigo-300 transition duration-200"
+      className="mt-4 w-full bg-indigo-500 text-white py-1 px-2 rounded-lg hover:bg-indigo-600 focus:ring-2 focus:ring-indigo-300 transition duration-200"
     >
       View Details
     </Button>
@@ -71,7 +71,7 @@ export default function Component() {
   return (
     <div>
       <Navbar />
-      <div className="min-h-screen bg-gradient-to-br from-purple-500 to-blue-500 p-4">
+      <div className="min-h-screen bg-gradient-to-br  p-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
           {listeners.map((listener) => (
             <Details

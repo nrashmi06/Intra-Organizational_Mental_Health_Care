@@ -1,69 +1,78 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle2 } from "lucide-react";
-import { getListenersByProfileStatus } from "@/service/listener/getListenersByProfileStatus";
+import { CheckCircle2, View } from "lucide-react";
 import { RootState } from "@/store";
 import { useSelector } from "react-redux";
-import { View } from "lucide-react";
-import ViewListener from "./ViewListener";
+import { getActiveUserByRoleName } from "@/service/SSE/getActiveUserByRoleName";
 
 interface Listener {
-  userId: number;
+  userId: string;
   anonymousName: string;
 }
 
 const ListenerProfileStatusTable: React.FC = () => {
-  const [listeners, setListeners] = useState<Listener[]>([]);
-  const [statusFilter, setStatusFilter] = useState<"ACTIVE" | "SUSPENDED">(
-    "ACTIVE"
-  );
-  const [selectedListener, setSelectedListener] = useState<Listener | null>(
-    null
-  );
   const token = useSelector((state: RootState) => state.auth.accessToken); // Retrieve the token from Redux store
+  const [listeners, setListeners] = useState<Listener[]>([]);
+  const [statusFilter, setStatusFilter] = useState<
+    "onlineUsers" | "onlineListeners" | "onlineAdmins"
+  >("onlineUsers");
+  const [eventSource, setEventSource] = useState<EventSource | null>(null); // Track the active EventSource
 
   useEffect(() => {
-    fetchListenersByProfileStatus("ACTIVE");
-  }, []);
-
-  const fetchListenersByProfileStatus = async (
-    status: "ACTIVE" | "SUSPENDED"
-  ) => {
-    try {
-      const response = await getListenersByProfileStatus(token, status);
-      console.log("Listeners by profile status:", response);
-      setListeners(response);
-      setStatusFilter(status);
-    } catch (error) {
-      console.error("Error fetching listeners by profile status:", error);
+    // Clean up the previous EventSource
+    if (eventSource) {
+      eventSource.close();
     }
+
+    const newEventSource = getActiveUserByRoleName(
+      statusFilter,
+      token,
+      (data) => {
+        setListeners(data);
+      }
+    ) as EventSource;
+
+    setEventSource(newEventSource);
+
+    return () => {
+      newEventSource.close(); // Clean up when component unmounts or filter changes
+    };
+  }, [statusFilter, token]);
+  // React to changes in statusFilter or token
+
+  const fetchListenersByProfileStatus = (
+    type: "onlineUsers" | "onlineListeners" | "onlineAdmins"
+  ) => {
+    setStatusFilter(type); // Update the status filter
   };
 
   const handleViewClick = (listener: Listener) => {
-    setSelectedListener(listener);
-  };
-
-  const closeModal = () => {
-    setSelectedListener(null);
+    console.log("View Listener Details:", listener);
   };
 
   return (
     <div className="bg-white rounded-lg p-4">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold">Listener Profile Status</h2>
+        <h2 className="text-xl font-bold">All Active Users</h2>
         <div className="flex gap-2">
           <Button
-            variant={statusFilter === "ACTIVE" ? "default" : "outline"}
-            onClick={() => fetchListenersByProfileStatus("ACTIVE")}
+            variant={statusFilter === "onlineUsers" ? "default" : "outline"}
+            onClick={() => fetchListenersByProfileStatus("onlineUsers")}
           >
-            Active
+            Users
           </Button>
           <Button
-            variant={statusFilter === "SUSPENDED" ? "default" : "outline"}
-            onClick={() => fetchListenersByProfileStatus("SUSPENDED")}
+            variant={statusFilter === "onlineListeners" ? "default" : "outline"}
+            onClick={() => fetchListenersByProfileStatus("onlineListeners")}
           >
-            Suspended
+            Listeners
+          </Button>
+          <Button
+            variant={statusFilter === "onlineAdmins" ? "default" : "outline"}
+            onClick={() => fetchListenersByProfileStatus("onlineAdmins")}
+          >
+            Admins
           </Button>
         </div>
       </div>
@@ -79,7 +88,6 @@ const ListenerProfileStatusTable: React.FC = () => {
                 <div className="flex flex-col">
                   <div className="relative mb-1">
                     <div className="h-12 w-12 bg-[repeating-conic-gradient(#000_0_90deg,#fff_90deg_180deg,#000_180deg_270deg,#fff_270deg_360deg)] rounded-full" />
-
                     <CheckCircle2 className="absolute right-0 bottom-0 h-4 w-4 text-gray-500" />
                   </div>
                   <CardTitle>{listener.anonymousName}</CardTitle>
@@ -105,14 +113,6 @@ const ListenerProfileStatusTable: React.FC = () => {
           </div>
         )}
       </div>
-
-      {selectedListener && (
-        <ViewListener
-          selectedListener={selectedListener}
-          closeModal={closeModal}
-          action={statusFilter === "ACTIVE" ? "suspend" : "unsuspend"}
-        />
-      )}
     </div>
   );
 };
