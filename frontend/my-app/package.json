@@ -15,6 +15,7 @@
     "axios": "^1.7.7",
     "classnames": "^2.5.1",
     "clsx": "^2.1.1",
+    "event-source-polyfill": "^1.0.31",
     "formidable": "^3.5.2",
     "lucide-react": "^0.457.0",
     "next": "15.0.3",
@@ -26,6 +27,7 @@
     "redux-persist": "^6.0.0"
   },
   "devDependencies": {
+    "@types/event-source-polyfill": "^1.0.5",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",

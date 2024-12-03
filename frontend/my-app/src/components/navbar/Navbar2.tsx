@@ -126,7 +126,7 @@ export default function Navbar() {
                 ) : (
                   <button
                     onClick={handleLogout}
-                    className="text-sm font-medium text-red-500"
+                    className="text-sm font-medium text-white bg-black px-4 py-2 rounded-full hover:bg-gray-800 transition-colors"
                   >
                     Logout
                   </button>
@@ -238,7 +238,7 @@ export default function Navbar() {
               ) : (
                 <button
                   onClick={handleLogout}
-                  className="text-sm font-medium text-red-500"
+                  className="text-sm font-medium text-white bg-black px-4 py-2 rounded-full hover:bg-gray-800 transition-colors"
                 >
                   Logout
                 </button>
