@@ -100,8 +100,49 @@ export default function AdminProfile() {
   };
 
   useEffect(() => {
-    fetchProfile();
+    const checkAndFetchProfile = async () => {
+      try {
+        // Assuming `fetchAdminProfile` will return `null` or an empty object if the profile doesn't exist.
+        const fetchedProfile = await fetchAdminProfile(token);
+  
+        if (fetchedProfile) {
+          // If the profile exists, set it to state
+          setProfile(fetchedProfile);
+          setIsCreating(false); // The profile exists, so we are not creating a new one
+        } else {
+          // If no profile exists, show the create form
+          setProfile({
+            fullName: "",
+            adminNotes: "",
+            qualifications: "",
+            contactNumber: "",
+            email: "",
+            profilePicture: null,
+          });
+          setIsCreating(true); // Enable creation mode
+        }
+      } catch (error) {
+        console.error("Please create a profile:", error);
+  
+        // Graceful fallback in case of an error
+        setProfile({
+          fullName: "",
+          adminNotes: "",
+          qualifications: "",
+          contactNumber: "",
+          email: "",
+          profilePicture: null,
+        });
+        setIsCreating(true); // Enable creation mode due to error
+      }
+    };
+  
+    // Fetch the profile only if a user ID exists
+    if (userID) {
+      checkAndFetchProfile();
+    }
   }, [userID, token]);
+  
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-r from-purple-300 to-blue-300">

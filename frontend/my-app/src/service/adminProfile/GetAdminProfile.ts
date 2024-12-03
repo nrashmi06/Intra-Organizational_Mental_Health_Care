@@ -1,4 +1,5 @@
 import axios from 'axios';
+// import error from 'next/error';
 
 export const fetchAdminProfile = async (token: string) => {
   try {
@@ -13,7 +14,11 @@ export const fetchAdminProfile = async (token: string) => {
       }
     );
     return response.data;
-  } catch (error) {
+  } catch (error: any) {
+    if (error.response && error.response.status === 404) {
+      console.warn("Profile not found (404). Returning null.");
+      return null; // Explicitly handle 404
+    }
     console.error("Error fetching admin profile:", error);
     throw error;
   }
