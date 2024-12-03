@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -76,7 +77,6 @@ public class SessionServiceImpl implements SessionService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
 
-        String message;
         if ("accept".equalsIgnoreCase(action)) {
             // Create and save session
             Session session = new Session();
@@ -86,13 +86,17 @@ public class SessionServiceImpl implements SessionService {
             session.setSessionStart(LocalDateTime.now());
             sessionRepository.save(session);
 
-            // Prepare session notification
-            message = "Your session request has been accepted by listener " +
+            // Prepare session notifications
+            String userMessage = "Your session request has been accepted by listener " +
                     listener.getUser().getAnonymousName() +
-                    ". Session starting soon";
+                    ". Session starting soon. Session ID: " + session.getSessionId();
+            String listenerMessage = "You have accepted a session request from user " +
+                    user.getAnonymousName() +
+                    ". Session starting soon. Session ID: " + session.getSessionId();
 
-            // Send notification to user only
-            sendSseNotification(user, listener.getUser(), message);
+            // Send notification to both user and listener
+            sendSseNotification(user, listener.getUser(), userMessage);
+            sendSseNotification(listener.getUser(), user, listenerMessage);
 
             // Log the session details
             log.info("New session created - Session ID: {}, User: {}, Listener: {}",
@@ -100,17 +104,17 @@ public class SessionServiceImpl implements SessionService {
 
             return "Session starting soon";
         } else if ("reject".equalsIgnoreCase(action)) {
-            message = "Your session request has been rejected by listener " +
+            String userMessage = "Your session request has been rejected by listener " +
                     listener.getUser().getAnonymousName() + ".";
-
-            // Send notification to user only
-            sendSseNotification(user, listener.getUser(), message);
+            // Send notification to both user and listener
+            sendSseNotification(user, listener.getUser(), userMessage);
 
             return "Session not accepted";
         } else {
             return "Invalid action";
         }
     }
+
 
     private void sendSseNotification(User receiver, User listener, String message) {
         Notification notification = new Notification();
@@ -186,4 +190,22 @@ public class SessionServiceImpl implements SessionService {
                 .toList();
     }
 
+
+    @Override
+    public String getAverageSessionDuration() {
+        List<Session> sessions = sessionRepository.findAll();
+        if (sessions.isEmpty()) {
+            return "0m 0s";
+        }
+
+        long totalDurationInSeconds = sessions.stream()
+                .mapToLong(session -> Duration.between(session.getSessionStart(),session.getSessionEnd()).getSeconds())
+                .sum();
+
+        long averageDurationInSeconds = totalDurationInSeconds / sessions.size();
+        long minutes = averageDurationInSeconds / 60;
+        long seconds = averageDurationInSeconds % 60;
+
+        return String.format("%dm %ds", minutes, seconds);
+    }
 }

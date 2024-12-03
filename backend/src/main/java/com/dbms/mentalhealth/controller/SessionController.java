@@ -1,4 +1,6 @@
 package com.dbms.mentalhealth.controller;
+
+import com.dbms.mentalhealth.config.ChatWebSocketHandler;
 import com.dbms.mentalhealth.dto.chatMessage.ChatMessageDTO;
 import com.dbms.mentalhealth.dto.session.SessionResponseDTO;
 import com.dbms.mentalhealth.dto.session.SessionSummaryDTO;
@@ -14,10 +16,12 @@ import java.util.List;
 public class SessionController {
 
     private final SessionService sessionService;
+    private final ChatWebSocketHandler chatWebSocketHandler;
 
     @Autowired
-    public SessionController(SessionService sessionService) {
+    public SessionController(SessionService sessionService, ChatWebSocketHandler chatWebSocketHandler) {
         this.sessionService = sessionService;
+        this.chatWebSocketHandler = chatWebSocketHandler;
     }
 
     @PostMapping(SessionUrlMapping.INITIATE_SESSION)
@@ -46,6 +50,7 @@ public class SessionController {
     @PostMapping(SessionUrlMapping.END_SESSION)
     public ResponseEntity<String> endSession(@PathVariable Integer sessionId) {
         String response = sessionService.endSession(sessionId);
+        chatWebSocketHandler.endSession(sessionId.toString());
         return ResponseEntity.ok(response);
     }
 
@@ -67,5 +72,10 @@ public class SessionController {
     public ResponseEntity<List<ChatMessageDTO>> getMessagesBySessionId(@PathVariable Integer sessionId) {
         List<ChatMessageDTO> messages = sessionService.getMessagesBySessionId(sessionId);
         return ResponseEntity.ok(messages);
+    }
+
+    @GetMapping(SessionUrlMapping.AVG_SESSION_DURATION)
+    public String getAverageSessionDuration() {
+        return sessionService.getAverageSessionDuration();
     }
 }
