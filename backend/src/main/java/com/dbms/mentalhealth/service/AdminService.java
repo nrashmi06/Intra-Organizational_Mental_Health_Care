@@ -9,7 +9,7 @@ import java.util.List;
 
 public interface AdminService {
     AdminProfileResponseDTO createAdminProfile(AdminProfileRequestDTO adminProfileRequestDTO, MultipartFile profilePicture) throws Exception;
-    AdminProfileResponseDTO getAdminProfile(Integer adminId);
+    AdminProfileResponseDTO getAdminProfile(Integer userId, Integer adminId);
     AdminProfileResponseDTO updateAdminProfile(AdminProfileRequestDTO adminProfileRequestDTO, MultipartFile profilePicture) throws Exception;
     List<AdminProfileSummaryResponseDTO> getAllAdmins();
     String deleteAdminProfile(Integer adminId);
