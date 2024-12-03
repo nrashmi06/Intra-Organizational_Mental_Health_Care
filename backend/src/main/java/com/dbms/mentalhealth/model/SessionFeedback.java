@@ -31,6 +31,7 @@ public class SessionFeedback {
     @JoinColumn(name = "listener_id", nullable = false)
     private Listener listener;
 
+
     @Column(name = "rating", nullable = false)
     private Integer rating;
 

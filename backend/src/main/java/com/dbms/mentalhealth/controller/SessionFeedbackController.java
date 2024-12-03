@@ -43,7 +43,7 @@ public class SessionFeedbackController {
         return ResponseEntity.ok(feedbackList);
     }
     
-    @GetMapping(SessionFeedbackUrlMapping.GET_FEEDBACK_SUMMARY)
+    @GetMapping(SessionFeedbackUrlMapping.GET_ALL_FEEDBACK_SUMMARY)
     public ResponseEntity<SessionFeedbackSummaryResponseDTO> getFeedbackSummary() {
         SessionFeedbackSummaryResponseDTO summaryDTO = sessionFeedbackService.getFeedbackSummary();
         return ResponseEntity.ok(summaryDTO);
