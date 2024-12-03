@@ -1,4 +1,4 @@
-// service/listener/GetByApproval.ts
+//fetch applications of one kind
 import axios from "axios";
 
 export const GetByApproval = async (

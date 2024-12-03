@@ -6,7 +6,7 @@ import { getActiveListeners } from "@/service/SSE/getActiveListeners";
 import { Button } from "@/components/ui/button";
 import ListenerDetails from "@/components/listener/ListenerDetails";
 
-export interface Listener {
+interface Listener {
   listenerId: number;
   userEmail: string;
   canApproveBlogs: boolean;
@@ -21,7 +21,7 @@ export interface Listener {
   userId: number;
 }
 
-const ListenerCard: React.FC<{ listener: Listener; onView: () => void }> = ({
+const Details: React.FC<{ listener: Listener; onView: () => void }> = ({
   listener,
   onView,
 }) => (
@@ -74,7 +74,7 @@ export default function Component() {
       <div className="min-h-screen bg-gradient-to-br from-purple-500 to-blue-500 p-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
           {listeners.map((listener) => (
-            <ListenerCard
+            <Details
               key={listener.userId}
               listener={listener}
               onView={() => setSelectedListener(listener)}

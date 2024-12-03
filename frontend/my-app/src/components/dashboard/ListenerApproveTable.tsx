@@ -17,36 +17,28 @@ import { RootState } from "@/store";
 import { useSelector } from "react-redux";
 import router from "next/router";
 import { Book, View, X } from "lucide-react";
-
-interface Listener {
-  reasonForApplying: string;
-  applicationId: number;
-  fullName: string;
-  branch: string;
-  semester: number;
-  certificateUrl: string;
-  applicationStatus: "PENDING" | "APPROVED" | "REJECTED";
-}
+import { ListenerApplication } from "@/pages/dashboard";
 
 interface ListenerApprovalTableProps {
-  listeners: Listener[];
+  listeners: ListenerApplication[];
 }
 
 const ListenerApprovalTable: React.FC<ListenerApprovalTableProps> = ({}) => {
-  const [listeners, setListeners] = useState<Listener[]>([]);
+  const [listeners, setListeners] = useState<ListenerApplication[]>([]);
   const [successMessage, setSuccessMessage] = useState<string | null>("");
 
   const [statusFilter, setStatusFilter] = useState<
     "PENDING" | "APPROVED" | "REJECTED"
   >("PENDING");
   const [isImageDropdownOpen, setIsImageDropdownOpen] = useState(false);
-  const [selectedListener, setSelectedListener] = useState<Listener | null>(
-    null
-  );
+  const [selectedListener, setSelectedListener] =
+    useState<ListenerApplication | null>(null);
   const token = useSelector((state: RootState) => state.auth.accessToken); // Retrieve the token from Redux store
+
   useEffect(() => {
     fetchListenersByStatus("PENDING");
   }, []);
+
   const fetchListenersByStatus = async (
     status: "PENDING" | "APPROVED" | "REJECTED"
   ) => {
@@ -101,7 +93,7 @@ const ListenerApprovalTable: React.FC<ListenerApprovalTableProps> = ({}) => {
   return (
     <div className="bg-white rounded-lg shadow">
       <div className="p-4 border-b">
-        <h2 className="text-xl font-bold">All Listener Applications</h2>
+        <h2 className="text-xl font-bold mb-2">All Listener Applications</h2>
         <div className="flex gap-2 mt-2">
           <Button
             variant={statusFilter === "PENDING" ? "default" : "outline"}

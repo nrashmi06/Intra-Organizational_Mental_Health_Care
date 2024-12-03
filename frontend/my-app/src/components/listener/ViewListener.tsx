@@ -1,5 +1,3 @@
-//to display individual listener details in a modal on MAKE-A-REQUEST page
-
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
@@ -10,6 +8,7 @@ interface ListenerModalProps {
   selectedListener: CompleteListenerDetails;
   closeModal: () => void;
 }
+
 interface CompleteListenerDetails {
   listenerId: number;
   userEmail: string;
@@ -25,7 +24,7 @@ interface CompleteListenerDetails {
   userId: number;
 }
 
-const ListenerModal: React.FC<ListenerModalProps> = ({
+const ViewListener: React.FC<ListenerModalProps> = ({
   selectedListener,
   closeModal,
 }) => {
@@ -87,7 +86,6 @@ const ListenerModal: React.FC<ListenerModalProps> = ({
           <div className="space-y-4">
             {[
               { label: "User Email", value: detailedListener.userEmail },
-
               {
                 label: "Total Sessions",
                 value: detailedListener.totalSessions,
@@ -132,4 +130,4 @@ const ListenerModal: React.FC<ListenerModalProps> = ({
   );
 };
 
-export default ListenerModal;
+export default ViewListener;

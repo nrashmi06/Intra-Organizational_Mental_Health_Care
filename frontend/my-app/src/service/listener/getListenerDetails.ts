@@ -1,4 +1,4 @@
-//get listener details from the listener Table using the userId of the listener
+//get details of a listener from the listener Table using the userId of the listener
 import axios from "axios";
 
 const API_BASE_URL = "http://localhost:8080/mental-health/api/v1/listeners";
