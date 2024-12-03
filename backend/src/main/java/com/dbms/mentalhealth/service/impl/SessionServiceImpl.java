@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -186,4 +187,22 @@ public class SessionServiceImpl implements SessionService {
                 .toList();
     }
 
+
+    @Override
+    public String getAverageSessionDuration() {
+        List<Session> sessions = sessionRepository.findAll();
+        if (sessions.isEmpty()) {
+            return "0m 0s";
+        }
+
+        long totalDurationInSeconds = sessions.stream()
+                .mapToLong(session -> Duration.between(session.getSessionStart(),session.getSessionEnd()).getSeconds())
+                .sum();
+
+        long averageDurationInSeconds = totalDurationInSeconds / sessions.size();
+        long minutes = averageDurationInSeconds / 60;
+        long seconds = averageDurationInSeconds % 60;
+
+        return String.format("%dm %ds", minutes, seconds);
+    }
 }

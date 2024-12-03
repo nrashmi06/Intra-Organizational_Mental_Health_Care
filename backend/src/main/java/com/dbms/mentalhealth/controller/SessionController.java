@@ -68,4 +68,8 @@ public class SessionController {
         List<ChatMessageDTO> messages = sessionService.getMessagesBySessionId(sessionId);
         return ResponseEntity.ok(messages);
     }
+    @GetMapping(SessionUrlMapping.AVG_SESSION_DURATION)
+    public String getAverageSessionDuration() {
+        return sessionService.getAverageSessionDuration();
+    }
 }
