@@ -2,9 +2,12 @@ package com.dbms.mentalhealth.controller;
 
 import com.dbms.mentalhealth.dto.user.request.ChangePasswordRequestDTO;
 import com.dbms.mentalhealth.dto.user.request.UserUpdateRequestDTO;
+import com.dbms.mentalhealth.dto.user.response.UserDetailsSummaryResponseDTO;
 import com.dbms.mentalhealth.dto.user.response.UserInfoResponseDTO;
 import com.dbms.mentalhealth.exception.user.UserNotFoundException;
 import com.dbms.mentalhealth.exception.user.InvalidUserUpdateException;
+import com.dbms.mentalhealth.mapper.UserMapper;
+import com.dbms.mentalhealth.model.User;
 import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.service.UserService;
 import com.dbms.mentalhealth.service.impl.UserServiceImpl;
@@ -14,6 +17,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 public class UserManagementController {
@@ -86,5 +92,19 @@ public class UserManagementController {
         } catch (UserNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found with ID: " + userId);
         }
+    }
+
+    @GetMapping(UserUrlMapping.GET_ALL_USERS_BY_PROFILE_STATUS)
+    public List<UserDetailsSummaryResponseDTO> getAllUsersByProfileStatus(
+            @RequestParam(value = "status", required = false) String status) {
+        List<User> users;
+        if (status == null) {
+            users = userService.getAllUsers();
+        } else {
+            users = userService.getUsersByProfileStatus(status);
+        }
+        return users.stream()
+                .map(UserMapper::toUserDetailsSummaryResponseDTO)
+                .toList();
     }
 }

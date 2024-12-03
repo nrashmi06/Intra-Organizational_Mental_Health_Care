@@ -9,6 +9,7 @@ import com.dbms.mentalhealth.model.User;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.List;
 import java.util.Map;
 
 public interface UserService {
@@ -31,4 +32,7 @@ public interface UserService {
     User findByEmail(String email);
     void updateUserActivity(String email);
     void suspendOrUnSuspendUser(Integer userId, String action);
+    List<User> getAllUsers();
+    List<User> getUsersByProfileStatus(String status);
+
 }

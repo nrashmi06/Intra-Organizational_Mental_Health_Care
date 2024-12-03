@@ -383,4 +383,20 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         }
         userRepository.save(user);
     }
+
+    @Override
+    public List<User> getAllUsers() {
+        return userRepository.findAll().stream()
+                .filter(user -> user.getRole().equals(Role.USER))
+                .toList();
+    }
+
+    @Override
+    public List<User> getUsersByProfileStatus(String status) {
+        ProfileStatus profileStatus = ProfileStatus.valueOf(status.toUpperCase());
+        return userRepository.findByProfileStatus(profileStatus).stream()
+                .filter(user -> user.getRole().equals(Role.USER))
+                .toList();
+    }
+
 }
