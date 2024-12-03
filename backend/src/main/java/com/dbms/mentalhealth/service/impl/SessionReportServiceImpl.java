@@ -1,11 +1,11 @@
 package com.dbms.mentalhealth.service.impl;
+
 import com.dbms.mentalhealth.dto.session.request.SessionReportRequestDTO;
 import com.dbms.mentalhealth.dto.session.response.SessionReportResponseDTO;
 import com.dbms.mentalhealth.dto.session.response.SessionReportSummaryResponseDTO;
 import com.dbms.mentalhealth.exception.session.ReportNotFoundException;
 import com.dbms.mentalhealth.mapper.SessionReportMapper;
 import com.dbms.mentalhealth.model.SessionReport;
-import com.dbms.mentalhealth.repository.ListenerRepository;
 import com.dbms.mentalhealth.repository.SessionReportRepository;
 import com.dbms.mentalhealth.service.SessionReportService;
 import org.springframework.stereotype.Service;
@@ -36,6 +36,9 @@ public class SessionReportServiceImpl implements SessionReportService {
     @Override
     public List<SessionReportResponseDTO> getReportBySessionId(Integer sessionId) {
         List<SessionReport> reportList = sessionReportRepository.findBySession_SessionId(sessionId);
+        if (reportList.isEmpty()) {
+            throw new ReportNotFoundException("No reports found for session with ID " + sessionId);
+        }
         return reportList.stream()
                 .map(sessionReportMapper::toResponseDTO)
                 .toList();
@@ -51,6 +54,9 @@ public class SessionReportServiceImpl implements SessionReportService {
     @Override
     public List<SessionReportResponseDTO> getAllUserReports(Integer userId) {
         List<SessionReport> reportList = sessionReportRepository.findByUser_UserId(userId);
+        if (reportList.isEmpty()) {
+            throw new ReportNotFoundException("No reports found for user with ID " + userId);
+        }
         return reportList.stream()
                 .map(sessionReportMapper::toResponseDTO)
                 .toList();
@@ -59,6 +65,9 @@ public class SessionReportServiceImpl implements SessionReportService {
     @Override
     public SessionReportSummaryResponseDTO getReportSummary() {
         List<SessionReport> reports = sessionReportRepository.findAll();
+        if (reports.isEmpty()) {
+            throw new ReportNotFoundException("No reports found");
+        }
 
         BigDecimal avgSeverity = reports.stream()
                 .map(SessionReport::getSeverityLevel)
