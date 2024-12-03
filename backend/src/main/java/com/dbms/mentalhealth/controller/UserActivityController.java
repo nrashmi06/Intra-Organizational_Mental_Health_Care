@@ -5,6 +5,7 @@ import com.dbms.mentalhealth.service.UserActivityService;
 import com.dbms.mentalhealth.urlMapper.SSEUrlMapping;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -19,7 +20,7 @@ public class UserActivityController {
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping(SSEUrlMapping.SSE_ALL_ONLINE_USERS)
-    public SseEmitter streamAllOnlineUsers() {
+    public SseEmitter streamAllOnlineUsers(@RequestParam("token") String token) {
         try {
             SseEmitter emitter = userActivityService.createEmitter();
             userActivityService.addAllUsersEmitter(emitter);
@@ -32,7 +33,7 @@ public class UserActivityController {
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping(SSEUrlMapping.SSE_ONLINE_USERS_COUNT_BY_ROLE)
-    public SseEmitter streamOnlineUsersByRoleCount() {
+    public SseEmitter streamOnlineUsersByRoleCount(@RequestParam("token") String token) {
         try {
             SseEmitter emitter = userActivityService.createEmitter();
             userActivityService.addRoleCountEmitter(emitter);
@@ -45,7 +46,7 @@ public class UserActivityController {
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping(SSEUrlMapping.SSE_ONLINE_ADMINS)
-    public SseEmitter streamOnlineAdmins() {
+    public SseEmitter streamOnlineAdmins(@RequestParam("token") String token) {
         try {
             SseEmitter emitter = userActivityService.createEmitter();
             userActivityService.addAdminEmitter(emitter);
@@ -57,7 +58,7 @@ public class UserActivityController {
     }
 
     @GetMapping(SSEUrlMapping.SSE_ONLINE_LISTENERS)
-    public SseEmitter streamOnlineListeners() {
+    public SseEmitter streamOnlineListeners(@RequestParam("token") String token) {
         try {
             SseEmitter emitter = userActivityService.createEmitter();
             userActivityService.addListenerEmitter(emitter);
@@ -70,7 +71,7 @@ public class UserActivityController {
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping(SSEUrlMapping.SSE_ONLINE_USERS)
-    public SseEmitter streamOnlineUsers() {
+    public SseEmitter streamOnlineUsers(@RequestParam("token") String token) {
         try {
             SseEmitter emitter = userActivityService.createEmitter();
             userActivityService.addUserEmitter(emitter);
@@ -82,7 +83,7 @@ public class UserActivityController {
     }
 
     @GetMapping(SSEUrlMapping.HEARTBEAT)
-    public String heartbeat() {
+    public String heartbeat(@RequestParam("token") String token) {
         return "OK";
     }
 }

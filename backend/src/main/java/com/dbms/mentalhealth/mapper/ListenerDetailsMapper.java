@@ -12,6 +12,8 @@ public class ListenerDetailsMapper {
         dto.setCanApproveBlogs(listener.isCanApproveBlogs());
         dto.setMaxDailySessions(listener.getMaxDailySessions());
         dto.setTotalSessions(listener.getTotalSessions());
+        dto.setTotalMessagesSent(listener.getTotalMessagesSent());
+        dto.setFeedbackCount(listener.getFeedbackCount());
         dto.setAverageRating(listener.getAverageRating());
         dto.setJoinedAt(listener.getJoinedAt());
         dto.setApprovedBy(listener.getApprovedBy());

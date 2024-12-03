@@ -1,5 +1,6 @@
 package com.dbms.mentalhealth.dto.Listener.response;
 
+import jakarta.persistence.Column;
 import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -11,6 +12,8 @@ public class ListenerDetailsResponseDTO {
     private boolean canApproveBlogs;
     private int maxDailySessions;
     private int totalSessions;
+    private Integer totalMessagesSent;
+    private Integer feedbackCount;
     private BigDecimal averageRating;
     private LocalDateTime joinedAt;
     private String approvedBy;
