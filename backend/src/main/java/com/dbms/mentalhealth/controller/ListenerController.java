@@ -27,8 +27,8 @@ public class ListenerController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping(ListenerUrlMapping.ALL_LISTENERS)
-    public List<UserActivityDTO> getAllListeners() {
-        return listenerService.getAllListeners();
+    public List<UserActivityDTO> getAllListeners(@RequestParam(value ="type",required = false) String type) {
+        return listenerService.getAllListeners(type);
     }
 
     @PreAuthorize("hasRole('ADMIN')")

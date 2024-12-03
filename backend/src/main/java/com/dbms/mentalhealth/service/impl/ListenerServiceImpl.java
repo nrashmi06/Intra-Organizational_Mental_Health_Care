@@ -48,8 +48,19 @@ public class ListenerServiceImpl implements ListenerService {
     }
 
     @Override
-    public List<UserActivityDTO> getAllListeners() {
-        List<Listener> listeners = listenerRepository.findAll();
+    public List<UserActivityDTO> getAllListeners(String type) {
+        List<Listener> listeners;
+        if ("suspended".equalsIgnoreCase(type)) {
+            listeners = listenerRepository.findAll().stream()
+                    .filter(listener -> listener.getUser().getProfileStatus() == ProfileStatus.SUSPENDED)
+                    .toList();
+        } else if ("active".equalsIgnoreCase(type)) {
+            listeners = listenerRepository.findAll().stream()
+                    .filter(listener -> listener.getUser().getProfileStatus() == ProfileStatus.ACTIVE)
+                    .toList();
+        } else {
+            listeners = listenerRepository.findAll();
+        }
         return listeners.stream()
                 .map(listener -> UserActivityMapper.toUserActivityDTO(listener.getUser()))
                 .toList();

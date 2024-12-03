@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface ListenerService {
     ListenerDetailsResponseDTO getListenerDetails(String type, Integer id);
-    List<UserActivityDTO> getAllListeners();
+    List<UserActivityDTO> getAllListeners(String type);
     String suspendOrUnsuspendListener(Integer listenerId, String action);
     void incrementMessageCount(String username);
 }
