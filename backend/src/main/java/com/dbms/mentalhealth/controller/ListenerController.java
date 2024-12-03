@@ -1,12 +1,14 @@
 package com.dbms.mentalhealth.controller;
 
 import com.dbms.mentalhealth.dto.Listener.response.ListenerDetailsResponseDTO;
+import com.dbms.mentalhealth.dto.UserActivity.UserActivityDTO;
 import com.dbms.mentalhealth.service.ListenerService;
 import com.dbms.mentalhealth.urlMapper.ListenerUrlMapping;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 public class ListenerController {
@@ -22,4 +24,17 @@ public class ListenerController {
     public ListenerDetailsResponseDTO getListenerDetails(@RequestParam("type") String type, @RequestParam("id") Integer id) {
         return listenerService.getListenerDetails(type, id);
     }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping(ListenerUrlMapping.ALL_LISTENERS)
+    public List<UserActivityDTO> getAllListeners() {
+        return listenerService.getAllListeners();
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping(ListenerUrlMapping.SUSPEND_OR_UN_SUSPEND_LISTENER)
+    public String suspendOrUnSuspendListener(@PathVariable("listenerId") Integer listenerId, @RequestParam("action") String action) {
+        return listenerService.suspendOrUnsuspendListener(listenerId, action);
+    }
+
 }
