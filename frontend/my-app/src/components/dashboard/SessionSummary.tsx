@@ -66,7 +66,11 @@ export default function ListenerSummary() {
         <div className="flex items-center mt-1">
           <StarRating rating={feedbackData.avgRating} />
           <span className="ml-2 text-sm text-muted-foreground">
-            (420 reviews)
+            {feedbackData.rating1 +
+              feedbackData.rating2 +
+              feedbackData.rating3 +
+              feedbackData.rating4 +
+              feedbackData.rating5}
           </span>
         </div>
         <div className="mt-4 space-y-1">
