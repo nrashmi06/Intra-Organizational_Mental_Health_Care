@@ -1,6 +1,7 @@
 package com.dbms.mentalhealth.mapper;
 
 import com.dbms.mentalhealth.dto.user.request.UserRegistrationRequestDTO;
+import com.dbms.mentalhealth.dto.user.response.UserDetailsSummaryResponseDTO;
 import com.dbms.mentalhealth.dto.user.response.UserRegistrationResponseDTO;
 import com.dbms.mentalhealth.dto.user.response.UserInfoResponseDTO;
 import com.dbms.mentalhealth.dto.user.response.UserLoginResponseDTO;
@@ -55,6 +56,16 @@ public class UserMapper {
                 user.getEmail(),
                 user.getAnonymousName(),
                 user.getRole().name()
+        );
+    }
+
+    public static UserDetailsSummaryResponseDTO toUserDetailsSummaryResponseDTO(User user) {
+        return new UserDetailsSummaryResponseDTO(
+                user.getUserId(),
+                user.getEmail(),
+                user.getAnonymousName(),
+                user.getIsActive(),
+                user.getProfileStatus().name()
         );
     }
 }

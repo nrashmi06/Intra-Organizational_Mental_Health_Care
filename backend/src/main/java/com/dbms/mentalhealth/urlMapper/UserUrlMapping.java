@@ -14,6 +14,7 @@ public class UserUrlMapping {
     public static final String RESEND_VERIFICATION_EMAIL = BASE_API + "/resend-verification-email"; // Resend verification email
     public static final String RENEW_TOKEN = BASE_API + "/renew-token"; // Refresh JWT token
     // User profile management endpoints
+    public static final String GET_ALL_USERS_BY_PROFILE_STATUS = BASE_API + "/all"; // Get all users by profile status
     public static final String GET_USER_BY_ID = BASE_API + USER_ID_PATH; // Get user by ID
     public static final String UPDATE_USER = BASE_API + USER_ID_PATH; // Update user details
     public static final String DELETE_USER = BASE_API + USER_ID_PATH; // Delete user
