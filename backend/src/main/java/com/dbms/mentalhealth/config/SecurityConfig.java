@@ -3,6 +3,7 @@ import com.dbms.mentalhealth.security.CustomAccessDeniedHandler;
 import com.dbms.mentalhealth.security.SseAuthenticationFilter;
 import com.dbms.mentalhealth.security.jwt.AuthEntryPointJwt;
 import com.dbms.mentalhealth.security.jwt.AuthTokenFilter;
+import com.dbms.mentalhealth.urlMapper.EmergencyHelplineUrlMapping;
 import com.dbms.mentalhealth.urlMapper.UserUrlMapping;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -57,7 +58,8 @@ public class SecurityConfig {
                                 UserUrlMapping.RESEND_VERIFICATION_EMAIL,
                                 UserUrlMapping.USER_LOGIN,
                                 UserUrlMapping.RENEW_TOKEN,
-                                "/chat/**"
+                                "/chat/**",
+                                EmergencyHelplineUrlMapping.GET_ALL_EMERGENCY_HELPLINES
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
