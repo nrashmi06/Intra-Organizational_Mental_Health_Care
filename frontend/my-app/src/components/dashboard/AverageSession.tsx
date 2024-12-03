@@ -6,7 +6,7 @@ import { getAverageSessionDetails } from "@/service/sessionReport/avgSession";
 
 export default function AverageSession() {
   const token = useSelector((state: RootState) => state.auth.accessToken);
-  const [feedbackData, setDetails] = useState();
+  const [data, setDetails] = useState();
   useEffect(() => {
     const fetchListenerDetails = async () => {
       try {
@@ -24,20 +24,15 @@ export default function AverageSession() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Session Rating</CardTitle>
+        <CardTitle>Avg. Session Duration</CardTitle>
       </CardHeader>
       <CardContent>
-        <Card>
-          <CardHeader>
-            <CardTitle>Avg. Session Duration</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{feedbackData}</div>
-            <div className="mt-4 h-2 bg-muted rounded-full overflow-hidden">
-              <div className="h-full bg-primary" style={{ width: "65%" }}></div>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="text-3xl h-full flex items-center justify-center font-bold">
+          {data}
+        </div>
+        <div className="mt-4 h-2 bg-muted rounded-full overflow-hidden">
+          <div className="h-full bg-primary" style={{ width: "65%" }}></div>
+        </div>
       </CardContent>
     </Card>
   );

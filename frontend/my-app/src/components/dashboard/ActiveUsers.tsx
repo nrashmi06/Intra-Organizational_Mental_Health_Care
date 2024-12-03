@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle2, View } from "lucide-react";
+import { CheckCircle2, Eye } from "lucide-react";
 import { RootState } from "@/store";
 import { useSelector } from "react-redux";
 import { getActiveUserByRoleName } from "@/service/SSE/getActiveUserByRoleName";
@@ -99,10 +99,10 @@ const ListenerProfileStatusTable: React.FC = () => {
                 <Button
                   size="sm"
                   variant="outline"
-                  className="h-8 w-8 border-none text-center bg-transparent text-black hover:bg-gray-200"
+                  className=" border-none text-center bg-transparent text-black hover:bg-gray-200"
                   onClick={() => handleViewClick(listener)}
                 >
-                  <View className="h-4 w-4" />
+                  <Eye className="h-6 w-6" />
                 </Button>
               </CardHeader>
             </Card>

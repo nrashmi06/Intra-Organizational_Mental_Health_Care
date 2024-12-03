@@ -5,6 +5,7 @@ import Navbar from "@/components/navbar/navbar3";
 import { getActiveListeners } from "@/service/SSE/getActiveListeners";
 import { Button } from "@/components/ui/button";
 import ListenerDetails from "@/components/listener/ListenerDetails";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface Listener {
   listenerId: number;
@@ -25,18 +26,21 @@ const Details: React.FC<{ listener: Listener; onView: () => void }> = ({
   listener,
   onView,
 }) => (
-  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-5 shadow-lg mb-6 max-w-sm mx-auto transition-transform transform hover:scale-105">
-    <div className="flex items-center space-x-4">
-      <div className="w-12 h-12 bg-indigo-200 rounded-full flex items-center justify-center text-indigo-800 font-bold text-lg shadow-sm">
-        {listener.anonymousName.charAt(0).toUpperCase()}
-      </div>
-      <div>
-        <p className="font-semibold text-indigo-900 text-lg">
-          {listener.anonymousName}
-        </p>
-        <p className="text-gray-700 text-sm">Anonymous Listener</p>
-      </div>
-    </div>
+  <div className="bg-gradient-to-r p-5 shadow-lg mb-6 max-w-sm mx-auto transition-transform transform hover:scale-105">
+    <Card>
+      <CardContent className="flex flex-row gap-4">
+        <div className="w-12 h-12 bg-indigo-200 rounded-full flex items-center justify-center text-indigo-800 font-bold text-lg shadow-sm">
+          {listener.anonymousName.charAt(0).toUpperCase()}
+        </div>
+
+        <div>
+          <p className="font-semibold text-indigo-900 text-lg">
+            {listener.anonymousName}
+          </p>
+          <p className="text-gray-700 text-sm">Anonymous Listener</p>
+        </div>
+      </CardContent>
+    </Card>
     <Button
       onClick={onView}
       className="mt-4 w-full bg-indigo-500 text-white py-1 px-2 rounded-lg hover:bg-indigo-600 focus:ring-2 focus:ring-indigo-300 transition duration-200"

@@ -11,7 +11,7 @@ export const getAverageSessionDetails = async (token: string) => {
       }
     );
     console.log("Average sessionnnnnnnnn summary:", response);
-    return response.json();
+    return response.text();
   } catch (error) {
     console.error("Error fetching session feedback summary:", error);
     throw error;
