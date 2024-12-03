@@ -145,7 +145,10 @@ public class CustomExceptionHandler {
     public ResponseEntity<Object> handleBlogNotFoundException(BlogNotFoundException ex, WebRequest request) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
     }
-
+    @ExceptionHandler(UserAccountSuspendedException.class)
+    public ResponseEntity<String> handleUserAccountSuspendedException(UserAccountSuspendedException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
+    }
     @ExceptionHandler(InvalidBlogActionException.class)
     public ResponseEntity<Object> handleInvalidBlogActionException(InvalidBlogActionException ex, WebRequest request) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);

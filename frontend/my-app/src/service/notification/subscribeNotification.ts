@@ -1,6 +1,8 @@
-export const subscribeToNotifications = (token: string) => {
-    // Initialize EventSource and pass the token as a query parameter
-    const eventSource = new EventSource(`http://localhost:8080/mental-health/api/v1/sse/notifications/subscribe?token=${token}`);
+export const subscribeToNotifications = (token: string, userId: number) => {
+    // Initialize EventSource and pass token and userId as query parameters
+    const eventSource = new EventSource(
+      `http://localhost:8080/mental-health/api/v1/sse/notifications/subscribe?token=${encodeURIComponent(token)}&userId=${userId}`
+    );
   
     // Handle the connection opening
     eventSource.onopen = () => {
@@ -21,10 +23,10 @@ export const subscribeToNotifications = (token: string) => {
     eventSource.onerror = (error) => {
       console.error("SSE error:", error);
   
-      // If error is a `Event` object, log more details
+      // If error is an `Event` object, log more details
       if (error instanceof Event) {
         console.error("EventSource error details: ", {
-          type: error.type
+          type: error.type,
         });
       } else {
         console.error("Unexpected error:", error);

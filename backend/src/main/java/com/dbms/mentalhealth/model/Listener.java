@@ -27,9 +27,6 @@ public class Listener {
     @Column(name = "can_approve_blogs", nullable = false)
     private boolean canApproveBlogs;
 
-    @Column(name = "max_daily_sessions")
-    private Integer maxDailySessions;
-
     @Column(name = "total_sessions")
     private Integer totalSessions;
 
