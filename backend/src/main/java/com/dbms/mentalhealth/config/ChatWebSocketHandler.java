@@ -1,9 +1,14 @@
+// ChatWebSocketHandler.java
 package com.dbms.mentalhealth.config;
 
 import com.dbms.mentalhealth.model.ChatMessage;
-import com.dbms.mentalhealth.repository.ChatMessageRepository;
+import com.dbms.mentalhealth.model.Session;
+import com.dbms.mentalhealth.model.User;
 import com.dbms.mentalhealth.repository.SessionRepository;
 import com.dbms.mentalhealth.repository.UserRepository;
+import com.dbms.mentalhealth.service.ChatMessageService;
+import com.dbms.mentalhealth.service.UserService;
+import com.dbms.mentalhealth.service.ListenerService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
@@ -21,15 +26,19 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     private final SessionRepository sessionRepository;
-    private final UserRepository userRepository;
-    private final ChatMessageRepository chatMessageRepository;
+    private final UserService userService;
+    private final ListenerService listenerService;
+    private final ChatMessageService chatMessageService;
 
     private static final Map<String, Map<String, WebSocketSession>> chatSessions = new ConcurrentHashMap<>();
+    private final UserRepository userRepository;
 
-    public ChatWebSocketHandler(SessionRepository sessionRepository, UserRepository userRepository, ChatMessageRepository chatMessageRepository) {
+    public ChatWebSocketHandler(SessionRepository sessionRepository, UserService userService, ListenerService listenerService, ChatMessageService chatMessageService, UserRepository userRepository) {
         this.sessionRepository = sessionRepository;
+        this.userService = userService;
+        this.listenerService = listenerService;
+        this.chatMessageService = chatMessageService;
         this.userRepository = userRepository;
-        this.chatMessageRepository = chatMessageRepository;
     }
 
     @Override
@@ -51,27 +60,65 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
-        String sessionId = getPathParam(session, "sessionId");
-        String username = getPathParam(session, "username");
+        try {
+            String sessionId = getPathParam(session, "sessionId");
+            String username = getPathParam(session, "username");
 
-        log.info("Received message from {} in session {}: {}", username, sessionId, message.getPayload());
+            log.info("Received message from {} in session {}: {}", username, sessionId, message.getPayload());
 
-        if (message.getPayload().trim().isEmpty()) {
-            log.warn("Empty message received from {}", username);
-            return;
+            if (message.getPayload().trim().isEmpty()) {
+                log.warn("Empty message received from {}", username);
+                return;
+            }
+
+            // Validate sessionId and username
+            if (sessionId == null || username == null) {
+                log.error("Invalid session parameters: sessionId={}, username={}", sessionId, username);
+                return;
+            }
+
+            int parsedSessionId;
+            try {
+                parsedSessionId = Integer.parseInt(sessionId);
+            } catch (NumberFormatException e) {
+                log.error("Invalid session ID format: {}", sessionId);
+                return;
+            }
+
+            // Find session and user with null checks
+            Session foundSession = sessionRepository.findById(parsedSessionId)
+                    .orElse(null);
+            User sender = userRepository.findByAnonymousName(username);
+
+            if (foundSession == null) {
+                log.error("Session not found for ID: {}", parsedSessionId);
+                return;
+            }
+
+            if (sender == null) {
+                log.error("User not found with username: {}", username);
+                return;
+            }
+
+            // Create and save chat message
+            ChatMessage chatMessage = new ChatMessage();
+            chatMessage.setSession(foundSession);
+            chatMessage.setSender(sender);
+            chatMessage.setMessageContent(message.getPayload());
+            chatMessage.setSentAt(LocalDateTime.now());
+
+            chatMessageService.saveMessage(chatMessage);
+
+            listenerService.incrementMessageCount(username);
+
+            // Broadcast the message
+            broadcastMessage(sessionId, username + ": " + message.getPayload(), username);
+
+        } catch (Exception e) {
+            log.error("Error processing WebSocket message", e);
+            // Optionally, you might want to send an error response back to the client
+            // sendErrorToClient(session, "Failed to process message");
         }
-
-        // Save chat message to the database
-        ChatMessage chatMessage = new ChatMessage();
-        chatMessage.setSession(sessionRepository.findById(Integer.parseInt(sessionId))
-                .orElseThrow(() -> new IllegalStateException("Session not found")));
-        chatMessage.setSender(userRepository.findByAnonymousName(username));
-        chatMessage.setMessageContent(message.getPayload());
-        chatMessage.setSentAt(LocalDateTime.now());
-        chatMessageRepository.save(chatMessage);
-
-        // Broadcast the message
-        broadcastMessage(sessionId, username + ": " + message.getPayload(), username);
     }
 
     @Override
