@@ -3,7 +3,9 @@ package com.dbms.mentalhealth.security.jwt;
 import com.dbms.mentalhealth.service.UserService;
 import com.dbms.mentalhealth.service.impl.UserServiceImpl;
 import com.dbms.mentalhealth.service.RefreshTokenService;
+import com.dbms.mentalhealth.urlMapper.EmergencyHelplineUrlMapping;
 import com.dbms.mentalhealth.urlMapper.NotificationUrlMapping;
+import com.dbms.mentalhealth.urlMapper.SSEUrlMapping;
 import com.dbms.mentalhealth.urlMapper.UserUrlMapping;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
@@ -19,6 +21,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.Arrays;
@@ -47,7 +50,13 @@ public class AuthTokenFilter extends OncePerRequestFilter {
             CONTEXT_PATH + UserUrlMapping.RESEND_VERIFICATION_EMAIL,
             CONTEXT_PATH + UserUrlMapping.USER_LOGIN,
             CONTEXT_PATH + UserUrlMapping.RENEW_TOKEN,
-            CONTEXT_PATH + NotificationUrlMapping.SUBSCRIBE_NOTIFICATIONS
+            CONTEXT_PATH + NotificationUrlMapping.SUBSCRIBE_NOTIFICATIONS,
+            CONTEXT_PATH + SSEUrlMapping.SSE_ONLINE_ADMINS,
+            CONTEXT_PATH + SSEUrlMapping.SSE_ONLINE_USERS_COUNT_BY_ROLE,
+            CONTEXT_PATH + SSEUrlMapping.SSE_ALL_ONLINE_USERS,
+            CONTEXT_PATH + SSEUrlMapping.SSE_ONLINE_LISTENERS,
+            CONTEXT_PATH + SSEUrlMapping.HEARTBEAT,
+            CONTEXT_PATH + EmergencyHelplineUrlMapping.GET_ALL_EMERGENCY_HELPLINES
     );
 
     @Override
@@ -116,6 +125,13 @@ public class AuthTokenFilter extends OncePerRequestFilter {
     }
 
     private String parseJwt(HttpServletRequest request) {
-        return jwtUtils.getJwtFromHeader(request);
+        String headerAuth = request.getHeader("Authorization");
+        logger.debug("Authorization Header: {}", headerAuth);
+
+        if (StringUtils.hasText(headerAuth) && headerAuth.startsWith("Bearer ")) {
+            return headerAuth.substring(7);
+        }
+
+        return null;
     }
 }
