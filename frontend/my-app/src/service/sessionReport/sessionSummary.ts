@@ -11,7 +11,7 @@ export const getSessionFeedbackSummary = async (token: string) => {
       }
     );
     const data = await response.json();
-    console.log("Session feedback summary:", data);
+    console.log("Listener details:", data);
     return data;
   } catch (error) {
     console.error("Error fetching session feedback summary:", error);

@@ -19,7 +19,7 @@ import { getAllSSEbyRole } from "@/service/SSE/getAllSSEbyRole";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import UserCountGrid from "@/components/dashboard/UserCountGrid";
-import ListenerSummary from "@/components/dashboard/ListenerSummary";
+import ListenerSummary from "@/components/dashboard/SessionSummary";
 
 // Read-only star rating component
 function StarRating({ rating }: { rating: number }) {

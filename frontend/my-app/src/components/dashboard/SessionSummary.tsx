@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { useEffect, useState } from "react";
 import { RootState } from "@/store";
 import { useSelector } from "react-redux";
-import { getSessionFeedbackSummary } from "@/service/sessionReport/summary";
+import { getSessionFeedbackSummary } from "@/service/sessionReport/sessionSummary";
 function StarRating({ rating }: { rating: number }) {
   return (
     <div className="flex gap-1">
@@ -21,22 +21,31 @@ function StarRating({ rating }: { rating: number }) {
   );
 }
 
-const feedbackData = {
-  avgRating: 3,
-  rating5: 0,
-  rating4: 0,
-  rating3: 1,
-  rating2: 0,
-  rating1: 0,
-};
+// const feedbackData = {
+//   avgRating: 3,
+//   rating5: 0,
+//   rating4: 0,
+//   rating3: 1,
+//   rating2: 0,
+//   rating1: 0,
+// };
 
 export default function ListenerSummary() {
   const token = useSelector((state: RootState) => state.auth.accessToken);
-  const [feedbackData, setDetails] = useState();
+  const [feedbackData, setDetails] = useState({
+    avgRating: 0,
+    rating5: 0,
+    rating4: 0,
+    rating3: 0,
+    rating2: 0,
+    rating1: 0,
+  });
   useEffect(() => {
     const fetchListenerDetails = async () => {
       try {
+        console.log("Fetching listener details...");
         const details = await getSessionFeedbackSummary(token);
+        console.log("data isssssssss", details);
         setDetails(details);
       } catch (error) {
         console.error("Error fetching listener details:", error);
@@ -48,9 +57,9 @@ export default function ListenerSummary() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Listener Rating</CardTitle>
+        <CardTitle>Session Rating</CardTitle>
       </CardHeader>
-      {/* <CardContent>
+      <CardContent>
         <div className="text-3xl font-bold">
           &quot;{feedbackData.avgRating}/5&quot;
         </div>
@@ -89,7 +98,7 @@ export default function ListenerSummary() {
             </div>
           ))}
         </div>
-      </CardContent> */}
+      </CardContent>
     </Card>
   );
 }
