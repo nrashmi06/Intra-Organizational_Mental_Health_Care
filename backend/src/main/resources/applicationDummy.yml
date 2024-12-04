@@ -7,8 +7,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: ajax81968@gmail.com
-    password: vlxv lrkn kuox xssz
+    username: your-email@gmail.com
+    password: your-email-password
     properties:
       mail:
         smtp:
@@ -18,13 +18,12 @@ spring:
   application:
     name: mental-health
   app:
-    jwtSecret: ${JWT_SECRET:8EBUtzmOnBj56DWepYHgxuNv8rJrOYFXkqptcCzW7LVyQUV1mNhrb1UlyP1qebfk}
-
+    jwtSecret: ${JWT_SECRET:your-jwt-secret}
 
   datasource:
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:mental_health}
     username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:211004}
+    password: ${DB_PASSWORD:your-db-password}
 
   jpa:
     hibernate:
@@ -55,7 +54,7 @@ management:
 mvc:
   throw-exception-if-no-handler-found: true
 cloudinary:
-  cloud-name: dkadqnp9j
-  api-key: 535229959961179
-  api-secret: XWLi_ZDst7RH8fC-awZdXezrBxo
-  url: cloudinary://535229959961179:XWLi_ZDst7RH8fC-awZdXezrBxo@dkadqnp9j
+  cloud-name: your-cloud-name
+  api-key: your-api-key
+  api-secret: your-api-secret
+  url: cloudinary://your-api-key:your-api-secret@your-cloud-name

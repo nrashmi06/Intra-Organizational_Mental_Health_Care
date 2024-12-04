@@ -69,3 +69,6 @@ build/
 
 # Docker
 docker-compose.yml
+
+# Ignore the actual application.yml file
+backend/src/main/resources/application.yml
