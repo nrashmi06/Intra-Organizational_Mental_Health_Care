@@ -1,9 +1,9 @@
-import React from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '@/store';
-import { X } from 'lucide-react'; // Import close icon
-import { clearNotifications } from '@/store/notificationSlice'; // Replace with your actual action
-import { replyNotification } from '@/service/session/replyNotification'; // Assuming API utility exists
+import React, { useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState } from "@/store";
+import { X } from "lucide-react"; // Import close icon
+import { clearNotifications } from "@/store/notificationSlice"; // Replace with your actual action
+import { replyNotification } from "@/service/session/replyNotification"; // Assuming API utility exists
 
 const NotificationPopup: React.FC = () => {
   const dispatch = useDispatch();
@@ -13,9 +13,13 @@ const NotificationPopup: React.FC = () => {
   const role = useSelector((state: RootState) => state.auth.role);
   const accessToken = useSelector((state: RootState) => state.auth.accessToken);
 
+  // State to manage OK button visibility for each notification
+  const [showOkButton, setShowOkButton] = useState<{ [key: string]: boolean }>({});
+
   // Close the notification popup
   const handleClose = () => {
     dispatch(clearNotifications());
+    setShowOkButton({}); // Reset the state when closing
   };
 
   // Handle accept or reject actions
@@ -25,13 +29,32 @@ const NotificationPopup: React.FC = () => {
         console.error("Authorization token or senderId is missing.");
         return;
       }
+      dispatch(clearNotifications());
 
       const response = await replyNotification(senderId, action, accessToken);
       console.log(`Session ${action} response:`, response);
-      dispatch(clearNotifications()); // Clear notifications after action
+
+      // After action is taken, show OK button for this notification
+      setShowOkButton((prevState) => ({
+        ...prevState,
+        [senderId]: true,
+      })
+      
+    );
     } catch (error) {
       console.error(`Failed to ${action} session:`, error);
     }
+  };
+
+  // Handle OK button action
+  const handleOk = (senderId: string) => {
+    // Reset OK button visibility for this notification
+    setShowOkButton((prevState) => ({
+      ...prevState,
+      [senderId]: false,
+    }));
+    dispatch(clearNotifications());
+    setShowOkButton({}); // Reset the state when closing
   };
 
   if (notifications.length === 0) return null; // Don't render if no notifications
@@ -51,11 +74,14 @@ const NotificationPopup: React.FC = () => {
         {/* Render notifications */}
         {notifications.map((notification, index) => {
           const { message, senderId } = notification;
+          const isOkVisible = showOkButton[senderId];
 
           return (
             <div key={index} className="mb-4">
               <p>{message}</p>
-              {role === "LISTENER" && (
+
+              {/* Listener buttons: Accept/Reject */}
+              {role === "LISTENER" && !isOkVisible && (
                 <div className="flex justify-center space-x-4 mt-4">
                   <button
                     onClick={() => handleAction("accept", senderId)}
@@ -71,19 +97,31 @@ const NotificationPopup: React.FC = () => {
                   </button>
                 </div>
               )}
+
+              {/* OK button for Listener after taking action */}
+              {role === "LISTENER" && isOkVisible && (
+                <div className="mt-4">
+                  <button
+                    onClick={() => handleOk(senderId)}
+                    className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
+                  >
+                    OK
+                  </button>
+                </div>
+              )}
+
+              {/* OK button for other roles */}
+              {role !== "LISTENER" && (
+                <button
+                  onClick={handleClose}
+                  className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded mt-4"
+                >
+                  OK
+                </button>
+              )}
             </div>
           );
         })}
-
-        {/* OK button for non-LISTENER roles */}
-        {role !== "LISTENER" && (
-          <button
-            onClick={handleClose}
-            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded mt-4"
-          >
-            OK
-          </button>
-        )}
       </div>
     </div>
   );

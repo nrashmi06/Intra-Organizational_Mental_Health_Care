@@ -8,14 +8,13 @@ import storage from 'redux-persist/lib/storage/session'; // Using sessionStorage
 const authPersistConfig = {
   key: 'auth',  // Key for storage
   storage,      // Using sessionStorage
-  whitelist: ['accessToken', 'userId'], // Only persist specific parts of auth state
 };
 
 // Define the persist config for notification reducer
 const notificationPersistConfig = {
   key: 'notifications',  // Key for storage
   storage,               // Using sessionStorage
-  whitelist: ['notifications'], // Only persist notifications state
+  whitelist: ['notifications' , 'senderId'], // Only persist notifications state
 };
 
 // Persist the auth and notification reducers separately
