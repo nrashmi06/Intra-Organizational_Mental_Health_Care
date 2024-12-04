@@ -14,13 +14,16 @@ import com.dbms.mentalhealth.exception.listener.ListenerNotFoundException;
 import com.dbms.mentalhealth.exception.user.UserNotFoundException;
 import com.dbms.mentalhealth.mapper.ListenerApplicationMapper;
 import com.dbms.mentalhealth.mapper.ListenerDetailsMapper;
+import com.dbms.mentalhealth.model.Admin;
 import com.dbms.mentalhealth.model.Listener;
 import com.dbms.mentalhealth.model.ListenerApplication;
 import com.dbms.mentalhealth.model.User;
+import com.dbms.mentalhealth.repository.AdminRepository;
 import com.dbms.mentalhealth.repository.ListenerApplicationRepository;
 import com.dbms.mentalhealth.repository.ListenerRepository;
 import com.dbms.mentalhealth.repository.UserRepository;
 import com.dbms.mentalhealth.security.jwt.JwtUtils;
+import com.dbms.mentalhealth.service.EmailService;
 import com.dbms.mentalhealth.service.ImageStorageService;
 import com.dbms.mentalhealth.service.ListenerApplicationService;
 import com.dbms.mentalhealth.service.UserService;
@@ -47,6 +50,8 @@ public class ListenerApplicationServiceImpl implements ListenerApplicationServic
     private final UserRepository userRepository;
     private final ListenerRepository listenerRepository;
     private final JwtUtils jwtUtils;
+    private final EmailService emailService;
+    private final AdminRepository adminRepository;
 
     @Autowired
     public ListenerApplicationServiceImpl(
@@ -54,12 +59,15 @@ public class ListenerApplicationServiceImpl implements ListenerApplicationServic
             ImageStorageService imageStorageService,
             UserService userService,
             UserRepository userRepository,
-            ListenerRepository listenerRepository, JwtUtils jwtUtils) {
+            ListenerRepository listenerRepository, JwtUtils jwtUtils,
+            EmailService emailService, AdminRepository adminRepository) {
         this.listenerApplicationRepository = listenerApplicationRepository;
         this.imageStorageService = imageStorageService;
         this.userRepository = userRepository;
         this.listenerRepository = listenerRepository;
         this.jwtUtils = jwtUtils;
+        this.emailService = emailService;
+        this.adminRepository = adminRepository;
     }
 
     @Override
@@ -83,7 +91,6 @@ public class ListenerApplicationServiceImpl implements ListenerApplicationServic
 
         // Handle Certificate Upload
         String certificateUrl = imageStorageService.uploadImage(certificate);
-
         listenerApplication.setCertificateUrl(certificateUrl);
 
         // Set additional fields
@@ -92,6 +99,17 @@ public class ListenerApplicationServiceImpl implements ListenerApplicationServic
 
         // Save Listener Application
         ListenerApplication savedApplication = listenerApplicationRepository.save(listenerApplication);
+
+        // Send confirmation email to the user
+        emailService.sendListenerApplicationReceivedEmail(email);
+
+        // Send alert email to all admins
+        List<String> adminEmails = adminRepository.findAll().stream()
+                .map(Admin::getEmail)
+                .toList();
+        for (String adminEmail : adminEmails) {
+            emailService.sendNewListenerApplicationAlertToAdmin(adminEmail, savedApplication.getApplicationId().toString());
+        }
 
         // Convert Entity to Response DTO
         return ListenerApplicationMapper.toResponseDTO(savedApplication);
@@ -211,48 +229,39 @@ public class ListenerApplicationServiceImpl implements ListenerApplicationServic
     @Override
     @Transactional
     public ListenerDetailsResponseDTO updateApplicationStatus(Integer applicationId, String status) {
-        // Fetch the ListenerApplication entity
         ListenerApplication listenerApplication = listenerApplicationRepository.findById(applicationId)
                 .orElseThrow(() -> new RuntimeException("Listener Application not found for ID: " + applicationId));
 
-        // Get the applicant user from the ListenerApplication entity
         User applicantUser = listenerApplication.getUser();
         if (applicantUser == null) {
             throw new UserNotFoundException("User associated with Listener Application not found");
         }
 
-        // Update the application status
         if ("APPROVED".equalsIgnoreCase(status)) {
             listenerApplication.setApplicationStatus(ListenerApplicationStatus.APPROVED);
 
-            // Check if a Listener entity already exists for the user
             boolean listenerExists = listenerRepository.existsByUser(applicantUser);
 
             if (!listenerExists) {
-                // Create and save a new Listener entity for the approved user
                 applicantUser.setRole(Role.LISTENER);
                 userRepository.save(applicantUser);
                 Listener newListener = new Listener();
-                newListener.setUser(applicantUser); // Set the user associated with the application
-                newListener.setCanApproveBlogs(false); // Default value
-                newListener.setTotalSessions(0); // Default value
-                newListener.setAverageRating(BigDecimal.ZERO); // Default value
+                newListener.setUser(applicantUser);
+                newListener.setCanApproveBlogs(false);
+                newListener.setTotalSessions(0);
+                newListener.setAverageRating(BigDecimal.ZERO);
                 newListener.setJoinedAt(LocalDateTime.now());
                 newListener.setApprovedBy(userRepository.findByEmail(getUsernameFromContext()).getAnonymousName());
 
-                // Save the Listener entity
                 listenerRepository.save(newListener);
-
-                // Save the updated ListenerApplication entity
                 listenerApplicationRepository.save(listenerApplication);
 
-                // Convert and return the ListenerDetailsResponseDTO using the mapper
+                // Send email notification to the user
+                emailService.sendListenerAcceptanceEmail(applicantUser.getEmail());
+
                 return ListenerDetailsMapper.toResponseDTO(newListener);
             } else {
-                // Save the updated ListenerApplication entity
                 listenerApplicationRepository.save(listenerApplication);
-
-                // Return the existing ListenerDetailsResponseDTO
                 Listener existingListener = listenerRepository.findByUser(applicantUser)
                         .orElseThrow(() -> new ListenerNotFoundException("Listener not found for user: " + applicantUser.getEmail()));
                 return ListenerDetailsMapper.toResponseDTO(existingListener);
@@ -261,6 +270,10 @@ public class ListenerApplicationServiceImpl implements ListenerApplicationServic
         } else if ("REJECTED".equalsIgnoreCase(status)) {
             listenerApplication.setApplicationStatus(ListenerApplicationStatus.REJECTED);
             listenerApplicationRepository.save(listenerApplication);
+
+            // Send email notification to the user
+            emailService.sendListenerRejectionEmail(applicantUser.getEmail());
+
             return null;
         } else {
             throw new IllegalArgumentException("Invalid status: " + status);
