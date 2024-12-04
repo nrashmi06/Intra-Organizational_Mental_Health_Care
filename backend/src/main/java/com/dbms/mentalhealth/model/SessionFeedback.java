@@ -33,7 +33,7 @@ public class SessionFeedback {
 
 
     @Column(name = "rating", nullable = false)
-    private Integer rating;
+    private Integer rating = 0;
 
     @Column(name = "comments", columnDefinition = "TEXT")
     private String comments;
