@@ -10,11 +10,26 @@ import { useSelector } from "react-redux";
 import ViewListener from "./ViewListener";
 import Link from "next/link";
 import { getApplicationByListenerId } from "@/service/listener/getApplicationByListenerId";
-import Image from "next/image";
+import ListenerApplicationDetails from "./ListenerDetailsForAdmin";
 
 interface Listener {
   userId: number;
   anonymousName: string;
+}
+
+interface ListenerApplication {
+  applicationId: number;
+  fullName: string;
+  branch: string;
+  semester: number;
+  usn: string;
+  phoneNumber: string;
+  certificateUrl: string;
+  applicationStatus: "APPROVED" | "REJECTED" | "PENDING";
+  reasonForApplying: string;
+  submissionDate: string;
+  reviewedBy: string | null;
+  reviewedAt: string | null;
 }
 
 const ListenerProfileStatusTable: React.FC = () => {
@@ -27,13 +42,13 @@ const ListenerProfileStatusTable: React.FC = () => {
   );
   // Certificate URL state
   const [openDropdown, setOpenDropdown] = useState<number | null>(null);
-  const [image, setImage] = useState<string | null>(null);
+  const [modal, setModal] = useState(false);
+  const [data, setData] = useState<ListenerApplication | null>(null);
   const token = useSelector((state: RootState) => state.auth.accessToken); // Retrieve the token from Redux store
 
   useEffect(() => {
     fetchListenersByProfileStatus("ACTIVE");
   }, []);
-
   const fetchListenersByProfileStatus = async (
     status: "ACTIVE" | "SUSPENDED"
   ) => {
@@ -60,15 +75,20 @@ const ListenerProfileStatusTable: React.FC = () => {
     setOpenDropdown((prev) => (prev === userId ? null : userId));
   };
 
+  const handleModalClose = () => {
+    setModal(false);
+  };
+
   const handleAction = async (userId: number) => {
+    setModal(true); // Open the modal
     try {
       const response = await getApplicationByListenerId(userId, token);
-      if (!response.certificateUrl) {
-        console.error("No certificate URL found for the user");
+      if (!response) {
+        console.error("Nothing found for the user");
         return;
       }
 
-      setImage(response.certificateUrl); // Use the fetched URL directly
+      setData(response); // Use the fetched URL directly
     } catch (error) {
       console.error("Error fetching certificate:", error);
     }
@@ -149,7 +169,7 @@ const ListenerProfileStatusTable: React.FC = () => {
                         onClick={() => handleAction(listener.userId)}
                         className="block px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 w-full"
                       >
-                        View Certificate
+                        View Application
                       </button>
                     </div>
                   )}
@@ -172,25 +192,11 @@ const ListenerProfileStatusTable: React.FC = () => {
         />
       )}
 
-      {image && (
-        <div
-          className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
-          onClick={() => setImage(null)}
-        >
-          <div
-            className="bg-white p-4 rounded-lg shadow-lg"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <Image
-              src={image}
-              alt="Certificate"
-              className="max-w-full max-h-full"
-              sizes="(max-width: 640px) 100vw, (max-width: 768px) 90vw, 80vw"
-              height={500}
-              width={500}
-            />
-          </div>
-        </div>
+      {data && modal && (
+        <ListenerApplicationDetails
+          application={data}
+          handleModalClose={handleModalClose}
+        />
       )}
     </div>
   );
