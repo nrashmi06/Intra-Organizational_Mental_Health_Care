@@ -11,7 +11,7 @@ import { RootState } from "@/store";
 import BlogApprovalTable from "@/components/dashboard/BlogApprovalTable";
 import { fetchListeners } from "@/service/listener/fetchListeners";
 import ListenerApprovalTable from "@/components/dashboard/ListenerApproveTable";
-import ProfileStatus from "@/components/listener/ProfileStatus";
+import ProfileStatus from "@/components/listener/ListenerProfileStatus";
 import ActiveUsers from "@/components/dashboard/ActiveUsers";
 
 export interface ListenerApplication {
