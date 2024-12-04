@@ -16,5 +16,5 @@ public interface ListenerApplicationService {
     ListenerApplicationResponseDTO updateApplication(Integer applicationId, ListenerApplicationRequestDTO applicationRequestDTO, MultipartFile certificate) throws Exception;
     ListenerDetailsResponseDTO updateApplicationStatus(Integer applicationId, String status);
     List<ListenerApplicationSummaryResponseDTO> getApplicationByApprovalStatus(String status);
-
+    ListenerApplicationResponseDTO getApplicationsByUserId(Integer userId);
 }
