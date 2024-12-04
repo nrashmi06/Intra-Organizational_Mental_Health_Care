@@ -15,7 +15,7 @@ interface AdminProfile {
   qualifications: string;
   contactNumber: string;
   email: string;
-  profilePicture: File | null;
+  profilePicture?: File | null;
   profilePictureUrl?: string;
 }
 
@@ -49,13 +49,10 @@ export default function AdminProfile() {
       const { profilePictureUrl, profilePicture = null, ...profileData } = profile;
       if (isCreating) {
         const createdProfile = await createAdminProfile({ ...profileData, profilePicture }, token);
-        setProfile({
-          ...createdProfile,
-          profilePicture: null,
-        });
+        setProfile(createdProfile);
         setIsCreating(false);
       } else {
-        await updateAdminProfile(profile, token);
+        await updateAdminProfile({ ...profile, profilePicture: profile.profilePicture ?? null }, token);
         await fetchProfile();
       }
       setIsEditing(false);

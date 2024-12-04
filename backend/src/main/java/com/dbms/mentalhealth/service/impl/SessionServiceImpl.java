@@ -208,4 +208,14 @@ public class SessionServiceImpl implements SessionService {
 
         return String.format("%dm %ds", minutes, seconds);
     }
+
+    @Override
+    public List<SessionResponseDTO> getSessionsByListenersUserId(Integer userId) {
+        Listener listener = listenerRepository.findByUser_UserId(userId)
+                .orElseThrow(() -> new ListenerNotFoundException("Listener not found"));
+        List<Session> sessions = sessionRepository.findByListener_ListenerId(listener.getListenerId());
+        return sessions.stream()
+                .map(SessionMapper::toSessionResponseDTO)
+                .collect(Collectors.toList());
+    }
 }

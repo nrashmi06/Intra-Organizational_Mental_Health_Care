@@ -1,11 +1,11 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 interface AuthState {
-  userId: string;
+  userId: string | null;
   email: string;
   anonymousName: string;
   role: string;
-  accessToken: any;
+  accessToken: string ;
 }
 
 const initialState: AuthState = {
@@ -13,7 +13,7 @@ const initialState: AuthState = {
   email: "",
   anonymousName: "",
   role: "",
-  accessToken: null,
+  accessToken: "",
 };
 
 const authSlice = createSlice({
@@ -32,7 +32,7 @@ const authSlice = createSlice({
       state.email = "";
       state.anonymousName = "";
       state.role = "";
-      state.accessToken = null;
+      state.accessToken = "";
     },
   },
 });
