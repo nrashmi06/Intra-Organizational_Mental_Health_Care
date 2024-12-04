@@ -55,8 +55,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
             CONTEXT_PATH + SSEUrlMapping.SSE_ONLINE_USERS_COUNT_BY_ROLE,
             CONTEXT_PATH + SSEUrlMapping.SSE_ALL_ONLINE_USERS,
             CONTEXT_PATH + SSEUrlMapping.SSE_ONLINE_LISTENERS,
-            CONTEXT_PATH + SSEUrlMapping.HEARTBEAT,
-            CONTEXT_PATH + EmergencyHelplineUrlMapping.GET_ALL_EMERGENCY_HELPLINES
+            CONTEXT_PATH + SSEUrlMapping.HEARTBEAT
     );
 
     @Override
