@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, MoreVertical } from "lucide-react";
 import { getListenersByProfileStatus } from "@/service/listener/getListenersByProfileStatus";
 import { RootState } from "@/store";
 import { useSelector } from "react-redux";
-import { View } from "lucide-react";
 import ViewListener from "./ViewListener";
+import Link from "next/link";
 
 interface Listener {
   userId: number;
@@ -21,6 +21,7 @@ const ListenerProfileStatusTable: React.FC = () => {
   const [selectedListener, setSelectedListener] = useState<Listener | null>(
     null
   );
+  const [openDropdown, setOpenDropdown] = useState<number | null>(null);
   const token = useSelector((state: RootState) => state.auth.accessToken); // Retrieve the token from Redux store
 
   useEffect(() => {
@@ -41,11 +42,21 @@ const ListenerProfileStatusTable: React.FC = () => {
   };
 
   const handleViewClick = (listener: Listener) => {
+    setOpenDropdown(null); // Close the dropdown before opening the modal
     setSelectedListener(listener);
   };
 
   const closeModal = () => {
     setSelectedListener(null);
+  };
+
+  const toggleDropdown = (userId: number) => {
+    setOpenDropdown((prev) => (prev === userId ? null : userId));
+  };
+
+  const handleAction = (action: string, listener: Listener) => {
+    console.log(`${action} action for listener:`, listener);
+    setOpenDropdown(null); // Close the dropdown after the action
   };
 
   return (
@@ -73,7 +84,7 @@ const ListenerProfileStatusTable: React.FC = () => {
           listeners.map((listener) => (
             <Card
               key={listener.userId}
-              className="p-4 bg-white shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out relative"
+              className="p-4 bg-white shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out relative overflow-visible" // Allow overflow for the dropdown
             >
               <CardHeader className="flex items-start justify-between mb-2">
                 <div className="flex flex-col">
@@ -88,14 +99,45 @@ const ListenerProfileStatusTable: React.FC = () => {
                   </div>
                 </div>
 
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="h-8 w-8 border-none text-center bg-transparent text-black hover:bg-gray-200"
-                  onClick={() => handleViewClick(listener)}
-                >
-                  <View className="h-4 w-4" />
-                </Button>
+                {/* Dropdown Trigger */}
+                <div className="relative">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="border-none text-center bg-transparent text-black hover:bg-gray-200"
+                    onClick={() => toggleDropdown(listener.userId)}
+                    title="Options"
+                  >
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+
+                  {/* Dropdown Menu */}
+                  {openDropdown === listener.userId && (
+                    <div
+                      className="absolute right-0 mt-2 w-40 bg-white border rounded-md shadow-lg z-50"
+                      style={{ overflow: "visible" }} // Ensure dropdown is not clipped
+                    >
+                      <button
+                        onClick={() => handleViewClick(listener)}
+                        className="block px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 w-full"
+                      >
+                        View
+                      </button>
+                      <Link
+                        href={`/listener/${listener.userId}`}
+                        className="block px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 w-full"
+                      >
+                        View All Sessions
+                      </Link>
+                      <button
+                        onClick={() => handleAction("Delete", listener)}
+                        className="block px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 w-full"
+                      >
+                        Past Appointments
+                      </button>
+                    </div>
+                  )}
+                </div>
               </CardHeader>
             </Card>
           ))

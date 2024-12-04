@@ -4,6 +4,7 @@ import { RootState } from "@/store";
 import { getListenerDetails } from "@/service/listener/getListenerDetails";
 import { changeStatus } from "@/service/listener/changeStatus";
 import { useRouter } from "next/router";
+import { X } from "lucide-react";
 interface ListenerModalProps {
   selectedListener: ListenerDetails;
   closeModal: () => void;
@@ -79,7 +80,7 @@ const ViewListener: React.FC<ListenerModalProps> = ({
           onClick={closeModal}
           className="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
         >
-          ✕
+          <X size={24} />
         </button>
         <h2 className="text-2xl font-semibold text-gray-800 mb-4">
           Listener Details
