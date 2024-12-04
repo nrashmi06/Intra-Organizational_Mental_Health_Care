@@ -13,6 +13,9 @@ import com.dbms.mentalhealth.repository.*;
 import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.service.NotificationService;
 import com.dbms.mentalhealth.service.SessionService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -52,15 +55,18 @@ public class SessionServiceImpl implements SessionService {
 
 
     @Override
-    public String initiateSession(Integer listenerId, String message) {
+    public String initiateSession(Integer listenerId, String message) throws JsonProcessingException {
         User sender = userRepository.findById(jwtUtils.getUserIdFromContext())
                 .orElseThrow(() -> new UserNotFoundException("Sender not found"));
         User receiver = userRepository.findById(listenerId)
                 .orElseThrow(() -> new ListenerNotFoundException("Receiver not found"));
 
         // Create a notification
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode messageJson = objectMapper.readTree(message);
+
         Notification notification = new Notification();
-        notification.setMessage(message);
+        notification.setMessage(messageJson.get("message").asText() + " (User ID:" + sender.getUserId() + ")");
         notification.setReceiver(receiver);
         notification.setSender(sender);
         notificationService.sendNotification(notification);
@@ -89,10 +95,10 @@ public class SessionServiceImpl implements SessionService {
             // Prepare session notifications
             String userMessage = "Your session request has been accepted by listener " +
                     listener.getUser().getAnonymousName() +
-                    ". Session starting soon. Session ID: " + session.getSessionId();
+                    ". Session starting soon. Session ID:" + session.getSessionId();
             String listenerMessage = "You have accepted a session request from user " +
                     user.getAnonymousName() +
-                    ". Session starting soon. Session ID: " + session.getSessionId();
+                    ". Session starting soon. Session ID:" + session.getSessionId();
 
             // Send notification to both user and listener
             sendSseNotification(user, listener.getUser(), userMessage);

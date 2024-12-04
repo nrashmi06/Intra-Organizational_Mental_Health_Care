@@ -6,6 +6,7 @@ import com.dbms.mentalhealth.dto.session.SessionResponseDTO;
 import com.dbms.mentalhealth.dto.session.SessionSummaryDTO;
 import com.dbms.mentalhealth.service.SessionService;
 import com.dbms.mentalhealth.urlMapper.SessionUrlMapping;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,7 +26,7 @@ public class SessionController {
     }
 
     @PostMapping(SessionUrlMapping.INITIATE_SESSION)
-    public ResponseEntity<String> initiateSession(@PathVariable Integer listenerId, @RequestBody String message) {
+    public ResponseEntity<String> initiateSession(@PathVariable Integer listenerId, @RequestBody String message) throws JsonProcessingException {
         String sessionDetails = sessionService.initiateSession(listenerId, message);
         return ResponseEntity.ok(sessionDetails);
     }

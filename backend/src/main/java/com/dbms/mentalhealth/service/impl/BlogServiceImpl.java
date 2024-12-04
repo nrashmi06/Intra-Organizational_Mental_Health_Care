@@ -7,13 +7,16 @@ import com.dbms.mentalhealth.enums.BlogApprovalStatus;
 import com.dbms.mentalhealth.exception.blog.BlogNotFoundException;
 import com.dbms.mentalhealth.exception.user.UserNotFoundException;
 import com.dbms.mentalhealth.mapper.BlogMapper;
+import com.dbms.mentalhealth.model.Admin;
 import com.dbms.mentalhealth.model.Blog;
 import com.dbms.mentalhealth.model.BlogLike;
+import com.dbms.mentalhealth.repository.AdminRepository;
 import com.dbms.mentalhealth.repository.BlogLikeRepository;
 import com.dbms.mentalhealth.repository.BlogRepository;
 import com.dbms.mentalhealth.repository.UserRepository;
 import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.service.BlogService;
+import com.dbms.mentalhealth.service.EmailService;
 import com.dbms.mentalhealth.service.ImageStorageService;
 import com.dbms.mentalhealth.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,6 +29,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 @Service
 public class BlogServiceImpl implements BlogService {
@@ -36,15 +42,19 @@ public class BlogServiceImpl implements BlogService {
     private final UserService userService;
     private final ImageStorageService imageStorageService;
     private final JwtUtils jwtUtils;
+    private final EmailService emailService;
+    private final AdminRepository adminRepository;
 
     @Autowired
-    public BlogServiceImpl(UserRepository userRepository, ImageStorageService imageStorageService, BlogRepository blogRepository, BlogLikeRepository blogLikeRepository, UserServiceImpl userService, JwtUtils jwtUtils) {
+    public BlogServiceImpl(UserRepository userRepository, ImageStorageService imageStorageService, BlogRepository blogRepository, BlogLikeRepository blogLikeRepository, UserServiceImpl userService, JwtUtils jwtUtils, EmailService emailService, AdminRepository adminRepository) {
         this.blogRepository = blogRepository;
         this.blogLikeRepository = blogLikeRepository;
         this.userService = userService;
         this.imageStorageService = imageStorageService;
         this.userRepository = userRepository;
         this.jwtUtils = jwtUtils;
+        this.emailService = emailService;
+        this.adminRepository = adminRepository;
     }
 
     @Transactional
@@ -61,6 +71,21 @@ public class BlogServiceImpl implements BlogService {
             blog.setBlogApprovalStatus(BlogApprovalStatus.PENDING);
         }
         Blog createdBlog = blogRepository.save(blog);
+
+        // Send email notification to the user
+        String userEmail = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found"))
+                .getEmail();
+        emailService.sendBlogSubmissionReceivedEmail(userEmail, createdBlog.getId().toString());
+
+        // Send email notification to all admins
+        List<String> adminEmails = adminRepository.findAll().stream()
+                .map(Admin::getEmail)
+                .toList();
+        for (String adminEmail : adminEmails) {
+            emailService.sendNewBlogSubmissionEmailToAdmin(adminEmail, userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found")).getAnonymousName(), blog.getTitle());
+        }
+
         return BlogMapper.toResponseDTO(createdBlog, false);
     }
 
@@ -120,6 +145,19 @@ public class BlogServiceImpl implements BlogService {
         blog.setBlogApprovalStatus(isApproved ? BlogApprovalStatus.APPROVED : BlogApprovalStatus.REJECTED);
         Blog updatedBlog = blogRepository.save(blog);
         boolean likedByCurrentUser = blogLikeRepository.existsByBlogIdAndUserUserId(blogId, getUserIdFromContext());
+
+        String userEmail = userRepository.findById(blog.getUserId())
+                .orElseThrow(() -> new UserNotFoundException("User not found"))
+                .getEmail();
+
+        if (isApproved) {
+            // Send email notification to the user
+            emailService.sendBlogAcceptanceEmail(userEmail, blog.getTitle());
+        } else {
+            // Send email notification to the user
+            emailService.sendBlogRejectionEmail(userEmail, blog.getTitle());
+        }
+
         return BlogMapper.toResponseDTO(updatedBlog, likedByCurrentUser);
     }
 
