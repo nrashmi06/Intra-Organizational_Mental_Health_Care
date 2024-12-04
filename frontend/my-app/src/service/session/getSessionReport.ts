@@ -12,13 +12,7 @@ export const getSessionReport = async (sessionId: number, token: string) => {
         },
       }
     );
-
-    if (!response) {
-      throw new Error(`Error: ${response}`);
-    }
-
-    const data = await response.json();
-    return data;
+    return response.json();
   } catch (error) {
     console.error("Error fetching session feedback:", error);
     throw error;

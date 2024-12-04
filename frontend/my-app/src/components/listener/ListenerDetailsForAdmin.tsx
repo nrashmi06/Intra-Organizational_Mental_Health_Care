@@ -133,7 +133,10 @@ const ListenerApplicationDetails: React.FC<{
                     <span className="font-semibold block mb-1">
                       Reason for Applying:
                     </span>
-                    <p className="text-gray-700">
+                    <p
+                      className="text-gray-700 overflow-auto max-h-32 scrollbar-thin scrollbar-thumb-gray-400"
+                      style={{ maxHeight: "8rem" }}
+                    >
                       {application.reasonForApplying}
                     </p>
                   </div>
@@ -179,7 +182,7 @@ const ListenerApplicationDetails: React.FC<{
                     className="text-blue-600 hover:underline flex items-center justify-center"
                   >
                     <CheckCircle2 className="w-5 h-5 mr-2" />
-                    View Application
+                    View Certificate
                   </a>
                 </div>
               )}
