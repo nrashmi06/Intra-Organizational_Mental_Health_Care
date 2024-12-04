@@ -5,6 +5,10 @@ import { RootState } from "@/store";
 import { getSessionListByRole } from "@/service/session/getSessionsListByRole";
 import Navbar from "@/components/navbar/Navbar2";
 import { Eye, FileText, MessageSquare } from "lucide-react";
+import { getSessionReport } from "@/service/session/getSessionReport";
+import { getSessionFeedback } from "@/service/session/getSessionFeedback";
+import { getSessionMessages } from "@/service/session/getSessionMessages";
+import { formatRelativeTime } from "@/components/ui/formatDistanceToNow";
 
 interface Session {
   sessionId: number;
@@ -16,54 +20,191 @@ interface Session {
 interface DetailViewProps {
   type: "report" | "feedback" | "messages" | null;
   sessionId: number | null;
+  token: string;
 }
 
-const SessionDetailView: React.FC<DetailViewProps> = ({ type, sessionId }) => {
-  if (!sessionId)
-    return (
-      <div className="p-4 text-gray-500">Select a session to view details</div>
-    );
+const SessionDetailView: React.FC<DetailViewProps> = ({
+  type,
+  sessionId,
+  token,
+}) => {
+  const [content, setContent] = useState<React.ReactNode>(
+    <div className="p-4 text-gray-500">Select a session to view details</div>
+  );
 
-  const renderContent = () => {
-    switch (type) {
-      case "report":
-        return (
-          <div className="p-4">
-            <h2 className="text-xl font-bold mb-4">
-              Session Report for Session #{sessionId}
-            </h2>
-            {/* Placeholder for actual report content */}
-            <p>Detailed session report would be displayed here.</p>
-          </div>
+  useEffect(() => {
+    const fetchContent = async () => {
+      if (!sessionId) return;
+
+      try {
+        switch (type) {
+          case "report":
+            const data = await getSessionReport(sessionId, token);
+            const report = data[0];
+            if (report) {
+              setContent(
+                <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+                  <div className="bg-white shadow-lg rounded-lg w-96 p-6 space-y-4">
+                    <div className="bg-blue-500 text-white p-3 rounded text-center">
+                      <h2 className="text-xl font-bold">
+                        Medical Incident Report
+                      </h2>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="font-semibold">Report ID:</div>
+                      <div>{report.reportId}</div>
+
+                      <div className="font-semibold">Session ID:</div>
+                      <div>{report.sessionId}</div>
+
+                      <div className="font-semibold">User ID:</div>
+                      <div>{report.userId}</div>
+
+                      <div className="font-semibold">Severity:</div>
+                      <div className="flex items-center">
+                        <div
+                          className="h-2 w-full bg-gradient-to-r from-green-500 via-yellow-500 to-red-500"
+                          style={{
+                            clipPath: `inset(0 ${
+                              (5 - report.severityLevel) * 20
+                            }% 0 0)`,
+                          }}
+                        />
+                        <span className="ml-2 text-sm">
+                          {report.severityLevel}/5
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="text-center text-sm text-gray-500">
+                      {new Date(report.createdAt).toLocaleString()}
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+            break;
+          case "feedback":
+            try {
+              const data = await getSessionFeedback(sessionId, token);
+              const feedback = data[0];
+
+              if (feedback) {
+                setContent(
+                  <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+                    <div className="bg-white shadow-lg rounded-lg w-96 p-6 space-y-4">
+                      <div className="bg-green-500 text-white p-3 rounded text-center">
+                        <h2 className="text-xl font-bold">Session Feedback</h2>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="font-semibold">Feedback ID:</div>
+                        <div>{feedback.feedbackId}</div>
+
+                        <div className="font-semibold">Session ID:</div>
+                        <div>{feedback.sessionId}</div>
+
+                        <div className="font-semibold">User ID:</div>
+                        <div>{feedback.userId}</div>
+
+                        <div className="font-semibold">Rating:</div>
+                        <div className="flex items-center">
+                          <div
+                            className="h-2 w-full bg-gradient-to-r from-red-500 via-yellow-500 to-green-500"
+                            style={{
+                              clipPath: `inset(0 ${
+                                (5 - feedback.rating) * 20
+                              }% 0 0)`,
+                            }}
+                          />
+                          <span className="ml-2 text-sm">
+                            {feedback.rating}/5
+                          </span>
+                        </div>
+
+                        <div className="font-semibold">Comments:</div>
+                        <div className="text-gray-600 italic">
+                          {feedback.comments || "No comments"}
+                        </div>
+                      </div>
+
+                      <div className="text-center text-sm text-gray-500">
+                        {new Date(feedback.submittedAt).toLocaleString()}
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+            } catch (error) {
+              console.error("Error fetching session feedback:", error);
+            }
+
+            break;
+          case "messages":
+            try {
+              const messages = await getSessionMessages(sessionId, token);
+
+              if (messages) {
+                setContent(
+                  <div className="h-full flex flex-col">
+                    <div className="bg-blue-500 text-white p-3 text-center font-bold">
+                      Session #{sessionId} Chat History
+                    </div>
+                    <div className="flex-grow overflow-y-auto p-4 space-y-3">
+                      {messages.map((message) => (
+                        <div
+                          key={message.messageId}
+                          className={`flex ${
+                            message.senderType === "LISTENER"
+                              ? "justify-start"
+                              : "justify-end"
+                          }`}
+                        >
+                          <div
+                            className={`max-w-[70%] p-3 rounded-lg shadow-sm ${
+                              message.senderType === "LISTENER"
+                                ? "bg-green-100 text-green-800"
+                                : "bg-blue-100 text-blue-800"
+                            }`}
+                          >
+                            <div className="font-semibold text-sm mb-1">
+                              {message.senderName}
+                            </div>
+                            <div>{message.messageContent}</div>
+                            <div className="text-xs text-gray-500 mt-1 text-right">
+                              {formatRelativeTime(message.sentAt)}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              }
+            } catch (error) {
+              console.error("Error fetching session messages:", error);
+            }
+            break;
+          default:
+            setContent(
+              <div className="p-4 text-gray-500">Select a view type</div>
+            );
+        }
+      } catch (error) {
+        console.error("Error fetching content:", error);
+        setContent(
+          <div className="p-4 text-gray-500">Error fetching content</div>
         );
-      case "feedback":
-        return (
-          <div className="p-4">
-            <h2 className="text-xl font-bold mb-4">
-              Feedback for Session #{sessionId}
-            </h2>
-            {/* Placeholder for actual feedback content */}
-            <p>User feedback would be displayed here.</p>
-          </div>
-        );
-      case "messages":
-        return (
-          <div className="p-4">
-            <h2 className="text-xl font-bold mb-4">
-              Session Messages for Session #{sessionId}
-            </h2>
-            {/* Placeholder for actual messages content */}
-            <p>Session messages would be displayed here.</p>
-          </div>
-        );
-      default:
-        return <div className="p-4 text-gray-500">Select a view type</div>;
-    }
-  };
+      }
+    };
+
+    fetchContent();
+  }, [type, sessionId, token]);
 
   return (
     <div className="bg-white shadow-md rounded-lg h-full overflow-y-auto">
-      {renderContent()}
+      {content}
     </div>
   );
 };
@@ -91,7 +232,6 @@ export default function ListenerSessions() {
   }, [id]);
 
   const fetchSessions = async (listenerId: number) => {
-    console.log("Listener ID is:", listenerId);
     try {
       const response = await getSessionListByRole(
         listenerId,
@@ -121,9 +261,6 @@ export default function ListenerSessions() {
     <>
       <Navbar />
       <div className="flex h-[calc(100vh-64px)]">
-        {" "}
-        {/* Subtract navbar height */}
-        {/* Sessions List Section */}
         <div className="w-1/3 bg-gray-50 border-r border-gray-200 overflow-y-auto p-4">
           <h1 className="text-2xl font-bold mb-4 text-gray-800">
             Listener Sessions
@@ -193,9 +330,12 @@ export default function ListenerSessions() {
             <p className="text-gray-500">Loading listener information...</p>
           )}
         </div>
-        {/* Detail View Section */}
         <div className="w-2/3 bg-gray-100">
-          <SessionDetailView type={detailView} sessionId={selectedSession} />
+          <SessionDetailView
+            type={detailView}
+            sessionId={selectedSession}
+            token={token}
+          />
         </div>
       </div>
     </>

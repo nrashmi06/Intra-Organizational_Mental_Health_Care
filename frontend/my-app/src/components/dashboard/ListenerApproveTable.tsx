@@ -244,10 +244,10 @@ const ListenerApprovalTable: React.FC<ListenerApprovalTableProps> = ({}) => {
                 <span className="font-medium text-gray-900">Semester:</span>{" "}
                 {selectedListener.semester}
               </p>
-              <p className="text-gray-700 ">
-                <span className="font-medium text-gray-900">
-                  Reason For Applying:
-                </span>{" "}
+              <p
+                className="text-gray-700 overflow-auto max-h-32 scrollbar-thin scrollbar-thumb-gray-400"
+                style={{ maxHeight: "8rem" }}
+              >
                 {selectedListener.reasonForApplying}
               </p>
               <p className="text-gray-700">
