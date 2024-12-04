@@ -12,8 +12,9 @@ const NotificationWrapper: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     if (accessToken && userId) {
-      const onNotificationReceived = (message: string) => {
-        dispatch(setNotification({ message }));
+      const onNotificationReceived = (message: string, senderId: string) => {
+        // Dispatch both the message and senderId in the notification
+        dispatch(setNotification({ message, senderId }));
       };
 
       // Subscribe to notifications and pass the callback
