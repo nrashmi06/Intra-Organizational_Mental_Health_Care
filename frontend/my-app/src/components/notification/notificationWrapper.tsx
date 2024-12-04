@@ -5,10 +5,12 @@ import { setNotification } from '@/store/notificationSlice';
 import { subscribeToNotifications } from '@/service/notification/subscribeNotification';
 import NotificationPopup from '@/components/notification/NotificationPopup';
 
+
 const NotificationWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const dispatch = useDispatch();
   const accessToken = useSelector((state: RootState) => state.auth.accessToken);
   const userId = useSelector((state: RootState) => state.auth.userId);
+  
 
   useEffect(() => {
     if (accessToken && userId) {

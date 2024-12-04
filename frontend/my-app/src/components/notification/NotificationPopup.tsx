@@ -4,9 +4,12 @@ import { RootState } from "@/store";
 import { X } from "lucide-react"; // Import close icon
 import { clearNotifications } from "@/store/notificationSlice"; // Replace with your actual action
 import { replyNotification } from "@/service/session/replyNotification"; // Assuming API utility exists
+import { useRouter } from "next/router";
+import { setSessionId } from "@/store/chatSlice"; // Assuming the action exists to store sessionID in Redux
 
 const NotificationPopup: React.FC = () => {
   const dispatch = useDispatch();
+  const router = useRouter();
 
   // Fetch notifications, role, access token, and userId from Redux
   const notifications = useSelector((state: RootState) => state.notification.notifications);
@@ -23,7 +26,7 @@ const NotificationPopup: React.FC = () => {
   };
 
   // Handle accept or reject actions
-  const handleAction = async (action: "accept" | "reject", senderId: string) => {
+  const handleAction = async (action: "accept" | "reject", senderId: string, message: string) => {
     try {
       if (!accessToken || !senderId) {
         console.error("Authorization token or senderId is missing.");
@@ -34,13 +37,24 @@ const NotificationPopup: React.FC = () => {
       const response = await replyNotification(senderId, action, accessToken);
       console.log(`Session ${action} response:`, response);
 
-      // After action is taken, show OK button for this notification
-      setShowOkButton((prevState) => ({
-        ...prevState,
-        [senderId]: true,
-      })
-      
-    );
+      // Extract session ID from the message (assuming the format is "Session ID: <id>")
+      const sessionIdMatch = message.match(/Session ID:(\d+)/);
+      if (sessionIdMatch && sessionIdMatch[1]) {
+        const sessionID = sessionIdMatch[1];
+        console.log(`Extracted Session ID: ${sessionID}`);
+
+        // Store session ID in Redux
+        dispatch(setSessionId(sessionID));
+
+        // Redirect to the chat page
+        router.push(`/chat/${sessionID}`);
+
+        // After action is taken, show OK button for this notification
+        setShowOkButton((prevState) => ({
+          ...prevState,
+          [senderId]: true,
+        }));
+      }
     } catch (error) {
       console.error(`Failed to ${action} session:`, error);
     }
@@ -55,6 +69,16 @@ const NotificationPopup: React.FC = () => {
     }));
     dispatch(clearNotifications());
     setShowOkButton({}); // Reset the state when closing
+  };
+
+  // Check if session ID is available and allow the user to join the session directly
+  const handleJoinSession = (message: string) => {
+    const sessionIdMatch = message.match(/Session ID:(\d+)/);
+    if (sessionIdMatch && sessionIdMatch[1]) {
+      const sessionID = sessionIdMatch[1];
+      dispatch(setSessionId(sessionID));
+      router.push(`/chat/${sessionID}`);
+    }
   };
 
   if (notifications.length === 0) return null; // Don't render if no notifications
@@ -84,13 +108,13 @@ const NotificationPopup: React.FC = () => {
               {role === "LISTENER" && !isOkVisible && (
                 <div className="flex justify-center space-x-4 mt-4">
                   <button
-                    onClick={() => handleAction("accept", senderId)}
+                    onClick={() => handleAction("accept", senderId, message)}
                     className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded"
                   >
                     Accept
                   </button>
                   <button
-                    onClick={() => handleAction("reject", senderId)}
+                    onClick={() => handleAction("reject", senderId, message)}
                     className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded"
                   >
                     Reject
@@ -119,6 +143,16 @@ const NotificationPopup: React.FC = () => {
                   OK
                 </button>
               )}
+
+              {/* If session ID is found in the notification, allow joining the session */}
+              <div className="mt-4">
+                <button
+                  onClick={() => handleJoinSession(message)}
+                  className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded"
+                >
+                  Join Session
+                </button>
+              </div>
             </div>
           );
         })}
