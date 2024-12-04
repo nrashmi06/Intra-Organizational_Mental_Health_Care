@@ -1,5 +1,4 @@
 package com.dbms.mentalhealth.service.impl;
-
 import com.dbms.mentalhealth.service.EmailService;
 import com.dbms.mentalhealth.urlMapper.UserUrlMapping;
 import jakarta.mail.MessagingException;
@@ -56,9 +55,7 @@ public class EmailServiceImpl implements EmailService {
 
     public void sendBlogSubmissionReceivedEmail(String email, String blogId) {
         String subject = "Blog Submission Received";
-        String blogUrl = "http://localhost:8080/mental-health/api/v1/blogs" + blogId; // Replace with your actual blog viewing URL
         Context context = new Context();
-        context.setVariable("blogUrl", blogUrl);
         String body = templateEngine.process("userBlogReceivedTemplate", context); // Template name should match your HTML file
         sendHtmlEmail(email, subject, body);
     }
@@ -68,10 +65,16 @@ public class EmailServiceImpl implements EmailService {
         Context context = new Context();
         context.setVariable("user", userName); // Dynamically set the user's name
         context.setVariable("blog", blogTitle);
-        context.setVariable("adminDashBoardUrl", "http://localhost:3000/dashboard"); // Replace with your actual admin dashboard URL
         // Dynamically set the blog title
         String body = templateEngine.process("adminBlogSubmissionToReviewTemplate.html", context); // Load the template
         sendHtmlEmail(adminEmail, subject, body); // Send the email
+    }
+    public void sendBlogAcceptanceEmail(String email, String blogTitle) {
+        String subject = "Your Blog is Now Live!";
+        Context context = new Context();
+        context.setVariable("blogTitle", blogTitle);
+        String body = templateEngine.process("userBlogAcceptanceTemplate.html", context);
+        sendHtmlEmail(email, subject, body);
     }
     @Override
     public void sendListenerApplicationReceivedEmail(String email) {
@@ -85,9 +88,15 @@ public class EmailServiceImpl implements EmailService {
     public void sendNewListenerApplicationAlertToAdmin(String adminEmail, String applicationId) {
         String subject = "New Listener Application Alert";
         Context context = new Context();
-        context.setVariable("adminDashBoardUrl", "http://localhost:3000/dashboard");
         context.setVariable("applicationID", applicationId);
         String body = templateEngine.process("adminListenerApplicationAlertTemplate.html", context);
         sendHtmlEmail(adminEmail, subject, body);
+    }
+    public void sendBlogRejectionEmail(String email, String blogTitle) {
+        String subject = "Blog Submission Update";
+        Context context = new Context();
+        context.setVariable("blogTitle", blogTitle);
+        String body = templateEngine.process("userBlogRejectionTemplate.html", context);
+        sendHtmlEmail(email, subject, body);
     }
 }

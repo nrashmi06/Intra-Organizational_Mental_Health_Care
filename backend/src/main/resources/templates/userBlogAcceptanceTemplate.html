@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>New Listener Application Alert</title>
+    <title>Blog Published</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -21,7 +21,7 @@
             overflow: hidden;
         }
         .header {
-            background-color: #ffc107;
+            background-color: #4CAF50;
             color: #ffffff;
             text-align: center;
             padding: 20px;
@@ -33,11 +33,6 @@
             padding: 20px;
             text-align: center;
         }
-        .content img {
-            max-width: 100%;
-            height: auto;
-            margin: 20px 0;
-        }
         .footer {
             background-color: #f4f4f9;
             text-align: center;
@@ -45,41 +40,20 @@
             font-size: 12px;
             color: #777;
         }
-        .info {
-            font-size: 14px;
-            color: #555;
-            margin-top: 20px;
-            text-align: left;
-            line-height: 1.5;
-        }
-        .btn {
-            display: inline-block;
-            margin-top: 15px;
-            padding: 10px 20px;
-            color: #fff;
-            background-color: #007bff;
-            text-decoration: none;
-            border-radius: 5px;
-        }
-        .btn:hover {
-            background-color: #0056b3;
-        }
     </style>
 </head>
 <body>
 <div class="container">
     <div class="header">
-        <h1>New Listener Application Alert</h1>
+        <h1>Congratulations!</h1>
     </div>
     <div class="content">
-        <p>Hello Admin,</p>
-        <p>A new listener application has been submitted by a user. Please review the application at your earliest convenience.</p>
-        <img src="https://img.freepik.com/free-vector/online-resume-concept-illustration_114360-2932.jpg" alt="Admin Notification">
-        <p><strong>Application ID:</strong> <span th:text="${applicationID}">[Application ID]</span></p>
+        <img src="https://img.freepik.com/free-vector/blogging-concept-illustration_114360-4769.jpg" alt="Blog Published">
+        <p>We are excited to inform you that your blog entry titled <strong th:text="${blogTitle}">[Blog Title]</strong> has been accepted and is now live on our platform!</p>
+        <p>Thank you for sharing your unique insights and creativity with our community. We look forward to more amazing content from you!</p>
     </div>
     <div class="footer">
         <p>&copy; 2024 SerenitySphere. All rights reserved.</p>
-        <p>Need assistance? Visit us at <a href="https://example.com/help">Home</a>.</p>
     </div>
 </div>
 </body>

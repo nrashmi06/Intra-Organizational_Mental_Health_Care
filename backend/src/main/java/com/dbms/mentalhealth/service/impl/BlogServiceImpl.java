@@ -145,6 +145,19 @@ public class BlogServiceImpl implements BlogService {
         blog.setBlogApprovalStatus(isApproved ? BlogApprovalStatus.APPROVED : BlogApprovalStatus.REJECTED);
         Blog updatedBlog = blogRepository.save(blog);
         boolean likedByCurrentUser = blogLikeRepository.existsByBlogIdAndUserUserId(blogId, getUserIdFromContext());
+
+        String userEmail = userRepository.findById(blog.getUserId())
+                .orElseThrow(() -> new UserNotFoundException("User not found"))
+                .getEmail();
+
+        if (isApproved) {
+            // Send email notification to the user
+            emailService.sendBlogAcceptanceEmail(userEmail, blog.getTitle());
+        } else {
+            // Send email notification to the user
+            emailService.sendBlogRejectionEmail(userEmail, blog.getTitle());
+        }
+
         return BlogMapper.toResponseDTO(updatedBlog, likedByCurrentUser);
     }
 
