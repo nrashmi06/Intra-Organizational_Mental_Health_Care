@@ -31,32 +31,41 @@ const SendMessageModal: React.FC<{
   selectedListener: CompleteListenerDetails;
 }> = ({ closeModal, selectedListener }) => {
   const [message, setMessage] = useState("");
-  const [isSending, setIsSending] = useState(false); // State to manage loading state
-  const [alert, setAlert] = useState(""); // State to manage alert message
+  const [isSending, setIsSending] = useState(false);
+  const [alert, setAlert] = useState(""); // Alert message state
   const token = useSelector((state: RootState) => state.auth.accessToken);
 
   const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault(); // Prevent form submission from refreshing the page
+    e.preventDefault();
 
     if (!message.trim()) {
       setAlert("Message cannot be empty.");
       return;
     }
+
     setIsSending(true);
     try {
       const response = await initiateSession(
         selectedListener.userId,
-
         message,
         token
       );
-      if (response.ok) {
-        setMessage(""); // Clear the message
-        closeModal(); // Close the modal after success
+
+      if (response) {
+        setAlert("Message sent successfully!");
+        setMessage("");
+
+        // Wait for 3 seconds and close the modal
+        setTimeout(() => {
+          setAlert("");
+          closeModal();
+        }, 3000);
       } else {
+        setAlert("Failed to send the message.");
       }
     } catch (error) {
       console.error("Error sending message:", error);
+      setAlert("An error occurred. Please try again.");
     } finally {
       setIsSending(false);
     }
@@ -98,7 +107,10 @@ const SendMessageModal: React.FC<{
             {isSending ? "Sending..." : "Send"}
           </button>
         </form>
-        <h2 className="text-red-700 text-center mb-2">{alert}</h2>
+
+        {alert && (
+          <p className="text-center mt-4 text-green-600 font-medium">{alert}</p>
+        )}
       </div>
     </div>
   );

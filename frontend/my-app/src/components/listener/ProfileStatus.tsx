@@ -1,6 +1,5 @@
 //It will show the listener profile status in the dashboard. It will show the listener's name, user ID
 // Filters to show Active Listeners and Suspended Listeners
-
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,7 +9,9 @@ import { RootState } from "@/store";
 import { useSelector } from "react-redux";
 import ViewListener from "./ViewListener";
 import Link from "next/link";
+import { getApplicationByListenerId } from "@/service/listener/getApplicationByListenerId";
 import Image from "next/image";
+
 interface Listener {
   userId: number;
   anonymousName: string;
@@ -24,6 +25,7 @@ const ListenerProfileStatusTable: React.FC = () => {
   const [selectedListener, setSelectedListener] = useState<Listener | null>(
     null
   );
+  // Certificate URL state
   const [openDropdown, setOpenDropdown] = useState<number | null>(null);
   const [image, setImage] = useState<string | null>(null);
   const token = useSelector((state: RootState) => state.auth.accessToken); // Retrieve the token from Redux store
@@ -58,12 +60,15 @@ const ListenerProfileStatusTable: React.FC = () => {
     setOpenDropdown((prev) => (prev === userId ? null : userId));
   };
 
-  const handleAction = (userId: number) => {
+  const handleAction = async (userId: number) => {
     try {
-      const response = getApplicationByListenerId(token, userId);
-      console.log("Certificate:", response);
-      console.log("Certificate URL:", response.certificateUrl);
-      // setImage(response.certificateUrl);
+      const response = await getApplicationByListenerId(userId, token);
+      if (!response.certificateUrl) {
+        console.error("No certificate URL found for the user");
+        return;
+      }
+
+      setImage(response.certificateUrl); // Use the fetched URL directly
     } catch (error) {
       console.error("Error fetching certificate:", error);
     }
@@ -141,7 +146,7 @@ const ListenerProfileStatusTable: React.FC = () => {
                         View All Sessions
                       </Link>
                       <button
-                        onClick={() => handleAction(listener.userId)} ////////TODO
+                        onClick={() => handleAction(listener.userId)}
                         className="block px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 w-full"
                       >
                         View Certificate
@@ -167,31 +172,28 @@ const ListenerProfileStatusTable: React.FC = () => {
         />
       )}
 
-      {/* {image && selectedListener && (
-                    <div
-                      className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
-                      onClick={() => setImage(false)}
-                    >
-                      <div
-                        className="bg-white p-4 rounded-lg shadow-lg"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <Image
-                          src={selectedListener.certificateUrl}
-                          alt="Certificate"
-                          className="max-w-full max-h-full"
-                          sizes="(max-width: 640px) 100vw, (max-width: 768px) 90vw, 80vw"
-                          height={500}
-                          width={500}
-                        />
-                      </div>
-                    </div>
-                  )} */}
+      {image && (
+        <div
+          className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
+          onClick={() => setImage(null)}
+        >
+          <div
+            className="bg-white p-4 rounded-lg shadow-lg"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Image
+              src={image}
+              alt="Certificate"
+              className="max-w-full max-h-full"
+              sizes="(max-width: 640px) 100vw, (max-width: 768px) 90vw, 80vw"
+              height={500}
+              width={500}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
 export default ListenerProfileStatusTable;
-function getApplicationByListenerId(token: string, userId: number) {
-  throw new Error("Function not implemented.");
-}

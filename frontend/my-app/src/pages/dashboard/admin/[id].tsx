@@ -298,7 +298,7 @@ export default function AdminProfile() {
   }
 
   return (
-    <div>
+    <div className="min-h-screen bg-gradient-to-br from-purple-200 via-blue-200 to-purple-200">
       <Navbar />
       <div className="bg-white shadow-lg rounded-xl overflow-hidden max-w-4xl mx-auto my-8">
         <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-6">
