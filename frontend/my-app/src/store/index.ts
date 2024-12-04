@@ -3,30 +3,37 @@ import authReducer from './authSlice'; // Your auth reducer
 import notificationReducer from './notificationSlice'; // Import your notification slice
 import { persistReducer, persistStore } from 'redux-persist';
 import storage from 'redux-persist/lib/storage/session'; // Using sessionStorage
+import chatReducer from './chatSlice'; // Import your chat slice
 
 // Define the persist config for auth reducer
 const authPersistConfig = {
   key: 'auth',  // Key for storage
   storage,      // Using sessionStorage
-  whitelist: ['accessToken', 'userId'], // Only persist specific parts of auth state
 };
 
 // Define the persist config for notification reducer
 const notificationPersistConfig = {
   key: 'notifications',  // Key for storage
   storage,               // Using sessionStorage
-  whitelist: ['notifications'], // Only persist notifications state
+};
+
+// Define the persist config for chat reducer
+const chatPersistConfig = {
+  key: 'chat',  // Key for storage
+  storage,      // Using sessionStorage
 };
 
 // Persist the auth and notification reducers separately
 const persistedAuthReducer = persistReducer(authPersistConfig, authReducer);
 const persistedNotificationReducer = persistReducer(notificationPersistConfig, notificationReducer);
+const persistedChatReducer = persistReducer(chatPersistConfig, chatReducer);
 
 // Create the Redux store
 const store = configureStore({
   reducer: {
     auth: persistedAuthReducer,  // Use the persisted auth reducer
     notification: persistedNotificationReducer, // Add your notification reducer
+    chat: persistedChatReducer, // Add your chat reducer
   },
   devTools: process.env.NODE_ENV !== 'production', // Enable Redux DevTools in development
 });

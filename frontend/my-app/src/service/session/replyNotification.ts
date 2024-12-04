@@ -7,8 +7,8 @@ export const replyNotification = async (
 ) => {
   try {
     const response = await axios.post(
-      `http://localhost:8080/mental-health/api/v1/sessions/initiate/${userId}?action=${action}`,
-      {}, // Empty body (as the API doesn't expect anything in the body)
+      `http://localhost:8080/mental-health/api/v1/sessions/status/${userId}?action=${action}`,
+      {}, 
       {
         headers: {
           Authorization: `Bearer ${token}`,
