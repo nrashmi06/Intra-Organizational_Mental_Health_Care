@@ -24,7 +24,7 @@ export default function Navbar() {
   };
 
   return (
-    <header className="border-b  relative">
+    <header className="border-b relative">
       <div
         style={{
           background:
