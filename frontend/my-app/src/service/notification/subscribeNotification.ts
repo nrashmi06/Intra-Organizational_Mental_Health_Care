@@ -1,7 +1,7 @@
 export const subscribeToNotifications = (
     token: string,
     userId: number,
-    onNotificationReceived: (message: string) => void
+    onNotificationReceived: (message: string, senderId: string) => void
   ) => {
     const eventSource = new EventSource(
       `http://localhost:8080/mental-health/api/v1/sse/notifications/subscribe?token=${encodeURIComponent(
@@ -20,12 +20,12 @@ export const subscribeToNotifications = (
   
         // Check if the eventData is in valid JSON format
         if (eventData.startsWith("{") && eventData.endsWith("}")) {
-          // Parse the message only if it's JSON
-          const { message } = JSON.parse(eventData);
-          console.log("Parsed notification:", message);
+          // Parse the message and senderId if it's valid JSON
+          const { message, senderId } = JSON.parse(eventData);
+          console.log("Parsed notification:", message, senderId);
   
-          if (message) {
-            onNotificationReceived(message); // Pass the message to the callback
+          if (message && senderId) {
+            onNotificationReceived(message, senderId); // Pass both message and senderId to the callback
           }
         } else {
           // Handle non-JSON message (e.g., "Connected")
