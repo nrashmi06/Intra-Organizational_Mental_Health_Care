@@ -1,3 +1,5 @@
+// TO SHOW ALL TYPES OF ACTIVE USERS COUNT ON THE ANALYTICS PAGE
+
 function UserCountGrid({
   totalCount,
   roleCounts,

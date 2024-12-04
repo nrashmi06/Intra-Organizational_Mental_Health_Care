@@ -71,7 +71,7 @@ export default function Component() {
   return (
     <div>
       <Navbar />
-      <div className="min-h-screen bg-gradient-to-br from-purple-500 to-blue-500 p-4">
+      <div className="min-h-screen bg-gradient-to-br  p-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
           {listeners.map((listener) => (
             <Details

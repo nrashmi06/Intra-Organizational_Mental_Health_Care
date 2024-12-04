@@ -2,6 +2,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 interface Notification {
   message: string;
+  senderId: string;
 }
 
 interface NotificationState {
@@ -17,7 +18,7 @@ const notificationSlice = createSlice({
   initialState,
   reducers: {
     setNotification: (state, action: PayloadAction<Notification>) => {
-      state.notifications.push(action.payload); // Push new message
+      state.notifications.push(action.payload); // Push new notification
     },
     clearNotifications: (state) => {
       state.notifications = [];
