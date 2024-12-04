@@ -167,6 +167,11 @@ public class ListenerApplicationServiceImpl implements ListenerApplicationServic
             throw new AccessDeniedException("Access denied for deleting Listener Application with ID: " + applicationId);
         }
 
+        // Set the role of the user back to USER
+        User user = listenerApplication.getUser();
+        user.setRole(Role.USER);
+        userRepository.save(user);
+
         // Delete the Listener Application
         listenerApplicationRepository.deleteById(applicationId);
     }
