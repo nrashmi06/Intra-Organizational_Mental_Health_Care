@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Home, MoreVertical, Send } from 'lucide-react';
+import { endSession } from "@/service/session/endSession";
 
 const ChatPage = () => {
   const router = useRouter();
@@ -72,10 +73,20 @@ const ChatPage = () => {
     setMessageInput(e.target.value);
   };
 
-  const handleEndSession = () => {
+  const handleEndSession = async () => {
     if (websocket) {
       websocket.close(); // Close WebSocket
     }
+
+    try {
+      if (sessionId && accessToken) {
+        await endSession(sessionId, accessToken); // Call the API to end the session
+        console.log("Session ended successfully.");
+      }
+    } catch (error) {
+      console.error("Failed to end session:", error);
+    }
+
     router.push('/'); // Redirect to home page
   };
 
