@@ -1,33 +1,49 @@
+// page.tsx
+
 "use client"
 
-import { useState } from "react"
-import { Star } from 'lucide-react'
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
-import { useRouter } from 'next/navigation'
-import Navbar from "@/components/navbar/Navbar2"  // Import your Navbar component
+import { useState } from "react";
+import { Star } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { useRouter } from 'next/navigation';
+import Navbar from "@/components/navbar/Navbar2";  // Import your Navbar component
 import "@/styles/globals.css";
+import submitFeedback from "@/service/feedback/sendFeedback";  // Import the submitFeedback API function
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
 
 export default function Component() {
-  const [rating, setRating] = useState<number>(0)
-  const [hoveredRating, setHoveredRating] = useState<number>(0)
-  const [comment, setComment] = useState("")
-  const [showPopup, setShowPopup] = useState(false)
+  const [rating, setRating] = useState<number>(0);
+  const [hoveredRating, setHoveredRating] = useState<number>(0);
+  const [comment, setComment] = useState("");
+  const [showPopup, setShowPopup] = useState(false);
   
-  const router = useRouter()
+  const router = useRouter();
+  const auth = useSelector((state: RootState) => state.auth.accessToken); // Replace with your actual selector
+  console.log(auth);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    // Handle form submission with rating and comment
-    console.log({ rating, comment })
+  const sessionId = useSelector((state: RootState) => state.chat.sessionId); // Replace with your actual selector
+  console.log(sessionId);
 
-    // Show the popup message
-    setShowPopup(true)
-
-    // Redirect to the homepage after 2 seconds
-    setTimeout(() => {
-      router.push("/")  // Redirect to homepage
-    }, 2000)
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();   
+    
+    try {
+      if (auth && sessionId) {
+        await submitFeedback(auth, sessionId, rating, comment);
+        setShowPopup(true);
+      } else {
+        console.error("Auth token or session ID is missing");
+      }
+      
+      // Redirect to the homepage after 2 seconds
+      setTimeout(() => {
+        router.push("/");  // Redirect to homepage
+      }, 2000);
+    } catch (error) {
+      console.error("Error submitting feedback:", error);
+    }
   }
 
   return (
@@ -46,8 +62,6 @@ export default function Component() {
       )}
 
       <div className="container mx-auto px-4 py-8">
-        
-        
         <div className="bg-white rounded-3xl p-8 max-w-2xl mx-auto">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="text-center space-y-4">
@@ -101,5 +115,5 @@ export default function Component() {
         </div>
       </div>
     </div>
-  )
+  );
 }
