@@ -99,4 +99,17 @@ public class EmailServiceImpl implements EmailService {
         String body = templateEngine.process("userBlogRejectionTemplate.html", context);
         sendHtmlEmail(email, subject, body);
     }
+    public void sendListenerAcceptanceEmail(String email) {
+        String subject = "Listener Application Approved";
+        Context context = new Context();
+        String body = templateEngine.process("userListenerAcceptanceTemplate.html", context);
+        sendHtmlEmail(email, subject, body);
+    }
+
+    public void sendListenerRejectionEmail(String email) {
+        String subject = "Listener Application Update";
+        Context context = new Context();
+        String body = templateEngine.process("userListenerRejectionTemplate.html", context);
+        sendHtmlEmail(email, subject, body);
+    }
 }

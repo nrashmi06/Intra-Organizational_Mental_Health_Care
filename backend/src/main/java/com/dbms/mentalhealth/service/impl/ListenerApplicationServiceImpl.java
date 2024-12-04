@@ -229,48 +229,39 @@ public class ListenerApplicationServiceImpl implements ListenerApplicationServic
     @Override
     @Transactional
     public ListenerDetailsResponseDTO updateApplicationStatus(Integer applicationId, String status) {
-        // Fetch the ListenerApplication entity
         ListenerApplication listenerApplication = listenerApplicationRepository.findById(applicationId)
                 .orElseThrow(() -> new RuntimeException("Listener Application not found for ID: " + applicationId));
 
-        // Get the applicant user from the ListenerApplication entity
         User applicantUser = listenerApplication.getUser();
         if (applicantUser == null) {
             throw new UserNotFoundException("User associated with Listener Application not found");
         }
 
-        // Update the application status
         if ("APPROVED".equalsIgnoreCase(status)) {
             listenerApplication.setApplicationStatus(ListenerApplicationStatus.APPROVED);
 
-            // Check if a Listener entity already exists for the user
             boolean listenerExists = listenerRepository.existsByUser(applicantUser);
 
             if (!listenerExists) {
-                // Create and save a new Listener entity for the approved user
                 applicantUser.setRole(Role.LISTENER);
                 userRepository.save(applicantUser);
                 Listener newListener = new Listener();
-                newListener.setUser(applicantUser); // Set the user associated with the application
-                newListener.setCanApproveBlogs(false); // Default value
-                newListener.setTotalSessions(0); // Default value
-                newListener.setAverageRating(BigDecimal.ZERO); // Default value
+                newListener.setUser(applicantUser);
+                newListener.setCanApproveBlogs(false);
+                newListener.setTotalSessions(0);
+                newListener.setAverageRating(BigDecimal.ZERO);
                 newListener.setJoinedAt(LocalDateTime.now());
                 newListener.setApprovedBy(userRepository.findByEmail(getUsernameFromContext()).getAnonymousName());
 
-                // Save the Listener entity
                 listenerRepository.save(newListener);
-
-                // Save the updated ListenerApplication entity
                 listenerApplicationRepository.save(listenerApplication);
 
-                // Convert and return the ListenerDetailsResponseDTO using the mapper
+                // Send email notification to the user
+                emailService.sendListenerAcceptanceEmail(applicantUser.getEmail());
+
                 return ListenerDetailsMapper.toResponseDTO(newListener);
             } else {
-                // Save the updated ListenerApplication entity
                 listenerApplicationRepository.save(listenerApplication);
-
-                // Return the existing ListenerDetailsResponseDTO
                 Listener existingListener = listenerRepository.findByUser(applicantUser)
                         .orElseThrow(() -> new ListenerNotFoundException("Listener not found for user: " + applicantUser.getEmail()));
                 return ListenerDetailsMapper.toResponseDTO(existingListener);
@@ -279,6 +270,10 @@ public class ListenerApplicationServiceImpl implements ListenerApplicationServic
         } else if ("REJECTED".equalsIgnoreCase(status)) {
             listenerApplication.setApplicationStatus(ListenerApplicationStatus.REJECTED);
             listenerApplicationRepository.save(listenerApplication);
+
+            // Send email notification to the user
+            emailService.sendListenerRejectionEmail(applicantUser.getEmail());
+
             return null;
         } else {
             throw new IllegalArgumentException("Invalid status: " + status);

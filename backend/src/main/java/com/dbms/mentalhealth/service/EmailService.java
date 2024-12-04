@@ -9,4 +9,6 @@ public interface EmailService {
     void sendNewListenerApplicationAlertToAdmin(String adminEmail, String applicationId);
     void sendBlogAcceptanceEmail(String email, String blogTitle);
     void sendBlogRejectionEmail(String email, String blogTitle);
+    void sendListenerAcceptanceEmail(String email);
+    void sendListenerRejectionEmail(String email);
 }
