@@ -40,7 +40,6 @@ spring.log
 /backend/*
 !/backend/src/
 /backend/src/main/resources/application.properties
-/backend/src/main/resources/application.yml
 /backend/src/main/resources/application-*.properties
 /backend/src/main/resources/application-*.yml
 !/backend/pom.xml
@@ -70,5 +69,4 @@ build/
 # Docker
 docker-compose.yml
 
-# Ignore the actual application.yml file
-backend/src/main/resources/application.yml
+/src/main/resources/application.yml
