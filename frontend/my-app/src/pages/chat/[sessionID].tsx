@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Home, MoreVertical, Send } from 'lucide-react';
+import { endSession } from "@/service/session/endSession";
 
 const ChatPage = () => {
   const router = useRouter();
@@ -19,6 +20,7 @@ const ChatPage = () => {
   const accessToken = useSelector((state: RootState) => state.auth.accessToken);
   const username = useSelector((state: RootState) => state.auth.anonymousName);
   const sessionId = useSelector((state: RootState) => state.chat.sessionId);
+  const role = useSelector((state: RootState) => state.auth.role);  
 
   const messageRef = useRef<HTMLDivElement | null>(null);
 
@@ -72,12 +74,28 @@ const ChatPage = () => {
     setMessageInput(e.target.value);
   };
 
-  const handleEndSession = () => {
+  const handleEndSession = async () => {
     if (websocket) {
       websocket.close(); // Close WebSocket
     }
-    router.push('/'); // Redirect to home page
+  
+    try {
+      if (sessionId && accessToken) {
+        await endSession(Number(sessionId), accessToken); // Call the API to end the session
+        console.log("Session ended successfully.");
+      }
+    } catch (error) {
+      console.error("Failed to end session:", error);
+    }
+  
+    // Check role and redirect accordingly
+    if (role !== 'LISTENER') {
+      router.push('/feedback'); // Redirect to feedback page
+    } else {
+      router.push('/listener-report'); // Redirect to listener report page
+    }
   };
+  
 
   return (
     <div className="bg-purple-500">

@@ -147,12 +147,12 @@ const SessionDetailView: React.FC<DetailViewProps> = ({
 
               if (messages) {
                 setContent(
-                  <div className="h-full flex flex-col">
-                    <div className="bg-blue-500 text-white p-3 text-center font-bold">
+                  <div className="h-full flex flex-col bg-gradient-to-br from-blue-300 via-blue-500 to-purple-600">
+                    <div className="bg-gradient-to-br from-blue-500 via-blue-500 to-purple-300 text-white p-3 text-center font-bold">
                       Session #{sessionId} Chat History
                     </div>
                     <div className="flex-grow overflow-y-auto p-4 space-y-3">
-                      {messages.map((message) => (
+                      {messages.map((message: { messageId: number; senderType: string; senderName: string; messageContent: string; sentAt: string }) => (
                         <div
                           key={message.messageId}
                           className={`flex ${

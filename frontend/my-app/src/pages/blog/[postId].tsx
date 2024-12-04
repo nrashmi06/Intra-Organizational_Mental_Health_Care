@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import { fetchBlogById, toggleLikeOnBlog } from '@/service/blog/GetBlogBuID'; 
+import { fetchBlogById, toggleLikeOnBlog } from '@/service/blog/GetBlogBuID';
 import { updateBlog } from '@/service/blog/UpdateBlog';
 import { RootState } from '@/store';
 import { useSelector } from 'react-redux';
 import Navbar from '@/components/navbar/NavBar';
-import { Heart, Eye, Pencil ,Trash } from 'lucide-react';
+import { Heart, Eye, Pencil, Trash } from 'lucide-react';
 import '@/styles/global.css';
 import Head from 'next/head';
 import EditBlogModal from '@/components/blog/EditBlogModal';
@@ -94,7 +94,7 @@ const BlogPost = () => {
   const handleDeleteClick = async () => {
     DeleteBlogByID(Number(postId), token);
     console.log('Deleted');
-};
+  };
 
   const handleSaveChanges = async () => {
     if (!editedBlogData.title || !editedBlogData.content || !editedBlogData.summary) {
@@ -105,7 +105,6 @@ const BlogPost = () => {
     try {
       const updatedArticle = await updateBlog(Number(postId), {
         ...editedBlogData,
-        
         userId: Number(ReduxuserId),
       }, token);
 
@@ -147,20 +146,26 @@ const BlogPost = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="relative min-h-screen">
       <Head>
-        <title>{article.title}</title>
+        <title>{article?.title}</title>
       </Head>
-      <Navbar />
-      <main className="flex-1 flex items-center justify-center px-4 py-8">
-        <div className="container max-w-4xl w-full">
-          <h1 className="text-4xl font-bold mb-4">{article.title}</h1>
+      
+      {/* Navbar with absolute positioning */}
+      <div className="fixed top-0 left-0 w-full z-40">
+        <Navbar />
+      </div>
+
+      {/* Blog content with overlay positioning */}
+      <main className="absolute top-0 left-0 w-full min-h-screen flex items-center justify-center pt-[80px] z-50">
+        <div className="container max-w-4xl w-full bg-white shadow-lg rounded-lg p-8 mt-4">
+          <h1 className="text-4xl font-bold mb-4">{article?.title}</h1>
           <div className="flex justify-between items-center text-sm text-gray-600 mb-6">
-            <span>{article.publishDate}</span>
+            <span>{article?.publishDate}</span>
             <div className="flex items-center space-x-4">
               <div className="flex items-center">
                 <Eye className="w-5 h-5 mr-1 text-gray-600" />
-                <span>{article.viewCount}</span>
+                <span>{article?.viewCount}</span>
               </div>
               <button
                 className="flex items-center"
@@ -168,14 +173,12 @@ const BlogPost = () => {
                 aria-label="Toggle like"
               >
                 <Heart
-                  className={`w-5 h-5 mr-1 transition-all duration-200 ${
-                    article.likedByCurrentUser ? 'text-red-500' : 'text-gray-600'
-                  }`}
-                  fill={article.likedByCurrentUser ? 'currentColor' : 'none'}
+                  className={`w-5 h-5 mr-1 transition-all duration-200 ${article?.likedByCurrentUser ? 'text-red-500' : 'text-gray-600'}`}
+                  fill={article?.likedByCurrentUser ? 'currentColor' : 'none'}
                 />
-                <span>{article.likeCount}</span>
+                <span>{article?.likeCount}</span>
               </button>
-              {article.userId === Number(ReduxuserId) && (
+              {article?.userId === Number(ReduxuserId) && (
                 <div className="flex items-center space-x-2">
                   <div className="flex items-center cursor-pointer" onClick={handleEditClick}>
                     <Pencil className="w-5 h-5 mr-1 text-gray-600" />
@@ -187,31 +190,32 @@ const BlogPost = () => {
               )}
             </div>
           </div>
-          <div className="mb-8 relative w-full" style={{ height: '25vh', overflow: 'hidden' }}>
+          <div className="mb-8 relative w-full" style={{ height: '45vh', overflow: 'hidden' }}>
             <img
-              src={article.imageUrl}
-              alt={article.title}
+              src={article?.imageUrl}
+              alt={article?.title}
               style={{ objectFit: 'cover', width: '100%', height: '100%' }}
               className="rounded-lg w-full h-full transition-all duration-300"
             />
           </div>
           <div className="prose max-w-none text-justify">
             <h2 className="text-xl font-semibold mb-2">Content</h2>
-            <p>{article.content}</p>
+            <p>{article?.content}</p>
           </div>
           <div className="prose max-w-none text-justify">
             <h2 className="text-xl font-semibold mb-2">Summary</h2>
-            <p>{article.summary}</p>
+            <p>{article?.summary}</p>
           </div>
         </div>
       </main>
+
       {editMode && (
         <EditBlogModal
           title={editedBlogData.title}
           content={editedBlogData.content}
           summary={editedBlogData.summary}
           error={error}
-          image={null} // Add the image property
+          image={null}
           onClose={handleCancelEdit}
           onSave={handleSaveChanges}
           onChange={(field, value) =>
@@ -224,4 +228,3 @@ const BlogPost = () => {
 };
 
 export default BlogPost;
-
