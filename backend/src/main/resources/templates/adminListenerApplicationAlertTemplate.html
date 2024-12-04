@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome Email</title>
+    <title>New Listener Application Alert</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -21,7 +21,7 @@
             overflow: hidden;
         }
         .header {
-            background-color: #4CAF50;
+            background-color: #ffc107;
             color: #ffffff;
             text-align: center;
             padding: 20px;
@@ -38,20 +38,6 @@
             height: auto;
             margin: 20px 0;
         }
-        .btn {
-            display: inline-block;
-            margin-top: 20px;
-            padding: 12px 24px;
-            font-size: 16px;
-            color: #ffffff;
-            background-color: #4CAF50;
-            text-decoration: none;
-            border-radius: 5px;
-            transition: background-color 0.3s ease;
-        }
-        .btn:hover {
-            background-color: #45a049;
-        }
         .footer {
             background-color: #f4f4f9;
             text-align: center;
@@ -59,33 +45,46 @@
             font-size: 12px;
             color: #777;
         }
-        .terms {
-            font-size: 12px;
+        .info {
+            font-size: 14px;
             color: #555;
             margin-top: 20px;
             text-align: left;
             line-height: 1.5;
+        }
+        .btn {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 10px 20px;
+            color: #fff;
+            background-color: #007bff;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .btn:hover {
+            background-color: #0056b3;
         }
     </style>
 </head>
 <body>
 <div class="container">
     <div class="header">
-        <h1>Welcome to SerenitySphere!</h1>
+        <h1>New Listener Application Alert</h1>
     </div>
     <div class="content">
-        <p>Thank you for joining our platform! We're thrilled to have you on board.</p>
-        <img src="https://img.freepik.com/premium-vector/businessman-reading-contract-flat-vector-isometric-illustration-terms-conditions-agreement-checking-signing_103044-1746.jpg?semt=ais_hybrid" alt="Welcome Banner">
-        <p>Please read our terms and conditions thoroughly before you proceed:</p>
-        <a href="https://example.com/terms-and-conditions" class="btn">View Terms and Conditions</a>
-        <div class="terms">
-            <p>By signing up, you agree to abide by our community rules and guidelines. For more information on what we do, please visit our <a href="https://example.com/help">About Page</a>.</p>
-        </div>
-        <a th:href="${verificationUrl}" class="btn">I Agree to Terms and Conditions</a>
-        <p>If you didn't request this, you can safely ignore this email.</p>
+        <p>Hello Admin,</p>
+        <p>A new listener application has been submitted by a user. Please review the application at your earliest convenience.</p>
+        <img src="https://img.freepik.com/free-vector/online-resume-concept-illustration_114360-2932.jpg" alt="Admin Notification">
+
+        <!-- Application ID (Dynamically Injected) -->
+        <p><strong>Application ID:</strong> <span th:text="${applicationID}">[Application ID]</span></p>
+
+        <!-- Dynamic Link -->
+        <a th:href="${adminDashBoardUrl}" class="btn">Go to Admin Dashboard</a>
     </div>
     <div class="footer">
         <p>&copy; 2024 SerenitySphere. All rights reserved.</p>
+        <p>Need assistance? Visit us at <a href="https://example.com/help">Home</a>.</p>
     </div>
 </div>
 </body>

@@ -53,4 +53,41 @@ public class EmailServiceImpl implements EmailService {
             throw new MailSendException("Failed to send email", e);
         }
     }
+
+    public void sendBlogSubmissionReceivedEmail(String email, String blogId) {
+        String subject = "Blog Submission Received";
+        String blogUrl = "http://localhost:8080/mental-health/api/v1/blogs" + blogId; // Replace with your actual blog viewing URL
+        Context context = new Context();
+        context.setVariable("blogUrl", blogUrl);
+        String body = templateEngine.process("userBlogReceivedTemplate", context); // Template name should match your HTML file
+        sendHtmlEmail(email, subject, body);
+    }
+    @Override
+    public void sendNewBlogSubmissionEmailToAdmin(String adminEmail, String userName, String blogTitle) {
+        String subject = "New Blog Submission Alert";
+        Context context = new Context();
+        context.setVariable("user", userName); // Dynamically set the user's name
+        context.setVariable("blog", blogTitle);
+        context.setVariable("adminDashBoardUrl", "http://localhost:3000/dashboard"); // Replace with your actual admin dashboard URL
+        // Dynamically set the blog title
+        String body = templateEngine.process("adminBlogSubmissionToReviewTemplate.html", context); // Load the template
+        sendHtmlEmail(adminEmail, subject, body); // Send the email
+    }
+    @Override
+    public void sendListenerApplicationReceivedEmail(String email) {
+        String subject = "Listener Application Received";
+        Context context = new Context();
+        String body = templateEngine.process("userListenerApplicationReceivedTemplate.html", context);
+        sendHtmlEmail(email, subject, body);
+    }
+
+    @Override
+    public void sendNewListenerApplicationAlertToAdmin(String adminEmail, String applicationId) {
+        String subject = "New Listener Application Alert";
+        Context context = new Context();
+        context.setVariable("adminDashBoardUrl", "http://localhost:3000/dashboard");
+        context.setVariable("applicationID", applicationId);
+        String body = templateEngine.process("adminListenerApplicationAlertTemplate.html", context);
+        sendHtmlEmail(adminEmail, subject, body);
+    }
 }
