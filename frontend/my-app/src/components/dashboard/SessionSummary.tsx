@@ -1,3 +1,5 @@
+// to show SUMMARY SESSION ON THE ANALYTICS DASHBOARD
+
 import { Star } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { useEffect, useState } from "react";
@@ -20,15 +22,6 @@ function StarRating({ rating }: { rating: number }) {
     </div>
   );
 }
-
-// const feedbackData = {
-//   avgRating: 3,
-//   rating5: 0,
-//   rating4: 0,
-//   rating3: 1,
-//   rating2: 0,
-//   rating1: 0,
-// };
 
 export default function ListenerSummary() {
   const token = useSelector((state: RootState) => state.auth.accessToken);

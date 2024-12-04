@@ -1,3 +1,5 @@
+// SHOW SEVERITY ON THE ANALYTICS DASHBOARD
+
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { useEffect, useState } from "react";
 import { RootState } from "@/store";

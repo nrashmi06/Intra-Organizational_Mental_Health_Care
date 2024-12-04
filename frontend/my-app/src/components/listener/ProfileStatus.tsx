@@ -1,3 +1,6 @@
+//It will show the listener profile status in the dashboard. It will show the listener's name, user ID
+// Filters to show Active Listeners and Suspended Listeners
+
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,7 +10,7 @@ import { RootState } from "@/store";
 import { useSelector } from "react-redux";
 import ViewListener from "./ViewListener";
 import Link from "next/link";
-
+import Image from "next/image";
 interface Listener {
   userId: number;
   anonymousName: string;
@@ -22,6 +25,7 @@ const ListenerProfileStatusTable: React.FC = () => {
     null
   );
   const [openDropdown, setOpenDropdown] = useState<number | null>(null);
+  const [image, setImage] = useState<string | null>(null);
   const token = useSelector((state: RootState) => state.auth.accessToken); // Retrieve the token from Redux store
 
   useEffect(() => {
@@ -54,8 +58,15 @@ const ListenerProfileStatusTable: React.FC = () => {
     setOpenDropdown((prev) => (prev === userId ? null : userId));
   };
 
-  const handleAction = (action: string, listener: Listener) => {
-    console.log(`${action} action for listener:`, listener);
+  const handleAction = (userId: number) => {
+    try {
+      const response = getApplicationByListenerId(token, userId);
+      console.log("Certificate:", response);
+      console.log("Certificate URL:", response.certificateUrl);
+      // setImage(response.certificateUrl);
+    } catch (error) {
+      console.error("Error fetching certificate:", error);
+    }
     setOpenDropdown(null); // Close the dropdown after the action
   };
 
@@ -124,16 +135,16 @@ const ListenerProfileStatusTable: React.FC = () => {
                         View
                       </button>
                       <Link
-                        href={`/listener/${listener.userId}`}
+                        href={`dashboard/listener/sessions/${listener.userId}`}
                         className="block px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 w-full"
                       >
                         View All Sessions
                       </Link>
                       <button
-                        onClick={() => handleAction("Delete", listener)}
+                        onClick={() => handleAction(listener.userId)} ////////TODO
                         className="block px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 w-full"
                       >
-                        Past Appointments
+                        View Certificate
                       </button>
                     </div>
                   )}
@@ -155,8 +166,32 @@ const ListenerProfileStatusTable: React.FC = () => {
           action={statusFilter === "ACTIVE" ? "suspend" : "unsuspend"}
         />
       )}
+
+      {/* {image && selectedListener && (
+                    <div
+                      className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
+                      onClick={() => setImage(false)}
+                    >
+                      <div
+                        className="bg-white p-4 rounded-lg shadow-lg"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Image
+                          src={selectedListener.certificateUrl}
+                          alt="Certificate"
+                          className="max-w-full max-h-full"
+                          sizes="(max-width: 640px) 100vw, (max-width: 768px) 90vw, 80vw"
+                          height={500}
+                          width={500}
+                        />
+                      </div>
+                    </div>
+                  )} */}
     </div>
   );
 };
 
 export default ListenerProfileStatusTable;
+function getApplicationByListenerId(token: string, userId: number) {
+  throw new Error("Function not implemented.");
+}

@@ -101,7 +101,9 @@ export default function Component() {
         {/* Listeners Section */}
         <section>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold">Admin Dashboard</h2>
+            <h2 className="text-xl font-bold text-purple-800">
+              Admin Dashboard
+            </h2>
             <div className="flex items-center gap-4">
               <div className="relative">
                 <div className="relative flex items-center">
@@ -142,7 +144,7 @@ export default function Component() {
             }`}
           ></div>
           <ProfileStatus />
-          <ActiveUsers />
+
           {/* Pagination Controls */}
           <div className="flex justify-between items-center mt-4">
             <Button
@@ -158,7 +160,7 @@ export default function Component() {
             </Button>
           </div>
         </section>
-
+        <ActiveUsers />
         {/* Listener Requests Section */}
         <ListenerApprovalTable listeners={listeners} />
 

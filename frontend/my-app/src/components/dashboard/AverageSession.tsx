@@ -1,3 +1,5 @@
+// Show avergae session duration in ANALYTICS
+
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { useEffect, useState } from "react";
 import { RootState } from "@/store";
