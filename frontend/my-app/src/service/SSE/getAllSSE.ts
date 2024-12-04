@@ -1,21 +1,34 @@
-import axios from "axios";
+interface UserDetails {
+  userId: string;
+  anonymousName: string;
+}
 
-const API_BASE_URL = "http://localhost:8080/mental-health/api/v1/sse";
+export const getAllSSE = (token: string, onMessage: (data: any) => void) => {
+  const eventSource = new EventSource(
+    `http://localhost:8080/mental-health/api/v1/sse/allOnlineUsers?token=${encodeURIComponent(
+      token
+    )}`
+  );
 
-export const getAllOnlineUsers = async (accessToken: string) => {
-  try {
-    const response = await axios.get(`${API_BASE_URL}/allOnlineUsers`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-    return response;
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      console.error("Error fetching all online users:", error.response?.data);
-    } else {
-      console.error("Error fetching all online users:", error);
+  eventSource.onopen = () => {
+    console.log("SSE connection opened.");
+  };
+
+  // Handle custom event type: "userDetails"
+  eventSource.addEventListener("allUsers", (event) => {
+    try {
+      const data: UserDetails[] = JSON.parse(event.data);
+      console.log("Received user details:", data);
+      onMessage(data);
+    } catch (error) {
+      console.error("Error parsing user details message:", error);
     }
-    throw error;
-  }
+  });
+
+  eventSource.onerror = (error) => {
+    console.error("SSE error:", error);
+    eventSource.close(); // Close the connection on persistent error
+  };
+
+  return eventSource;
 };

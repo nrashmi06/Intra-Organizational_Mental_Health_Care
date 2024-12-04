@@ -37,13 +37,7 @@ export default function SignIn() {
       const response = await loginUser(email, password)(dispatch);
       if (response) {
         // Assuming response contains token
-        const token = response.accessToken
   
-        console.log("Login successful. Token:", token);
-  
-        // Call the subscribe function to register for notifications
-        const eventSource = subscribeToNotifications(token, response.data.userId);
-
         // Navigate to the welcome page
         router.push("/welcome");
   

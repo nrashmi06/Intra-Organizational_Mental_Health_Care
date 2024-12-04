@@ -1,21 +1,19 @@
-// to show SUMMARY SESSION ON THE ANALYTICS DASHBOARD
+// SHOW SEVERITY ON THE ANALYTICS DASHBOARD
 
-import { Star } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { useEffect, useState } from "react";
 import { RootState } from "@/store";
 import { useSelector } from "react-redux";
-import { getSessionFeedbackSummary } from "@/service/sessionReport/sessionSummary";
-function StarRating({ rating }: { rating: number }) {
+import { getSeverityAnalysis } from "@/service/sessionReport/feedbackSummary";
+
+function DotRating({ rating }: { rating: number }) {
   return (
     <div className="flex gap-1">
-      {[1, 2, 3, 4, 5].map((star) => (
-        <Star
-          key={star}
-          className={`h-4 w-4 ${
-            star <= rating
-              ? "fill-yellow-400 text-yellow-400"
-              : "fill-gray-200 text-gray-200"
+      {[1, 2, 3, 4, 5].map((dot) => (
+        <div
+          key={dot}
+          className={`h-4 w-4 rounded-full ${
+            dot <= rating ? "bg-red-500" : "bg-gray-200"
           }`}
         />
       ))}
@@ -23,22 +21,24 @@ function StarRating({ rating }: { rating: number }) {
   );
 }
 
-export default function ListenerSummary() {
+export default function Severity() {
   const token = useSelector((state: RootState) => state.auth.accessToken);
   const [feedbackData, setDetails] = useState({
-    avgRating: 0,
-    rating5: 0,
-    rating4: 0,
-    rating3: 0,
-    rating2: 0,
-    rating1: 0,
+    averageSeverity: 5.0,
+    severityLevel5Count: 1,
+    severityLevel4Count: 0,
+    severityLevel3Count: 0,
+    severityLevel2Count: 0,
+    severityLevel1Count: 0,
   });
+
   useEffect(() => {
     const fetchListenerDetails = async () => {
       try {
         console.log("Fetching listener details...");
-        const details = await getSessionFeedbackSummary(token);
-        console.log("data isssssssss", details);
+        const response = await getSeverityAnalysis(token);
+        const details = await response.json();
+
         setDetails(details);
       } catch (error) {
         console.error("Error fetching listener details:", error);
@@ -47,30 +47,33 @@ export default function ListenerSummary() {
 
     fetchListenerDetails();
   }, [token]);
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Session Rating</CardTitle>
+        <CardTitle>Severity Analysis</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="text-3xl font-bold">{feedbackData.avgRating}/5</div>
+        <div className="text-3xl font-bold">
+          {feedbackData.averageSeverity}/5
+        </div>
         <div className="flex items-center mt-1">
-          <StarRating rating={feedbackData.avgRating} />
+          <DotRating rating={feedbackData.averageSeverity} />
           <span className="ml-2 text-sm text-muted-foreground">
-            {feedbackData.rating1 +
-              feedbackData.rating2 +
-              feedbackData.rating3 +
-              feedbackData.rating4 +
-              feedbackData.rating5}
+            {feedbackData.severityLevel1Count +
+              feedbackData.severityLevel2Count +
+              feedbackData.severityLevel3Count +
+              feedbackData.severityLevel4Count +
+              feedbackData.severityLevel5Count}
           </span>
         </div>
         <div className="mt-4 space-y-1">
           {[
-            { rating: 5, count: feedbackData.rating5 },
-            { rating: 4, count: feedbackData.rating4 },
-            { rating: 3, count: feedbackData.rating3 },
-            { rating: 2, count: feedbackData.rating2 },
-            { rating: 1, count: feedbackData.rating1 },
+            { rating: 5, count: feedbackData.severityLevel1Count },
+            { rating: 4, count: feedbackData.severityLevel2Count },
+            { rating: 3, count: feedbackData.severityLevel3Count },
+            { rating: 2, count: feedbackData.severityLevel4Count },
+            { rating: 1, count: feedbackData.severityLevel5Count },
           ].map((item) => (
             <div key={item.rating} className="flex items-center text-sm">
               <span className="w-4">{item.rating}</span>

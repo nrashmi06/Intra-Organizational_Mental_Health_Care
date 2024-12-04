@@ -1,21 +1,32 @@
 import { configureStore } from '@reduxjs/toolkit';
 import authReducer from './authSlice'; // Your auth reducer
+import notificationReducer from './notificationSlice'; // Import your notification slice
 import { persistReducer, persistStore } from 'redux-persist';
 import storage from 'redux-persist/lib/storage/session'; // Using sessionStorage
 
-// Define the persist config
-const persistConfig = {
-  key: 'root',  // Key for storage
+// Define the persist config for auth reducer
+const authPersistConfig = {
+  key: 'auth',  // Key for storage
   storage,      // Using sessionStorage
+  whitelist: ['accessToken', 'userId'], // Only persist specific parts of auth state
 };
 
-// Persist the auth reducer (or other reducers)
-const persistedReducer = persistReducer(persistConfig, authReducer);
+// Define the persist config for notification reducer
+const notificationPersistConfig = {
+  key: 'notifications',  // Key for storage
+  storage,               // Using sessionStorage
+  whitelist: ['notifications'], // Only persist notifications state
+};
+
+// Persist the auth and notification reducers separately
+const persistedAuthReducer = persistReducer(authPersistConfig, authReducer);
+const persistedNotificationReducer = persistReducer(notificationPersistConfig, notificationReducer);
 
 // Create the Redux store
 const store = configureStore({
   reducer: {
-    auth: persistedReducer,  // Use the persisted reducer
+    auth: persistedAuthReducer,  // Use the persisted auth reducer
+    notification: persistedNotificationReducer, // Add your notification reducer
   },
   devTools: process.env.NODE_ENV !== 'production', // Enable Redux DevTools in development
 });
