@@ -97,4 +97,11 @@ public class ListenerApplicationController {
         List<ListenerApplicationSummaryResponseDTO> responseDTO = listenerApplicationService.getApplicationByApprovalStatus(status);
         return ResponseEntity.ok(responseDTO);
     }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping(ListenerApplicationUrlMapping.GET_APPLICATION_BY_LISTENERS_USER_ID)
+    public ResponseEntity<ListenerApplicationResponseDTO> getApplicationsByListenersUserId(@PathVariable Integer userId) {
+        ListenerApplicationResponseDTO applications = listenerApplicationService.getApplicationsByUserId(userId);
+        return ResponseEntity.ok(applications);
+    }
 }

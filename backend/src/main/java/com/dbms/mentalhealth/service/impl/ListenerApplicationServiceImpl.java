@@ -36,6 +36,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -106,9 +107,11 @@ public class ListenerApplicationServiceImpl implements ListenerApplicationServic
 
         // If applicationId is null, find the application by user ID
         if (applicationId == null) {
-            listenerApplication = listenerApplicationRepository.findByUser_UserId(userId)
-                    .orElseThrow(() -> new ListenerApplicationNotFoundException(
-                            "Listener Application not found for user ID: " + userId));
+            listenerApplication = listenerApplicationRepository.findByUser_UserId(userId);
+            if (listenerApplication == null) {
+                throw new ListenerApplicationNotFoundException("Listener Application not found for User ID: " + userId);
+            }
+
         } else {
             listenerApplication = listenerApplicationRepository.findById(applicationId)
                     .orElseThrow(() -> new ListenerApplicationNotFoundException(
@@ -279,7 +282,14 @@ public class ListenerApplicationServiceImpl implements ListenerApplicationServic
             throw new RuntimeException("An error occurred while fetching applications by approval status", e);
         }
     }
-
+    @Override
+    public ListenerApplicationResponseDTO getApplicationsByUserId(Integer userId) {
+        ListenerApplication application = listenerApplicationRepository.findByUser_UserId(userId);
+        if (application == null) {
+            throw new ListenerApplicationNotFoundException("Listener Application not found for User ID: " + userId);
+        }
+        return ListenerApplicationMapper.toResponseDTO(application);
+    }
 
     private String getUsernameFromContext() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -293,4 +303,6 @@ public class ListenerApplicationServiceImpl implements ListenerApplicationServic
                 .findFirst()
                 .orElse("ROLE_USER") : "ROLE_USER";
     }
+
+
 }
