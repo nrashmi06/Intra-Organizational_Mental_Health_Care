@@ -58,7 +58,7 @@ public class NotificationServiceImpl implements NotificationService {
         try {
             emitter.send(SseEmitter.event()
                     .id(String.valueOf(userId))
-                    .name("connection")
+                    .name("notification")
                     .data("Connected successfully"));
         } catch (IOException e) {
             log.error("Error sending initial SSE event for user {}: {}", userId, e.getMessage());

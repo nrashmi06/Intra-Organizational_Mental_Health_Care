@@ -16,4 +16,5 @@ public class ListenerApplicationUrlMapping {
     public static final String GET_ALL_APPLICATIONS = BASE_API; // Get all listener applications
     public static final String UPDATE_APPLICATION_STATUS = BASE_API + APPLICATION_ID_PATH + "/update-status"; // Update listener application status
     public static final String GET_APPLICATION_BY_APPROVAL_STATUS = BASE_API + "/status"; // Get listener applications by approval status
+    public static final String GET_APPLICATION_BY_LISTENERS_USER_ID = BASE_API + "/listener"; // Get listener applications by listener's user ID
 }
