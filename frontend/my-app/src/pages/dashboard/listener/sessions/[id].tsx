@@ -30,7 +30,7 @@ const SessionDetailView: React.FC<DetailViewProps> = ({ type, sessionId }) => {
         return (
           <div className="p-4">
             <h2 className="text-xl font-bold mb-4">
-              Session Report for Session {sessionId}
+              Session Report for Session #{sessionId}
             </h2>
             {/* Placeholder for actual report content */}
             <p>Detailed session report would be displayed here.</p>

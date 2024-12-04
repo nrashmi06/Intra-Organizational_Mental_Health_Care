@@ -11,7 +11,7 @@ interface ListenerModalProps {
   selectedListener: CompleteListenerDetails;
   closeModal: () => void;
 }
-interface CompleteListenerDetails {
+export interface CompleteListenerDetails {
   listenerId: number;
   userEmail: string;
   canApproveBlogs: boolean;

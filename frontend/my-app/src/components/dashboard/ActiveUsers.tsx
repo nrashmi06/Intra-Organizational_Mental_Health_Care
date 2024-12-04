@@ -1,25 +1,72 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle2, MoreVertical } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { CheckCircle2, MoreVertical, X } from "lucide-react";
 import { RootState } from "@/store";
 import { useSelector } from "react-redux";
 import { getActiveUserByRoleName } from "@/service/SSE/getActiveUserByRoleName";
-import Link from "next/link";
+import { getListenerDetails } from "@/service/listener/getListenerDetails";
+import { getUserDetails } from "@/service/user/getUserDetails";
+import { getApplicationByListenerId } from "@/service/listener/getApplicationByListenerId";
 import { useRouter } from "next/router";
+import UserDetails, { UserDetailsProps } from "../activeUser/UserDetails";
+import ListenerDetails, {
+  ListenerDetailsProps,
+} from "../activeUser/ListenerDetails";
+
 interface User {
   userId: string;
   anonymousName: string;
+  userType: "USER" | "LISTENER" | "ADMIN";
 }
 
 const ListenerProfileStatusTable: React.FC = () => {
-  const token = useSelector((state: RootState) => state.auth.accessToken); // Retrieve the token from Redux store
+  const token = useSelector((state: RootState) => state.auth.accessToken);
   const [users, setUsers] = useState<User[]>([]);
   const [statusFilter, setStatusFilter] = useState<
     "onlineUsers" | "onlineListeners" | "onlineAdmins"
   >("onlineUsers");
-  const [eventSource, setEventSource] = useState<EventSource | null>(null); // Track the active EventSource
+  const [eventSource, setEventSource] = useState<EventSource | null>(null);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+
+  const [selectedUserDetails, setSelectedUserDetails] = useState<
+    | {
+        listenerId: number;
+        userEmail: string;
+        canApproveBlogs: boolean;
+        maxDailySessions: number;
+        totalSessions: number;
+        totalMessagesSent: number | null;
+        feedbackCount: number;
+        averageRating: number;
+        joinedAt: string;
+        approvedBy: string;
+      }
+    | {
+        id: number;
+        email: string;
+        anonymousName: string;
+        role: string;
+        profileStatus: string;
+        createdAt: string;
+        updatedAt: string;
+        lastSeen: string;
+        active: boolean;
+      }
+    | null
+  >(null);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [currentUserType, setCurrentUserType] = useState<
+    "USER" | "LISTENER" | "ADMIN"
+  >("USER");
+
+  const router = useRouter();
 
   useEffect(() => {
     if (eventSource) {
@@ -29,51 +76,154 @@ const ListenerProfileStatusTable: React.FC = () => {
       statusFilter,
       token,
       (data) => {
-        setUsers(data);
+        const mappedUsers = data.map((user: any) => ({
+          ...user,
+          userType:
+            statusFilter === "onlineUsers"
+              ? "USER"
+              : statusFilter === "onlineListeners"
+              ? "LISTENER"
+              : "ADMIN",
+        }));
+        setUsers(mappedUsers);
       }
     ) as EventSource;
 
     setEventSource(newEventSource);
 
     return () => {
-      newEventSource.close(); // Clean up when component unmounts or filter changes
+      newEventSource.close();
     };
   }, [statusFilter, token]);
-  // React to changes in statusFilter or token
 
   const fetchListenersByProfileStatus = (
     type: "onlineUsers" | "onlineListeners" | "onlineAdmins"
   ) => {
-    setStatusFilter(type); // Update the status filter
+    setStatusFilter(type);
   };
 
   const toggleDropdown = (userId: string) => {
     setOpenDropdown((prev) => (prev === userId ? null : userId));
   };
-  const router = useRouter();
-  // Handle action click
-  const handleAction = (action: string, user: User) => {
-    setOpenDropdown(null); // Close the dropdown
-    switch (action) {
-      case "View":
-        // Navigate to the "View" page
-        console.log(`Navigating to View page for ${user.userId}`);
-        break;
-      case "View Sessions":
-        console.log(`Navigating to View Sessions for ${user.userId}`);
-        break;
-      case "View Appointments":
-        console.log(`Navigating to View Appointments for ${user.userId}`);
-        break;
-      case "View Certificate":
-        console.log(`Navigating to View Certificate for ${user.userId}`);
-        break;
-      case "View Admin Profile":
-        console.log(`Navigating to Admin Profile for ${user.userId}`);
-        router.push(`/dashboard/admin/${user.userId}`);
-        break;
-      default:
-        console.error("Unknown action");
+
+  const handleAction = async (action: string, user: User) => {
+    setOpenDropdown(null);
+
+    try {
+      switch (action) {
+        case "View":
+          let userDetails;
+          if (user.userType === "LISTENER") {
+            userDetails = await getListenerDetails(Number(user.userId), token);
+          } else if (user.userType === "USER") {
+            userDetails = await getUserDetails(Number(user.userId), token);
+          }
+
+          setSelectedUserDetails(userDetails);
+          setCurrentUserType(user.userType);
+          setIsDetailsModalOpen(true);
+          break;
+
+        case "View Sessions":
+          const sessionsPath =
+            user.userType === "LISTENER"
+              ? `/dashboard/listener/sessions/${user.userId}`
+              : user.userType === "USER"
+              ? `/dashboard/user/sessions/${user.userId}`
+              : `/dashboard/admin/sessions/${user.userId}`;
+
+          router.push(sessionsPath);
+          break;
+
+        case "View Appointments":
+          if (user.userType === "USER") {
+            router.push(`/dashboard/user/appointments/${user.userId}`);
+          }
+          break;
+
+        case "View Certificate":
+          if (user.userType === "LISTENER") {
+            const response = await getApplicationByListenerId(
+              Number(user.userId),
+              token
+            );
+
+            if (!response) {
+              console.error("Nothing found for the listener");
+              return;
+            }
+          }
+          break;
+
+        case "View Admin Profile":
+          router.push(`/dashboard/admin/${user.userId}`);
+          break;
+
+        default:
+          console.error("Unknown action");
+      }
+    } catch (error) {
+      console.error(`Error performing action: ${action}`, error);
+    }
+  };
+
+  const renderDropdownActions = (user: User) => {
+    switch (user.userType) {
+      case "USER":
+        return (
+          <>
+            <button
+              onClick={() => handleAction("View", user)}
+              className="block px-2 py-1 text-left text-sm text-gray-700 hover:bg-gray-100 w-full"
+            >
+              View User
+            </button>
+            <button
+              onClick={() => handleAction("View Sessions", user)}
+              className="block px-2 py-1 text-left text-sm text-gray-700 hover:bg-gray-100 w-full"
+            >
+              View Sessions
+            </button>
+            <button
+              onClick={() => handleAction("View Appointments", user)}
+              className="block px-2 py-1 text-left text-sm text-gray-700 hover:bg-gray-100 w-full"
+            >
+              View Appointments
+            </button>
+          </>
+        );
+      case "LISTENER":
+        return (
+          <>
+            <button
+              onClick={() => handleAction("View", user)}
+              className="block px-2 py-1 text-left text-sm text-gray-700 hover:bg-gray-100 w-full"
+            >
+              View Listener
+            </button>
+            <button
+              onClick={() => handleAction("View Sessions", user)}
+              className="block px-2 py-1 text-left text-sm text-gray-700 hover:bg-gray-100 w-full"
+            >
+              View Sessions
+            </button>
+            {/* <button
+              onClick={() => handleAction("View Certificate", user)}
+              className="block px-2 py-1 text-left text-sm text-gray-700 hover:bg-gray-100 w-full"
+            >
+              View Application
+            </button> */}
+          </>
+        );
+      case "ADMIN":
+        return (
+          <button
+            onClick={() => handleAction("View Admin Profile", user)}
+            className="block px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 w-full"
+          >
+            View Admin Profile
+          </button>
+        );
     }
   };
 
@@ -118,16 +268,9 @@ const ListenerProfileStatusTable: React.FC = () => {
                   </div>
                   <CardTitle>{user.anonymousName}</CardTitle>
                   <div className="text-sm text-gray-500">
-                    {statusFilter === "onlineAdmins"
-                      ? "Admin user ID"
-                      : statusFilter === "onlineListeners"
-                      ? "Listener user ID"
-                      : "User ID"}
-                    {": "}
-                    {user.userId}
+                    {user.userType} ID: {user.userId}
                   </div>
                 </div>
-                {/* Dropdown Trigger */}
                 <div className="relative">
                   <Button
                     size="sm"
@@ -139,70 +282,12 @@ const ListenerProfileStatusTable: React.FC = () => {
                     <MoreVertical className="h-4 w-4" />
                   </Button>
 
-                  {/* Dropdown Menu */}
                   {openDropdown === user.userId && (
                     <div
                       className="absolute right-0 mt-2 w-40 bg-white border rounded-md shadow-lg z-50"
-                      style={{ overflow: "visible" }} // Ensure dropdown is not clipped
+                      style={{ overflow: "visible" }}
                     >
-                      {statusFilter === "onlineUsers" && (
-                        <>
-                          <button
-                            onClick={() => handleAction("View", user)}
-                            className="block px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 w-full"
-                          >
-                            View
-                          </button>
-                          <button
-                            onClick={() => handleAction("View Sessions", user)}
-                            className="block px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 w-full"
-                          >
-                            View Sessions
-                          </button>
-                          <button
-                            onClick={() =>
-                              handleAction("View Appointments", user)
-                            }
-                            className="block px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 w-full"
-                          >
-                            View Appointments
-                          </button>
-                        </>
-                      )}
-                      {statusFilter === "onlineListeners" && (
-                        <>
-                          <button
-                            onClick={() => handleAction("View", user)}
-                            className="block px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 w-full"
-                          >
-                            View
-                          </button>
-                          <button
-                            onClick={() => handleAction("View Sessions", user)}
-                            className="block px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 w-full"
-                          >
-                            View Sessions
-                          </button>
-                          <button
-                            onClick={() =>
-                              handleAction("View Certificate", user)
-                            }
-                            className="block px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 w-full"
-                          >
-                            View Certificate
-                          </button>
-                        </>
-                      )}
-                      {statusFilter === "onlineAdmins" && (
-                        <button
-                          onClick={() =>
-                            handleAction("View Admin Profile", user)
-                          }
-                          className="block px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 w-full"
-                        >
-                          View Admin Profile
-                        </button>
-                      )}
+                      {renderDropdownActions(user)}
                     </div>
                   )}
                 </div>
@@ -215,6 +300,37 @@ const ListenerProfileStatusTable: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* User Details Modal */}
+      <Dialog open={isDetailsModalOpen} onOpenChange={setIsDetailsModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {currentUserType === "LISTENER" ? "Listener" : "User"} Details
+            </DialogTitle>
+            <Button
+              size="sm"
+              className="absolute top-2 right-2"
+              onClick={() => setIsDetailsModalOpen(false)}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </DialogHeader>
+          {selectedUserDetails ? (
+            currentUserType === "LISTENER" ? (
+              <ListenerDetails
+                details={selectedUserDetails as ListenerDetailsProps["details"]}
+              />
+            ) : (
+              <UserDetails
+                details={selectedUserDetails as UserDetailsProps["details"]}
+              />
+            )
+          ) : (
+            <p>Loading details...</p>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
