@@ -146,69 +146,114 @@ const BlogPost = () => {
   }
 
   return (
-    <div className="relative min-h-screen">
+    <div className="relative min-h-screen bg-gray-50">
       <Head>
         <title>{article?.title}</title>
       </Head>
       
       {/* Navbar with absolute positioning */}
-      <div className="fixed top-0 left-0 w-full z-40">
+      <div className="relative top-0 left-0 w-full z-40">
         <Navbar />
       </div>
 
       {/* Blog content with overlay positioning */}
-      <main className="absolute top-0 left-0 w-full min-h-screen flex items-center justify-center pt-[80px] z-50">
-        <div className="container max-w-4xl w-full bg-white shadow-lg rounded-lg p-8 mt-4">
-          <h1 className="text-4xl font-bold mb-4">{article?.title}</h1>
-          <div className="flex justify-between items-center text-sm text-gray-600 mb-6">
-            <span>{article?.publishDate}</span>
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center">
-                <Eye className="w-5 h-5 mr-1 text-gray-600" />
-                <span>{article?.viewCount}</span>
-              </div>
-              <button
-                className="flex items-center"
-                onClick={handleLikeToggle}
-                aria-label="Toggle like"
-              >
-                <Heart
-                  className={`w-5 h-5 mr-1 transition-all duration-200 ${article?.likedByCurrentUser ? 'text-red-500' : 'text-gray-600'}`}
-                  fill={article?.likedByCurrentUser ? 'currentColor' : 'none'}
-                />
-                <span>{article?.likeCount}</span>
-              </button>
-              {article?.userId === Number(ReduxuserId) && (
-                <div className="flex items-center space-x-2">
-                  <div className="flex items-center cursor-pointer" onClick={handleEditClick}>
-                    <Pencil className="w-5 h-5 mr-1 text-gray-600" />
-                  </div>
-                  <div className="flex items-center cursor-pointer" onClick={handleDeleteClick}>
-                    <Trash className="w-5 h-5 mr-1 text-red-600" />
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-          <div className="mb-8 relative w-full" style={{ height: '45vh', overflow: 'hidden' }}>
+      <main className="absolute top-[80px] left-0 w-full min-h-screen flex justify-center  pb-10">
+        <div className="container max-w-3xl w-full bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-100 transition-all duration-300 hover:shadow-2xl">
+          {/* Blog Image with Modern Styling */}
+          <div className="relative w-full h-[50vh] z-50 group overflow-hidden">
             <img
               src={article?.imageUrl}
               alt={article?.title}
-              style={{ objectFit: 'cover', width: '100%', height: '100%' }}
-              className="rounded-lg w-full h-full transition-all duration-300"
+              className="w-full h-full object-cover transform transition-transform duration-500 group-hover:scale-105"
             />
+            <div className="absolute inset-0 bg-black opacity-20 group-hover:opacity-10 transition-opacity duration-500"></div>
           </div>
-          <div className="prose max-w-none text-justify">
-            <h2 className="text-xl font-semibold mb-2">Content</h2>
-            <p>{article?.content}</p>
-          </div>
-          <div className="prose max-w-none text-justify">
-            <h2 className="text-xl font-semibold mb-2">Summary</h2>
-            <p>{article?.summary}</p>
+
+          {/* Blog Content Container */}
+          <div className="p-8 space-y-6">
+            {/* Title */}
+            <h1 className="text-4xl font-extrabold text-gray-900 leading-tight mb-4">
+              {article?.title}
+            </h1>
+
+            {/* Metadata and Actions */}
+            <div className="flex justify-between items-center text-sm text-gray-600 pb-4 border-b border-gray-200">
+            <span className="text-gray-500">
+                  {article?.publishDate
+                  ? new Date(article.publishDate).toLocaleString('en-US', {
+                  weekday: 'short', 
+                  year: 'numeric',
+                  month: 'short', 
+                  day: 'numeric',
+                  hour: '2-digit', 
+                  minute: '2-digit', 
+                  hour12: true, 
+                })
+                : null}
+            </span>
+              <div className="flex items-center space-x-4">
+                {/* View Count */}
+                <div className="flex items-center space-x-1 text-gray-600">
+                  <Eye className="w-5 h-5 text-gray-500" />
+                  <span>{article?.viewCount}</span>
+                </div>
+
+                {/* Like Button */}
+                <button
+                  className="flex items-center space-x-1 group"
+                  onClick={handleLikeToggle}
+                  aria-label="Toggle like"
+                >
+                  <Heart
+                    className={`w-5 h-5 transition-colors duration-300 
+                      ${article?.likedByCurrentUser 
+                        ? 'text-red-500 fill-red-500' 
+                        : 'text-gray-500 group-hover:text-red-400'}`}
+                    fill={article?.likedByCurrentUser ? 'currentColor' : 'none'}
+                  />
+                  <span>{article?.likeCount}</span>
+                </button>
+
+                {/* Edit and Delete Actions */}
+                {article?.userId === Number(ReduxuserId) && (
+                  <div className="flex items-center space-x-3">
+                    <button 
+                      onClick={handleEditClick} 
+                      className="text-gray-500 hover:text-blue-600 transition-colors"
+                    >
+                      <Pencil className="w-5 h-5" />
+                    </button>
+                    <button 
+                      onClick={handleDeleteClick} 
+                      className="text-gray-500 hover:text-red-600 transition-colors"
+                    >
+                      <Trash className="w-5 h-5" />
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Content Section */}
+            <div className="prose max-w-none text-gray-800 space-y-4">
+              <h2 className="text-2xl font-semibold text-gray-900 border-l-4 border-blue-500 pl-4 mb-4">
+                Content
+              </h2>
+              <p className="leading-relaxed">{article?.content}</p>
+            </div>
+
+            {/* Summary Section */}
+            <div className="prose max-w-none text-gray-800 space-y-4">
+              <h2 className="text-2xl font-semibold text-gray-900 border-l-4 border-green-500 pl-4 mb-4">
+                Summary
+              </h2>
+              <p className="leading-relaxed italic text-gray-700">{article?.summary}</p>
+            </div>
           </div>
         </div>
       </main>
 
+      {/* Edit Modal (remains the same) */}
       {editMode && (
         <EditBlogModal
           title={editedBlogData.title}
