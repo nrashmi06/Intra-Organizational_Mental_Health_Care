@@ -27,7 +27,7 @@ export default function Component() {
     }
 
     try {
-      await submitFeedback(Number(sessionId), attentionLevel, sessionSummary, accessToken);
+      await submitFeedback(Number(sessionId), sessionSummary, attentionLevel, accessToken);
       console.log("Listener report submitted successfully.");
 
       // Show the popup message

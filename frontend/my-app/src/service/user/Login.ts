@@ -13,10 +13,17 @@ export const loginUser = (email: string, password: string) => async (dispatch: A
       body: JSON.stringify({ email, password }),
     });
 
-    // Check if the response is OK (status code 200-299)
+    // Check for specific error status codes
+    if (response.status === 401) {
+      throw new Error("Invalid username or password. Please try again.");
+    }
+    if (response.status === 400) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Invalid input. Please check your credentials.");
+    }
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.message || "Login failed.");
+      throw new Error(errorData.message || "Login failed due to an unknown error.");
     }
 
     const data = await response.json();
@@ -43,10 +50,11 @@ export const loginUser = (email: string, password: string) => async (dispatch: A
     );
 
     // Return the response data for further processing
-    return {data,accessToken};
+    return { data, accessToken };
   } catch (error) {
     console.error("Login error:", error);
 
+    // Re-throw the error for the calling component to handle
     if (error instanceof Error) {
       throw new Error(error.message || "Login failed.");
     }
