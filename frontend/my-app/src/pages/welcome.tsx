@@ -4,23 +4,36 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import "@/styles/global.css";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
 
 export default function WelcomePage() {
   const router = useRouter();
+  const role = useSelector((state: RootState) => state.auth.role);
 
   useEffect(() => {
-    // Set a timer to redirect after 5 seconds
-    const timer = setTimeout(() => {
-      router.push('/'); // Redirect to the homepage
-    }, 2000);
+    if (role === 'ADMIN') {
+      // Set a timer to redirect after 2 seconds
+      const timer = setTimeout(() => {
+         router.push('/dashboard');
+      }, 2000);
 
-    // Cleanup the timer when the component is unmounted
-    return () => clearTimeout(timer);
-  }, [router]);
+      // Cleanup the timer when the component is unmounted
+      return () => clearTimeout(timer);
+    }
+    else {
+      // Set a timer to redirect after 2 seconds
+      const timer = setTimeout(() => {
+         router.push('/');
+      }, 2000);
+
+      // Cleanup the timer when the component is unmounted
+      return () => clearTimeout(timer);
+    }
+  }, [role, router]); // Add role as a dependency to ensure it reruns when role changes
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-100 to-purple-100">
-
       {/* Main Content */}
       <main className="container mx-auto px-4 flex flex-col-reverse md:flex-row items-center justify-between" style={{ minHeight: 'calc(100vh - 80px)' }}>
         {/* Image Section */}
@@ -50,7 +63,7 @@ export default function WelcomePage() {
             A place where you will find a solution to all your problems!
           </p>
           <p className="text-sm text-gray-500">
-            Redirecting to the homepage in 5 seconds...
+            Redirecting to the homepage in 2 seconds...
           </p>
         </div>
       </main>

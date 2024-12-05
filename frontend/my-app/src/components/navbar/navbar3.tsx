@@ -2,15 +2,30 @@ import { useState } from "react";
 import { ChevronDown } from 'lucide-react';
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/router";
+import { useDispatch } from "react-redux";
+import { clearUser } from "@/store/authSlice"; // Assuming you have an action to clear auth
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSettingsDropdownOpen, setIsSettingsDropdownOpen] = useState(false);
 
+  const router = useRouter();
+  const dispatch = useDispatch();
+
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
   // Toggle the settings dropdown when the Settings link is clicked
   const toggleSettingsDropdown = () => setIsSettingsDropdownOpen(!isSettingsDropdownOpen);
+
+  // Handle logout
+  const handleLogout = () => {
+    // Clear the Redux auth store
+    dispatch(clearUser());
+
+    // Redirect to /signin page
+    router.push("/signin");
+  };
 
   return (
     <header className="border-b z-50 relative">
@@ -41,14 +56,11 @@ export default function Navbar() {
               <Link href="/analytics" className="text-sm font-medium text-black hover:underline">
                 Analytics
               </Link>
-              <Link
-                href="/records"
-                className="text-sm font-medium text-black hover:underline"
-              >
-                Records
+              <Link href="/blog/all" className="text-sm font-medium text-black hover:underline">
+                Blog
               </Link>
-              <Link href="/scheduler" className="text-sm font-medium text-black hover:underline">
-                Scheduler
+              <Link href="/helpline" className="text-sm font-medium text-black hover:underline">
+                Helpline
               </Link>
 
               {/* Settings Dropdown */}
@@ -64,12 +76,15 @@ export default function Navbar() {
                     className="absolute left-0 w-48 mt-2 bg-white text-black rounded-md shadow-lg z-10"
                     style={{ zIndex: 1000 }}
                   >
-                    <Link href="/profile" className="block px-4 py-2 text-sm hover:bg-gray-100">
+                    <Link href="/adminprofile" className="block px-4 py-2 text-sm hover:bg-gray-100">
                       Profile
                     </Link>
-                    <Link href="/" className="block px-4 py-2 text-sm hover:bg-gray-100">
+                    <button
+                      onClick={handleLogout}
+                      className="block px-4 py-2 text-sm text-black hover:bg-gray-100"
+                    >
                       Logout
-                    </Link>
+                    </button>
                   </div>
                 )}
               </div>
@@ -111,11 +126,11 @@ export default function Navbar() {
             <Link href="/analytics" className="text-sm font-medium text-black hover:underline">
               Analytics
             </Link>
-            <Link href="/records" className="text-sm font-medium text-black hover:underline">
-              Records
+            <Link href="/blog/all" className="text-sm font-medium text-black hover:underline">
+              Blog
             </Link>
-            <Link href="/scheduler" className="text-sm font-medium text-black hover:underline">
-              Scheduler
+            <Link href="/helpline" className="text-sm font-medium text-black hover:underline">
+              Helpline
             </Link>
 
             {/* Mobile Settings Dropdown */}
@@ -128,12 +143,15 @@ export default function Navbar() {
               </button>
               {isSettingsDropdownOpen && (
                 <div className="absolute left-0 w-48 mt-2 bg-white text-black rounded-md shadow-lg z-10">
-                  <Link href="/profile" className="block px-4 py-2 text-sm hover:bg-gray-100">
+                  <Link href="/adminprofile" className="block px-4 py-2 text-sm hover:bg-gray-100">
                     Profile
                   </Link>
-                  <Link href="/logout" className="block px-4 py-2 text-sm hover:bg-gray-100">
+                  <button
+                    onClick={handleLogout}
+                    className="block px-4 py-2 text-sm text-black hover:bg-gray-100"
+                  >
                     Logout
-                  </Link>
+                  </button>
                 </div>
               )}
             </div>

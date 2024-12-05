@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Lightbulb, Plus , Trash2 , Pencil } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import Navbar from "@/components/navbar/NavBar";
+import Navbar1 from "@/components/navbar/NavBar";
+import Navbar2 from "@/components/navbar/navbar4";
 import Footer from "@/components/footer/Footer";
 import { RootState } from '@/store';
 import { useSelector } from 'react-redux';
@@ -21,6 +22,7 @@ export default function Component() {
     emergencyType: '',
     priority: 1,
   });
+  const role = useSelector((state: RootState) => state.auth.role);
 
   interface Helpline {
     helplineId: string;
@@ -106,7 +108,7 @@ const handleUpdateSubmit = async () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-600 via-blue-500 to-purple-600">
-      <Navbar />
+      {role === 'ADMIN' ? <Navbar2 /> : <Navbar1 />}
       <main className="container mx-auto px-4 mb-4">
         <div className="flex justify-between items-center mx-auto px-4">
           <h1 className="text-4xl font-bold text-white py-4">

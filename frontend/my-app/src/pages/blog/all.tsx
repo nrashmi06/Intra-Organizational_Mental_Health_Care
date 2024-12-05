@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react"; // Import React and necessary hooks
 import Head from "next/head";
-import Navbar from "@/components/navbar/NavBar";
+import Navbar1 from "@/components/navbar/NavBar";
+import Navbar2 from "@/components/navbar/navbar4";
 import BlogCard from "@/components/blog/BlogCard";
 import Footer from "@/components/footer/Footer";
 import { ChevronRightCircle, ChevronLeftCircle, Plus, ArrowUpDown } from "lucide-react";
@@ -41,7 +42,8 @@ export default function AllBlogsPage() {
     setSortByDate(!sortByDate);
   };
   
-  const token = useSelector((state: RootState) => state.auth.accessToken); // Get token from Redux state
+  const token = useSelector((state: RootState) => state.auth.accessToken); 
+  const role = useSelector((state: RootState) => state.auth.role);  
 
   useEffect(() => {
     // Fetch blog posts with status "approved" on component mount
@@ -90,7 +92,7 @@ export default function AllBlogsPage() {
         <meta name="description" content="Explore all blog posts on mental health and more!" />
       </Head>
 
-      <Navbar />
+      {role === "ADMIN" ? <Navbar2 /> : <Navbar1 />}
 
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-4xl font-bold text-center text-gray-800">All Blogs</h1>
