@@ -4,7 +4,8 @@ import { fetchBlogById, toggleLikeOnBlog } from '@/service/blog/GetBlogBuID';
 import { updateBlog } from '@/service/blog/UpdateBlog';
 import { RootState } from '@/store';
 import { useSelector } from 'react-redux';
-import Navbar from '@/components/navbar/NavBar';
+import Navbar1 from '@/components/navbar/NavBar';
+import Navbar2 from '@/components/navbar/navbar4';
 import { Heart, Eye, Pencil, Trash } from 'lucide-react';
 import '@/styles/global.css';
 import Head from 'next/head';
@@ -43,6 +44,7 @@ const BlogPost = () => {
     content: '',
     summary: '',
   });
+  const role = useSelector((state: RootState) => state.auth.role);
 
   useEffect(() => {
     if (!postId || !token || isNaN(Number(postId))) return;
@@ -153,7 +155,7 @@ const BlogPost = () => {
       
       {/* Navbar with absolute positioning */}
       <div className="relative top-0 left-0 w-full z-40">
-        <Navbar />
+      {role === 'ADMIN' ? <Navbar2 /> : <Navbar1 />}
       </div>
 
       {/* Blog content with overlay positioning */}
