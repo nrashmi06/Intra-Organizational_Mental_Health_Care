@@ -25,7 +25,7 @@ public class EmergencyHelpline {
     private String phoneNumber;
 
     @NotBlank
-    @Size(max = 5)
+    @Size(max = 5,message = "Country code must be between 0 and 5 characters")
     @Column(name = "country_code", nullable = false, length = 5)
     private String countryCode;
 

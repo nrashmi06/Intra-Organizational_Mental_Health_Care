@@ -81,6 +81,11 @@ public class CustomExceptionHandler {
         return new ResponseEntity<>("Invalid email or password", HttpStatus.UNAUTHORIZED);
     }
 
+    @ExceptionHandler(AnonymousNameAlreadyInUseException.class)
+    public ResponseEntity<String> handleAnonymousNameAlreadyInUseException(AnonymousNameAlreadyInUseException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
+    }
+
     @ExceptionHandler(UserNotActiveException.class)
     public ResponseEntity<Object> handleUserNotActiveException(UserNotActiveException ex, WebRequest request) {
         return new ResponseEntity<>("User is not active", HttpStatus.FORBIDDEN);

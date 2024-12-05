@@ -55,27 +55,33 @@ const SessionDetailView: React.FC<DetailViewProps> = ({
                       <div className="font-semibold">Report ID:</div>
                       <div>{report.reportId}</div>
 
-                      <div className="font-semibold">Session ID:</div>
-                      <div>{report.sessionId}</div>
-
                       <div className="font-semibold">User ID:</div>
                       <div>{report.userId}</div>
 
                       <div className="font-semibold">Severity:</div>
                       <div className="flex items-center">
+
                         <div
-                          className="h-2 w-full bg-gradient-to-r from-green-500 via-yellow-500 to-red-500"
-                          style={{
-                            clipPath: `inset(0 ${
-                              (5 - report.severityLevel) * 20
-                            }% 0 0)`,
-                          }}
+                            className="h-2 w-full bg-gradient-to-r from-green-500 via-yellow-500 to-red-500"
+                            style={{
+                              clipPath: `inset(0 ${
+                                  (5 - report.severityLevel) * 20
+                              }% 0 0)`,
+                            }}
                         />
                         <span className="ml-2 text-sm">
                           {report.severityLevel}/5
                         </span>
                       </div>
                     </div>
+                    <div className="font-light flex flex-col gap-2">
+                      <p className="font-semibold text-center">Report Content</p>
+                      <div
+                          className="break-words text-center whitespace-normal text-gray-700 bg-gray-50 p-3 rounded-md max-h-40 overflow-y-auto">
+                        {report.reportContent}
+                      </div>
+                    </div>
+
 
                     <div className="text-center text-sm text-gray-500">
                       {new Date(report.createdAt).toLocaleString()}

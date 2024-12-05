@@ -151,25 +151,31 @@ public class ListenerApplicationServiceImpl implements ListenerApplicationServic
 
     @Override
     public void deleteApplication(Integer applicationId) {
-        // Extract user ID and role from security context
+        // Extract user ID and role from the security context
         Integer userId = jwtUtils.getUserIdFromContext();
         String role = getRoleFromContext();
 
-        ListenerApplication listenerApplication;
-
         // Find Listener Application by ID
-        listenerApplication = listenerApplicationRepository.findById(applicationId)
+        ListenerApplication listenerApplication = listenerApplicationRepository.findById(applicationId)
                 .orElseThrow(() -> new ListenerApplicationNotFoundException(
                         "Listener Application not found for ID: " + applicationId));
 
-        // Check if the user has access to delete the application
-        if (!listenerApplication.getUser().getUserId().equals(userId) && !"ROLE_ADMIN".equals(role)) {
+        // Check if the user is authorized to delete the application
+        if (!"ROLE_ADMIN".equals(role) && !listenerApplication.getUser().getUserId().equals(userId)) {
             throw new AccessDeniedException("Access denied for deleting Listener Application with ID: " + applicationId);
         }
 
-        // Delete the Listener Application
+        // Get the user associated with the Listener Application
+        User user = listenerApplication.getUser();
+
+        // Update user's role to USER and remove associated Listener
+        user.setRole(Role.USER);
+        userRepository.save(user);
+
+        listenerRepository.findByUser(user).ifPresent(listenerRepository::delete);
         listenerApplicationRepository.deleteById(applicationId);
     }
+
 
     @Override
     public List<ListenerApplicationSummaryResponseDTO> getAllApplications() {
@@ -187,10 +193,8 @@ public class ListenerApplicationServiceImpl implements ListenerApplicationServic
         String email = getUsernameFromContext();
         String role = getRoleFromContext();
 
-        // Find Listener Application by ID
-        Optional<ListenerApplication> optionalApplication = listenerApplicationRepository.findById(applicationId);
-        ListenerApplication listenerApplication = optionalApplication.orElseThrow(() ->
-                new ListenerApplicationNotFoundException("Listener Application not found for ID: " + applicationId));
+        ListenerApplication listenerApplication = listenerApplicationRepository.findById(applicationId)
+                .orElseThrow(() -> new ListenerApplicationNotFoundException("Listener Application not found for ID: " + applicationId));
 
         // Check if the email matches or if the role is admin
         if (!listenerApplication.getUser().getEmail().equals(email) && !"ROLE_ADMIN".equals(role)) {
@@ -230,7 +234,7 @@ public class ListenerApplicationServiceImpl implements ListenerApplicationServic
     @Transactional
     public ListenerDetailsResponseDTO updateApplicationStatus(Integer applicationId, String status) {
         ListenerApplication listenerApplication = listenerApplicationRepository.findById(applicationId)
-                .orElseThrow(() -> new RuntimeException("Listener Application not found for ID: " + applicationId));
+                .orElseThrow(() -> new ListenerApplicationNotFoundException("Listener Application not found for ID: " + applicationId));
 
         User applicantUser = listenerApplication.getUser();
         if (applicantUser == null) {
@@ -238,46 +242,46 @@ public class ListenerApplicationServiceImpl implements ListenerApplicationServic
         }
 
         if ("APPROVED".equalsIgnoreCase(status)) {
-            listenerApplication.setApplicationStatus(ListenerApplicationStatus.APPROVED);
-
-            boolean listenerExists = listenerRepository.existsByUser(applicantUser);
-
-            if (!listenerExists) {
-                applicantUser.setRole(Role.LISTENER);
-                userRepository.save(applicantUser);
-                Listener newListener = new Listener();
-                newListener.setUser(applicantUser);
-                newListener.setCanApproveBlogs(false);
-                newListener.setTotalSessions(0);
-                newListener.setAverageRating(BigDecimal.ZERO);
-                newListener.setJoinedAt(LocalDateTime.now());
-                newListener.setApprovedBy(userRepository.findByEmail(getUsernameFromContext()).getAnonymousName());
-
-                listenerRepository.save(newListener);
-                listenerApplicationRepository.save(listenerApplication);
-
-                // Send email notification to the user
-                emailService.sendListenerAcceptanceEmail(applicantUser.getEmail());
-
-                return ListenerDetailsMapper.toResponseDTO(newListener);
-            } else {
-                listenerApplicationRepository.save(listenerApplication);
-                Listener existingListener = listenerRepository.findByUser(applicantUser)
-                        .orElseThrow(() -> new ListenerNotFoundException("Listener not found for user: " + applicantUser.getEmail()));
-                return ListenerDetailsMapper.toResponseDTO(existingListener);
-            }
-
+            return approveApplication(listenerApplication, applicantUser);
         } else if ("REJECTED".equalsIgnoreCase(status)) {
-            listenerApplication.setApplicationStatus(ListenerApplicationStatus.REJECTED);
-            listenerApplicationRepository.save(listenerApplication);
-
-            // Send email notification to the user
-            emailService.sendListenerRejectionEmail(applicantUser.getEmail());
-
-            return null;
+            return rejectApplication(listenerApplication, applicantUser);
         } else {
             throw new IllegalArgumentException("Invalid status: " + status);
         }
+    }
+
+    private ListenerDetailsResponseDTO approveApplication(ListenerApplication listenerApplication, User applicantUser) {
+        listenerApplication.setApplicationStatus(ListenerApplicationStatus.APPROVED);
+
+        boolean listenerExists = listenerRepository.existsByUser(applicantUser);
+
+        if (!listenerExists) {
+            applicantUser.setRole(Role.LISTENER);
+            userRepository.save(applicantUser);
+            Listener newListener = new Listener();
+            newListener.setUser(applicantUser);
+            newListener.setCanApproveBlogs(false);
+            newListener.setTotalSessions(0);
+            newListener.setAverageRating(BigDecimal.ZERO);
+            newListener.setJoinedAt(LocalDateTime.now());
+            newListener.setApprovedBy(userRepository.findByEmail(getUsernameFromContext()).getAnonymousName());
+            listenerRepository.save(newListener);
+            listenerApplicationRepository.save(listenerApplication);
+            emailService.sendListenerAcceptanceEmail(applicantUser.getEmail());
+            return ListenerDetailsMapper.toResponseDTO(newListener);
+        } else {
+            listenerApplicationRepository.save(listenerApplication);
+            Listener existingListener = listenerRepository.findByUser(applicantUser)
+                    .orElseThrow(() -> new ListenerNotFoundException("Listener not found for user: " + applicantUser.getEmail()));
+            return ListenerDetailsMapper.toResponseDTO(existingListener);
+        }
+    }
+
+    private ListenerDetailsResponseDTO rejectApplication(ListenerApplication listenerApplication, User applicantUser) {
+        listenerApplication.setApplicationStatus(ListenerApplicationStatus.REJECTED);
+        listenerApplicationRepository.save(listenerApplication);
+        emailService.sendListenerRejectionEmail(applicantUser.getEmail());
+        return null;
     }
 
 

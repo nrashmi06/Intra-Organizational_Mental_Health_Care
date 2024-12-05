@@ -27,6 +27,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -143,6 +144,15 @@ public class BlogServiceImpl implements BlogService {
     public BlogResponseDTO updateBlogApprovalStatus(Integer blogId, boolean isApproved) {
         Blog blog = blogRepository.findById(blogId).orElseThrow(() -> new BlogNotFoundException("Blog not found"));
         blog.setBlogApprovalStatus(isApproved ? BlogApprovalStatus.APPROVED : BlogApprovalStatus.REJECTED);
+
+        if (isApproved) {
+            blog.setApprovedBy(getUserIdFromContext().toString()); // Assuming the current user is the approver
+            blog.setPublishDate(LocalDateTime.now());
+        } else {
+            blog.setApprovedBy(null);
+            blog.setPublishDate(null);
+        }
+
         Blog updatedBlog = blogRepository.save(blog);
         boolean likedByCurrentUser = blogLikeRepository.existsByBlogIdAndUserUserId(blogId, getUserIdFromContext());
 
