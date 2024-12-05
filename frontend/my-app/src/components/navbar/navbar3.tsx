@@ -20,11 +20,8 @@ export default function Navbar() {
 
   // Handle logout
   const handleLogout = () => {
-    // Clear the Redux auth store
-    dispatch(clearUser());
-
-    // Redirect to /signin page
-    router.push("/signin");
+    dispatch(clearUser()); 
+    router.push("/signin"); 
   };
 
   return (
