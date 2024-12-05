@@ -2,10 +2,10 @@ import React, { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/store";
 import { X } from "lucide-react"; // Import close icon
-import { clearNotifications } from "@/store/notificationSlice"; // Replace with your actual action
+import { clearNotifications } from "@/store/notificationSlice"; // Action to clear notifications
 import { replyNotification } from "@/service/session/replyNotification"; // Assuming API utility exists
 import { useRouter } from "next/router";
-import { setSessionId } from "@/store/chatSlice"; // Assuming the action exists to store sessionID in Redux
+import { setSessionId, clearSessionId } from "@/store/chatSlice"; // Assuming actions exist
 
 const NotificationPopup: React.FC = () => {
   const dispatch = useDispatch();
@@ -60,23 +60,37 @@ const NotificationPopup: React.FC = () => {
     }
   };
 
-  // Handle OK button action
-  const handleOk = (senderId: string) => {
+  // Handle OK button action for "Session Ended" notifications
+  const handleOk = (senderId: string, message: string) => {
+    // Check if the message indicates session end
+    if (message.includes("Session with ID")) {
+      // Clear session ID from Redux store
+      dispatch(clearSessionId());
+      
+      // Redirect to the appropriate page
+      if (role === "LISTENER") {
+        router.push("/listener-report");
+      } else {
+        router.push("/feedback");
+      }
+    }
+
     // Reset OK button visibility for this notification
     setShowOkButton((prevState) => ({
       ...prevState,
       [senderId]: false,
     }));
+
     dispatch(clearNotifications());
-    setShowOkButton({}); // Reset the state when closing
   };
 
-  // Check if session ID is available and allow the user to join the session directly
+  // Handle Join Session action for both users and listeners
   const handleJoinSession = (message: string) => {
     const sessionIdMatch = message.match(/Session ID:(\d+)/);
     if (sessionIdMatch && sessionIdMatch[1]) {
       const sessionID = sessionIdMatch[1];
       dispatch(setSessionId(sessionID));
+      dispatch(clearNotifications());
       router.push(`/chat/${sessionID}`);
     }
   };
@@ -100,12 +114,28 @@ const NotificationPopup: React.FC = () => {
           const { message, senderId } = notification;
           const isOkVisible = showOkButton[senderId];
 
+          // Check if session ID is in the message, and only show the "Join Session" button
+          const sessionIdMatch = message.match(/Session ID:(\d+)/);
+          const isSessionEnded = message.includes("Session with ID");
+
           return (
             <div key={index} className="mb-4">
               <p>{message}</p>
 
-              {/* Listener buttons: Accept/Reject */}
-              {role === "LISTENER" && !isOkVisible && (
+              {/* Show Join Session button if session ID is found */}
+              {sessionIdMatch && !isSessionEnded && (
+                <div className="mt-4">
+                  <button
+                    onClick={() => handleJoinSession(message)}
+                    className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded"
+                  >
+                    Join Session
+                  </button>
+                </div>
+              )}
+
+              {/* Listener buttons: Accept/Reject if session ID is not found and not ended */}
+              {!sessionIdMatch && !isSessionEnded && role === "LISTENER" && !isOkVisible && (
                 <div className="flex justify-center space-x-4 mt-4">
                   <button
                     onClick={() => handleAction("accept", senderId, message)}
@@ -122,11 +152,11 @@ const NotificationPopup: React.FC = () => {
                 </div>
               )}
 
-              {/* OK button for Listener after taking action */}
-              {role === "LISTENER" && isOkVisible && (
+              {/* OK button for Listener after taking action or when session ends */}
+              {role === "LISTENER" && (isOkVisible || isSessionEnded) && (
                 <div className="mt-4">
                   <button
-                    onClick={() => handleOk(senderId)}
+                    onClick={() => handleOk(senderId, message)}
                     className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
                   >
                     OK
@@ -134,25 +164,15 @@ const NotificationPopup: React.FC = () => {
                 </div>
               )}
 
-              {/* OK button for other roles */}
-              {role !== "LISTENER" && (
+              {/* OK button for other roles (users) */}
+              {role !== "LISTENER" && !isSessionEnded && (
                 <button
-                  onClick={handleClose}
+                  onClick={() => handleOk(senderId, message)}
                   className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded mt-4"
                 >
                   OK
                 </button>
               )}
-
-              {/* If session ID is found in the notification, allow joining the session */}
-              <div className="mt-4">
-                <button
-                  onClick={() => handleJoinSession(message)}
-                  className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded"
-                >
-                  Join Session
-                </button>
-              </div>
             </div>
           );
         })}
