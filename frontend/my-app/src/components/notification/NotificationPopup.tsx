@@ -65,7 +65,7 @@ const NotificationPopup: React.FC = () => {
     // Check if the message indicates session end
     if (message.includes("Session with ID")) {
       // Clear session ID from Redux store
-      dispatch(clearSessionId());
+      
       
       // Redirect to the appropriate page
       if (role === "LISTENER") {
@@ -89,8 +89,8 @@ const NotificationPopup: React.FC = () => {
     const sessionIdMatch = message.match(/Session ID:(\d+)/);
     if (sessionIdMatch && sessionIdMatch[1]) {
       const sessionID = sessionIdMatch[1];
-      dispatch(setSessionId(sessionID));
       dispatch(clearNotifications());
+      dispatch(setSessionId(sessionID));
       router.push(`/chat/${sessionID}`);
     }
   };

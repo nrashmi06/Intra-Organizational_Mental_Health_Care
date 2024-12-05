@@ -86,8 +86,6 @@ const ChatPage = () => {
       websocket.close(); // Close WebSocket
     }
 
-    // Clear session ID from Redux store
-    dispatch(clearSessionId());
 
     try {
       if (sessionId && accessToken) {
