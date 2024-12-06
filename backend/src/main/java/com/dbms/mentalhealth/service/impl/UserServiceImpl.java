@@ -133,6 +133,10 @@ public class UserServiceImpl implements UserService, UserDetailsService {
             throw new InvalidUsernameException("Invalid username: " + userRegistrationDTO.getAnonymousName() + ". Please try another.");
         }
 
+        if (userRepository.existsByAnonymousName(userRegistrationDTO.getAnonymousName())) {
+            throw new AnonymousNameAlreadyInUseException("Anonymous name is already in use: " + userRegistrationDTO.getAnonymousName());
+        }
+
         try {
             User user = UserMapper.toEntity(userRegistrationDTO, passwordEncoder.encode(userRegistrationDTO.getPassword()));
             userRepository.save(user);

@@ -47,11 +47,11 @@ public class Blog {
 
     @Min(0)
     @Column(name = "view_count", nullable = false)
-    private int viewCount;
+    private int viewCount = 0;
 
     @Min(0)
     @Column(name = "like_count", nullable = false)
-    private int likeCount;
+    private int likeCount = 0;
 
     @NotNull
     @Enumerated(EnumType.STRING)
@@ -59,7 +59,7 @@ public class Blog {
     private BlogApprovalStatus blogApprovalStatus;
 
     @Column(name = "approved_by")
-    private Integer approvedBy;
+    private String approvedBy;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

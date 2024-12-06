@@ -35,7 +35,7 @@ public class SessionReport {
     private String reportContent;
 
     @Column(name = "severity_level", nullable = false, length = 20)
-    private Integer severityLevel;
+    private Integer severityLevel = 0;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;

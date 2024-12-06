@@ -28,16 +28,16 @@ public class Listener {
     private boolean canApproveBlogs;
 
     @Column(name = "total_sessions")
-    private Integer totalSessions;
+    private Integer totalSessions = 0;
 
     @Column(name = "average_rating", precision = 3, scale = 2)
-    private BigDecimal averageRating;
+    private BigDecimal averageRating = BigDecimal.ZERO;
 
     @Column(name = "total_messages_sent")
-    private Integer totalMessagesSent;
+    private Integer totalMessagesSent = 0;
 
     @Column(name = "feedback_count")
-    private Integer feedbackCount;
+    private Integer feedbackCount = 0;
 
     @Column(name = "joined_at", nullable = false)
     private LocalDateTime joinedAt;
