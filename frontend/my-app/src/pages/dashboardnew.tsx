@@ -113,26 +113,26 @@ const DashboardPage = () => {
           </CardContent>
         </Card>
       </div>
-      <section>
+      {/* <section>
         <div className="bg-white rounded-lg shadow">
           <div className="p-4 border-b flex flex-col md:flex-row justify-between items-start md:items-center">
         <h2 className="text-xl font-bold">Blogs</h2>
         <div className="flex gap-2 mt-2 md:mt-0">
           <Button
             onClick={() => setStatusFilter("pending")}
-            className={`bg-purple-500 text-white ${statusFilter === "pending" ? "bg-purple-500 text-white" : "bg-white text-purple-500"}`}
+            className={`${statusFilter === "pending" ? "bg-purple-500 text-white" : "bg-purple-300 text-purple-500"}`}
           >
             Pending
           </Button>
           <Button
             onClick={() => setStatusFilter("approved")}
-            className={`bg-purple-500 text-white ${statusFilter === "approved" ? "bg-purple-500 text-white" : "bg-white text-purple-500"}`}
+            className={`${statusFilter === "approved" ? "bg-purple-500 text-white" : "bg-purple-300 text-purple-500"}`}
           >
             Approved
           </Button>
           <Button
             onClick={() => setStatusFilter("rejected")}
-            className={`bg-purple-500 text-white ${statusFilter === "rejected" ? "bg-purple-500 text-white" : "bg-white text-purple-500"}`}
+            className={`${statusFilter === "rejected" ? "bg-purple-500 text-white" : "bg-purple-300 text-purple-500"}`}
           >
             Rejected
           </Button>
@@ -140,7 +140,7 @@ const DashboardPage = () => {
           </div>
           <BlogApprovalTable blogs={blogs} statusFilter={statusFilter} />
         </div>
-      </section>
+      </section> */}
     </div>
   );
 };

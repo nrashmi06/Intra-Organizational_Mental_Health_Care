@@ -8,7 +8,8 @@ import {
   Headphones,
   Users,
   ShieldCheck,
-  PhoneCall
+  PhoneCall,
+  BookOpenCheck
 } from "lucide-react";
 import {
   Sheet,
@@ -19,6 +20,7 @@ import Image from "next/image";
 const routes = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/dashboardnew" },
   { label: "Scheduler", icon: Calendar, href: "/dashboard/scheduler" },
+  { label: "Blogs", icon: BookOpenCheck, href: "/dashboard/blog" },
   { label: "Listener", icon: Headphones, href: "/dashboard/listener" },
   { label: "User", icon: Users, href: "/dashboard/user" },
   { label: "Admin", icon: ShieldCheck, href: "/dashboard/admin" },

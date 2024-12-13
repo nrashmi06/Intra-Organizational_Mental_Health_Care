@@ -107,9 +107,8 @@ const handleUpdateSubmit = async () => {
     <div className="min-h-screen">
       <main className="container mx-auto px-4 mb-4">
         <div className="flex justify-between items-center mx-auto px-4">
-          <h1 className="text-4xl font-bold py-4">
-            Add
-            <br /> Helpline Number
+          <h1 className="text-2xl font-bold py-8">
+            Add Helpline Number
           </h1>
           <div>
               <Button onClick={handleAddHelpline}>
@@ -150,7 +149,6 @@ const handleUpdateSubmit = async () => {
                     <TableCell>{helpline.priority}</TableCell>
                     {
                       userRole === 'ADMIN' && (
-                        
                         <TableCell>
                           <div className='flex justify-around '>
                             <Trash2
@@ -163,7 +161,6 @@ const handleUpdateSubmit = async () => {
                             />
                           </div>
                         </TableCell>
-                        
                       )
                     }
                   </TableRow>
