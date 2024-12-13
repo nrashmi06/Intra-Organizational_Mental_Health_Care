@@ -1,7 +1,6 @@
 // to show SUMMARY SESSION ON THE ANALYTICS DASHBOARD
 
 import { Star } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { useEffect, useState } from "react";
 import { RootState } from "@/store";
 import { useSelector } from "react-redux";
@@ -48,11 +47,7 @@ export default function ListenerSummary() {
     fetchListenerDetails();
   }, [token]);
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Session Rating</CardTitle>
-      </CardHeader>
-      <CardContent>
+        <div>
         <div className="text-3xl font-bold">{feedbackData.avgRating}/5</div>
         <div className="flex items-center mt-1">
           <StarRating rating={feedbackData.avgRating} />
@@ -93,7 +88,6 @@ export default function ListenerSummary() {
             </div>
           ))}
         </div>
-      </CardContent>
-    </Card>
+        </div>
   );
 }

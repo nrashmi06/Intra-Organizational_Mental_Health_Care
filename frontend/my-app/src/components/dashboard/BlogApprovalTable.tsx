@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Table, TableBody, TableCell, TableHeader, TableRow, TableHead } from "@/components/ui/table";
 import Badge from "@/components/ui/badge";
@@ -19,11 +18,10 @@ interface BlogApproval {
 
 interface BlogApprovalTableProps {
     blogs: BlogApproval[];
-    handleView: (id: number) => void;
     statusFilter: 'pending' | 'approved' | 'rejected';
 }
 
-const BlogApprovalTable: React.FC<BlogApprovalTableProps> = ({ blogs, statusFilter, handleView }) => {
+const BlogApprovalTable: React.FC<BlogApprovalTableProps> = ({ blogs, statusFilter }) => {
     const token = useSelector((state: RootState) => state.auth.accessToken); // Get token from Redux state
     const [modal, setModal] = useState(false);
     const [successMessage, setSuccessMessage] = useState<string>("");
@@ -52,61 +50,69 @@ const BlogApprovalTable: React.FC<BlogApprovalTableProps> = ({ blogs, statusFilt
     };
 
     return (
-        <div className="bg-white rounded-lg shadow">
-            <div className="p-4 border-b">
-                <h2 className="text-xl font-bold">Blog Approvals</h2>
-            </div>
+        <div className="bg-white rounded-lg shadow overflow-x-auto">
             <Table>
                 <TableHeader>
                     <TableRow>
-                        <TableHead>SI. No</TableHead>
-                        <TableHead>Title</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Action</TableHead>
-                        <TableHead>View</TableHead>
+                        <TableHead><p className="text-center">SI. No</p></TableHead>
+                        <TableHead><p className="text-center">Title</p></TableHead>
+                        <TableHead><p className="text-center">Status</p></TableHead>
+                        <TableHead><p className="text-center">Action</p></TableHead>
+                        <TableHead><p className="text-center">View</p></TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {blogs.map((blog) => (
-                        <TableRow key={blog.id}>
-                            <TableCell>{blog.id}</TableCell>
-                            <TableCell>{blog.title}</TableCell>
+                    {blogs.length > 0 ? (
+                        blogs.map((blog) => (
+                            <TableRow key={blog.id}>
+                                <TableCell><p className="text-center">{blog.id}</p></TableCell>
+                                <TableCell><p className="text-center">{blog.title}</p></TableCell>
+                                <TableCell>
+                                    <p className="text-center">
+                                        <Badge
+                                            color={statusFilter === 'approved' ? 'green' :
+                                                statusFilter === 'rejected' ? 'red' :
+                                                    'gray' // Pending status is gray
+                                            }
+                                        >
+                                            {statusFilter === 'pending' ? 'Pending' : statusFilter}
+                                        </Badge>
+                                    </p>
+                                </TableCell>
+                                <TableCell>
+                                    <p className="text-center">
+                                        {statusFilter === 'pending' ? (
+                                            <div className="flex space-x-2 justify-center">
+                                                <Check
+                                                    onClick={() => handleApproval(blog.id, 'approved')} // Call handleApproval here
+                                                    className="cursor-pointer text-green-500"
+                                                />
+                                                <X
+                                                    onClick={() => handleApproval(blog.id, 'rejected')} // Call handleApproval here
+                                                    className="cursor-pointer text-red-500"
+                                                />
+                                            </div>
+                                        ) : (
+                                            <span className="m-6">-</span>
+                                        )}
+                                    </p>
+                                </TableCell>
+                                <TableCell>
+                                    <p className="text-center">
+                                        <Link href={`/blog/${blog.id}`}>
+                                            <Button className="bg-purple-500">View</Button>
+                                        </Link>
+                                    </p>
+                                </TableCell>
+                            </TableRow>
+                        ))
+                    ) : (
+                        <TableRow>
                             <TableCell>
-                                <Badge
-                                    color={
-                                        statusFilter === 'approved' ? 'green' :
-                                            statusFilter === 'rejected' ? 'red' :
-                                                'gray' // Pending status is gray
-                                    }
-                                >
-                                    {statusFilter === 'pending' ? 'Pending' : statusFilter}
-                                </Badge>
-                            </TableCell>
-                            <TableCell>
-                                {statusFilter === 'pending' ? (
-                                    <div className="flex space-x-2">
-                                        <Check
-                                            onClick={() => handleApproval(blog.id, 'approved')} // Call handleApproval here
-                                            className="cursor-pointer text-green-500"
-                                        />
-                                        <X
-                                            onClick={() => handleApproval(blog.id, 'rejected')} // Call handleApproval here
-                                            className="cursor-pointer text-red-500"
-                                        />
-                                    </div>
-                                ) : (
-                                    <span className="m-6">-</span>
-                                )}
-                            </TableCell>
-                            <TableCell>
-
-                                <Link href={`/blog/${blog.id}`}>
-                                    <Button>View</Button>
-                                </Link>
-
+                                <p className="text-center text-gray-500">No {statusFilter} blogs found</p>
                             </TableCell>
                         </TableRow>
-                    ))}
+                    )}
                 </TableBody>
             </Table>
             {modal && (

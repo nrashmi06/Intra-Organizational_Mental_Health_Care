@@ -1,4 +1,3 @@
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { useEffect, useState } from "react";
 import { RootState } from "@/store";
 import { useSelector } from "react-redux";
@@ -55,15 +54,11 @@ export default function Severity() {
       feedbackData.severityLevel5Count;
 
   return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Severity Analysis</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-3xl font-bold">
+      <div className="">
+          <div className="text-3xl font-bold text-center flex-col">
             {feedbackData.averageSeverity.toFixed(1)}/5
           </div>
-          <div className="flex items-center mt-1">
+          <div className="flex justify-center mt-1">
             <DotRating rating={feedbackData.averageSeverity} />
             <span className="ml-2 text-sm text-muted-foreground">
             {totalCount} total
@@ -95,7 +90,6 @@ export default function Severity() {
                 </div>
             ))}
           </div>
-        </CardContent>
-      </Card>
+      </div>
   );
 }
