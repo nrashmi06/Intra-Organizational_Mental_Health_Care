@@ -15,9 +15,8 @@ import com.dbms.mentalhealth.repository.UserRepository;
 import com.dbms.mentalhealth.service.ListenerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
+import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class ListenerServiceImpl implements ListenerService {
@@ -32,6 +31,7 @@ public class ListenerServiceImpl implements ListenerService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ListenerDetailsResponseDTO getListenerDetails(String type, Integer id) {
         if ("userId".equalsIgnoreCase(type)) {
             User user = userRepository.findById(id)
@@ -48,6 +48,7 @@ public class ListenerServiceImpl implements ListenerService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<UserActivityDTO> getAllListeners(String type) {
         List<Listener> listeners;
         if ("suspended".equalsIgnoreCase(type)) {
@@ -67,6 +68,7 @@ public class ListenerServiceImpl implements ListenerService {
     }
 
     @Override
+    @Transactional
     public String suspendOrUnsuspendListener(Integer listenerId, String action) {
         Listener listener = listenerRepository.findById(listenerId)
                 .orElseThrow(() -> new RuntimeException("Listener not found for ID: " + listenerId));
@@ -90,6 +92,7 @@ public class ListenerServiceImpl implements ListenerService {
     }
 
     @Override
+    @Transactional
     public void incrementMessageCount(String username) {
         listenerRepository.incrementMessageCount(username);
     }

@@ -17,6 +17,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -55,6 +56,7 @@ public class SessionServiceImpl implements SessionService {
 
 
     @Override
+    @Transactional
     public String initiateSession(Integer listenerId, String message) throws JsonProcessingException {
         User sender = userRepository.findById(jwtUtils.getUserIdFromContext())
                 .orElseThrow(() -> new UserNotFoundException("Sender not found"));
@@ -75,6 +77,7 @@ public class SessionServiceImpl implements SessionService {
     }
 
     @Override
+    @Transactional
     public String updateSessionStatus(Integer userId, String action) {
         Integer loggedInUserId = jwtUtils.getUserIdFromContext();
         Listener listener = listenerRepository.findByUser_UserId(loggedInUserId)
@@ -132,6 +135,7 @@ public class SessionServiceImpl implements SessionService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public SessionResponseDTO getSessionById(Integer sessionId) {
         Session session = sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new SessionNotFoundException("Session not found"));
@@ -139,6 +143,7 @@ public class SessionServiceImpl implements SessionService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<SessionSummaryDTO> getSessionsByUserIdOrListenerId(Integer id, String role) {
         List<Session> sessions;
         if ("listener".equalsIgnoreCase(role)) {
@@ -156,6 +161,7 @@ public class SessionServiceImpl implements SessionService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<SessionSummaryDTO> getSessionsByStatus(String status) {
         List<Session> sessions = sessionRepository.findBySessionStatus(SessionStatus.valueOf(status.toUpperCase()));
         return sessions.stream()
@@ -164,6 +170,7 @@ public class SessionServiceImpl implements SessionService {
     }
 
     @Override
+    @Transactional
     public String endSession(Integer sessionId) {
         Session session = sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new SessionNotFoundException("Session not found"));
@@ -182,6 +189,7 @@ public class SessionServiceImpl implements SessionService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<SessionSummaryDTO> getAllSessions() {
         return sessionRepository.findAll().stream()
                 .map(SessionMapper::toSessionSummaryDTO)
@@ -189,6 +197,7 @@ public class SessionServiceImpl implements SessionService {
     }
 
     @Override
+    @Transactional
     public List<ChatMessageDTO> getMessagesBySessionId(Integer sessionId) {
         List<ChatMessage> messages = chatMessageRepository.findBySession_SessionId(sessionId);
         return messages.stream()
@@ -198,6 +207,7 @@ public class SessionServiceImpl implements SessionService {
 
 
     @Override
+    @Transactional
     public String getAverageSessionDuration() {
         List<Session> sessions = sessionRepository.findAll();
         if (sessions.isEmpty()) {
@@ -216,6 +226,7 @@ public class SessionServiceImpl implements SessionService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<SessionResponseDTO> getSessionsByListenersUserId(Integer userId) {
         Listener listener = listenerRepository.findByUser_UserId(userId)
                 .orElseThrow(() -> new ListenerNotFoundException("Listener not found"));

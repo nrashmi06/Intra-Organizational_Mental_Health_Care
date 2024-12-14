@@ -1,6 +1,6 @@
 package com.dbms.mentalhealth.service.impl;
 
-import com.dbms.mentalhealth.dto.listenerApplication.request.UpdateApplicationStatusRequestDTO;
+import org.springframework.transaction.annotation.Transactional;
 import com.dbms.mentalhealth.dto.listenerApplication.response.ListenerApplicationSummaryResponseDTO;
 import com.dbms.mentalhealth.dto.Listener.response.ListenerDetailsResponseDTO;
 import com.dbms.mentalhealth.dto.listenerApplication.request.ListenerApplicationRequestDTO;
@@ -31,7 +31,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.security.core.GrantedAuthority;
 
@@ -115,6 +114,7 @@ public class ListenerApplicationServiceImpl implements ListenerApplicationServic
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ListenerApplicationResponseDTO getApplicationById(Integer applicationId) {
         // Extract user ID and role from security context
         Integer userId = jwtUtils.getUserIdFromContext();
@@ -146,6 +146,7 @@ public class ListenerApplicationServiceImpl implements ListenerApplicationServic
     }
 
     @Override
+    @Transactional
     public void deleteApplication(Integer applicationId) {
         // Extract user ID and role from the security context
         Integer userId = jwtUtils.getUserIdFromContext();
@@ -173,6 +174,7 @@ public class ListenerApplicationServiceImpl implements ListenerApplicationServic
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ListenerApplicationSummaryResponseDTO> getAllApplications() {
         List<ListenerApplication> applications = listenerApplicationRepository.findAll();
         return applications.stream()
@@ -280,6 +282,7 @@ public class ListenerApplicationServiceImpl implements ListenerApplicationServic
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ListenerApplicationSummaryResponseDTO> getApplicationByApprovalStatus(String status) {
         try {
             ListenerApplicationStatus applicationStatus = ListenerApplicationStatus.valueOf(status.toUpperCase());
@@ -295,6 +298,7 @@ public class ListenerApplicationServiceImpl implements ListenerApplicationServic
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ListenerApplicationResponseDTO getApplicationsByUserId(Integer userId) {
         ListenerApplication application = listenerApplicationRepository.findByUser_UserId(userId);
         if (application == null) {

@@ -20,7 +20,7 @@ import com.dbms.mentalhealth.service.RefreshTokenService;
 import com.dbms.mentalhealth.service.UserActivityService;
 import com.dbms.mentalhealth.service.UserService;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -85,6 +85,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
+    @Transactional
     public Map<String, Object> loginUser(UserLoginRequestDTO userLoginDTO) {
         Authentication authentication;
         try {
@@ -360,6 +361,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
+    @Transactional
     public void setUserActiveStatus(String email, boolean isActive) {
         User user = userRepository.findByEmail(email);
         if (user != null) {
@@ -375,6 +377,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
+    @Transactional
     public void suspendOrUnSuspendUser(Integer userId, String action) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + userId));
@@ -389,6 +392,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<User> getAllUsers() {
         return userRepository.findAll().stream()
                 .filter(user -> user.getRole().equals(Role.USER))
@@ -396,6 +400,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<User> getUsersByProfileStatus(String status) {
         ProfileStatus profileStatus = ProfileStatus.valueOf(status.toUpperCase());
         return userRepository.findByProfileStatus(profileStatus).stream()

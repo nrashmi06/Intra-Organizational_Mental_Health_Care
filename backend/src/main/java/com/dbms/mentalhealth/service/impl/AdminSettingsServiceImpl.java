@@ -14,6 +14,7 @@ import com.dbms.mentalhealth.service.AdminSettingsService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
@@ -34,6 +35,7 @@ public class AdminSettingsServiceImpl implements AdminSettingsService {
     }
 
     @Override
+    @Transactional
     public AdminSettingsResponseDTO createAdminSettings(AdminSettingsRequestDTO adminSettingsRequestDTO) {
         Integer userId = getUserIdFromContext();
         Admin admin = adminRepository.findByUser_UserId(userId)
@@ -51,6 +53,7 @@ public class AdminSettingsServiceImpl implements AdminSettingsService {
     }
 
     @Override
+    @Transactional
     public AdminSettingsResponseDTO updateAdminSettings(AdminSettingsRequestDTO adminSettingsRequestDTO) {
         Integer userId = getUserIdFromContext();
         Admin admin = adminRepository.findByUser_UserId(userId)
@@ -70,6 +73,7 @@ public class AdminSettingsServiceImpl implements AdminSettingsService {
     }
 
     @Override
+    @Transactional
     public void deleteAdminSettings() {
         Integer userId = getUserIdFromContext();
         Admin admin = adminRepository.findByUser_UserId(userId)
@@ -84,6 +88,7 @@ public class AdminSettingsServiceImpl implements AdminSettingsService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public AdminSettingsResponseDTO getAdminSettings() {
         Integer userId = getUserIdFromContext();
         Admin admin = adminRepository.findByUser_UserId(userId)
