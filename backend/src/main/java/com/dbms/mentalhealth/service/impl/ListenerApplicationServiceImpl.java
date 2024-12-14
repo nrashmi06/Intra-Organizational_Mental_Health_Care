@@ -39,8 +39,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
-
+import java.util.concurrent.CompletableFuture;
 
 @Service
 public class ListenerApplicationServiceImpl implements ListenerApplicationService {
@@ -90,8 +89,8 @@ public class ListenerApplicationServiceImpl implements ListenerApplicationServic
         ListenerApplication listenerApplication = ListenerApplicationMapper.toEntity(applicationRequestDTO, user);
 
         // Handle Certificate Upload
-        String certificateUrl = imageStorageService.uploadImage(certificate);
-        listenerApplication.setCertificateUrl(certificateUrl);
+        CompletableFuture<String> certificateUrlFuture = imageStorageService.uploadImage(certificate);
+        listenerApplication.setCertificateUrl(certificateUrlFuture.get());
 
         // Set additional fields
         listenerApplication.setApplicationStatus(ListenerApplicationStatus.PENDING);
@@ -146,9 +145,6 @@ public class ListenerApplicationServiceImpl implements ListenerApplicationServic
         return ListenerApplicationMapper.toResponseDTO(listenerApplication);
     }
 
-
-
-
     @Override
     public void deleteApplication(Integer applicationId) {
         // Extract user ID and role from the security context
@@ -175,7 +171,6 @@ public class ListenerApplicationServiceImpl implements ListenerApplicationServic
         listenerRepository.findByUser(user).ifPresent(listenerRepository::delete);
         listenerApplicationRepository.deleteById(applicationId);
     }
-
 
     @Override
     public List<ListenerApplicationSummaryResponseDTO> getAllApplications() {
@@ -209,11 +204,11 @@ public class ListenerApplicationServiceImpl implements ListenerApplicationServic
         if (certificate != null && !certificate.isEmpty()) {
             // Delete current image if exists
             if (listenerApplication.getCertificateUrl() != null) {
-                imageStorageService.deleteImage(listenerApplication.getCertificateUrl());
+                imageStorageService.deleteImage(listenerApplication.getCertificateUrl()).get();
             }
             // Upload new image
-            String certificateUrl = imageStorageService.uploadImage(certificate);
-            updatedApplication.setCertificateUrl(certificateUrl);
+            CompletableFuture<String> certificateUrlFuture = imageStorageService.uploadImage(certificate);
+            updatedApplication.setCertificateUrl(certificateUrlFuture.get());
         } else {
             // Retain the current certificate URL
             updatedApplication.setCertificateUrl(listenerApplication.getCertificateUrl());
@@ -284,7 +279,6 @@ public class ListenerApplicationServiceImpl implements ListenerApplicationServic
         return null;
     }
 
-
     @Override
     public List<ListenerApplicationSummaryResponseDTO> getApplicationByApprovalStatus(String status) {
         try {
@@ -299,6 +293,7 @@ public class ListenerApplicationServiceImpl implements ListenerApplicationServic
             throw new RuntimeException("An error occurred while fetching applications by approval status", e);
         }
     }
+
     @Override
     public ListenerApplicationResponseDTO getApplicationsByUserId(Integer userId) {
         ListenerApplication application = listenerApplicationRepository.findByUser_UserId(userId);
@@ -320,6 +315,4 @@ public class ListenerApplicationServiceImpl implements ListenerApplicationServic
                 .findFirst()
                 .orElse("ROLE_USER") : "ROLE_USER";
     }
-
-
 }
