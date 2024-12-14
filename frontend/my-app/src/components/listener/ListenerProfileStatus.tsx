@@ -9,7 +9,7 @@ import { RootState } from "@/store";
 import { useSelector } from "react-redux";
 import ViewListener from "./ViewListener";
 import Link from "next/link";
-import { getApplicationByListenerId } from "@/service/listener/getApplicationByListenerId";
+import { getApplicationByListenerUserId } from "@/service/listener/getApplicationByListenerUserId";
 import ListenerApplicationDetails from "./ListenerDetailsForAdmin";
 
 interface Listener {
@@ -82,7 +82,7 @@ const ListenerProfileStatusTable: React.FC = () => {
   const handleAction = async (userId: number) => {
     setModal(true); // Open the modal
     try {
-      const response = await getApplicationByListenerId(userId, token);
+      const response = await getApplicationByListenerUserId(userId, token);
       if (!response) {
         console.error("Nothing found for the user");
         return;

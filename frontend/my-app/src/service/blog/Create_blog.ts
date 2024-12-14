@@ -34,7 +34,7 @@ export const createBlog = async (
     formData.append('blog', blogBlob, 'blog.json');
 
     // Debug: Log FormData contents
-    for (const [key, value] of formData.entries()) {
+    for (const [value] of formData.entries()) {
       console.log('FormData -${key}:', value);
     }
 

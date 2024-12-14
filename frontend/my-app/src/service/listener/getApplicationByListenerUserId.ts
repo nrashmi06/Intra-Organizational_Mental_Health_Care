@@ -1,12 +1,12 @@
 // src/service/listener/getCertificate.ts
 
-export const getApplicationByListenerId = async (
-  listenerId: number,
+export const getApplicationByListenerUserId = async (
+  userId: number,
   token: string
 ) => {
   try {
     const response = await fetch(
-      `http://localhost:8080/mental-health/api/v1/listener-applications/listener/${listenerId}`,
+      `http://localhost:8080/mental-health/api/v1/listener-applications/listener/${userId}`,
       {
         method: "GET",
         headers: {

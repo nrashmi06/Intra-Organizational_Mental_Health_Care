@@ -13,7 +13,7 @@ import { useSelector } from "react-redux";
 import { getActiveUserByRoleName } from "@/service/SSE/getActiveUserByRoleName";
 import { getListenerDetails } from "@/service/listener/getListenerDetails";
 import { getUserDetails } from "@/service/user/getUserDetails";
-import { getApplicationByListenerId } from "@/service/listener/getApplicationByListenerId";
+import { getApplicationByListenerId } from "@/service/listener/getApplicationByListenerUserId";
 import { useRouter } from "next/router";
 import UserDetails, { UserDetailsProps } from "../activeUser/UserDetails";
 import ListenerDetails, {
