@@ -22,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 public class AdminServiceImpl implements AdminService {
@@ -58,10 +59,10 @@ public class AdminServiceImpl implements AdminService {
             throw new AdminNotFoundException("Admin profile already exists");
         }
 
-        // Upload image and get URL
-        String profilePictureUrl = imageStorageService.uploadImage(profilePicture);
+        // Upload image and get URL asynchronously
+        CompletableFuture<String> profilePictureUrlFuture = imageStorageService.uploadImage(profilePicture);
+        String profilePictureUrl = profilePictureUrlFuture.get();
         Admin admin = adminMapper.toEntity(adminProfileRequestDTO, user, profilePictureUrl);
-
 
         Admin savedAdmin = adminRepository.save(admin);
 
@@ -102,8 +103,9 @@ public class AdminServiceImpl implements AdminService {
             if (profilePictureUrl != null) {
                 imageStorageService.deleteImage(profilePictureUrl);
             }
-            // Upload new image
-            profilePictureUrl = imageStorageService.uploadImage(profilePicture);
+            // Upload new image asynchronously
+            CompletableFuture<String> profilePictureUrlFuture = imageStorageService.uploadImage(profilePicture);
+            profilePictureUrl = profilePictureUrlFuture.get();
         }
 
         admin.setAdminNotes(adminProfileRequestDTO.getAdminNotes());
@@ -125,7 +127,6 @@ public class AdminServiceImpl implements AdminService {
         adminRepository.delete(admin);
         return "Admin profile deleted successfully";
     }
-
 
     @Override
     public List<AdminProfileSummaryResponseDTO> getAllAdmins() {

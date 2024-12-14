@@ -1,14 +1,16 @@
 package com.dbms.mentalhealth.service;
 
+import java.util.concurrent.CompletableFuture;
+
 public interface EmailService {
-    void sendVerificationEmail(String email, String code);
-    void sendPasswordResetEmail(String email, String code);
-    void sendBlogSubmissionReceivedEmail(String email, String blogId);
-    void sendNewBlogSubmissionEmailToAdmin(String adminEmail, String userName, String blogTitle);
-    void sendListenerApplicationReceivedEmail(String email);
-    void sendNewListenerApplicationAlertToAdmin(String adminEmail, String applicationId);
-    void sendBlogAcceptanceEmail(String email, String blogTitle);
-    void sendBlogRejectionEmail(String email, String blogTitle);
-    void sendListenerAcceptanceEmail(String email);
-    void sendListenerRejectionEmail(String email);
+    CompletableFuture<Void> sendVerificationEmail(String email, String code);
+    CompletableFuture<Void> sendPasswordResetEmail(String email, String code);
+    CompletableFuture<Void> sendBlogSubmissionReceivedEmail(String email, String blogId);
+    CompletableFuture<Void> sendNewBlogSubmissionEmailToAdmin(String adminEmail, String userName, String blogTitle);
+    CompletableFuture<Void> sendBlogAcceptanceEmail(String email, String blogTitle);
+    CompletableFuture<Void> sendBlogRejectionEmail(String email, String blogTitle);
+    CompletableFuture<Void> sendListenerApplicationReceivedEmail(String email);
+    CompletableFuture<Void> sendNewListenerApplicationAlertToAdmin(String adminEmail, String applicationId);
+    CompletableFuture<Void> sendListenerAcceptanceEmail(String email);
+    CompletableFuture<Void> sendListenerRejectionEmail(String email);
 }
