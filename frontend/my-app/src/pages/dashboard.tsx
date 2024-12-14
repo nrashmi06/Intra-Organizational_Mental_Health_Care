@@ -8,9 +8,9 @@ import Navbar from "@/components/navbar/navbar3";
 import "@/styles/globals.css";
 import { fetchBlogs } from "@/service/blog/FetchByStatus";
 import { RootState } from "@/store";
-import BlogApprovalTable from "@/components/dashboard/BlogApprovalTable";
+import BlogApprovalTable from "@/components/dashboard/home/BlogApprovalTable";
 import { fetchListeners } from "@/service/listener/fetchListeners";
-import ListenerApprovalTable from "@/components/dashboard/ListenerApproveTable";
+import ListenerApprovalTable from "@/components/dashboard/listener/ListenerApproveTable";
 import ProfileStatus from "@/components/listener/ListenerProfileStatus";
 import ActiveUsers from "@/components/dashboard/ActiveUsers";
 
