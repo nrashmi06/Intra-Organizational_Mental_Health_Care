@@ -1,5 +1,10 @@
 package com.dbms.mentalhealth.service.impl;
 
+import com.cloudinary.utils.StringUtils;
+import com.dbms.mentalhealth.dto.massEmail.MassEmailRequestDTO;
+import com.dbms.mentalhealth.enums.Role;
+import com.dbms.mentalhealth.model.User;
+import com.dbms.mentalhealth.repository.UserRepository;
 import com.dbms.mentalhealth.service.EmailService;
 import com.dbms.mentalhealth.urlMapper.UserUrlMapping;
 import jakarta.mail.MessagingException;
@@ -7,14 +12,21 @@ import jakarta.mail.internet.MimeMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.mail.MailSendException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 @Service
@@ -23,11 +35,13 @@ public class EmailServiceImpl implements EmailService {
     private static final Logger logger = LoggerFactory.getLogger(EmailServiceImpl.class);
     private final JavaMailSender javaMailSender;
     private final TemplateEngine templateEngine;
+    private final UserRepository userRepository;
 
     @Autowired
-    public EmailServiceImpl(JavaMailSender javaMailSender, TemplateEngine templateEngine) {
+    public EmailServiceImpl(JavaMailSender javaMailSender, TemplateEngine templateEngine, UserRepository userRepository) {
         this.javaMailSender = javaMailSender;
         this.templateEngine = templateEngine;
+        this.userRepository = userRepository;
     }
 
     @Async
@@ -169,6 +183,88 @@ public class EmailServiceImpl implements EmailService {
         } catch (MessagingException e) {
             logger.error("Failed to send email to: {}", to, e);
             throw new MailSendException("Failed to send email", e);
+        }
+    }
+
+    @Async
+    @Override
+    public CompletableFuture<Void> sendMassEmail(String recipientType, MassEmailRequestDTO request, List<File> files, Runnable callback) {
+        if (request == null || StringUtils.isBlank(recipientType)) {
+            logger.error("Invalid request: recipientType or email request is null");
+            return CompletableFuture.completedFuture(null);
+        }
+
+        try {
+            List<User> recipients = fetchRecipientsByType(recipientType);
+
+            // Send email to each recipient
+            recipients.forEach(recipient ->
+                    sendEmailSafely(recipient.getEmail(), request.getSubject(), request.getBody(), files)
+            );
+
+        } catch (IllegalArgumentException e) {
+            logger.error("Error fetching recipients: {}", e.getMessage());
+        } finally {
+            callback.run();
+        }
+
+        return CompletableFuture.completedFuture(null);
+    }
+
+    private List<User> fetchRecipientsByType(String recipientType) {
+        logger.info("Fetching recipients for type: {}", recipientType);
+
+        return switch (recipientType.trim().toLowerCase()) {
+            case "all" -> userRepository.findAll();
+            case "listener" -> userRepository.findByRole(Role.LISTENER);
+            case "user" -> userRepository.findByRole(Role.USER);
+            case "admin" -> userRepository.findByRole(Role.ADMIN);
+            default -> throw new IllegalArgumentException("Invalid recipient type: " + recipientType);
+        };
+    }
+
+    private void sendEmailSafely(String email, String subject, String body, List<File> files) {
+        try {
+            sendHtmlEmailWithAttachments(email, subject, body, files);
+        } catch (Exception e) {
+            logger.error("Failed to send email to: {}", email, e);
+        }
+    }
+
+    private void sendHtmlEmailWithAttachments(String to, String subject, String body, List<File> files)
+            throws MessagingException, IOException {
+
+        if (StringUtils.isBlank(to) || StringUtils.isBlank(subject) || StringUtils.isBlank(body)) {
+            logger.warn("Email parameters are invalid. To: {}, Subject: {}, Body: [empty]", to, subject);
+            return;
+        }
+
+        MimeMessage message = javaMailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+        helper.setTo(to);
+        helper.setSubject(subject);
+        helper.setText(body, true);
+
+        attachFiles(helper, files);
+
+        javaMailSender.send(message);
+        logger.info("Email successfully sent to: {}", to);
+    }
+
+    private void attachFiles(MimeMessageHelper helper, List<File> files) throws MessagingException {
+        if (files == null || files.isEmpty()) {
+            logger.info("No files to attach.");
+            return;
+        }
+
+        for (File file : files) {
+            logger.info("Attaching file: {} with size: {} bytes", file.getName(), file.length());
+            try {
+                helper.addAttachment(file.getName(), new FileSystemResource(file));
+            } catch (Exception e) {
+                logger.error("Failed to attach file: {}", file.getName(), e);
+            }
         }
     }
 }

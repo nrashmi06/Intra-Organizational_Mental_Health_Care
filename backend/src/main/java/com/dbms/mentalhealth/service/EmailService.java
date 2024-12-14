@@ -1,5 +1,9 @@
 package com.dbms.mentalhealth.service;
 
+import com.dbms.mentalhealth.dto.massEmail.MassEmailRequestDTO;
+
+import java.io.File;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public interface EmailService {
@@ -13,4 +17,5 @@ public interface EmailService {
     CompletableFuture<Void> sendNewListenerApplicationAlertToAdmin(String adminEmail, String applicationId);
     CompletableFuture<Void> sendListenerAcceptanceEmail(String email);
     CompletableFuture<Void> sendListenerRejectionEmail(String email);
+    CompletableFuture<Void> sendMassEmail(String recipientType, MassEmailRequestDTO request, List<File> files, Runnable callback) throws Exception;
 }
