@@ -58,11 +58,15 @@ public class AuthController {
 
             // Corrected cookie configuration
             Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
+
             refreshTokenCookie.setHttpOnly(true);
-            refreshTokenCookie.setSecure(false);     // Changed to true
-            refreshTokenCookie.setPath("/mental-health/api/v1/users"); // Available across user paths in the domain
-            refreshTokenCookie.setMaxAge(24 * 60 * 60); // 1 day expiration            refreshTokenCookie.setMaxAge(24 * 60 * 60);
-            refreshTokenCookie.setAttribute("SameSite", "None"); // Add for cross-origin
+            refreshTokenCookie.setSecure(false); // Set to 'true' in production when using HTTPS
+            refreshTokenCookie.setPath("/mental-health/api/v1/users"); // Set to root path '/' for application-wide availability
+            refreshTokenCookie.setMaxAge(24 * 60 * 60); // 1 day expiration
+            refreshTokenCookie.setDomain("localhost"); // Optional: Ensure cookie is scoped to localhost for dev
+
+            // Add SameSite attribute for cross-origin requests (if needed)
+            response.addHeader("Set-Cookie", "refreshToken=" + refreshToken + "; HttpOnly; Secure=false; Path=/; Max-Age=86400; SameSite=None");
 
             response.addCookie(refreshTokenCookie);
 
