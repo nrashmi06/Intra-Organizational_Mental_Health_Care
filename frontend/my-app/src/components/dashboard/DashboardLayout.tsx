@@ -1,3 +1,5 @@
+//fixed sidebar and navbar for the dashboard page
+
 import { useState } from 'react'
 import Navbar from '@/components/dashboard/Navbar'
 import Sidebar from '@/components/dashboard/SideBar'
@@ -30,7 +32,7 @@ export default function Layout({ children }: LayoutProps) {
         </Navbar>
 
         {/* Content */}
-        <main className="flex-1 p-4 overflow-y-auto bg-gray-100">
+        <main className="flex-1 overflow-y-auto bg-gray-100">
           {children}
         </main>
       </div>

@@ -1,17 +1,16 @@
 "use client";
-
-import { Headphones, ShieldCheck, User } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
-import SessionSummary from "@/components/dashboard/SessionSummary";
-import AverageSession from "@/components/dashboard/AverageSession";
-import Severity from "@/components/dashboard/Severity";
+import SessionSummary from "@/components/dashboard/home/SessionSummary";
+import AverageSession from "@/components/dashboard/home/AverageSession";
+import Severity from "@/components/dashboard/home/Severity";
 import { fetchBlogs } from "@/service/blog/FetchByStatus";
 import { RootState } from "@/store";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import BlogApprovalTable from "@/components/dashboard/BlogApprovalTable";
+import BlogApprovalTable from "@/components/dashboard/home/BlogApprovalTable";
+import UserCountGrid from "@/components/dashboard/home/LiveCount";
 
 interface BlogApproval {
   id: number;
@@ -45,48 +44,10 @@ const DashboardPage = () => {
   useEffect(() => {
     loadBlogs();
   }, [token, statusFilter]);
-  
+
   return (
     <div className="md:p-6 space-y-8">
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card className="bg-green-50">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle>Accounts</CardTitle>
-            <User className="h-4 w-4 " />
-          </CardHeader>
-          <CardContent>
-            <div className="text-sm ">Total active accounts: 25</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-pink-50">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle>Users</CardTitle>
-            <User className="h-4 w-4 " />
-          </CardHeader>
-          <CardContent>
-            <div className="text-sm ">Active: 25</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-green-50">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle>Listeners</CardTitle>
-            <Headphones className="h-4 w-4" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-sm ">Active: 25</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-red-50">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle>Admins</CardTitle>
-            <ShieldCheck className="h-4 w-4 " />
-          </CardHeader>
-          <CardContent>
-            <div className="text-sm ">Active: 25</div>
-          </CardContent>
-        </Card>
-      </div>
-
+      <UserCountGrid />
       <div className="grid gap-8 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
@@ -113,34 +74,46 @@ const DashboardPage = () => {
           </CardContent>
         </Card>
       </div>
-      {/* <section>
+      <section>
         <div className="bg-white rounded-lg shadow">
           <div className="p-4 border-b flex flex-col md:flex-row justify-between items-start md:items-center">
-        <h2 className="text-xl font-bold">Blogs</h2>
-        <div className="flex gap-2 mt-2 md:mt-0">
-          <Button
-            onClick={() => setStatusFilter("pending")}
-            className={`${statusFilter === "pending" ? "bg-purple-500 text-white" : "bg-purple-300 text-purple-500"}`}
-          >
-            Pending
-          </Button>
-          <Button
-            onClick={() => setStatusFilter("approved")}
-            className={`${statusFilter === "approved" ? "bg-purple-500 text-white" : "bg-purple-300 text-purple-500"}`}
-          >
-            Approved
-          </Button>
-          <Button
-            onClick={() => setStatusFilter("rejected")}
-            className={`${statusFilter === "rejected" ? "bg-purple-500 text-white" : "bg-purple-300 text-purple-500"}`}
-          >
-            Rejected
-          </Button>
-        </div>
+            <h2 className="text-xl font-bold">Blogs</h2>
+            <div className="flex gap-2 mt-2 md:mt-0">
+              <Button
+                onClick={() => setStatusFilter("pending")}
+                className={`${
+                  statusFilter === "pending"
+                    ? "bg-purple-500 text-white"
+                    : "bg-purple-300 text-purple-500"
+                }`}
+              >
+                Pending
+              </Button>
+              <Button
+                onClick={() => setStatusFilter("approved")}
+                className={`${
+                  statusFilter === "approved"
+                    ? "bg-purple-500 text-white"
+                    : "bg-purple-300 text-purple-500"
+                }`}
+              >
+                Approved
+              </Button>
+              <Button
+                onClick={() => setStatusFilter("rejected")}
+                className={`${
+                  statusFilter === "rejected"
+                    ? "bg-purple-500 text-white"
+                    : "bg-purple-300 text-purple-500"
+                }`}
+              >
+                Rejected
+              </Button>
+            </div>
           </div>
           <BlogApprovalTable blogs={blogs} statusFilter={statusFilter} />
         </div>
-      </section> */}
+      </section>
     </div>
   );
 };

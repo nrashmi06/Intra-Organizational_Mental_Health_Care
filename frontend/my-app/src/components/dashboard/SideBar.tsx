@@ -1,3 +1,4 @@
+//side bar for the dashboard
 import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -9,7 +10,8 @@ import {
   Users,
   ShieldCheck,
   PhoneCall,
-  BookOpenCheck
+  BookOpenCheck,
+  Mail
 } from "lucide-react";
 import {
   Sheet,
@@ -25,6 +27,7 @@ const routes = [
   { label: "User", icon: Users, href: "/dashboard/user" },
   { label: "Admin", icon: ShieldCheck, href: "/dashboard/admin" },
   { label: "Helpline", icon: PhoneCall, href: "/dashboard/helpline" },
+  {label: "Send Mass Email", icon: Mail, href: "/dashboard/sendemail"}
 ];
 
 type SidebarProps = {

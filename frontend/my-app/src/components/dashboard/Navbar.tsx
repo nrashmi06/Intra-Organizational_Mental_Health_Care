@@ -1,3 +1,4 @@
+//Navbar for the dashboard
 "use client";
 
 import { LogOut } from "lucide-react";

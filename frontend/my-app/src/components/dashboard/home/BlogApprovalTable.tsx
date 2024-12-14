@@ -30,7 +30,7 @@ const BlogApprovalTable: React.FC<BlogApprovalTableProps> = ({ blogs, statusFilt
     const handleApproval = async (id: number, newStatus: 'approved' | 'rejected') => {
         try {
             const response = await changeBlogApprovalStatus(id, newStatus, token);
-
+            console.log(response);
             // More explicit success checking
             if (response) {  // Assumes your API returns a success flag
                 setSuccessMessage(`Blog has been ${newStatus === 'approved' ? 'approved' : 'rejected'}`);
