@@ -11,7 +11,6 @@ import { RootState } from "@/store";
 import BlogApprovalTable from "@/components/dashboard/home/BlogApprovalTable";
 import { fetchListeners } from "@/service/listener/fetchListeners";
 import ListenerApprovalTable from "@/components/dashboard/listener/ListenerApproveTable";
-import ProfileStatus from "@/components/listener/ListenerProfileStatus";
 import ActiveUsers from "@/components/dashboard/ActiveUsers";
 
 export interface ListenerApplication {
@@ -143,7 +142,6 @@ export default function Component() {
                 : "grid-cols-1"
             }`}
           ></div>
-          <ProfileStatus />
 
           {/* Pagination Controls */}
           <div className="flex justify-between items-center mt-4">

@@ -1,16 +1,22 @@
-import Badge from "../ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+"use client";
+import { useEffect, useState } from "react";
+import { getApplicationByListenerUserId } from "@/service/listener/getApplicationByListenerUserId";
 import {
+  X,
+  Calendar,
+  User,
   GraduationCap,
   Phone,
-  User,
-  Calendar,
   FileText,
   CheckCircle2,
   XCircle,
   Clock,
-  X,
 } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Badge from "../../ui/badge";
+import { RootState } from "@/store";
+import { useSelector } from "react-redux";
+import Link from "next/link";
 
 export interface ListenerApplication {
   applicationId: number;
@@ -33,9 +39,9 @@ const ApplicationStatusBadge = ({
   status: ListenerApplication["applicationStatus"];
 }) => {
   const statusVariants = {
-    APPROVED: "bg-green-100 text-green-800",
-    REJECTED: "bg-red-100 text-red-800",
-    PENDING: "bg-yellow-100 text-yellow-800",
+    APPROVED: "bg-green-600",
+    REJECTED: "bg-red-600",
+    PENDING: "bg-yellow-600",
   };
 
   const statusIcons = {
@@ -53,9 +59,33 @@ const ApplicationStatusBadge = ({
 };
 
 const ListenerApplicationDetails: React.FC<{
-  application: ListenerApplication;
-  handleModalClose: () => void;
-}> = ({ application, handleModalClose }) => {
+  userId: number;
+  handleClose: () => void;
+}> = ({ userId, handleClose }) => {
+  const [application, setApplication] = useState<ListenerApplication | null>(
+    null
+  );
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const accessToken = useSelector((state: RootState) => state.auth.accessToken);
+  useEffect(() => {
+    const fetchApplication = async () => {
+      try {
+        const fetchedApplication = await getApplicationByListenerUserId(
+          userId,
+          accessToken
+        );
+        setApplication(fetchedApplication);
+      } catch (error) {
+        setError("Failed to fetch application details." + error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchApplication();
+  }, []);
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
@@ -66,15 +96,26 @@ const ListenerApplicationDetails: React.FC<{
     });
   };
 
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div className="text-red-500">{error}</div>;
+  }
+
+  if (!application) {
+    return <div>No application found.</div>;
+  }
+
   return (
     <div>
       {/* Modal Rendering */}
-
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
         <div className="relative w-full max-w-2xl mx-auto bg-white rounded-lg shadow-lg">
           {/* Close Button */}
           <button
-            onClick={handleModalClose}
+            onClick={handleClose}
             className="absolute top-4 right-4 text-gray-500 hover:text-gray-800"
           >
             <X className="w-6 h-6" />
@@ -175,7 +216,7 @@ const ListenerApplicationDetails: React.FC<{
               {/* Certificate Link */}
               {application.certificateUrl && (
                 <div className="border-t pt-4 text-center">
-                  <a
+                  <Link
                     href={application.certificateUrl}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -183,7 +224,7 @@ const ListenerApplicationDetails: React.FC<{
                   >
                     <CheckCircle2 className="w-5 h-5 mr-2" />
                     View Certificate
-                  </a>
+                  </Link>
                 </div>
               )}
             </CardContent>

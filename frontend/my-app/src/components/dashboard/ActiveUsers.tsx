@@ -13,7 +13,7 @@ import { useSelector } from "react-redux";
 import { getActiveUserByRoleName } from "@/service/SSE/getActiveUserByRoleName";
 import { getListenerDetails } from "@/service/listener/getListenerDetails";
 import { getUserDetails } from "@/service/user/getUserDetails";
-import { getApplicationByListenerId } from "@/service/listener/getApplicationByListenerUserId";
+import { getApplicationByListenerUserId } from "@/service/listener/getApplicationByListenerUserId";
 import { useRouter } from "next/router";
 import UserDetails, { UserDetailsProps } from "../activeUser/UserDetails";
 import ListenerDetails, {
@@ -143,7 +143,7 @@ const ListenerProfileStatusTable: React.FC = () => {
 
         case "View Certificate":
           if (user.userType === "LISTENER") {
-            const response = await getApplicationByListenerId(
+            const response = await getApplicationByListenerUserId(
               Number(user.userId),
               token
             );

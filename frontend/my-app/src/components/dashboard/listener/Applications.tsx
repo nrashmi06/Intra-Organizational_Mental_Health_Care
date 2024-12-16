@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { MoreHorizontal, Search } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Badge, CheckCircle2, Search } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -13,50 +13,75 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@radix-ui/react-dropdown-menu";
-import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-// Mock data
-const applications = [
-  {
-    id: "A1001",
-    name: "Anonymous Owl",
-    status: "pending",
-    details: {
-      fullName: "John Doe",
-      class: "BE-4",
-      usn: "1XX20XX001",
-      branch: "Computer Science",
-      reason: "Want to help others",
-      contact: "+91 9876543210",
-    },
-  },
-  // Add more mock data as needed
-];
-
+import { GetByApproval } from "@/service/listener/getByStatus";
+import { RootState } from "@/store";
+import { useSelector } from "react-redux";
+import Link from "next/link";
+import ListenerDetailsForAdmin from "@/components/dashboard/listener/ModalApplication";
+interface Applications {
+  applicationId: number;
+  fullName: string;
+  branch: string;
+  semester: number;
+  certificateUrl: string;
+  reasonForApplying: string;
+  certifcateUrl: string;
+  applicationStatus: "PENDING" | "APPROVED" | "REJECTED";
+}
 export function ListenerApplicationsTable() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [expandedRow, setExpandedRow] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<string>("PENDING");
   const [currentPage, setCurrentPage] = useState(1);
+  const [applications, setApplications] = useState<Applications[]>([]);
+  const accessToken = useSelector((state: RootState) => state.auth.accessToken);
+  const [applicationModal, setApplicationModal] = useState(false);
   const itemsPerPage = 5;
+
+  useEffect(() => {
+    fetchListenersByStatus("PENDING");
+  }, []);
+
+  const fetchListenersByStatus = async (
+    status: "PENDING" | "APPROVED" | "REJECTED"
+  ) => {
+    try {
+      const response = await GetByApproval(accessToken, status);
+      setApplications(response?.data);
+      setStatusFilter(status);
+    } catch (error) {
+      console.error("Error fetching listeners:", error);
+    }
+  };
+
+  const handleFilterChange = (status: string) => {
+    setStatusFilter(status);
+    fetchListenersByStatus(status as "PENDING" | "APPROVED" | "REJECTED");
+  };
+
+  const handleModalClose = () => {
+    setApplicationModal(false);
+  };
+
+  const handleApplicationModal = () => {
+    setApplicationModal(true);
+  };
 
   const filteredApplications = applications.filter((application) => {
     const matchesSearch =
-      application.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      application.id.toLowerCase().includes(searchQuery.toLowerCase());
+      application.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      application.applicationId
+        .toString()
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
     const matchesStatus =
-      statusFilter === "all" || application.status === statusFilter;
+      statusFilter === "PENDING" ||
+      application.applicationStatus === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
@@ -78,14 +103,14 @@ export function ListenerApplicationsTable() {
             className="pl-8"
           />
         </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
+        <Select value={statusFilter} onValueChange={handleFilterChange}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="approved">Approved</SelectItem>
+          <SelectContent className="bg-white">
+            <SelectItem value="PENDING">Pending</SelectItem>
+            <SelectItem value="APPROVED">Approved</SelectItem>
+            <SelectItem value="REJECTED">Rejected</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -94,108 +119,71 @@ export function ListenerApplicationsTable() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Application ID</TableHead>
-              <TableHead>Anonymous Name</TableHead>
+              <TableHead>Request ID</TableHead>
+              <TableHead>Name</TableHead>
+              <TableHead>Semester</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {paginatedApplications.map((application) => (
-              <>
-                <TableRow key={application.id}>
-                  <TableCell>{application.id}</TableCell>
-                  <TableCell>{application.name}</TableCell>
+            {paginatedApplications.length > 0 ? (
+              paginatedApplications.map((request) => (
+                <TableRow key={request.applicationId}>
                   <TableCell>
-                    <div
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        application.status === "approved"
-                          ? "bg-green-100 text-green-800"
-                          : "bg-yellow-100 text-yellow-800"
-                      }`}
+                    <p className="text-center">{request.applicationId}</p>
+                  </TableCell>
+                  <TableCell>
+                    <p className="text-center">{request.fullName}</p>
+                  </TableCell>
+                  <TableCell>
+                    <p className="text-center">{request.semester}</p>
+                  </TableCell>
+                  <TableCell>
+                    <p className="text-center">
+                      <Badge
+                        color={
+                          request.applicationStatus === "APPROVED"
+                            ? "green"
+                            : request.applicationStatus === "PENDING"
+                            ? "gray"
+                            : "red"
+                        }
+                      >
+                        {request.applicationStatus}
+                      </Badge>
+                    </p>
+                  </TableCell>
+                  <TableCell>
+                    <Link
+                      href={request.certificateUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline flex items-center justify-center"
                     >
-                      {application.status.charAt(0).toUpperCase() +
-                        application.status.slice(1)}
-                    </div>
+                      <CheckCircle2 className="w-5 h-5 mr-2" />
+                      View Certificate
+                    </Link>
+                    <Button onClick={handleApplicationModal} variant="link">
+                      <CheckCircle2 className="w-5 h-5 mr-2" />
+                      View Application
+                    </Button>
                   </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="link">
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Open menu</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() =>
-                            setExpandedRow(
-                              expandedRow === application.id
-                                ? null
-                                : application.id
-                            )
-                          }
-                        >
-                          View Details
-                        </DropdownMenuItem>
-                        {application.status === "pending" && (
-                          <>
-                            <DropdownMenuItem>Approve</DropdownMenuItem>
-                            <DropdownMenuItem>Disapprove</DropdownMenuItem>
-                          </>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+                  {applicationModal && (
+                    <ListenerDetailsForAdmin
+                      userId={request.applicationId}
+                      handleClose={handleModalClose}
+                    />
+                  )}
                 </TableRow>
-                {expandedRow === application.id && (
-                  <TableRow>
-                    <TableCell colSpan={4}>
-                      <div className="p-4 bg-muted/50 rounded-lg space-y-2">
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <p className="text-sm font-medium">Full Name</p>
-                            <p className="text-sm text-muted-foreground">
-                              {application.details.fullName}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium">Class</p>
-                            <p className="text-sm text-muted-foreground">
-                              {application.details.class}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium">USN</p>
-                            <p className="text-sm text-muted-foreground">
-                              {application.details.usn}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium">Branch</p>
-                            <p className="text-sm text-muted-foreground">
-                              {application.details.branch}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium">Reason</p>
-                            <p className="text-sm text-muted-foreground">
-                              {application.details.reason}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium">Contact</p>
-                            <p className="text-sm text-muted-foreground">
-                              {application.details.contact}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                )}
-              </>
-            ))}
+              ))
+            ) : (
+              <TableRow>
+                <td colSpan={5} className="px-4 py-2 text-center text-gray-500">
+                  No listeners found
+                </td>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </div>

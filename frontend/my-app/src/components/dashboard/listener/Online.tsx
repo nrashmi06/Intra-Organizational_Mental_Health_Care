@@ -13,32 +13,44 @@ import { Input } from "@/components/ui/input";
 import { getActiveListeners } from "@/service/SSE/getActiveListeners";
 import { RootState } from "@/store";
 import { useSelector } from "react-redux";
-import Details from "./Details";
-  interface Listener {
-    userId: string;
-    anonymousName: string;
-  }
+import Details from "./ModalDetails";
+import ListenerDetailsForAdmin from "@/components/dashboard/listener/ModalApplication";
+interface Listener {
+  userId: string;
+  anonymousName: string;
+}
 
 export function OnlineListenersTable() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [expandedRow, setExpandedRow] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10; // 5 items per table, 2 tables per page
   const [listeners, setListeners] = useState<Listener[]>([]);
   const [eventSource, setEventSource] = useState<EventSource | null>(null);
   const token = useSelector((state: RootState) => state.auth.accessToken);
+  const [detailsModal, setDetailsModal] = useState(false);
+  const [applicationModal, setApplicationModal] = useState(false);
+
+  const handleModalClose = () => {
+    setApplicationModal(false);
+    setDetailsModal(false);
+  };
+
+  const handleApplicationModal = () => {
+    setApplicationModal(true);
+  };
+
+  const handleDetailsModal = () => {
+    setDetailsModal(true);
+  };
 
   useEffect(() => {
     if (eventSource) {
       eventSource.close();
     }
-
     const newEventSource = getActiveListeners(token, (data) => {
       setListeners(data);
     });
-
     setEventSource(newEventSource);
-
     return () => {
       newEventSource.close();
     };
@@ -46,18 +58,19 @@ export function OnlineListenersTable() {
 
   const filteredListeners = listeners.filter(
     (listener) =>
-      listener.anonymousName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      listener.userId.toLowerCase().includes(searchQuery.toLowerCase())
+      listener.anonymousName
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
+      listener.userId
+        .toString()
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase())
   );
 
   const paginatedListeners = filteredListeners.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
-
-  const handleViewDetails = (listenerId: string) => {
-    setExpandedRow(expandedRow === listenerId ? null : listenerId);
-  };
 
   const renderTable = (listenersSubset: any[]) => (
     <div className="rounded-md border w-full">
@@ -75,18 +88,34 @@ export function OnlineListenersTable() {
                 <TableCell>{listener.userId}</TableCell>
                 <TableCell>{listener.anonymousName}</TableCell>
                 <TableCell className="text-right justify-end">
-                  <Button
-                    variant="link"
-                    onClick={() => handleViewDetails(listener.userId)}
-                  >
+                  <Button variant="link" onClick={() => handleDetailsModal()}>
                     Details
                   </Button>
-                  <Button variant="link">Sessions</Button>
-                  <Button variant="link">Application</Button>
+                  <Button
+                    variant="link"
+                    href={`/dashboard/listener/sessions/${listener.userId}`}
+                  >
+                    Sessions
+                  </Button>
+                  <Button
+                    variant="link"
+                    onClick={() => handleApplicationModal()}
+                  >
+                    Application
+                  </Button>
                 </TableCell>
               </TableRow>
-              {expandedRow === listener.userId && (
-                <Details userId={listener.userId} />
+              {detailsModal && (
+                <Details
+                  userId={listener.userId}
+                  handleClose={handleModalClose}
+                />
+              )}
+              {applicationModal && (
+                <ListenerDetailsForAdmin
+                  userId={listener.userId}
+                  handleClose={handleModalClose}
+                />
               )}
             </React.Fragment>
           ))}

@@ -1,6 +1,5 @@
 "use client";
-
-import { useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { MoreHorizontal, Search } from "lucide-react";
 import {
   Table,
@@ -13,12 +12,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@radix-ui/react-dropdown-menu";
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -26,44 +19,92 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-// Mock data
-const listeners = [
-  {
-    id: "L1001",
-    name: "Anonymous Owl",
-    status: "active",
-    details: {
-      fullName: "John Doe",
-      class: "BE-4",
-      usn: "1XX20XX001",
-      branch: "Computer Science",
-      reason: "Want to help others",
-      contact: "+91 9876543210",
-    },
-  },
-  // Add more mock data as needed
-];
+interface Listener {
+  userId: number;
+  anonymousName: string;
+}
+import { getListenersByProfileStatus } from "@/service/listener/getListenersByProfileStatus";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
+import Details from "./ModalDetails";
+import ListenerDetailsForAdmin from "@/components/dashboard/listener/ModalApplication";
 
 export function RegisteredListenersTable() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [expandedRow, setExpandedRow] = useState<string | null>(null);
+  const [listeners, setListeners] = useState<Listener[]>([]);
+  const [statusFilter, setStatusFilter] = useState<string>("ACTIVE");
   const [currentPage, setCurrentPage] = useState(1);
+  const [dropdown, setDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const itemsPerPage = 5;
+  const accessToken = useSelector((state: RootState) => state.auth.accessToken);
+  const [detailsModal, setDetailsModal] = useState(false);
+  const [applicationModal, setApplicationModal] = useState(false);
+  useEffect(() => {
+    fetchListenersByProfileStatus("ACTIVE");
+  }, []);
+
+  const fetchListenersByProfileStatus = async (
+    status: "ACTIVE" | "SUSPENDED"
+  ) => {
+    try {
+      const response = await getListenersByProfileStatus(accessToken, status);
+      setListeners(response);
+      setStatusFilter(status);
+    } catch (error) {
+      console.error("Error fetching listeners by profile status:", error);
+    }
+  };
+  const handleModalClose = () => {
+    setApplicationModal(false);
+    setDetailsModal(false);
+  };
+
+  const handleApplicationModal = () => {
+    setApplicationModal(true);
+  };
+
+  const handleDetailsModal = () => {
+    setDetailsModal(true);
+  };
+  const handleFilterChange = (status: string) => {
+    setStatusFilter(status);
+    fetchListenersByProfileStatus(status as "ACTIVE" | "SUSPENDED");
+  };
 
   const filteredListeners = listeners.filter((listener) => {
     const matchesSearch =
-      listener.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      listener.id.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus =
-      statusFilter === "all" || listener.status === statusFilter;
-    return matchesSearch && matchesStatus;
+      listener.anonymousName
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
+      listener.userId
+        .toString()
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
+    return matchesSearch;
   });
 
   const paginatedListeners = filteredListeners.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
+
+  // Close the dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [dropdownRef]);
 
   return (
     <div className="space-y-4">
@@ -78,14 +119,13 @@ export function RegisteredListenersTable() {
             className="pl-8"
           />
         </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
+        <Select value={statusFilter} onValueChange={handleFilterChange}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="suspended">Suspended</SelectItem>
+          <SelectContent className="bg-white">
+            <SelectItem value="ACTIVE">Active</SelectItem>
+            <SelectItem value="SUSPENDED">Suspended</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -102,99 +142,73 @@ export function RegisteredListenersTable() {
           </TableHeader>
           <TableBody>
             {paginatedListeners.map((listener) => (
-              <>
-                <TableRow key={listener.id}>
-                  <TableCell>{listener.id}</TableCell>
-                  <TableCell>{listener.name}</TableCell>
-                  <TableCell>
-                    <div
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        listener.status === "active"
-                          ? "bg-green-100 text-green-800"
-                          : "bg-red-100 text-red-800"
-                      }`}
-                    >
-                      {listener.status.charAt(0).toUpperCase() +
-                        listener.status.slice(1)}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="link">
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Open menu</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() =>
-                            setExpandedRow(
-                              expandedRow === listener.id ? null : listener.id
-                            )
-                          }
-                        >
-                          View Details
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          View Session History
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          {listener.status === "active"
-                            ? "Suspend"
-                            : "Unsuspend"}
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-                {expandedRow === listener.id && (
-                  <TableRow>
-                    <TableCell colSpan={4}>
-                      <div className="p-4 bg-muted/50 rounded-lg space-y-2">
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <p className="text-sm font-medium">Full Name</p>
-                            <p className="text-sm text-muted-foreground">
-                              {listener.details.fullName}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium">Class</p>
-                            <p className="text-sm text-muted-foreground">
-                              {listener.details.class}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium">USN</p>
-                            <p className="text-sm text-muted-foreground">
-                              {listener.details.usn}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium">Branch</p>
-                            <p className="text-sm text-muted-foreground">
-                              {listener.details.branch}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium">Reason</p>
-                            <p className="text-sm text-muted-foreground">
-                              {listener.details.reason}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium">Contact</p>
-                            <p className="text-sm text-muted-foreground">
-                              {listener.details.contact}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </TableCell>
-                  </TableRow>
+              <TableRow key={listener.userId}>
+                <TableCell>{listener.userId}</TableCell>
+                <TableCell>{listener.anonymousName}</TableCell>
+                <TableCell>
+                  <div
+                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                  ${
+                    statusFilter === "ACTIVE"
+                      ? "bg-green-100 text-green-800"
+                      : "bg-red-100 text-red-800"
+                  }`}
+                  >
+                    {statusFilter}
+                  </div>
+                </TableCell>
+                <TableCell className="text-right relative">
+                  <Button
+                    variant="link"
+                    onClick={() => setDropdown((prev) => !prev)}
+                  >
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </TableCell>
+                {detailsModal && (
+                  <Details
+                    userId={listener.userId}
+                    handleClose={handleModalClose}
+                    statusFilter={statusFilter}
+                  />
                 )}
-              </>
+                {applicationModal && (
+                  <ListenerDetailsForAdmin
+                    userId={listener.userId}
+                    handleClose={handleModalClose}
+                  />
+                )}
+                {dropdown && (
+                  <div
+                    ref={dropdownRef}
+                    className="fixed right-16 top-[319px] w-44 bg-white border rounded-md shadow-lg"
+                  >
+                    <ul className="flex flex-col justify-center items-start">
+                      <Button
+                        variant="link"
+                        className="text-purple-500"
+                        onClick={() => handleDetailsModal()}
+                      >
+                        Details
+                      </Button>
+                      <Button
+                        variant="link"
+                        className="text-purple-500"
+                        href={`/dashboard/listener/sessions/${listener.userId}`}
+                      >
+                        Sessions
+                      </Button>
+                      <Button
+                        variant="link"
+                        className="text-purple-500"
+                        onClick={() => handleApplicationModal()}
+                      >
+                        Application
+                      </Button>
+                    </ul>
+                  </div>
+                )}
+              </TableRow>
             ))}
           </TableBody>
         </Table>
