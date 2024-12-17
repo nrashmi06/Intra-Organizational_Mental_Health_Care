@@ -36,4 +36,6 @@ public interface UserService {
     List<User> getAllUsers();
     List<User> getUsersByProfileStatus(String status);
     UserDataResponseDTO getUserData(Integer userId);
+    void sendDataRequestVerificationEmail(String email);
+    void verifyDataRequestCode(String verificationCode);
 }

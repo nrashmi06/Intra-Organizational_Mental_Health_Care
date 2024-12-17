@@ -432,7 +432,40 @@ public class UserServiceImpl implements UserService, UserDetailsService {
             sessions = sessionRepository.findByUser_UserId(userId);
             appointments = appointmentRepository.findByUser_UserId(userId);
         }
+        if (appointments == null) {
+            appointments = Collections.emptyList();
+        }
 
         return UserMapper.toUserDataResponseDTO(user, sessions, appointments);
+    }
+
+    public void sendDataRequestVerificationEmail(String email) {
+        User user = userRepository.findByEmail(email);
+        if (user == null) {
+            throw new UserNotFoundException("User not found with email: " + email);
+        }
+        String token = UUID.randomUUID().toString().replaceAll("[^0-9]", "").substring(0, 6);
+        EmailVerification emailVerification = new EmailVerification();
+        emailVerification.setUserId(user.getUserId());
+        emailVerification.setVerificationCode(token);
+        emailVerification.setEmail(email);
+        emailVerification.setExpiryTime(LocalDateTime.now().plusHours(24));
+        emailVerification.setStatus("pending");
+        emailVerification.setCreatedAt(LocalDateTime.now());
+        emailVerificationRepository.save(emailVerification);
+
+        emailService.sendDataRequestVerificationEmail(user.getEmail(), token);
+    }
+    @Override
+    public void verifyDataRequestCode(String verificationCode) {
+        EmailVerification emailVerification = emailVerificationRepository.findByVerificationCode(verificationCode)
+                .orElseThrow(() -> new InvalidVerificationCodeException("Invalid verification code"));
+
+        if (emailVerification.getExpiryTime().isBefore(LocalDateTime.now())) {
+            throw new InvalidVerificationCodeException("Verification code has expired");
+        }
+
+        emailVerification.setStatus("verified");
+        emailVerificationRepository.save(emailVerification);
     }
 }

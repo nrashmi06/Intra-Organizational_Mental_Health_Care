@@ -113,8 +113,17 @@ public class UserManagementController {
                 .toList();
     }
 
-    @GetMapping(UserUrlMapping.GET_USER_DATA)
-    public ResponseEntity<byte[]> getUserDataPdf() {
+    @PostMapping(UserUrlMapping.REQUEST_VERIFICATION_CODE)
+    public ResponseEntity<String> requestVerificationCode() {
+        Integer userId = jwtUtils.getUserIdFromContext();
+        UserInfoResponseDTO user = userService.getUserById(userId);
+        userService.sendDataRequestVerificationEmail(user.getEmail());
+        return ResponseEntity.ok("Verification code sent to your email.");
+    }
+
+    @PostMapping(UserUrlMapping.VERIFY_CODE_AND_GET_PDF)
+    public ResponseEntity<byte[]> verifyCodeAndGetPdf(@RequestParam String verificationCode) {
+        userService.verifyDataRequestCode(verificationCode);
         Integer userId = jwtUtils.getUserIdFromContext();
         UserDataResponseDTO userData = userService.getUserData(userId);
         byte[] pdfBytes = pdfGenerator.generateUserDataPdf(userData);
