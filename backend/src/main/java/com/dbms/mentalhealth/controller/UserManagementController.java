@@ -2,6 +2,7 @@ package com.dbms.mentalhealth.controller;
 
 import com.dbms.mentalhealth.dto.user.request.ChangePasswordRequestDTO;
 import com.dbms.mentalhealth.dto.user.request.UserUpdateRequestDTO;
+import com.dbms.mentalhealth.dto.user.response.UserDataResponseDTO;
 import com.dbms.mentalhealth.dto.user.response.UserDetailsSummaryResponseDTO;
 import com.dbms.mentalhealth.dto.user.response.UserInfoResponseDTO;
 import com.dbms.mentalhealth.exception.user.UserNotFoundException;
@@ -12,6 +13,8 @@ import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.service.UserService;
 import com.dbms.mentalhealth.service.impl.UserServiceImpl;
 import com.dbms.mentalhealth.urlMapper.UserUrlMapping;
+import com.dbms.mentalhealth.util.PdfGenerator;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -26,10 +29,12 @@ public class UserManagementController {
 
     private final JwtUtils jwtUtils;
     private final UserService userService;
+    private final PdfGenerator pdfGenerator;
 
-    public UserManagementController(UserServiceImpl userService, JwtUtils jwtUtils) {
+    public UserManagementController(UserServiceImpl userService, JwtUtils jwtUtils, PdfGenerator pdfGenerator) {
         this.userService = userService;
         this.jwtUtils = jwtUtils;
+        this.pdfGenerator = pdfGenerator;
     }
 
     @DeleteMapping(UserUrlMapping.DELETE_USER)
@@ -106,5 +111,18 @@ public class UserManagementController {
         return users.stream()
                 .map(UserMapper::toUserDetailsSummaryResponseDTO)
                 .toList();
+    }
+
+    @GetMapping(UserUrlMapping.GET_USER_DATA)
+    public ResponseEntity<byte[]> getUserDataPdf() {
+        Integer userId = jwtUtils.getUserIdFromContext();
+        UserDataResponseDTO userData = userService.getUserData(userId);
+        byte[] pdfBytes = pdfGenerator.generateUserDataPdf(userData);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=user_data.pdf");
+        headers.set(HttpHeaders.CONTENT_TYPE, "application/pdf");
+
+        return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
     }
 }

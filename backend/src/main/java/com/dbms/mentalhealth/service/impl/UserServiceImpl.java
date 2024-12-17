@@ -3,6 +3,7 @@ package com.dbms.mentalhealth.service.impl;
 import com.dbms.mentalhealth.dto.user.request.UserLoginRequestDTO;
 import com.dbms.mentalhealth.dto.user.request.UserRegistrationRequestDTO;
 import com.dbms.mentalhealth.dto.user.request.UserUpdateRequestDTO;
+import com.dbms.mentalhealth.dto.user.response.UserDataResponseDTO;
 import com.dbms.mentalhealth.dto.user.response.UserLoginResponseDTO;
 import com.dbms.mentalhealth.dto.user.response.UserRegistrationResponseDTO;
 import com.dbms.mentalhealth.dto.user.response.UserInfoResponseDTO;
@@ -10,8 +11,12 @@ import com.dbms.mentalhealth.enums.ProfileStatus;
 import com.dbms.mentalhealth.enums.Role;
 import com.dbms.mentalhealth.exception.user.*;
 import com.dbms.mentalhealth.mapper.UserMapper;
+import com.dbms.mentalhealth.model.Appointment;
 import com.dbms.mentalhealth.model.EmailVerification;
+import com.dbms.mentalhealth.model.Session;
+import com.dbms.mentalhealth.repository.AppointmentRepository;
 import com.dbms.mentalhealth.repository.EmailVerificationRepository;
+import com.dbms.mentalhealth.repository.SessionRepository;
 import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.model.User;
 import com.dbms.mentalhealth.repository.UserRepository;
@@ -49,8 +54,10 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     private final EmailService emailService;
     private final RefreshTokenService refreshTokenService;
     private final UserActivityService userActivityService;
+    private final SessionRepository sessionRepository;
+    private final AppointmentRepository appointmentRepository;
 
-    public UserServiceImpl(UserRepository userRepository, UserActivityService userActivityService, RefreshTokenService refreshTokenService, JwtUtils jwtUtils, @Lazy AuthenticationManager authenticationManager, PasswordEncoder passwordEncoder, EmailVerificationRepository emailVerificationRepository, EmailService emailService) {
+    public UserServiceImpl(UserRepository userRepository, UserActivityService userActivityService, RefreshTokenService refreshTokenService, JwtUtils jwtUtils, @Lazy AuthenticationManager authenticationManager, PasswordEncoder passwordEncoder, EmailVerificationRepository emailVerificationRepository, EmailService emailService, SessionRepository sessionRepository, AppointmentRepository appointmentRepository) {
         this.userRepository = userRepository;
         this.jwtUtils = jwtUtils;
         this.authenticationManager = authenticationManager;
@@ -59,6 +66,8 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         this.emailService = emailService;
         this.refreshTokenService = refreshTokenService;
         this.userActivityService = userActivityService;
+        this.sessionRepository = sessionRepository;
+        this.appointmentRepository = appointmentRepository;
     }
 
     @Override
@@ -408,4 +417,22 @@ public class UserServiceImpl implements UserService, UserDetailsService {
                 .toList();
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public UserDataResponseDTO getUserData(Integer userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + userId));
+
+        List<Session> sessions;
+        List<Appointment> appointments = null;
+
+        if (user.getRole() == Role.LISTENER) {
+            sessions = sessionRepository.findByListener_ListenerId(userId);
+        } else {
+            sessions = sessionRepository.findByUser_UserId(userId);
+            appointments = appointmentRepository.findByUser_UserId(userId);
+        }
+
+        return UserMapper.toUserDataResponseDTO(user, sessions, appointments);
+    }
 }
