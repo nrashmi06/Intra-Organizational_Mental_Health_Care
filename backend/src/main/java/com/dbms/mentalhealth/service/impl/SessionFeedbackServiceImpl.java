@@ -5,7 +5,7 @@ import com.dbms.mentalhealth.dto.sessionFeedback.response.SessionFeedbackRespons
 import com.dbms.mentalhealth.dto.sessionFeedback.response.SessionFeedbackSummaryResponseDTO;
 import com.dbms.mentalhealth.exception.listener.ListenerNotFoundException;
 import com.dbms.mentalhealth.exception.session.FeedbackNotFoundException;
-import com.dbms.mentalhealth.exception.session.SessionNotFoundException;
+import org.springframework.transaction.annotation.Transactional;
 import com.dbms.mentalhealth.mapper.SessionFeedbackMapper;
 import com.dbms.mentalhealth.model.Listener;
 import com.dbms.mentalhealth.model.SessionFeedback;
@@ -33,6 +33,7 @@ public class SessionFeedbackServiceImpl implements SessionFeedbackService {
     }
 
     @Override
+    @Transactional
     public SessionFeedbackResponseDTO createFeedback(SessionFeedbackRequestDTO requestDTO) {
         SessionFeedback sessionFeedback = sessionFeedbackMapper.toEntity(requestDTO);
         Listener listener = sessionFeedback.getSession().getListener();
@@ -58,6 +59,7 @@ public class SessionFeedbackServiceImpl implements SessionFeedbackService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<SessionFeedbackResponseDTO> getFeedbackBySessionId(Integer sessionId) {
         List<SessionFeedback> feedbackList = sessionFeedbackRepository.findBySession_SessionId(sessionId);
         if (feedbackList.isEmpty()) {
@@ -69,6 +71,7 @@ public class SessionFeedbackServiceImpl implements SessionFeedbackService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public SessionFeedbackResponseDTO getFeedbackById(Integer feedbackId) {
         SessionFeedback sessionFeedback = sessionFeedbackRepository.findById(feedbackId)
                 .orElseThrow(() -> new FeedbackNotFoundException("Feedback with id " + feedbackId + " not found"));
@@ -76,6 +79,7 @@ public class SessionFeedbackServiceImpl implements SessionFeedbackService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<SessionFeedbackResponseDTO> getAllListenerFeedback(Integer listenerId) {
         List<SessionFeedback> feedbackList = sessionFeedbackRepository.findByListener_ListenerId(listenerId);
         if (feedbackList.isEmpty()) {
@@ -87,6 +91,7 @@ public class SessionFeedbackServiceImpl implements SessionFeedbackService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public SessionFeedbackSummaryResponseDTO getFeedbackSummary() {
         List<SessionFeedback> feedbacks = sessionFeedbackRepository.findAll();
         if (feedbacks.isEmpty()) {

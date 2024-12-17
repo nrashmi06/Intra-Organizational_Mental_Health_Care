@@ -20,7 +20,7 @@ import com.dbms.mentalhealth.service.EmailService;
 import com.dbms.mentalhealth.service.ImageStorageService;
 import com.dbms.mentalhealth.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -87,6 +87,7 @@ public class BlogServiceImpl implements BlogService {
         return BlogMapper.toResponseDTO(createdBlog, false);
     }
 
+    @Transactional(readOnly = true)
     public Optional<BlogResponseDTO> getBlogById(Integer blogId) {
         Integer userId = getUserIdFromContext();
         boolean isAdmin = userService.isAdmin(userId);
@@ -168,6 +169,7 @@ public class BlogServiceImpl implements BlogService {
         return BlogMapper.toResponseDTO(updatedBlog, likedByCurrentUser);
     }
 
+    @Transactional
     public BlogResponseDTO likeBlog(Integer blogId) {
         Integer userId = getUserIdFromContext();
 
@@ -186,6 +188,7 @@ public class BlogServiceImpl implements BlogService {
         return BlogMapper.toResponseDTO(blog, true);
     }
 
+    @Transactional
     public BlogResponseDTO unlikeBlog(Integer blogId) {
         Integer userId = getUserIdFromContext();
 
@@ -200,7 +203,7 @@ public class BlogServiceImpl implements BlogService {
         return BlogMapper.toResponseDTO(blog, false);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public List<BlogSummaryDTO> getBlogsByUser(Integer userId) {
         Integer currentUserId = getUserIdFromContext();
         boolean isAdmin = userService.isAdmin(currentUserId);
@@ -223,7 +226,7 @@ public class BlogServiceImpl implements BlogService {
         }
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public List<BlogSummaryDTO> searchBlogsByPartialTitle(String title) {
         String normalizedTitle = title.trim().toLowerCase();
         Integer userId = getUserIdFromContext();
@@ -237,7 +240,7 @@ public class BlogServiceImpl implements BlogService {
                 .toList();
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public List<BlogSummaryDTO> getBlogsByApprovalStatus(String status) {
         Integer userId = getUserIdFromContext();
         boolean isAdmin = userService.isAdmin(userId);

@@ -20,6 +20,8 @@ import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.service.AppointmentService;
 import com.dbms.mentalhealth.enums.AppointmentStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -44,6 +46,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
+    @Transactional
     public AppointmentResponseDTO createAppointment(AppointmentRequestDTO appointmentRequestDTO) {
         Integer userId = jwtUtils.getUserIdFromContext();
         User user = userRepository.findById(userId)
@@ -67,7 +70,9 @@ public class AppointmentServiceImpl implements AppointmentService {
         Appointment savedAppointment = appointmentRepository.save(appointment);
         return AppointmentMapper.toDTO(savedAppointment);
     }
+
     @Override
+    @Transactional(readOnly = true)
     public List<AppointmentSummaryResponseDTO> getAppointmentsByUser(Integer userId) {
         Integer currentUserId = jwtUtils.getUserIdFromContext(); // Assuming user ID is stored in the authentication name
         boolean isAdmin = jwtUtils.isAdminFromContext();
@@ -84,6 +89,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<AppointmentSummaryResponseDTO> getAppointmentsByAdmin(Integer userId) {
         Integer adminId;
         if (userId == null) {
@@ -101,6 +107,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     // In AppointmentServiceImpl.java
     @Override
+    @Transactional(readOnly = true)
     public AppointmentResponseDTO getAppointmentById(Integer appointmentId) {
         Integer currentUserId = jwtUtils.getUserIdFromContext(); // Assuming user ID is stored in the authentication name
         boolean isAdmin = jwtUtils.isAdminFromContext();
@@ -116,6 +123,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
+    @Transactional
     public void updateAppointmentStatus(Integer appointmentId, String status, String cancellationReason) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new AppointmentNotFoundException("Appointment not found"));
@@ -145,6 +153,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
+    @Transactional
     public void cancelAppointment(Integer appointmentId, String cancellationReason) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new AppointmentNotFoundException("Appointment not found"));
@@ -165,6 +174,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<AppointmentSummaryResponseDTO> getAppointmentsByDateRange(LocalDate startDate, LocalDate endDate) {
         List<Appointment> appointments = appointmentRepository.findByTimeSlot_DateBetween(startDate, endDate);
         return appointments.stream()
@@ -173,6 +183,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<AppointmentSummaryResponseDTO> getUpcomingAppointmentsForAdmin() {
         Integer userId = jwtUtils.getUserIdFromContext();
         Admin admin = adminRepository.findByUser_UserId(userId)

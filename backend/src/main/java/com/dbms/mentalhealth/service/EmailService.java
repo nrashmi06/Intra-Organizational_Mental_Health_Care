@@ -7,8 +7,8 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public interface EmailService {
-    CompletableFuture<Void> sendVerificationEmail(String email, String code);
-    CompletableFuture<Void> sendPasswordResetEmail(String email, String code);
+    void sendVerificationEmail(String email, String code);
+    void sendPasswordResetEmail(String email, String code);
     CompletableFuture<Void> sendBlogSubmissionReceivedEmail(String email, String blogId);
     CompletableFuture<Void> sendNewBlogSubmissionEmailToAdmin(String adminEmail, String userName, String blogTitle);
     CompletableFuture<Void> sendBlogAcceptanceEmail(String email, String blogTitle);
@@ -18,4 +18,5 @@ public interface EmailService {
     CompletableFuture<Void> sendListenerAcceptanceEmail(String email);
     CompletableFuture<Void> sendListenerRejectionEmail(String email);
     CompletableFuture<Void> sendMassEmail(String recipientType, MassEmailRequestDTO request, List<File> files, Runnable callback) throws Exception;
+    void sendDataRequestVerificationEmail(String email, String token);
 }
