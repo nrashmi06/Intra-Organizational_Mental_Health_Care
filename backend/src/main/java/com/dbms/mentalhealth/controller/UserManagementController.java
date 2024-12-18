@@ -2,6 +2,7 @@ package com.dbms.mentalhealth.controller;
 
 import com.dbms.mentalhealth.dto.user.request.ChangePasswordRequestDTO;
 import com.dbms.mentalhealth.dto.user.request.UserUpdateRequestDTO;
+import com.dbms.mentalhealth.dto.user.response.UserDataResponseDTO;
 import com.dbms.mentalhealth.dto.user.response.UserDetailsSummaryResponseDTO;
 import com.dbms.mentalhealth.dto.user.response.UserInfoResponseDTO;
 import com.dbms.mentalhealth.exception.user.UserNotFoundException;
@@ -12,6 +13,8 @@ import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.service.UserService;
 import com.dbms.mentalhealth.service.impl.UserServiceImpl;
 import com.dbms.mentalhealth.urlMapper.UserUrlMapping;
+import com.dbms.mentalhealth.util.PdfGenerator;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -26,10 +29,12 @@ public class UserManagementController {
 
     private final JwtUtils jwtUtils;
     private final UserService userService;
+    private final PdfGenerator pdfGenerator;
 
-    public UserManagementController(UserServiceImpl userService, JwtUtils jwtUtils) {
+    public UserManagementController(UserServiceImpl userService, JwtUtils jwtUtils, PdfGenerator pdfGenerator) {
         this.userService = userService;
         this.jwtUtils = jwtUtils;
+        this.pdfGenerator = pdfGenerator;
     }
 
     @DeleteMapping(UserUrlMapping.DELETE_USER)
@@ -106,5 +111,27 @@ public class UserManagementController {
         return users.stream()
                 .map(UserMapper::toUserDetailsSummaryResponseDTO)
                 .toList();
+    }
+
+    @PostMapping(UserUrlMapping.REQUEST_VERIFICATION_CODE)
+    public ResponseEntity<String> requestVerificationCode() {
+        Integer userId = jwtUtils.getUserIdFromContext();
+        UserInfoResponseDTO user = userService.getUserById(userId);
+        userService.sendDataRequestVerificationEmail(user.getEmail());
+        return ResponseEntity.ok("Verification code sent to your email.");
+    }
+
+    @PostMapping(UserUrlMapping.VERIFY_CODE_AND_GET_PDF)
+    public ResponseEntity<byte[]> verifyCodeAndGetPdf(@RequestParam String verificationCode) {
+        userService.verifyDataRequestCode(verificationCode);
+        Integer userId = jwtUtils.getUserIdFromContext();
+        UserDataResponseDTO userData = userService.getUserData(userId);
+        byte[] pdfBytes = pdfGenerator.generateUserDataPdf(userData);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=user_data.pdf");
+        headers.set(HttpHeaders.CONTENT_TYPE, "application/pdf");
+
+        return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
     }
 }

@@ -19,7 +19,8 @@ public class UserUrlMapping {
     public static final String UPDATE_USER = BASE_API + USER_ID_PATH; // Update user details
     public static final String DELETE_USER = BASE_API + USER_ID_PATH; // Delete user
     public static final String SUSPEND_USER_OR_UN_SUSPEND_USER = BASE_API + "/suspend" + USER_ID_PATH; // Suspend user
-
+    public static final String REQUEST_VERIFICATION_CODE = BASE_API + "/request-verification-code";
+    public static final String VERIFY_CODE_AND_GET_PDF =  BASE_API + "/verify-code-and-get-pdf";
     // Password management endpoints
     public static final String CHANGE_PASSWORD = BASE_API + USER_ID_PATH + "/change-password"; // Change user password (requires userId)
     public static final String FORGOT_PASSWORD = BASE_API + "/forgot-password"; // Forgot password (trigger reset, no userId)

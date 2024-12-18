@@ -11,7 +11,7 @@ import com.dbms.mentalhealth.repository.UserRepository;
 import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.service.RefreshTokenService;
 import com.dbms.mentalhealth.service.UserService;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -105,6 +105,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 
         return response;
     }
+
 
     private RefreshToken createNewRefreshToken(User user) {
         return RefreshToken.builder()

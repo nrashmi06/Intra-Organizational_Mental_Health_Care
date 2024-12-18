@@ -10,7 +10,7 @@ import com.dbms.mentalhealth.repository.AdminRepository;
 import com.dbms.mentalhealth.repository.EmergencyHelplineRepository;
 import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.service.EmergencyHelplineService;
-import jakarta.persistence.EntityNotFoundException;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -34,6 +34,7 @@ public class EmergencyHelplineServiceImpl implements EmergencyHelplineService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<EmergencyHelplineDTO> getAllEmergencyHelplines() {
         return emergencyHelplineRepository.findAll().stream()
                 .map(emergencyHelplineMapper::toDTO)
@@ -41,6 +42,7 @@ public class EmergencyHelplineServiceImpl implements EmergencyHelplineService {
     }
 
     @Override
+    @Transactional
     public EmergencyHelplineDTO addEmergencyHelpline(EmergencyHelplineDTO emergencyHelplineDTO) {
         Integer userId = jwtUtils.getUserIdFromContext();
         Admin admin = adminRepository.findByUser_UserId(userId)
@@ -51,6 +53,7 @@ public class EmergencyHelplineServiceImpl implements EmergencyHelplineService {
     }
 
     @Override
+    @Transactional
     public EmergencyHelplineDTO updateEmergencyHelpline(Integer helplineId, EmergencyHelplineDTO emergencyHelplineDTO) {
         Integer userId = jwtUtils.getUserIdFromContext();
         Admin admin = adminRepository.findByUser_UserId(userId)
@@ -67,6 +70,7 @@ public class EmergencyHelplineServiceImpl implements EmergencyHelplineService {
     }
 
     @Override
+    @Transactional
     public void deleteEmergencyHelpline(Integer helplineId) {
         emergencyHelplineRepository.deleteById(helplineId);
     }

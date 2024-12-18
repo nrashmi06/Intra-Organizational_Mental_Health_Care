@@ -12,21 +12,18 @@ import jakarta.mail.internet.MimeMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.mail.MailSendException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 @Service
@@ -44,9 +41,8 @@ public class EmailServiceImpl implements EmailService {
         this.userRepository = userRepository;
     }
 
-    @Async
     @Override
-    public CompletableFuture<Void> sendVerificationEmail(String email, String code) {
+    public void sendVerificationEmail(String email, String code) {
         logger.info("Starting to send verification email to: {}", email);
         String subject = "Verify your email address";
         String verificationUrl = "http://localhost:8080/mental-health" + UserUrlMapping.VERIFY_EMAIL + "?token=" + code;
@@ -55,12 +51,10 @@ public class EmailServiceImpl implements EmailService {
         String body = templateEngine.process("verificationEmailTemplate", context);
         sendHtmlEmail(email, subject, body);
         logger.info("Verification email sent to: {}", email);
-        return CompletableFuture.completedFuture(null);
     }
 
-    @Async
     @Override
-    public CompletableFuture<Void> sendPasswordResetEmail(String email, String code) {
+    public void sendPasswordResetEmail(String email, String code) {
         logger.info("Starting to send password reset email to: {}", email);
         String subject = "Reset your password";
         Context context = new Context();
@@ -68,7 +62,6 @@ public class EmailServiceImpl implements EmailService {
         String body = templateEngine.process("passwordResetEmailTemplate", context);
         sendHtmlEmail(email, subject, body);
         logger.info("Password reset email sent to: {}", email);
-        return CompletableFuture.completedFuture(null);
     }
 
     @Async
@@ -266,5 +259,16 @@ public class EmailServiceImpl implements EmailService {
                 logger.error("Failed to attach file: {}", file.getName(), e);
             }
         }
+    }
+
+    @Override
+    public void sendDataRequestVerificationEmail(String email, String token) {
+        logger.info("Starting to send data request verification email to: {}", email);
+        String subject = "Data Request Verification Code";
+        Context context = new Context();
+        context.setVariable("token", token);
+        String body = templateEngine.process("dataRequestVerificationEmailTemplate.html", context);
+        sendHtmlEmail(email, subject, body);
+        logger.info("Data request verification email sent to: {}", email);
     }
 }

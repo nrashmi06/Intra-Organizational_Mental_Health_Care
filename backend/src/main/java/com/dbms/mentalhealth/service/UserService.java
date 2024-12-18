@@ -3,6 +3,7 @@ package com.dbms.mentalhealth.service;
 import com.dbms.mentalhealth.dto.user.request.UserLoginRequestDTO;
 import com.dbms.mentalhealth.dto.user.request.UserRegistrationRequestDTO;
 import com.dbms.mentalhealth.dto.user.request.UserUpdateRequestDTO;
+import com.dbms.mentalhealth.dto.user.response.UserDataResponseDTO;
 import com.dbms.mentalhealth.dto.user.response.UserRegistrationResponseDTO;
 import com.dbms.mentalhealth.dto.user.response.UserInfoResponseDTO;
 import com.dbms.mentalhealth.model.User;
@@ -34,5 +35,7 @@ public interface UserService {
     void suspendOrUnSuspendUser(Integer userId, String action);
     List<User> getAllUsers();
     List<User> getUsersByProfileStatus(String status);
-
+    UserDataResponseDTO getUserData(Integer userId);
+    void sendDataRequestVerificationEmail(String email);
+    void verifyDataRequestCode(String verificationCode);
 }
