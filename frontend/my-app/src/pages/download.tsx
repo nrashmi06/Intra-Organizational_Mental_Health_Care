@@ -18,7 +18,7 @@ export default function VerifyAndDownload() {
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [isOtpRequested, setIsOtpRequested] = useState(false);
-  const [isOtpVerified, setIsOtpVerified] = useState(false);
+  const [isRequestingOtp, setIsRequestingOtp] = useState(false);
   const router = useRouter();
   const accesstoken = useSelector((state: RootState) => state.auth.accessToken);
 
@@ -38,12 +38,15 @@ export default function VerifyAndDownload() {
 
   // Request OTP for session and appointment data
   const handleRequestOtp = async () => {
+    setIsRequestingOtp(true);
+    setErrorMessage("");
+    setSuccessMessage("");
+
     try {
       const response = await requestVerificationCode(accesstoken);
       console.log(response?.data);
       setSuccessMessage(response?.data);
       setIsOtpRequested(true);
-      setErrorMessage("");
     } catch (error) {
       if (error instanceof Error) {
         setErrorMessage(error.message);
@@ -51,6 +54,8 @@ export default function VerifyAndDownload() {
         setErrorMessage("An error occurred while requesting OTP.");
       }
       setIsOtpRequested(false);
+    } finally {
+      setIsRequestingOtp(false);
     }
   };
 
@@ -58,26 +63,46 @@ export default function VerifyAndDownload() {
   const handleSubmitOtp = async () => {
     try {
       const enteredOtp = otp.join("");
+
+      // Verify OTP first before attempting to download
       const response = await verifyOtpForDownload(enteredOtp, accesstoken);
-      
-      // Assuming the API returns a download URL or triggers direct download
-      setSuccessMessage("PDF downloaded successfully!");
-      setIsOtpVerified(true);
-      
-      // Optional: If the API doesn't handle direct download, you might need to 
-      // implement a download mechanism here
-      
-      // Redirect or reset after successful download
-      setTimeout(() => {
-        setIsOtpVerified(false);
-        router.push("/"); // or wherever you want to redirect
-      }, 2000);
-    } catch (error) {
-      if (error instanceof Error) {
-        setErrorMessage(error.message);
-      } else {
-        setErrorMessage("An error occurred while verifying OTP.");
+      if (response?.status !== 200) {
+        setErrorMessage("Invalid OTP. Please try again.");
+        setTimeout(() => {
+            setErrorMessage("");
+            setOtp(["", "", "", "", "", ""]);
+        }, 2000);
       }
+      else{
+        const fileBlob = response?.data;
+      // Create a download link for the PDF
+      const url = window.URL.createObjectURL(
+        new Blob([fileBlob], { type: "application/pdf" })
+      );
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "UserDataReport.pdf"); // Set file name
+      document.body.appendChild(link);
+
+      // Trigger the file download
+      link.click();
+
+      // Clean up
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(link);
+
+      // Set success message
+      setSuccessMessage("PDF downloaded successfully!");
+
+      // Redirect to home page
+      setTimeout(() => {
+        router.push("/");
+      }, 2000);
+      }
+    } catch (error) {
+      console.error("Error during OTP verification or file download:", error);
+      setErrorMessage("Invalid OTP. Please try again.");
+      setOtp(["", "", "", "", "", ""]);
     }
   };
 
@@ -115,23 +140,24 @@ export default function VerifyAndDownload() {
             </div>
 
             <h1 className="text-2xl font-bold text-center mb-2">
-              {!isOtpRequested 
-                ? "Request Verification Code" 
+              {!isOtpRequested
+                ? "Request Verification Code"
                 : "Enter OTP to Download PDF"}
             </h1>
             <h2 className="text-center text-lg text-gray-500 mb-8">
-              {!isOtpRequested 
-                ? "Request a verification code to access your session and appointment data" 
+              {!isOtpRequested
+                ? "Request a verification code to access your session and appointment data"
                 : "Please enter the 6-digit OTP sent to your email"}
             </h2>
 
             {/* Request OTP Section */}
             {!isOtpRequested && (
               <Button
-                className="w-full mt-4 bg-black text-white hover:bg-black/90"
+                className="w-full mt-4 bg-black text-white hover:bg-black/90 disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={handleRequestOtp}
+                disabled={isRequestingOtp}
               >
-                Request OTP
+                {isRequestingOtp ? "Requesting..." : "Request OTP"}
               </Button>
             )}
 
@@ -166,7 +192,9 @@ export default function VerifyAndDownload() {
               <p className="text-red-500 text-center mt-4">{errorMessage}</p>
             )}
             {successMessage && (
-              <p className="text-green-500 text-center mt-4">{successMessage}</p>
+              <p className="text-green-500 text-center mt-4">
+                {successMessage}
+              </p>
             )}
           </div>
         </div>
