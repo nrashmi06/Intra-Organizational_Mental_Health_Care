@@ -3,7 +3,6 @@ import { getSessionFeedback } from "@/service/session/getSessionFeedback";
 import { getSessionMessages } from "@/service/session/getSessionMessages";
 import { getSessionReport } from "@/service/session/getSessionReport";
 import { useState, useEffect } from "react";
-
 interface DetailViewProps {
   type: "report" | "feedback" | "messages" | null;
   sessionId: number | null;
@@ -13,7 +12,7 @@ interface DetailViewProps {
 const SessionDetailView: React.FC<DetailViewProps> = ({
   type,
   sessionId,
-  token,
+  token
 }) => {
   const [content, setContent] = useState<React.ReactNode>(
     <div className="p-4 text-gray-500">Select a session to view details</div>
@@ -22,7 +21,6 @@ const SessionDetailView: React.FC<DetailViewProps> = ({
   useEffect(() => {
     const fetchContent = async () => {
       if (!sessionId) return;
-
       try {
       switch (type) {
         case "report":
@@ -41,13 +39,10 @@ const SessionDetailView: React.FC<DetailViewProps> = ({
             <div className="grid grid-cols-2 gap-2">
               <div className="font-semibold">Report ID:</div>
               <div>{report.reportId}</div>
-
               <div className="font-semibold">User ID:</div>
               <div>{report.userId}</div>
-
               <div className="font-semibold">Severity:</div>
               <div className="flex items-center">
-
               <div
                 className="h-2 w-full bg-gradient-to-r from-green-500 via-yellow-500 to-red-500"
                 style={{
@@ -68,7 +63,6 @@ const SessionDetailView: React.FC<DetailViewProps> = ({
               {report.reportContent}
               </div>
             </div>
-
 
             <div className="text-center text-sm text-gray-500">
               {new Date(report.createdAt).toLocaleString()}
@@ -94,13 +88,10 @@ const SessionDetailView: React.FC<DetailViewProps> = ({
               <div className="grid grid-cols-2 gap-2">
               <div className="font-semibold">Feedback ID:</div>
               <div>{feedback.feedbackId}</div>
-
               <div className="font-semibold">Session ID:</div>
               <div>{feedback.sessionId}</div>
-
               <div className="font-semibold">User ID:</div>
               <div>{feedback.userId}</div>
-
               <div className="font-semibold">Rating:</div>
               <div className="flex items-center">
                 <div
@@ -121,7 +112,6 @@ const SessionDetailView: React.FC<DetailViewProps> = ({
                 {feedback.comments || "No comments"}
               </div>
               </div>
-
               <div className="text-center text-sm text-gray-500">
               {new Date(feedback.submittedAt).toLocaleString()}
               </div>

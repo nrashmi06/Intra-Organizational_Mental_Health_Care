@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import { Badge, CheckCircle2, Search } from "lucide-react";
 import {
@@ -20,28 +19,24 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { GetByApproval } from "@/service/listener/getByStatus";
+import { fetchApplication } from "@/service/listener/fetchApplication";
 import { RootState } from "@/store";
 import { useSelector } from "react-redux";
-import Link from "next/link";
 import ListenerDetailsForAdmin from "@/components/dashboard/listener/ModalApplication";
-interface Applications {
-  applicationId: number;
-  fullName: string;
-  branch: string;
-  semester: number;
-  certificateUrl: string;
-  reasonForApplying: string;
-  certifcateUrl: string;
-  applicationStatus: "PENDING" | "APPROVED" | "REJECTED";
-}
+import { ListenerApplication } from "@/lib/types";
+
 export function ListenerApplicationsTable() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("PENDING");
   const [currentPage, setCurrentPage] = useState(1);
-  const [applications, setApplications] = useState<Applications[]>([]);
+  const [applications, setApplications] = useState<ListenerApplication[]>([]);
   const accessToken = useSelector((state: RootState) => state.auth.accessToken);
   const [applicationModal, setApplicationModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const itemsPerPage = 5;
+
+  const [selectedApplication, setSelectedApplication] =
+    useState<ListenerApplication | null>(null);
 
   useEffect(() => {
     fetchListenersByStatus("PENDING");
@@ -59,6 +54,20 @@ export function ListenerApplicationsTable() {
     }
   };
 
+  const fetchApplicationDetails = async (applicationId: number) => {
+    try {
+      const applicationData = await fetchApplication(
+        accessToken,
+        applicationId
+      );
+      setSelectedApplication(applicationData);
+      setApplicationModal(true);
+    } catch (err) {
+      console.log("Failed to fetch application details.");
+      console.error("Error fetching application details:", err);
+    }
+  };
+
   const handleFilterChange = (status: string) => {
     setStatusFilter(status);
     fetchListenersByStatus(status as "PENDING" | "APPROVED" | "REJECTED");
@@ -66,10 +75,11 @@ export function ListenerApplicationsTable() {
 
   const handleModalClose = () => {
     setApplicationModal(false);
+    setSelectedApplication(null);
   };
 
-  const handleApplicationModal = () => {
-    setApplicationModal(true);
+  const handleApplicationModal = async (applicationId: number) => {
+    await fetchApplicationDetails(applicationId);
   };
 
   const filteredApplications = applications.filter((application) => {
@@ -115,78 +125,100 @@ export function ListenerApplicationsTable() {
         </Select>
       </div>
 
-      <div className="rounded-md border">
+      <div className="bg-white rounded-lg shadow overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Request ID</TableHead>
-              <TableHead>Name</TableHead>
-              <TableHead>Semester</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Actions</TableHead>
+              <TableHead className="">Application ID</TableHead>
+              <TableHead className="">Full Name</TableHead>
+              <TableHead className="">Semester</TableHead>
+              <TableHead className="">Status</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody>
+          <TableBody className="bg-white divide-y divide-gray-200">
             {paginatedApplications.length > 0 ? (
               paginatedApplications.map((request) => (
-                <TableRow key={request.applicationId}>
-                  <TableCell>
-                    <p className="text-center">{request.applicationId}</p>
+                <TableRow
+                  key={request.applicationId}
+                  className="hover:bg-gray-50"
+                >
+                  <TableCell className="whitespace-nowrap">
+                    <p className="text-gray-900">{request.applicationId}</p>
                   </TableCell>
-                  <TableCell>
-                    <p className="text-center">{request.fullName}</p>
+                  <TableCell className="whitespace-nowrap">
+                    <p className="text-gray-900">{request.fullName}</p>
                   </TableCell>
-                  <TableCell>
-                    <p className="text-center">{request.semester}</p>
+                  <TableCell className="whitespace-nowrap">
+                    <p className="text-gray-900">{request.semester}</p>
                   </TableCell>
-                  <TableCell>
-                    <p className="text-center">
+                  <TableCell className="whitespace-nowrap">
+                    <span className="text-sm text-gray-900 flex items-center gap-1">
                       <Badge
                         color={
                           request.applicationStatus === "APPROVED"
                             ? "green"
-                            : request.applicationStatus === "PENDING"
-                            ? "gray"
-                            : "red"
+                            : request.applicationStatus === "REJECTED"
+                            ? "red"
+                            : "yellow"
                         }
+                      />
+                      {request.applicationStatus.charAt(0).toUpperCase() +
+                        request.applicationStatus.slice(1).toLowerCase()}
+                    </span>
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap">
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="link"
+                        onClick={() =>
+                          handleApplicationModal(request.applicationId)
+                        }
+                        className="text-purple-700 hover:text-purple-900"
                       >
-                        {request.applicationStatus}
-                      </Badge>
-                    </p>
+                        View
+                      </Button>
+                    </div>
                   </TableCell>
-                  <TableCell>
-                    <Link
-                      href={request.certificateUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline flex items-center justify-center"
-                    >
-                      <CheckCircle2 className="w-5 h-5 mr-2" />
-                      View Certificate
-                    </Link>
-                    <Button onClick={handleApplicationModal} variant="link">
-                      <CheckCircle2 className="w-5 h-5 mr-2" />
-                      View Application
-                    </Button>
-                  </TableCell>
-                  {applicationModal && (
-                    <ListenerDetailsForAdmin
-                      userId={request.applicationId}
-                      handleClose={handleModalClose}
-                    />
-                  )}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <td colSpan={5} className="px-4 py-2 text-center text-gray-500">
-                  No listeners found
-                </td>
+                <TableCell
+                  colSpan={5}
+                  className="whitespace-nowrap text-center text-sm text-gray-500"
+                >
+                  No applications found
+                </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
       </div>
+
+      {/* Modal */}
+      {applicationModal && selectedApplication && (
+        <ListenerDetailsForAdmin
+          data={selectedApplication}
+          handleClose={handleModalClose}
+          action={statusFilter}
+          setSuccessMessage={setSuccessMessage}
+        />
+      )}
+
+      {successMessage && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/20 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4 transform transition-all scale-in-center">
+            <div className="flex flex-col items-center text-center space-y-4">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                <CheckCircle2 className="w-10 h-10 text-green-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900">Success!</h3>
+              <p className="text-gray-600">{successMessage}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">

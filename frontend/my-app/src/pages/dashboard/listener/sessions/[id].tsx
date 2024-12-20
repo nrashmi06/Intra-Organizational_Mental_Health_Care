@@ -5,15 +5,9 @@ import { RootState } from "@/store";
 import { getSessionListByRole } from "@/service/session/getSessionsListByRole";
 import { Eye, FileText, MessageSquare } from "lucide-react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
-import SessionDetailView from "@/components/dashboard/listener/SessionDetailView";
+import SessionDetailView from "@/components/dashboard/SessionDetailView";
 import StackNavbar from "@/components/ui/stackNavbar";
-
-interface Session {
-  sessionId: number;
-  userId: number;
-  listenerId: number;
-  sessionStatus: string;
-}
+import { Session } from "@/lib/types";
 
 const ListenerSessions = () => {
   const router = useRouter();
@@ -22,7 +16,9 @@ const ListenerSessions = () => {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [listenerId, setListenerId] = useState<number | null>(null);
   const [selectedSession, setSelectedSession] = useState<number | null>(null);
-  const [detailView, setDetailView] = useState<"report" | "feedback" | "messages" | null>(null);
+  const [detailView, setDetailView] = useState<
+    "report" | "feedback" | "messages" | null
+  >(null);
 
   useEffect(() => {
     if (id) {
@@ -36,7 +32,11 @@ const ListenerSessions = () => {
 
   const fetchSessions = async (listenerId: number) => {
     try {
-      const response = await getSessionListByRole(listenerId, "listener", token);
+      const response = await getSessionListByRole(
+        listenerId,
+        "listener",
+        token
+      );
       if (response?.ok) {
         const sessionData: Session[] = await response.json();
         setSessions(sessionData);
@@ -48,7 +48,10 @@ const ListenerSessions = () => {
     }
   };
 
-  const handleDetailView = (sessionId: number, view: "report" | "feedback" | "messages") => {
+  const handleDetailView = (
+    sessionId: number,
+    view: "report" | "feedback" | "messages"
+  ) => {
     setSelectedSession(sessionId);
     setDetailView(view);
   };
@@ -56,7 +59,9 @@ const ListenerSessions = () => {
   const stackItems = [
     { label: "Listener Dashboard", href: "/dashboard/listener" },
     { label: "Listener Sessions", href: `/dashboard/listener/sessions/${id}` },
-    ...(detailView ? [{ label: detailView.charAt(0).toUpperCase() + detailView.slice(1) }] : []),
+    ...(detailView
+      ? [{ label: detailView.charAt(0).toUpperCase() + detailView.slice(1) }]
+      : []),
   ];
 
   return (
@@ -72,7 +77,9 @@ const ListenerSessions = () => {
                   className="bg-white shadow-sm rounded-lg p-4 border border-gray-100 hover:shadow-md transition-shadow"
                 >
                   <div className="flex justify-between items-center mb-2">
-                    <span className="font-semibold text-gray-700">Session #{session.sessionId}</span>
+                    <span className="font-semibold text-gray-700">
+                      Session #{session.sessionId}
+                    </span>
                     <span
                       className={`px-2 py-1 rounded text-xs font-medium ${
                         session.sessionStatus === "Completed"
@@ -88,21 +95,27 @@ const ListenerSessions = () => {
                   <div className="flex justify-end items-center">
                     <div className="flex space-x-2">
                       <button
-                        onClick={() => handleDetailView(session.sessionId, "report")}
+                        onClick={() =>
+                          handleDetailView(session.sessionId, "report")
+                        }
                         className="text-blue-600 hover:text-blue-800 transition-colors"
                         title="View Session Report"
                       >
                         <FileText size={20} />
                       </button>
                       <button
-                        onClick={() => handleDetailView(session.sessionId, "feedback")}
+                        onClick={() =>
+                          handleDetailView(session.sessionId, "feedback")
+                        }
                         className="text-green-600 hover:text-green-800 transition-colors"
                         title="View Session Feedback"
                       >
                         <MessageSquare size={20} />
                       </button>
                       <button
-                        onClick={() => handleDetailView(session.sessionId, "messages")}
+                        onClick={() =>
+                          handleDetailView(session.sessionId, "messages")
+                        }
                         className="text-purple-600 hover:text-purple-800 transition-colors"
                         title="View Session Messages"
                       >
@@ -114,17 +127,25 @@ const ListenerSessions = () => {
               ))}
             </div>
           )}
-          {!listenerId && <p className="text-gray-500">Loading listener information...</p>}
+          {!listenerId && (
+            <p className="text-gray-500">Loading listener information...</p>
+          )}
         </div>
         <div className="w-2/3 bg-gray-100">
-          <SessionDetailView type={detailView} sessionId={selectedSession} token={token} />
+          <SessionDetailView
+            type={detailView}
+            sessionId={selectedSession}
+            token={token}
+          />
         </div>
       </div>
     </>
   );
 };
 
-ListenerSessions.getLayout = (page: any) => <DashboardLayout>{page}</DashboardLayout>;
+ListenerSessions.getLayout = (page: any) => (
+  <DashboardLayout>{page}</DashboardLayout>
+);
 
 export default ListenerSessions;
 
@@ -201,8 +222,8 @@ export default ListenerSessions;
 //       <StackNavbar items={stackItems} />
 //       <div className="flex h-[calc(100vh-64px)]">
 //         {/* Mobile Sidebar Toggle */}
-//         <button 
-//           onClick={toggleMobileSidebar} 
+//         <button
+//           onClick={toggleMobileSidebar}
 //           className="fixed top-16 left-0 z-50 p-2 m-2 bg-blue-500 text-white rounded-md md:hidden"
 //         >
 //           {isMobileSidebarOpen ? <X size={24} /> : <Menu size={24} />}
@@ -210,7 +231,7 @@ export default ListenerSessions;
 
 //         {/* Mobile Sidebar */}
 //         <div className={`
-//           fixed inset-y-0 left-0 z-40 w-3/4 bg-gray-50 border-r border-gray-200 
+//           fixed inset-y-0 left-0 z-40 w-3/4 bg-gray-50 border-r border-gray-200
 //           overflow-y-auto p-4 transform transition-transform duration-300 ease-in-out
 //           md:hidden ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
 //         `}>

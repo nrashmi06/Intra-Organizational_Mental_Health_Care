@@ -23,7 +23,7 @@ interface DetailsProps {
   setSuccessMessage?: (message: string | null) => void;
 }
 
-const DetailsModal: React.FC<DetailsProps> = ({
+const ModalDetails: React.FC<DetailsProps> = ({
   userId,
   handleClose,
   statusFilter,
@@ -197,4 +197,4 @@ const DetailsModal: React.FC<DetailsProps> = ({
   );
 };
 
-export default DetailsModal;
+export default ModalDetails;

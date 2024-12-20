@@ -10,35 +10,23 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { getActiveListeners } from "@/service/SSE/getActiveListeners";
+import { getActiveUserByRoleName } from "@/service/SSE/getActiveUserByRoleName";
 import { RootState } from "@/store";
 import { useSelector } from "react-redux";
-import DetailsModal from "./ModalDetails";
-import ApplicationModal from "@/components/dashboard/listener/ModalApplication";
-import { ListenerApplication } from "@/lib/types";
-import { getApplicationByListenerUserId } from "@/service/listener/getApplicationByListenerUserId";
-import { Listener } from "@/lib/types";
+import ModalDetails from "./ModalDetails";
+import { User } from "@/lib/types";
 
 export function OnlineListenersTable() {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10; // 5 items per table, 2 tables per page
-  const [listeners, setListeners] = useState<Listener[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [eventSource, setEventSource] = useState<EventSource | null>(null);
   const token = useSelector((state: RootState) => state.auth.accessToken);
   const [detailsModal, setDetailsModal] = useState(false);
-  const [applicationModal, setApplicationModal] = useState(false);
-  const [application, setApplication] = useState<ListenerApplication | null>(
-    null
-  );
 
   const handleModalClose = () => {
-    setApplicationModal(false);
     setDetailsModal(false);
-  };
-
-  const handleApplicationModal = async (userId: number) => {
-    await fetchApplicationData(userId);
   };
 
   const handleDetailsModal = () => {
@@ -49,46 +37,27 @@ export function OnlineListenersTable() {
     if (eventSource) {
       eventSource.close();
     }
-    const newEventSource = getActiveListeners(token, (data) => {
-      setListeners(data);
+    const newEventSource = getActiveUserByRoleName("user", token, (data) => {
+      setUsers(data);
     });
     setEventSource(newEventSource);
     return () => {
-      newEventSource.close();
+      newEventSource?.close();
     };
   }, [token]);
 
-  const fetchApplicationData = async (userId: number) => {
-
-    try {
-      const fetchedApplication = await getApplicationByListenerUserId(
-        userId,
-        token
-      );
-      setApplication(fetchedApplication);
-      setApplicationModal(true);
-    } catch (error) {
-      console.error(error);
-    } 
-  };
-
-  const filteredListeners = listeners.filter(
-    (listener) =>
-      listener.anonymousName
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase()) ||
-      listener.userId
-        .toString()
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase())
+  const filteredUsers = users.filter(
+    (user) =>
+      user.anonymousName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.userId.toString().toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const paginatedListeners = filteredListeners.slice(
+  const paginatedUsers = filteredUsers.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
 
-  const renderTable = (listenersSubset: any[]) => (
+  const renderTable = (usersSubset: any[]) => (
     <div className="rounded-md border w-full">
       <Table>
         <TableHeader>
@@ -98,38 +67,32 @@ export function OnlineListenersTable() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {listenersSubset.map((listener) => (
-            <React.Fragment key={listener.userId}>
+          {usersSubset.map((user) => (
+            <React.Fragment key={user.userId}>
               <TableRow>
-                <TableCell>{listener.userId}</TableCell>
-                <TableCell>{listener.anonymousName}</TableCell>
+                <TableCell>{user.userId}</TableCell>
+                <TableCell>{user.anonymousName}</TableCell>
                 <TableCell className="text-right justify-end">
                   <Button variant="link" onClick={() => handleDetailsModal()}>
                     Details
                   </Button>
                   <Button
                     variant="link"
-                    href={`/dashboard/listener/sessions/${listener.userId}`}
+                    href={`/dashboard/user/sessions/${user.userId}`}
                   >
                     Sessions
                   </Button>
                   <Button
                     variant="link"
-                    onClick={() => handleApplicationModal(listener.userId)}
+                    href={`/dashboard/user/appointments/${user.userId}`}
                   >
-                    Application
+                    Appointments
                   </Button>
                 </TableCell>
               </TableRow>
               {detailsModal && (
-                <DetailsModal
-                  userId={listener.userId}
-                  handleClose={handleModalClose}
-                />
-              )}
-              {applicationModal && application && (
-                <ApplicationModal
-                  data={application}
+                <ModalDetails
+                  userId={user.userId}
                   handleClose={handleModalClose}
                 />
               )}
@@ -140,12 +103,8 @@ export function OnlineListenersTable() {
     </div>
   );
 
-  const table1Listeners = paginatedListeners.filter(
-    (_, index) => index % 2 === 0
-  );
-  const table2Listeners = paginatedListeners.filter(
-    (_, index) => index % 2 !== 0
-  );
+  const table1Listeners = paginatedUsers.filter((_, index) => index % 2 === 0);
+  const table2Listeners = paginatedUsers.filter((_, index) => index % 2 !== 0);
 
   return (
     <div className="space-y-4">
@@ -170,8 +129,8 @@ export function OnlineListenersTable() {
       <div className="flex items-center justify-between">
         <p className="text-sm">
           Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
-          {Math.min(currentPage * itemsPerPage, filteredListeners.length)} of{" "}
-          {filteredListeners.length} entries
+          {Math.min(currentPage * itemsPerPage, filteredUsers.length)} of{" "}
+          {filteredUsers.length} entries
         </p>
         <div className="flex items-center gap-2">
           <Button
@@ -186,7 +145,7 @@ export function OnlineListenersTable() {
             variant="outline"
             size="sm"
             onClick={() => setCurrentPage((p) => p + 1)}
-            disabled={currentPage * itemsPerPage >= filteredListeners.length}
+            disabled={currentPage * itemsPerPage >= filteredUsers.length}
           >
             Next
           </Button>

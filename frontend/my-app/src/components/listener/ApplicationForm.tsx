@@ -29,7 +29,6 @@ export default function Component() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const [showPopup, setShowPopup] = useState(false);
-
   const { accessToken } = useSelector((state: RootState) => state.auth);
 
   const handleImageUpload = (file: File | null) => {
