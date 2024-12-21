@@ -19,7 +19,15 @@ public class UserDataResponseDTO {
     public static class SessionDTO {
         private Integer sessionId;
         private String listenerName;
-        private List<String> chatMessages;
+        private String sessionDate;
+        private List<ChatMessageDTO> chatMessages;
+    }
+
+    @Data
+    public static class ChatMessageDTO {
+        private String content;
+        private String sender;
+        private String timestamp;
     }
 
     @Data
