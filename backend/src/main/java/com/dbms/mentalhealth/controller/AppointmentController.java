@@ -27,9 +27,11 @@ public class AppointmentController {
         this.jwtUtils = jwtUtils;
     }
 
-    @PreAuthorize("hasRole('USER')")
     @PostMapping(AppointmentUrlMapping.BOOK_APPOINTMENT)
     public ResponseEntity<?> createAppointment(@RequestBody AppointmentRequestDTO appointmentRequestDTO) {
+        if (appointmentRequestDTO.getFullName() == null || appointmentRequestDTO.getFullName().isEmpty() || appointmentRequestDTO.getPhoneNumber() == null || appointmentRequestDTO.getPhoneNumber().isEmpty() || appointmentRequestDTO.getSeverityLevel() == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Some fields are missing");
+        }
         try {
             AppointmentResponseDTO appointmentResponseDTO = appointmentService.createAppointment(appointmentRequestDTO);
             return ResponseEntity.ok(appointmentResponseDTO);
