@@ -22,15 +22,13 @@ import { Listener } from "@/lib/types";
 export function OnlineListenersTable() {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10; // 5 items per table, 2 tables per page
+  const itemsPerPage = 10;
   const [listeners, setListeners] = useState<Listener[]>([]);
   const [eventSource, setEventSource] = useState<EventSource | null>(null);
   const token = useSelector((state: RootState) => state.auth.accessToken);
   const [detailsModal, setDetailsModal] = useState(false);
   const [applicationModal, setApplicationModal] = useState(false);
-  const [application, setApplication] = useState<ListenerApplication | null>(
-    null
-  );
+  const [application, setApplication] = useState<ListenerApplication | null>(null);
 
   const handleModalClose = () => {
     setApplicationModal(false);
@@ -59,92 +57,24 @@ export function OnlineListenersTable() {
   }, [token]);
 
   const fetchApplicationData = async (userId: number) => {
-
     try {
-      const fetchedApplication = await getApplicationByListenerUserId(
-        userId,
-        token
-      );
+      const fetchedApplication = await getApplicationByListenerUserId(userId, token);
       setApplication(fetchedApplication);
       setApplicationModal(true);
     } catch (error) {
       console.error(error);
-    } 
+    }
   };
 
   const filteredListeners = listeners.filter(
     (listener) =>
-      listener.anonymousName
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase()) ||
-      listener.userId
-        .toString()
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase())
+      listener.anonymousName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      listener.userId.toString().toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const paginatedListeners = filteredListeners.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
-  );
-
-  const renderTable = (listenersSubset: any[]) => (
-    <div className="rounded-md border w-full">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>ID</TableHead>
-            <TableHead>Anonymous Name</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {listenersSubset.map((listener) => (
-            <React.Fragment key={listener.userId}>
-              <TableRow>
-                <TableCell>{listener.userId}</TableCell>
-                <TableCell>{listener.anonymousName}</TableCell>
-                <TableCell className="text-right justify-end">
-                  <Button variant="link" onClick={() => handleDetailsModal()}>
-                    Details
-                  </Button>
-                  <Button
-                    variant="link"
-                    href={`/dashboard/listener/sessions/${listener.userId}`}
-                  >
-                    Sessions
-                  </Button>
-                  <Button
-                    variant="link"
-                    onClick={() => handleApplicationModal(listener.userId)}
-                  >
-                    Application
-                  </Button>
-                </TableCell>
-              </TableRow>
-              {detailsModal && (
-                <DetailsModal
-                  userId={listener.userId}
-                  handleClose={handleModalClose}
-                />
-              )}
-              {applicationModal && application && (
-                <ApplicationModal
-                  data={application}
-                  handleClose={handleModalClose}
-                />
-              )}
-            </React.Fragment>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
-  );
-
-  const table1Listeners = paginatedListeners.filter(
-    (_, index) => index % 2 === 0
-  );
-  const table2Listeners = paginatedListeners.filter(
-    (_, index) => index % 2 !== 0
   );
 
   return (
@@ -162,9 +92,55 @@ export function OnlineListenersTable() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-        {renderTable(table1Listeners)}
-        {renderTable(table2Listeners)}
+      <div className="rounded-md border w-full">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>ID</TableHead>
+              <TableHead>Anonymous Name</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {paginatedListeners.map((listener) => (
+              <React.Fragment key={listener.userId}>
+                <TableRow>
+                  <TableCell>{listener.userId}</TableCell>
+                  <TableCell>{listener.anonymousName}</TableCell>
+                  <TableCell className="text-right">
+                    <Button variant="link" onClick={() => handleDetailsModal()}>
+                      Details
+                    </Button>
+                    <Button
+                      variant="link"
+                      href={`/dashboard/listener/sessions/${listener.userId}`}
+                    >
+                      Sessions
+                    </Button>
+                    <Button
+                      variant="link"
+                      onClick={() => handleApplicationModal(listener.userId)}
+                    >
+                      Application
+                    </Button>
+                  </TableCell>
+                </TableRow>
+                {detailsModal && (
+                  <DetailsModal
+                    userId={listener.userId}
+                    handleClose={handleModalClose}
+                  />
+                )}
+                {applicationModal && application && (
+                  <ApplicationModal
+                    data={application}
+                    handleClose={handleModalClose}
+                  />
+                )}
+              </React.Fragment>
+            ))}
+          </TableBody>
+        </Table>
       </div>
 
       <div className="flex items-center justify-between">

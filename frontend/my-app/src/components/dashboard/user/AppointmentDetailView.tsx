@@ -1,198 +1,178 @@
-import { formatRelativeTime } from "@/components/ui/formatDistanceToNow";
-import { getSessionFeedback } from "@/service/session/getSessionFeedback";
-import { getSessionMessages } from "@/service/session/getSessionMessages";
-import { getSessionReport } from "@/service/session/getSessionReport";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
+import { Clock, User, UserCog, CalendarCheck, FileText } from 'lucide-react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { getAppointmentDetails } from '@/service/user/GetAppointmentDetails';
+import { AppointmentDetails } from '@/lib/types';
 interface DetailViewProps {
-  type: "report" | "feedback" | "messages" | null;
-  sessionId: number | null;
+  appointmentId: number | null;
   token: string;
 }
 
-const SessionDetailView: React.FC<DetailViewProps> = ({
-  type,
-  sessionId,
-  token
+const AppointmentDetailView: React.FC<DetailViewProps> = ({
+  appointmentId,
+  token,
 }) => {
-  const [content, setContent] = useState<React.ReactNode>(
-    <div className="p-4 text-gray-500">Select an appointment to view details</div>
-  );
+  const [appointmentDetails, setAppointmentDetails] = useState<AppointmentDetails | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchContent = async () => {
-      if (!sessionId) return;
-      try {
-      switch (type) {
-        case "report":
-        const data = await getSessionReport(sessionId, token);
-        const report = data[0];
-        if (report) {
-          setContent(
-          <div className="flex items-center justify-center p-4">
-            <div className="bg-white shadow-lg rounded-lg w-96 p-6 space-y-4">
-            <div className="bg-blue-500 text-white p-3 rounded text-center">
-              <h2 className="text-xl font-bold">
-              Medical Incident Report
-              </h2>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              <div className="font-semibold">Report ID:</div>
-              <div>{report.reportId}</div>
-              <div className="font-semibold">User ID:</div>
-              <div>{report.userId}</div>
-              <div className="font-semibold">Severity:</div>
-              <div className="flex items-center">
-              <div
-                className="h-2 w-full bg-gradient-to-r from-green-500 via-yellow-500 to-red-500"
-                style={{
-                  clipPath: `inset(0 ${
-                    (5 - report.severityLevel) * 20
-                  }% 0 0)`,
-                }}
-              />
-              <span className="ml-2 text-sm">
-                {report.severityLevel}/5
-              </span>
-              </div>
-            </div>
-            <div className="font-light flex flex-col gap-2">
-              <p className="font-semibold text-center">Report Content</p>
-              <div
-                className="break-words text-center whitespace-normal text-gray-700 bg-gray-50 p-3 rounded-md max-h-40 overflow-y-auto">
-              {report.reportContent}
-              </div>
-            </div>
-
-            <div className="text-center text-sm text-gray-500">
-              {new Date(report.createdAt).toLocaleString()}
-            </div>
-            </div>
-          </div>
-          );
-        }
-        break;
-        case "feedback":
-        try {
-          const data = await getSessionFeedback(sessionId, token);
-          const feedback = data[0];
-
-          if (feedback) {
-          setContent(
-            <div className="flex items-center justify-center p-4">
-            <div className="bg-white shadow-lg rounded-lg w-96 p-6 space-y-4">
-              <div className="bg-green-500 text-white p-3 rounded text-center">
-              <h2 className="text-xl font-bold">Session Feedback</h2>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-              <div className="font-semibold">Feedback ID:</div>
-              <div>{feedback.feedbackId}</div>
-              <div className="font-semibold">Session ID:</div>
-              <div>{feedback.sessionId}</div>
-              <div className="font-semibold">User ID:</div>
-              <div>{feedback.userId}</div>
-              <div className="font-semibold">Rating:</div>
-              <div className="flex items-center">
-                <div
-                className="h-2 w-full bg-gradient-to-r from-red-500 via-yellow-500 to-green-500"
-                style={{
-                  clipPath: `inset(0 ${
-                  (5 - feedback.rating) * 20
-                  }% 0 0)`,
-                }}
-                />
-                <span className="ml-2 text-sm">
-                {feedback.rating}/5
-                </span>
-              </div>
-
-              <div className="font-semibold">Comments:</div>
-              <div className="text-gray-600 italic">
-                {feedback.comments || "No comments"}
-              </div>
-              </div>
-              <div className="text-center text-sm text-gray-500">
-              {new Date(feedback.submittedAt).toLocaleString()}
-              </div>
-            </div>
-            </div>
-          );
-          }
-        } catch (error) {
-          console.error("Error fetching session feedback:", error);
-        }
-
-        break;
-        case "messages":
-        try {
-          const messages = await getSessionMessages(sessionId, token);
-
-          if (messages) {
-          setContent(
-          <div className="h-full flex flex-col bg-gradient-to-br from-blue-300 via-blue-500 to-purple-600">
-          <div className="bg-gradient-to-br from-blue-500 via-blue-500 to-purple-300 text-white p-3 text-center font-bold">
-            Session #{sessionId} Chat History
-          </div>
-          <div className="flex-grow overflow-y-auto p-4 space-y-3">
-            {messages.map((message: { messageId: number; senderType: string; senderName: string; messageContent: string; sentAt: string }) => (
-            <div
-            key={message.messageId}
-            className={`flex ${
-            message.senderType === "LISTENER"
-              ? "justify-start"
-              : "justify-end"
-            }`}
-            >
-            <div
-            className={`max-w-[70%] p-3 rounded-lg shadow-sm ${
-              message.senderType === "LISTENER"
-              ? "bg-green-100 text-green-800"
-              : "bg-blue-100 text-blue-800"
-            }`}
-            style={{ maxWidth: "300px" }}
-            >
-            <div className="font-semibold text-sm mb-1">
-              {message.senderName}
-            </div>
-            <div className="break-words">
-              {message.messageContent}
-            </div>
-            <div className="text-xs text-gray-500 mt-1 text-right">
-              {formatRelativeTime(message.sentAt)}
-            </div>
-            </div>
-            </div>
-            ))}
-          </div>
-          </div>
-          );
-          }
-        } catch (error) {
-          console.error("Error fetching session messages:", error);
-        }
-        break;
-        default:
-        setContent(
-          <div className="p-4 text-gray-500">Select a view type</div>
-        );
+    const fetchAppointmentDetails = async () => {
+      if (!appointmentId) {
+        setAppointmentDetails(null);
+        setLoading(false);
+        return;
       }
-      } catch (error) {
-      console.error("Error fetching content:", error);
-      setContent(
-        <div className="p-4 text-gray-500">Error fetching content</div>
-      );
+
+      setLoading(true);
+      setError(null);
+
+      try {
+        const data = await getAppointmentDetails(appointmentId, token);
+        setAppointmentDetails(data);
+      } catch (err) {
+        console.error("Error fetching appointment details:", err);
+        setError("Failed to load appointment details.");
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchContent();
-  }, [type, sessionId, token]);
+    fetchAppointmentDetails();
+  }, [appointmentId, token]);
+
+  const getStatusStyle = (status: AppointmentDetails['status']) => {
+    const styles = {
+      REQUESTED: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+      CANCELED: 'bg-red-100 text-red-800 border-red-200',
+      CONFIRMED: 'bg-green-100 text-green-800 border-green-200'
+    };
+    return styles[status];
+  };
+
+  const getStatusIcon = (status: AppointmentDetails['status']) => {
+    const icons = {
+      REQUESTED: '🕒',
+      CANCELED: '❌',
+      CONFIRMED: '✅'
+    };
+    return icons[status];
+  };
+
+  const formatTime = (timeString: string) => {
+    return new Date(timeString).toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+      weekday: 'short',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-gray-500 animate-pulse">Loading appointment details...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6 rounded-lg bg-red-50 border border-red-200">
+        <div className="text-red-600 text-center">{error}</div>
+      </div>
+    );
+  }
+
+  if (!appointmentDetails) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-gray-500">Select an appointment to view details.</div>
+      </div>
+    );
+  }
 
   return (
-    <div className="bg-white shadow-md rounded-lg h-full overflow-y-auto">
-      {content}
-    </div>
+    <Card className="w-full max-w-2xl mx-auto">
+      <CardHeader className={`${
+        appointmentDetails.status === 'CONFIRMED' ? 'bg-gradient-to-r from-green-600 to-green-700' :
+        appointmentDetails.status === 'REQUESTED' ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' :
+        'bg-gradient-to-r from-gray-600 to-gray-700'
+      } text-white rounded-t-lg`}>
+        <div className="flex justify-between items-center">
+          <CardTitle>
+            Appointment Details
+          </CardTitle>
+          <div className={`px-4 py-2 rounded-full text-sm font-medium border ${getStatusStyle(appointmentDetails.status)}`}>
+            {getStatusIcon(appointmentDetails.status)} {appointmentDetails.status}
+          </div>
+        </div>
+      </CardHeader>
+      
+      <CardContent className="p-6 space-y-6">
+        <div className="grid gap-6">
+          {/* Appointment ID */}
+          <div className="text-sm text-gray-600">
+            Appointment #{appointmentDetails.appointmentId}
+          </div>
+
+          {/* Main Info Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Participants */}
+            <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+              <div className="flex items-center gap-2 text-blue-600">
+                <User size={20} />
+                <h3 className="font-semibold">Participants</h3>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <User size={16} className="text-gray-400" />
+                  <span className="text-gray-700">{appointmentDetails.userName}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <UserCog size={16} className="text-gray-400" />
+                  <span className="text-gray-700">{appointmentDetails.adminName}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Time Slot */}
+            <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+              <div className="flex items-center gap-2 text-blue-600">
+                <Clock size={20} />
+                <h3 className="font-semibold">Time Slot</h3>
+              </div>
+              <div className="space-y-2">
+                <div className="flex flex-col gap-1">
+                  <div className="flex items-center gap-2">
+                    <CalendarCheck size={16} className="text-gray-400" />
+                    <span className="text-gray-700">From: {formatTime(appointmentDetails.timeSlot.startTime)}</span>
+                  </div>
+                  <div className="flex items-center gap-2 pl-6">
+                    <span className="text-gray-700">To: {formatTime(appointmentDetails.timeSlot.endTime)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Appointment Reason */}
+          <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+            <div className="flex items-center gap-2 text-blue-600">
+              <FileText size={20} />
+              <h3 className="font-semibold">Appointment Reason</h3>
+            </div>
+            <p className="text-gray-700 whitespace-pre-wrap">
+              {appointmentDetails.appointmentReason}
+            </p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
-export default SessionDetailView;
+export default AppointmentDetailView;

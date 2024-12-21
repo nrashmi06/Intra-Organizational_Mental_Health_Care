@@ -1,8 +1,8 @@
 'use client'
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { OnlineListenersTable } from '@/components/dashboard/user/Online'
-import { RegisteredListenersTable } from '@/components/dashboard/user/Registered'
+import { OnlineUsersTable } from '@/components/dashboard/user/Online'
+import { RegisteredUsersTable } from '@/components/dashboard/user/Registered'
 import DashboardLayout from '@/components/dashboard/DashboardLayout'
 
 const UserPage = () => {
@@ -14,10 +14,10 @@ const UserPage = () => {
           <TabsTrigger value="registered">All Users</TabsTrigger>
         </TabsList>
         <TabsContent value="online" className="space-y-4">
-          <OnlineListenersTable />
+          <OnlineUsersTable />
         </TabsContent>
         <TabsContent value="registered" className="space-y-4">
-          <RegisteredListenersTable />
+          <RegisteredUsersTable />
         </TabsContent>
       </Tabs>
     </div>

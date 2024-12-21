@@ -4,17 +4,16 @@ import {
   CheckCircle,
   Calendar,
   Mail,
-  Star,
   Shield,
   X,
 } from "lucide-react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
-import { getListenerDetails } from "@/service/listener/getListenerDetails";
-import { changeStatus } from "@/service/listener/changeStatus";
+import { getUserDetails } from "@/service/user/getUserDetails";
+import { changeStatus } from "@/service/user/ChangeStatus";
 import router from "next/router";
 import { Button } from "@/components/ui/button";
-import { ListenerDetails } from "@/lib/types";
+import { UserDetails } from "@/lib/types";
 
 interface DetailsProps {
   userId: number;
@@ -29,7 +28,7 @@ const ModalDetails: React.FC<DetailsProps> = ({
   statusFilter,
   setSuccessMessage,
 }) => {
-  const [listener, setListener] = useState<ListenerDetails | null>(null);
+  const [user, setUser] = useState<UserDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const token = useSelector((state: RootState) => state.auth.accessToken);
@@ -37,10 +36,10 @@ const ModalDetails: React.FC<DetailsProps> = ({
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await getListenerDetails(userId, token);
-        setListener(data);
+        const data = await getUserDetails(userId, token);
+        setUser(data);
       } catch (error) {
-        setError("Error fetching listener details." + error);
+        setError("Error fetching user details." + error);
       } finally {
         setIsLoading(false);
       }
@@ -57,14 +56,14 @@ const ModalDetails: React.FC<DetailsProps> = ({
     return <div className="text-red-500 text-center p-4">{error}</div>;
   }
 
-  if (!listener) {
+  if (!user) {
     return <div className="text-center p-4">No details available.</div>;
   }
-  const handleAction = async (listenerId: number, statusFilter: string) => {
+  const handleAction = async (userId: number, statusFilter: string) => {
     const action = statusFilter === "ACTIVE" ? "suspend" : "unsuspend";
     try {
-      await changeStatus(listenerId, token, action);
-      setSuccessMessage?.(`Listener ${action}ed successfully.`);
+      await changeStatus(userId, token, action);
+      setSuccessMessage?.(`User ${action}ed successfully.`);
       setTimeout(() => {
         setSuccessMessage?.(null);
       }, 2000);
@@ -93,15 +92,38 @@ const ModalDetails: React.FC<DetailsProps> = ({
               <Mail className="mr-2 text-blue-500" />
               <div>
                 <p className="text-sm font-medium text-gray-500">Email</p>
-                <p className="text-sm">{listener.userEmail}</p>
+                <p className="text-sm">{user.email}</p>
+              </div>
+            </div>
+            <div className="flex items-center p-4 rounded-lg border">
+              <User className="mr-2 text-indigo-500" />
+              <div>
+                <p className="text-sm font-medium text-gray-500">
+                  Anonymous Name
+                </p>
+                <p className="text-sm">{user.anonymousName}</p>
+              </div>
+            </div>
+            <div className="flex items-center p-4 rounded-lg border">
+              <CheckCircle className="mr-2 text-purple-500" />
+              <div>
+                <p className="text-sm font-medium text-gray-500">Role</p>
+                <p className="text-sm">{user.role}</p>
+              </div>
+            </div>
+            <div className="flex items-center p-4 rounded-lg border">
+              <Shield className="mr-2 text-teal-500" />
+              <div>
+                <p className="text-sm font-medium text-gray-500">Status</p>
+                <p className="text-sm">{user.profileStatus}</p>
               </div>
             </div>
             <div className="flex items-center p-4 rounded-lg border">
               <Calendar className="mr-2 text-green-500" />
               <div>
-                <p className="text-sm font-medium text-gray-500">Joined At</p>
+                <p className="text-sm font-medium text-gray-500">Created At</p>
                 <p className="text-sm">
-                  {new Date(listener.joinedAt).toLocaleDateString("en-US", {
+                  {new Date(user.createdAt).toLocaleDateString("en-US", {
                     year: "numeric",
                     month: "short",
                     day: "numeric",
@@ -110,68 +132,21 @@ const ModalDetails: React.FC<DetailsProps> = ({
               </div>
             </div>
             <div className="flex items-center p-4 rounded-lg border">
-              <User className="mr-2 text-indigo-500" />
+              <Calendar className="mr-2 text-orange-500" />
               <div>
-                <p className="text-sm font-medium text-gray-500">
-                  Max Daily Sessions
-                </p>
-                <p className="text-sm">{listener.maxDailySessions}</p>
-              </div>
-            </div>
-            <div className="flex items-center p-4 rounded-lg border">
-              <CheckCircle className="mr-2 text-purple-500" />
-              <div>
-                <p className="text-sm font-medium text-gray-500">
-                  Total Sessions
-                </p>
-                <p className="text-sm">{listener.totalSessions}</p>
-              </div>
-            </div>
-            <div className="flex items-center p-4 rounded-lg border">
-              <User className="mr-2 text-red-500" />
-              <div>
-                <p className="text-sm font-medium text-gray-500">
-                  Messages Sent
-                </p>
+                <p className="text-sm font-medium text-gray-500">Last Seen</p>
                 <p className="text-sm">
-                  {listener.totalMessagesSent !== null
-                    ? listener.totalMessagesSent
-                    : "N/A"}
+                  {new Date(user.lastSeen).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                  })}
                 </p>
-              </div>
-            </div>
-            <div className="flex items-center p-4 rounded-lg border">
-              <User className="mr-2 text-orange-500" />
-              <div>
-                <p className="text-sm font-medium text-gray-500">
-                  Feedback Count
-                </p>
-                <p className="text-sm">{listener.feedbackCount}</p>
-              </div>
-            </div>
-            <div className="flex items-center p-4 rounded-lg border">
-              <Star className="mr-2 text-yellow-500" />
-              <div>
-                <p className="text-sm font-medium text-gray-500">
-                  Average Rating
-                </p>
-                <p className="text-sm">{listener.averageRating.toFixed(1)}</p>
-              </div>
-            </div>
-            <div className="flex items-center p-4 rounded-lg border">
-              <Shield className="mr-2 text-teal-500" />
-              <div>
-                <p className="text-sm font-medium text-gray-500">Approved By</p>
-                <p className="text-sm">{listener.approvedBy}</p>
               </div>
             </div>
             <div className="p-4 rounded-lg border">
-              <p className="text-sm font-medium text-gray-500">
-                Can Approve Blogs
-              </p>
-              <p className="text-sm">
-                {listener.canApproveBlogs ? "Yes" : "No"}
-              </p>
+              <p className="text-sm font-medium text-gray-500">Active</p>
+              <p className="text-sm">{user.active ? "Yes" : "No"}</p>
             </div>
             {statusFilter && (
               <div className="p-4 flex justify-end">
@@ -182,9 +157,7 @@ const ModalDetails: React.FC<DetailsProps> = ({
                       ? "text-red-500 bg-red-100"
                       : "text-green-500 bg-green-100"
                   }`}
-                  onClick={() =>
-                    handleAction(listener.listenerId, statusFilter)
-                  }
+                  onClick={() => handleAction(user.id, statusFilter)}
                 >
                   {statusFilter === "ACTIVE" ? "Suspend" : "Unsuspend"} Listener
                 </Button>

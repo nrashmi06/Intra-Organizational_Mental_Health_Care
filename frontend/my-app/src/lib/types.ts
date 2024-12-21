@@ -55,3 +55,50 @@ export interface Session {
   listenerId: number;
   sessionStatus: string;
 }
+
+export interface Appointment {
+  appointmentId: number;
+  title: string;
+  userName: string;
+  adminName: string;
+  status: string;
+}
+
+export interface AppointmentDetails {
+  appointmentId: number;
+  userName: string;
+  adminName: string;
+  timeSlot: {
+    startTime: string;
+    endTime: string;
+  };
+  appointmentReason: string;
+  status: "REQUESTED" | "CANCELED" | "CONFIRMED";
+}
+
+// Interface for Appointment
+// export interface Appointment {
+//   appointmentId: number;
+//   appointmentReason: string;
+//   userName: string;
+//   adminName: string;
+//   status: "REQUESTED" | "CANCELED" | "CONFIRMED";
+//   date: string;
+//   startTime: string;
+//   endTime: string;
+// }
+
+// // Interface for AppointmentDetails
+// export interface AppointmentDetails {
+//   appointmentId: number;
+//   userName: string;
+//   adminName: string;
+//   timeSlotDate: string;
+//   timeSlotStartTime: string;
+//   timeSlotEndTime: string;
+//   appointmentReason: string;
+//   status: "REQUESTED" | "CANCELED" | "CONFIRMED";
+//   phoneNumber: string;
+//   fullName: string;
+//   severityLevel: string;
+// }

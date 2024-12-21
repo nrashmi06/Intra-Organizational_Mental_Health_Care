@@ -27,7 +27,7 @@ import { ListenerApplication } from "@/lib/types";
 import { getApplicationByListenerUserId } from "@/service/listener/getApplicationByListenerUserId";
 import { Listener } from "@/lib/types";
 
-export function RegisteredListenersTable() {
+export function RegisteredUsersTable() {
   const [searchQuery, setSearchQuery] = useState("");
   const [listeners, setListeners] = useState<Listener[]>([]);
   const [statusFilter, setStatusFilter] = useState<string>("ACTIVE");

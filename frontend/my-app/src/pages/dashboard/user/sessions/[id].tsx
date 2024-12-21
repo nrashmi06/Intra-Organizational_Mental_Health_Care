@@ -30,9 +30,9 @@ const ListenerSessions = () => {
     }
   }, [id]);
 
-  const fetchSessions = async (listenerId: number) => {
+  const fetchSessions = async (userId: number) => {
     try {
-      const response = await getSessionListByRole(listenerId, "user", token);
+      const response = await getSessionListByRole(userId, "user", token);
       if (response?.ok) {
         const sessionData: Session[] = await response.json();
         setSessions(sessionData);

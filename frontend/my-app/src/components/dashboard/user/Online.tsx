@@ -16,10 +16,10 @@ import { useSelector } from "react-redux";
 import ModalDetails from "./ModalDetails";
 import { User } from "@/lib/types";
 
-export function OnlineListenersTable() {
+export function OnlineUsersTable() {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10; // 5 items per table, 2 tables per page
+  const itemsPerPage = 10; // Number of items per page
   const [users, setUsers] = useState<User[]>([]);
   const [eventSource, setEventSource] = useState<EventSource | null>(null);
   const token = useSelector((state: RootState) => state.auth.accessToken);
@@ -57,55 +57,6 @@ export function OnlineListenersTable() {
     currentPage * itemsPerPage
   );
 
-  const renderTable = (usersSubset: any[]) => (
-    <div className="rounded-md border w-full">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>ID</TableHead>
-            <TableHead>Anonymous Name</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {usersSubset.map((user) => (
-            <React.Fragment key={user.userId}>
-              <TableRow>
-                <TableCell>{user.userId}</TableCell>
-                <TableCell>{user.anonymousName}</TableCell>
-                <TableCell className="text-right justify-end">
-                  <Button variant="link" onClick={() => handleDetailsModal()}>
-                    Details
-                  </Button>
-                  <Button
-                    variant="link"
-                    href={`/dashboard/user/sessions/${user.userId}`}
-                  >
-                    Sessions
-                  </Button>
-                  <Button
-                    variant="link"
-                    href={`/dashboard/user/appointments/${user.userId}`}
-                  >
-                    Appointments
-                  </Button>
-                </TableCell>
-              </TableRow>
-              {detailsModal && (
-                <ModalDetails
-                  userId={user.userId}
-                  handleClose={handleModalClose}
-                />
-              )}
-            </React.Fragment>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
-  );
-
-  const table1Listeners = paginatedUsers.filter((_, index) => index % 2 === 0);
-  const table2Listeners = paginatedUsers.filter((_, index) => index % 2 !== 0);
-
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
@@ -121,9 +72,49 @@ export function OnlineListenersTable() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-        {renderTable(table1Listeners)}
-        {renderTable(table2Listeners)}
+      <div className="rounded-md border w-full">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>ID</TableHead>
+              <TableHead>Anonymous Name</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {paginatedUsers.map((user) => (
+              <React.Fragment key={user.userId}>
+                <TableRow>
+                  <TableCell>{user.userId}</TableCell>
+                  <TableCell>{user.anonymousName}</TableCell>
+                  <TableCell className="text-right">
+                    <Button variant="link" onClick={() => handleDetailsModal()}>
+                      Details
+                    </Button>
+                    <Button
+                      variant="link"
+                      href={`/dashboard/user/sessions/${user.userId}`}
+                    >
+                      Sessions
+                    </Button>
+                    <Button
+                      variant="link"
+                      href={`/dashboard/user/appointments/${user.userId}`}
+                    >
+                      Appointments
+                    </Button>
+                  </TableCell>
+                </TableRow>
+                {detailsModal && (
+                  <ModalDetails
+                    userId={user.userId}
+                    handleClose={handleModalClose}
+                  />
+                )}
+              </React.Fragment>
+            ))}
+          </TableBody>
+        </Table>
       </div>
 
       <div className="flex items-center justify-between">
