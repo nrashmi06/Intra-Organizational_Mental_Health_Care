@@ -4,6 +4,7 @@ import React, { HTMLProps } from 'react';
 interface BadgeProps extends HTMLProps<HTMLSpanElement> {
   children: React.ReactNode;
   className?: string;
+  variant?: 'default' | 'ghost' | 'outline' | 'link' | 'secondary'; // Customize the types of button variants
   color?: 'green' | 'red' | 'yellow' | 'gray';  // Define colors for approved, rejected, pending, etc.
 }
 
