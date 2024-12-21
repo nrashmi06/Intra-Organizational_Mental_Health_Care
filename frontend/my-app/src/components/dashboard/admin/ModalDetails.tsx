@@ -1,19 +1,12 @@
 import React, { useEffect, useState } from "react";
-import {
-  User,
-  CheckCircle,
-  Calendar,
-  Mail,
-  Shield,
-  X,
-} from "lucide-react";
+import { User, CheckCircle, Calendar, Mail, Shield, X } from "lucide-react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
-import { getUserDetails } from "@/service/user/getUserDetails";
+import { fetchAdminProfile } from "@/service/adminProfile/GetAdminProfile";
 import { changeStatus } from "@/service/user/ChangeStatus";
 import router from "next/router";
 import { Button } from "@/components/ui/button";
-import { UserDetails } from "@/lib/types";
+import { AdminDetails } from "@/lib/types";
 
 interface DetailsProps {
   userId: number;
@@ -28,7 +21,7 @@ const ModalDetails: React.FC<DetailsProps> = ({
   statusFilter,
   setSuccessMessage,
 }) => {
-  const [user, setUser] = useState<UserDetails | null>(null);
+  const [admin, setAdmin] = useState<AdminDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const token = useSelector((state: RootState) => state.auth.accessToken);
@@ -36,8 +29,8 @@ const ModalDetails: React.FC<DetailsProps> = ({
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await getUserDetails(userId, token);
-        setUser(data);
+        const data = await fetchAdminProfile(token, userId);
+        setAdmin(data);
       } catch (error) {
         setError("Error fetching user details." + error);
       } finally {
@@ -56,7 +49,7 @@ const ModalDetails: React.FC<DetailsProps> = ({
     return <div className="text-red-500 text-center p-4">{error}</div>;
   }
 
-  if (!user) {
+  if (!admin) {
     return <div className="text-center p-4">No details available.</div>;
   }
   const handleAction = async (userId: number, statusFilter: string) => {

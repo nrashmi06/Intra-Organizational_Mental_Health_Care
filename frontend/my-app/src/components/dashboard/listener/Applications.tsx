@@ -176,7 +176,7 @@ export function ListenerApplicationsTable() {
                         }
                         className="text-purple-700 hover:text-purple-900"
                       >
-                        View
+                        {statusFilter === "PENDING" ? "Review" : "View"}
                       </Button>
                     </div>
                   </TableCell>

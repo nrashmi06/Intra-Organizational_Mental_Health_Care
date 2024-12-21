@@ -3,6 +3,7 @@ import { Clock, User, UserCog, CalendarCheck, FileText } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { getAppointmentDetails } from '@/service/user/GetAppointmentDetails';
 import { AppointmentDetails } from '@/lib/types';
+
 interface DetailViewProps {
   appointmentId: number | null;
   token: string;
@@ -130,11 +131,15 @@ const AppointmentDetailView: React.FC<DetailViewProps> = ({
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <User size={16} className="text-gray-400" />
-                  <span className="text-gray-700">{appointmentDetails.userName}</span>
+                  <span className="text-gray-700">{appointmentDetails.fullName}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <UserCog size={16} className="text-gray-400" />
                   <span className="text-gray-700">{appointmentDetails.adminName}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-400">Phone: </span>
+                  <span className="text-gray-700">{appointmentDetails.phoneNumber}</span>
                 </div>
               </div>
             </div>
@@ -149,10 +154,14 @@ const AppointmentDetailView: React.FC<DetailViewProps> = ({
                 <div className="flex flex-col gap-1">
                   <div className="flex items-center gap-2">
                     <CalendarCheck size={16} className="text-gray-400" />
-                    <span className="text-gray-700">From: {formatTime(appointmentDetails.timeSlot.startTime)}</span>
+                    <span className="text-gray-700">Date: {formatTime(appointmentDetails.timeSlotDate)}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CalendarCheck size={16} className="text-gray-400" />
+                    <span className="text-gray-700">From: {formatTime(appointmentDetails.timeSlotStartTime)}</span>
                   </div>
                   <div className="flex items-center gap-2 pl-6">
-                    <span className="text-gray-700">To: {formatTime(appointmentDetails.timeSlot.endTime)}</span>
+                    <span className="text-gray-700">To: {formatTime(appointmentDetails.timeSlotEndTime)}</span>
                   </div>
                 </div>
               </div>
@@ -169,6 +178,17 @@ const AppointmentDetailView: React.FC<DetailViewProps> = ({
               {appointmentDetails.appointmentReason}
             </p>
           </div>
+
+          {/* Severity Level */}
+            <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+            <div className="flex items-center gap-2 text-blue-600">
+              <FileText size={20} />
+              <h3 className="font-semibold">Severity Level</h3>
+            </div>
+            <p className={`text-gray-700 ${appointmentDetails.severityLevel === 'HIGH' ? 'text-red-600' : appointmentDetails.severityLevel === 'MEDIUM' ? 'text-yellow-600' : 'text-green-600'}`}>
+              {appointmentDetails.severityLevel}
+            </p>
+            </div>
         </div>
       </CardContent>
     </Card>

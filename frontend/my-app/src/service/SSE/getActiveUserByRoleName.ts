@@ -1,9 +1,8 @@
-import { User } from "@/lib/types";
 
 export const getActiveUserByRoleName = (
   type: string,
   token: string,
-  onMessage: (data: User[]) => void,
+  onMessage: (data: any) => void,
   onError?: (error: Event) => void
 ) => {
   const eventSource = new EventSource(
@@ -32,7 +31,7 @@ export const getActiveUserByRoleName = (
 
   eventSource.addEventListener(eventName, (event) => {
     try {
-      const data: User[] = JSON.parse(event.data);
+      const data = JSON.parse(event.data);
       console.log(`Received ${eventName} details:`, data);
       onMessage(data);
     } catch (error) {

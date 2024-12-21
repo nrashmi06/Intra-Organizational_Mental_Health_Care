@@ -1,232 +1,14 @@
-// import React, { useEffect, useState } from "react";
-// import { useRouter } from "next/router";
-// import { useSelector } from "react-redux";
-// import { RootState } from "@/store";
-// import { getAdminByUserID } from "@/service/adminProfile/getAdminByUserID";
-// import { Button } from "@/components/ui/button";
-// import Image from "next/image";
-
-// interface AdminDetails {
-//   adminId: number;
-//   userId: number;
-//   fullName: string;
-//   adminNotes: string;
-//   qualifications: string;
-//   contactNumber: string;
-//   email: string;
-//   profilePictureUrl: string;
-//   createdAt: string;
-//   updatedAt: string;
-// }
-
-// const AdminProfilePage: React.FC = () => {
-//   const router = useRouter();
-//   const userId = Number(router.query.userId); // Extract and convert userId from the URL
-//   const token = useSelector((state: RootState) => state.auth.accessToken); // Get token from Redux store
-
-//   const [adminDetails, setAdminDetails] = useState<AdminDetails | null>(null);
-//   const [loading, setLoading] = useState(false);
-//   const [error, setError] = useState<string | null>(null);
-
-//   useEffect(() => {
-//     if (userId && token) {
-//       fetchAdminDetails();
-//     }
-//   }, [userId, token]);
-
-//   const fetchAdminDetails = async () => {
-//     setLoading(true);
-//     setError(null);
-//     console.log("Fetching admin details for userId:", userId);
-//     try {
-//       const data = await getAdminByUserID(userId, token);
-//       setAdminDetails(data);
-//     } catch (error) {
-//       setError("Failed to fetch admin details. Please try again.");
-//       console.log("Error fetching admin details:", error);
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   if (loading) {
-//     return (
-//       <div className="flex justify-center items-center min-h-screen">
-//         <p>Loading...</p>
-//       </div>
-//     );
-//   }
-
-//   if (error) {
-//     return (
-//       <div className="flex justify-center items-center min-h-screen">
-//         <p className="text-red-500">{error}</p>
-//         <Button onClick={fetchAdminDetails}>Retry</Button>
-//       </div>
-//     );
-//   }
-
-//   if (!adminDetails) {
-//     return null;
-//   }
-
-//   return (
-//     <div className="bg-gray-100 min-h-screen p-8">
-//       <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-lg p-6">
-//         <div className="flex items-center mb-6">
-//           <h1>Hello</h1>
-//           <Image
-//             src={adminDetails.profilePictureUrl}
-//             alt={adminDetails.fullName}
-//             className="h-32 w-32 rounded-full border border-gray-300 shadow-sm mr-6"
-//           />
-//           <div>
-//             <h1 className="text-2xl font-bold">{adminDetails.fullName}</h1>
-//             <p className="text-gray-600">{adminDetails.email}</p>
-//             <p className="text-gray-600">
-//               Contact: {adminDetails.contactNumber}
-//             </p>
-//           </div>
-//         </div>
-
-//         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-//           <div>
-//             <h2 className="text-lg font-semibold">Admin Notes</h2>
-//             <p className="text-gray-700">{adminDetails.adminNotes}</p>
-//           </div>
-
-//           <div>
-//             <h2 className="text-lg font-semibold">Qualifications</h2>
-//             <p className="text-gray-700">{adminDetails.qualifications}</p>
-//           </div>
-//         </div>
-
-//         <div className="mt-6">
-//           <h2 className="text-lg font-semibold">Timestamps</h2>
-//           <p className="text-gray-600">
-//             Created At: {new Date(adminDetails.createdAt).toLocaleString()}
-//           </p>
-//           <p className="text-gray-600">
-//             Updated At: {new Date(adminDetails.updatedAt).toLocaleString()}
-//           </p>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default AdminProfilePage;
-// pages/dashboard/admin/[id].tsx
-// import { useEffect, useState } from "react";
-// import { useRouter } from "next/router";
-// import { useSelector } from "react-redux";
-// import { RootState } from "@/store";
-// import { getAdminByUserID } from "@/service/adminProfile/getAdminByUserID";
-
-// export default function AdminProfile() {
-//   const router = useRouter();
-//   const { id } = router.query; // Get id from URL
-//   const token = useSelector((state: RootState) => state.auth.accessToken);
-//   const [adminDetails, setAdminDetails] = useState(null);
-//   const [loading, setLoading] = useState(false);
-//   const [error, setError] = useState<string | null>(null);
-
-//   // Debug logs
-//   console.log("Component rendered with:", {
-//     id: id,
-//     token: token ? "exists" : "missing",
-//     query: router.query,
-//   });
-
-//   useEffect(() => {
-//     console.log("useEffect triggered");
-//     // Wait for router to be ready and have query parameters
-//     if (!router.isReady) return;
-
-//     // Ensure id exists and is not an array
-//     const userId = typeof id === "string" ? parseInt(id) : null;
-
-//     if (userId && token) {
-//       console.log("Conditions met, fetching admin details");
-//       fetchAdminDetails(userId);
-//     } else {
-//       console.log("Missing requirements:", { userId, hasToken: !!token });
-//     }
-//   }, [router.isReady, id, token]);
-
-//   const fetchAdminDetails = async (userId: number) => {
-//     setLoading(true);
-//     setError(null);
-//     console.log("Fetching admin details for userId:", userId);
-
-//     try {
-//       const data = await getAdminByUserID(userId, token);
-//       console.log("Received admin details:", data);
-//       setAdminDetails(data);
-//     } catch (error) {
-//       setError("Failed to fetch admin details. Please try again.");
-//       console.error("Error fetching admin details:", error);
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   if (!router.isReady) {
-//     return <div>Loading router...</div>;
-//   }
-
-//   if (loading) {
-//     return (
-//       <div className="flex justify-center items-center min-h-screen">
-//         <p>Loading admin details...</p>
-//       </div>
-//     );
-//   }
-
-//   if (error) {
-//     return (
-//       <div className="flex justify-center items-center min-h-screen text-red-500">
-//         {error}
-//       </div>
-//     );
-//   }
-
-//   return (
-//     <div className="p-4">
-//       {adminDetails ? (
-//         <div>
-//           <h1 className="text-2xl font-bold mb-4">Admin Profile</h1>
-//           <pre>{JSON.stringify(adminDetails, null, 2)}</pre>
-//         </div>
-//       ) : (
-//         <div>No admin details found</div>
-//       )}
-//     </div>
-//   );
-// }
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
-import { getAdminByUserID } from "@/service/adminProfile/getAdminByUserID";
+import { fetchAdminProfile } from "@/service/adminProfile/GetAdminProfile";
 import { User, Mail, Phone, FileText, Calendar, Award } from "lucide-react";
 import Image from "next/image";
-import Navbar from "@/components/navbar/Navbar2";
+import { AdminDetails } from "@/lib/types";
+import DashboardLayout from "@/components/dashboard/DashboardLayout";
 
-interface AdminDetails {
-  adminId: number;
-  userId: number;
-  fullName: string;
-  adminNotes: string;
-  qualifications: string;
-  contactNumber: string;
-  email: string;
-  profilePictureUrl: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export default function AdminProfile() {
+  const AdminProfile = () => {
   const router = useRouter();
   const { id } = router.query;
   const token = useSelector((state: RootState) => state.auth.accessToken);
@@ -249,7 +31,7 @@ export default function AdminProfile() {
     setError(null);
 
     try {
-      const data = await getAdminByUserID(userId, token);
+      const data = await fetchAdminProfile(token, userId);
       setAdminDetails(data);
     } catch (error) {
       setError("Failed to fetch admin details. Please try again.");
@@ -298,9 +80,8 @@ export default function AdminProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-200 via-blue-200 to-purple-200">
-      <Navbar />
-      <div className="bg-white shadow-lg rounded-xl overflow-hidden max-w-4xl mx-auto my-8">
+    <div className="min-h-screen bg-gradient-to-br from-purple-200 via-blue-200 to-purple-200 p-6">
+      <div className="bg-white shadow-lg rounded-xl overflow-hidden max-w-4xl mx-auto">
         <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-6">
           <div className="flex items-center space-x-6">
             {adminDetails.profilePictureUrl ? (
@@ -383,8 +164,13 @@ export default function AdminProfile() {
             </p>
           </div>
         </div>
-           
       </div>
     </div>
   );
 }
+
+AdminProfile.getLayout = (page: any) => (
+  <DashboardLayout>{page}</DashboardLayout>
+);
+
+export default AdminProfile;

@@ -212,10 +212,14 @@ export function RegisteredListenersTable() {
                     <ul className="flex flex-col justify-center items-start">
                       <Button
                         variant="link"
-                        className="text-purple-500"
+                        className={`${
+                          statusFilter === "ACTIVE"
+                            ? "text-red-500"
+                            : "text-green-500"
+                        }`}
                         onClick={() => handleDetailsModal(listener.userId)}
                       >
-                        Details
+                        {statusFilter === "ACTIVE" ? "Suspend" : "Activate"}
                       </Button>
                       <Button
                         variant="link"

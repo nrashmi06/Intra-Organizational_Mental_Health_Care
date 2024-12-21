@@ -1,18 +1,19 @@
 import axios from 'axios';
-// import error from 'next/error';
 
-export const fetchAdminProfile = async (token: string) => {
+export const fetchAdminProfile = async (token: string, userId?: number) => {
   try {
     console.log("Fetching admin profile...");
     console.log("Token: ", token);
-    const response = await axios.get(
-      `http://localhost:8080/mental-health/api/v1/admins/profile`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    const url = userId
+      ? `http://localhost:8080/mental-health/api/v1/admins/profile?userId=${userId}`
+      : `http://localhost:8080/mental-health/api/v1/admins/profile`;
+
+    const response = await axios.get(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
     return response.data;
   } catch (error: any) {
     if (error.response && error.response.status === 404) {

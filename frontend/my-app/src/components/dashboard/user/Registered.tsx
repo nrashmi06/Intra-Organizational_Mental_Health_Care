@@ -18,97 +18,67 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getListenersByProfileStatus } from "@/service/listener/getListenersByProfileStatus";
+import { getUsersByProfileStatus } from "@/service/user/getUsersByProfileStatus";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import Details from "./ModalDetails";
-import ListenerDetailsForAdmin from "@/components/dashboard/listener/ModalApplication";
-import { ListenerApplication } from "@/lib/types";
-import { getApplicationByListenerUserId } from "@/service/listener/getApplicationByListenerUserId";
-import { Listener } from "@/lib/types";
+import { User } from "@/lib/types";
 
 export function RegisteredUsersTable() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [listeners, setListeners] = useState<Listener[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [statusFilter, setStatusFilter] = useState<string>("ACTIVE");
   const [currentPage, setCurrentPage] = useState(1);
-  const [dropdown, setDropdown] = useState(false);
+  const [activeDropdown, setActiveDropdown] = useState<number | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const itemsPerPage = 5;
   const accessToken = useSelector((state: RootState) => state.auth.accessToken);
   const [detailsModal, setDetailsModal] = useState(false);
-  const [applicationModal, setApplicationModal] = useState(false);
-  const [application, setApplication] = useState<ListenerApplication | null>(
-    null
-  );
-  const [selectedListener, setSelectedListener] = useState<number | null>(null);
+  const [selectedUser, setSelectedUser] = useState<number | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   useEffect(() => {
-    fetchListenersByProfileStatus("ACTIVE");
+    fetchUsersByProfileStatus("ACTIVE");
   }, []);
 
-  const fetchListenersByProfileStatus = async (
-    status: "ACTIVE" | "SUSPENDED"
-  ) => {
+  const fetchUsersByProfileStatus = async (status: "ACTIVE" | "SUSPENDED") => {
     try {
-      const response = await getListenersByProfileStatus(accessToken, status);
-      setListeners(response);
+      const response = await getUsersByProfileStatus(accessToken, status);
+      setUsers(response);
+      console.log(response);
       setStatusFilter(status);
     } catch (error) {
-      console.error("Error fetching listeners by profile status:", error);
+      console.error("Error fetching users by profile status:", error);
     }
   };
 
-  const fetchApplicationData = async (userId: number) => {
-    try {
-      const fetchedApplication = await getApplicationByListenerUserId(
-        userId,
-        accessToken
-      );
-      setApplication(fetchedApplication);
-      setApplicationModal(true);
-    } catch (error) {
-      console.log("Failed to fetch application details." + error);
-    }
+  const toggleDropdown = (userId: number) => {
+    setActiveDropdown((prev) => (prev === userId ? null : userId));
   };
 
   const handleModalClose = () => {
-    setApplicationModal(false);
     setDetailsModal(false);
-    setSelectedListener(null);
-    setApplication(null);
-  };
-
-  const handleApplicationModal = async (userId: number) => {
-    setSelectedListener(userId);
-    await fetchApplicationData(userId);
-    setDropdown(false);
+    setSelectedUser(null);
   };
 
   const handleDetailsModal = (userId: number) => {
-    setSelectedListener(userId);
+    setSelectedUser(userId);
     setDetailsModal(true);
-    setDropdown(false);
+    setActiveDropdown(null);
   };
 
   const handleFilterChange = (status: string) => {
     setStatusFilter(status);
-    fetchListenersByProfileStatus(status as "ACTIVE" | "SUSPENDED");
+    fetchUsersByProfileStatus(status as "ACTIVE" | "SUSPENDED");
   };
 
-  const filteredListeners = listeners.filter((listener) => {
+  const filteredUsers = users.filter((user) => {
     const matchesSearch =
-      listener.anonymousName
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase()) ||
-      listener.userId
-        .toString()
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase());
+      user.anonymousName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.id.toString().toLowerCase().includes(searchQuery.toLowerCase());
     return matchesSearch;
   });
 
-  const paginatedListeners = filteredListeners.slice(
+  const paginatedUsers = filteredUsers.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
@@ -119,7 +89,7 @@ export function RegisteredUsersTable() {
         dropdownRef.current &&
         !dropdownRef.current.contains(event.target as Node)
       ) {
-        setDropdown(false);
+        setActiveDropdown(null);
       }
     };
 
@@ -135,8 +105,8 @@ export function RegisteredUsersTable() {
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            id="search-listeners"
-            placeholder="Search listeners..."
+            id="search-users"
+            placeholder="Search users..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-8"
@@ -157,17 +127,28 @@ export function RegisteredUsersTable() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Listener ID</TableHead>
+              <TableHead>User ID</TableHead>
               <TableHead>Anonymous Name</TableHead>
+              <TableHead>Email Id</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {paginatedListeners.map((listener) => (
-              <TableRow key={listener.userId}>
-                <TableCell>{listener.userId}</TableCell>
-                <TableCell>{listener.anonymousName}</TableCell>
+            {paginatedUsers.map((user) => (
+              <TableRow key={user.id}>
+                <TableCell>{user.id}</TableCell>
+                <TableCell>
+                  {user.anonymousName}
+                  {user.active && (
+                    <span className="relative inline-block align-top ml-1">
+                      <span className="absolute top-[-0.5em] right-[-0.5em] inline-block w-2 h-2 bg-green-500 rounded-full"></span>
+                    </span>
+                  )}
+                </TableCell>
+
+                <TableCell>{user.email}</TableCell>
+
                 <TableCell>
                   <div
                     className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
@@ -183,53 +164,45 @@ export function RegisteredUsersTable() {
                 <TableCell className="text-right relative">
                   <Button
                     variant="link"
-                    onClick={() => setDropdown((prev) => !prev)}
+                    onClick={() => toggleDropdown(user.id)}
                   >
                     <MoreHorizontal className="h-4 w-4" />
                   </Button>
                 </TableCell>
-                {detailsModal && selectedListener === listener.userId && (
+                {detailsModal && selectedUser === user.id && (
                   <Details
-                    userId={listener.userId}
+                    userId={user.id}
                     handleClose={handleModalClose}
                     statusFilter={statusFilter}
                     setSuccessMessage={setSuccessMessage}
                   />
                 )}
-                {applicationModal &&
-                  selectedListener === listener.userId &&
-                  application && (
-                    <ListenerDetailsForAdmin
-                      data={application}
-                      handleClose={handleModalClose}
-                    />
-                  )}
-                {dropdown && (
+                {activeDropdown === user.id && (
                   <div
                     ref={dropdownRef}
-                    className="fixed right-16 top-[319px] w-44 bg-white border rounded-md shadow-lg"
+                    className="fixed right-16 top-[319px] w-44 bg-white border rounded-md shadow-lg z-50"
                   >
                     <ul className="flex flex-col justify-center items-start">
                       <Button
                         variant="link"
-                        className="text-purple-500"
-                        onClick={() => handleDetailsModal(listener.userId)}
+                        className={`${statusFilter === "ACTIVE" ? "text-red-500" : "text-green-500"}`}
+                        onClick={() => handleDetailsModal(user.id)}
                       >
-                        Details
+                        {statusFilter === "ACTIVE" ? "Suspend" : "Activate"}
                       </Button>
                       <Button
                         variant="link"
                         className="text-purple-500"
-                        href={`/dashboard/listener/sessions/${listener.userId}`}
+                        href={`/dashboard/user/sessions/${user.id}`}
                       >
                         Sessions
                       </Button>
                       <Button
                         variant="link"
                         className="text-purple-500"
-                        onClick={() => handleApplicationModal(listener.userId)}
+                        href={`/dashboard/user/appointments/${user.id}`}
                       >
-                        Application
+                        Appointments
                       </Button>
                     </ul>
                   </div>
@@ -256,8 +229,8 @@ export function RegisteredUsersTable() {
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
           Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
-          {Math.min(currentPage * itemsPerPage, filteredListeners.length)} of{" "}
-          {filteredListeners.length} entries
+          {Math.min(currentPage * itemsPerPage, filteredUsers.length)} of{" "}
+          {filteredUsers.length} entries
         </p>
         <div className="flex items-center gap-2">
           <Button
@@ -272,7 +245,7 @@ export function RegisteredUsersTable() {
             variant="outline"
             size="sm"
             onClick={() => setCurrentPage((p) => p + 1)}
-            disabled={currentPage * itemsPerPage >= filteredListeners.length}
+            disabled={currentPage * itemsPerPage >= filteredUsers.length}
           >
             Next
           </Button>

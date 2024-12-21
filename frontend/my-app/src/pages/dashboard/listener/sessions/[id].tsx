@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { getSessionListByRole } from "@/service/session/getSessionsListByRole";
-import { Eye, FileText, MessageSquare } from "lucide-react";
+import { Eye, FileText, MessageSquare, Menu, X } from "lucide-react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import SessionDetailView from "@/components/dashboard/SessionDetailView";
 import StackNavbar from "@/components/ui/stackNavbar";
@@ -16,9 +16,8 @@ const ListenerSessions = () => {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [listenerId, setListenerId] = useState<number | null>(null);
   const [selectedSession, setSelectedSession] = useState<number | null>(null);
-  const [detailView, setDetailView] = useState<
-    "report" | "feedback" | "messages" | null
-  >(null);
+  const [detailView, setDetailView] = useState<"report" | "feedback" | "messages" | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -32,11 +31,7 @@ const ListenerSessions = () => {
 
   const fetchSessions = async (listenerId: number) => {
     try {
-      const response = await getSessionListByRole(
-        listenerId,
-        "listener",
-        token
-      );
+      const response = await getSessionListByRole(listenerId, "listener", token);
       if (response?.ok) {
         const sessionData: Session[] = await response.json();
         setSessions(sessionData);
@@ -54,6 +49,7 @@ const ListenerSessions = () => {
   ) => {
     setSelectedSession(sessionId);
     setDetailView(view);
+    setIsMobileMenuOpen(false);
   };
 
   const stackItems = [
@@ -64,74 +60,99 @@ const ListenerSessions = () => {
       : []),
   ];
 
+  const SessionCard = ({ session }: { session: Session }) => (
+    <div className="bg-white shadow-sm rounded-lg p-4 border border-gray-100 hover:shadow-md transition-all duration-200">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center w-full gap-2">
+          <span className="font-semibold text-gray-700 text-lg">
+            Session #{session.sessionId}
+          </span>
+          <span
+            className={`px-3 py-1 rounded-full text-sm font-medium ${
+              session.sessionStatus === "Completed"
+                ? "bg-green-100 text-green-800"
+                : session.sessionStatus === "In Progress"
+                ? "bg-yellow-100 text-yellow-800"
+                : "bg-gray-100 text-gray-800"
+            }`}
+          >
+            {session.sessionStatus}
+          </span>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        <button
+          onClick={() => handleDetailView(session.sessionId, "report")}
+          className="flex items-center gap-2 px-3 py-2 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 transition-colors text-sm font-medium flex-1 justify-center sm:justify-start"
+        >
+          <FileText size={18} />
+          <span>Report</span>
+        </button>
+        <button
+          onClick={() => handleDetailView(session.sessionId, "feedback")}
+          className="flex items-center gap-2 px-3 py-2 bg-green-50 text-green-600 rounded-md hover:bg-green-100 transition-colors text-sm font-medium flex-1 justify-center sm:justify-start"
+        >
+          <MessageSquare size={18} />
+          <span>Feedback</span>
+        </button>
+        <button
+          onClick={() => handleDetailView(session.sessionId, "messages")}
+          className="flex items-center gap-2 px-3 py-2 bg-purple-50 text-purple-600 rounded-md hover:bg-purple-100 transition-colors text-sm font-medium flex-1 justify-center sm:justify-start"
+        >
+          <Eye size={18} />
+          <span>Messages</span>
+        </button>
+      </div>
+    </div>
+  );
+
   return (
     <>
       <StackNavbar items={stackItems} />
-      <div className="flex h-[calc(100vh-64px)]">
-        <div className="w-1/3 bg-gray-50 border-r border-gray-200 overflow-y-auto p-4">
+      
+      {/* Mobile Menu Toggle */}
+      <div className="lg:hidden fixed top-16 right-4 z-50">
+        <button
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="p-2 bg-white rounded-full shadow-md"
+        >
+          {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+      </div>
+
+      <div className="flex flex-col lg:flex-row h-[calc(100vh-64px)]">
+        {/* Mobile Menu Overlay */}
+        <div
+          className={`fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity lg:hidden ${
+            isMobileMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+          }`}
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+
+        {/* Sessions List Section */}
+        <div
+          className={`w-full lg:w-1/3 bg-gray-50 border-r border-gray-200 overflow-y-auto 
+                     fixed lg:relative z-40 transition-transform duration-300 ease-in-out
+                     ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+                     h-[calc(100vh-64px)] lg:h-auto`}
+        >
           {listenerId && (
-            <div className="space-y-4">
+            <div className="space-y-4 p-4">
               {sessions.map((session) => (
-                <div
-                  key={session.sessionId}
-                  className="bg-white shadow-sm rounded-lg p-4 border border-gray-100 hover:shadow-md transition-shadow"
-                >
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="font-semibold text-gray-700">
-                      Session #{session.sessionId}
-                    </span>
-                    <span
-                      className={`px-2 py-1 rounded text-xs font-medium ${
-                        session.sessionStatus === "Completed"
-                          ? "bg-green-100 text-green-800"
-                          : session.sessionStatus === "In Progress"
-                          ? "bg-yellow-100 text-yellow-800"
-                          : "bg-gray-100 text-gray-800"
-                      }`}
-                    >
-                      {session.sessionStatus}
-                    </span>
-                  </div>
-                  <div className="flex justify-end items-center">
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() =>
-                          handleDetailView(session.sessionId, "report")
-                        }
-                        className="text-blue-600 hover:text-blue-800 transition-colors"
-                        title="View Session Report"
-                      >
-                        <FileText size={20} />
-                      </button>
-                      <button
-                        onClick={() =>
-                          handleDetailView(session.sessionId, "feedback")
-                        }
-                        className="text-green-600 hover:text-green-800 transition-colors"
-                        title="View Session Feedback"
-                      >
-                        <MessageSquare size={20} />
-                      </button>
-                      <button
-                        onClick={() =>
-                          handleDetailView(session.sessionId, "messages")
-                        }
-                        className="text-purple-600 hover:text-purple-800 transition-colors"
-                        title="View Session Messages"
-                      >
-                        <Eye size={20} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                <SessionCard key={session.sessionId} session={session} />
               ))}
             </div>
           )}
           {!listenerId && (
-            <p className="text-gray-500">Loading listener information...</p>
+            <div className="flex items-center justify-center h-full">
+              <p className="text-gray-500">Loading listener information...</p>
+            </div>
           )}
         </div>
-        <div className="w-2/3 bg-gray-100">
+
+        {/* Session Detail View Section */}
+        <div className="w-full lg:w-2/3 bg-gray-100 min-h-[calc(100vh-64px)]">
           <SessionDetailView
             type={detailView}
             sessionId={selectedSession}
@@ -148,207 +169,3 @@ ListenerSessions.getLayout = (page: any) => (
 );
 
 export default ListenerSessions;
-
-// import React, { useEffect, useState } from "react";
-// import { useRouter } from "next/router";
-// import { useSelector } from "react-redux";
-// import { RootState } from "@/store";
-// import { getSessionListByRole } from "@/service/session/getSessionsListByRole";
-// import { Eye, FileText, MessageSquare, Menu, X } from "lucide-react";
-// import DashboardLayout from "@/components/dashboard/DashboardLayout";
-// import SessionDetailView from "@/components/dashboard/listener/SessionDetailView";
-// import StackNavbar from "@/components/ui/stackNavbar";
-
-// interface Session {
-//   sessionId: number;
-//   userId: number;
-//   listenerId: number;
-//   sessionStatus: string;
-// }
-
-// const ListenerSessions = () => {
-//   const router = useRouter();
-//   const { id } = router.query;
-//   const token = useSelector((state: RootState) => state.auth.accessToken);
-//   const [sessions, setSessions] = useState<Session[]>([]);
-//   const [listenerId, setListenerId] = useState<number | null>(null);
-//   const [selectedSession, setSelectedSession] = useState<number | null>(null);
-//   const [detailView, setDetailView] = useState<"report" | "feedback" | "messages" | null>(null);
-//   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-
-//   useEffect(() => {
-//     if (id) {
-//       const parsedId = parseInt(id as string, 10);
-//       if (!isNaN(parsedId)) {
-//         setListenerId(parsedId);
-//         fetchSessions(parsedId);
-//       }
-//     }
-//   }, [id]);
-
-//   const fetchSessions = async (listenerId: number) => {
-//     try {
-//       const response = await getSessionListByRole(listenerId, "listener", token);
-//       if (response?.ok) {
-//         const sessionData: Session[] = await response.json();
-//         setSessions(sessionData);
-//       } else {
-//         console.error("Failed to fetch sessions:", response?.statusText);
-//       }
-//     } catch (error) {
-//       console.error("Error fetching sessions:", error);
-//     }
-//   };
-
-//   const handleDetailView = (sessionId: number, view: "report" | "feedback" | "messages") => {
-//     setSelectedSession(sessionId);
-//     setDetailView(view);
-//     // Close mobile sidebar when a session is selected
-//     setIsMobileSidebarOpen(false);
-//   };
-
-//   const toggleMobileSidebar = () => {
-//     setIsMobileSidebarOpen(!isMobileSidebarOpen);
-//   };
-
-//   const stackItems = [
-//     { label: "Listener Dashboard", href: "/dashboard/listener" },
-//     { label: "Listener Sessions", href: `/dashboard/listener/sessions/${id}` },
-//     ...(detailView ? [{ label: detailView.charAt(0).toUpperCase() + detailView.slice(1) }] : []),
-//   ];
-
-//   return (
-//     <>
-//       <StackNavbar items={stackItems} />
-//       <div className="flex h-[calc(100vh-64px)]">
-//         {/* Mobile Sidebar Toggle */}
-//         <button
-//           onClick={toggleMobileSidebar}
-//           className="fixed top-16 left-0 z-50 p-2 m-2 bg-blue-500 text-white rounded-md md:hidden"
-//         >
-//           {isMobileSidebarOpen ? <X size={24} /> : <Menu size={24} />}
-//         </button>
-
-//         {/* Mobile Sidebar */}
-//         <div className={`
-//           fixed inset-y-0 left-0 z-40 w-3/4 bg-gray-50 border-r border-gray-200
-//           overflow-y-auto p-4 transform transition-transform duration-300 ease-in-out
-//           md:hidden ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-//         `}>
-//           <div className="space-y-4">
-//             {sessions.map((session) => (
-//               <div
-//                 key={session.sessionId}
-//                 className="bg-white shadow-sm rounded-lg p-4 border border-gray-100 hover:shadow-md transition-shadow"
-//               >
-//                 <div className="flex justify-between items-center mb-2">
-//                   <span className="font-semibold text-gray-700 text-sm">Session #{session.sessionId}</span>
-//                   <span
-//                     className={`px-2 py-1 rounded text-xs font-medium ${
-//                       session.sessionStatus === "Completed"
-//                         ? "bg-green-100 text-green-800"
-//                         : session.sessionStatus === "In Progress"
-//                         ? "bg-yellow-100 text-yellow-800"
-//                         : "bg-gray-100 text-gray-800"
-//                     }`}
-//                   >
-//                     {session.sessionStatus}
-//                   </span>
-//                 </div>
-//                 <div className="flex justify-end items-center">
-//                   <div className="flex space-x-2">
-//                     <button
-//                       onClick={() => handleDetailView(session.sessionId, "report")}
-//                       className="text-blue-600 hover:text-blue-800 transition-colors"
-//                       title="View Session Report"
-//                     >
-//                       <FileText size={20} />
-//                     </button>
-//                     <button
-//                       onClick={() => handleDetailView(session.sessionId, "feedback")}
-//                       className="text-green-600 hover:text-green-800 transition-colors"
-//                       title="View Session Feedback"
-//                     >
-//                       <MessageSquare size={20} />
-//                     </button>
-//                     <button
-//                       onClick={() => handleDetailView(session.sessionId, "messages")}
-//                       className="text-purple-600 hover:text-purple-800 transition-colors"
-//                       title="View Session Messages"
-//                     >
-//                       <Eye size={20} />
-//                     </button>
-//                   </div>
-//                 </div>
-//               </div>
-//             ))}
-//           </div>
-//         </div>
-
-//         {/* Desktop Sidebar */}
-//         <div className="hidden md:block w-1/3 bg-gray-50 border-r border-gray-200 overflow-y-auto p-4">
-//           {listenerId && (
-//             <div className="space-y-4">
-//               {sessions.map((session) => (
-//                 <div
-//                   key={session.sessionId}
-//                   className="bg-white shadow-sm rounded-lg p-4 border border-gray-100 hover:shadow-md transition-shadow"
-//                 >
-//                   <div className="flex justify-between items-center mb-2">
-//                     <span className="font-semibold text-gray-700">Session #{session.sessionId}</span>
-//                     <span
-//                       className={`px-2 py-1 rounded text-xs font-medium ${
-//                         session.sessionStatus === "Completed"
-//                           ? "bg-green-100 text-green-800"
-//                           : session.sessionStatus === "In Progress"
-//                           ? "bg-yellow-100 text-yellow-800"
-//                           : "bg-gray-100 text-gray-800"
-//                       }`}
-//                     >
-//                       {session.sessionStatus}
-//                     </span>
-//                   </div>
-//                   <div className="flex justify-end items-center">
-//                     <div className="flex space-x-2">
-//                       <button
-//                         onClick={() => handleDetailView(session.sessionId, "report")}
-//                         className="text-blue-600 hover:text-blue-800 transition-colors"
-//                         title="View Session Report"
-//                       >
-//                         <FileText size={20} />
-//                       </button>
-//                       <button
-//                         onClick={() => handleDetailView(session.sessionId, "feedback")}
-//                         className="text-green-600 hover:text-green-800 transition-colors"
-//                         title="View Session Feedback"
-//                       >
-//                         <MessageSquare size={20} />
-//                       </button>
-//                       <button
-//                         onClick={() => handleDetailView(session.sessionId, "messages")}
-//                         className="text-purple-600 hover:text-purple-800 transition-colors"
-//                         title="View Session Messages"
-//                       >
-//                         <Eye size={20} />
-//                       </button>
-//                     </div>
-//                   </div>
-//                 </div>
-//               ))}
-//             </div>
-//           )}
-//           {!listenerId && <p className="text-gray-500 text-center">Loading listener information...</p>}
-//         </div>
-
-//         {/* Detail View */}
-//         <div className="w-full md:w-2/3 bg-gray-100">
-//           <SessionDetailView type={detailView} sessionId={selectedSession} token={token} />
-//         </div>
-//       </div>
-//     </>
-//   );
-// };
-
-// ListenerSessions.getLayout = (page: any) => <DashboardLayout>{page}</DashboardLayout>;
-
-// export default ListenerSessions;

@@ -14,14 +14,20 @@ export interface ListenerApplication {
   reviewedAt: string | null;
 }
 
+export interface Admin {
+  userId: number;
+  anonymousName: string;
+}
 export interface Listener {
   userId: number;
   anonymousName: string;
 }
 
 export interface User {
-  userId: number;
+  id: number;
   anonymousName: string;
+  email: string;
+  active: boolean;
 }
 
 export interface ListenerDetails {
@@ -58,47 +64,37 @@ export interface Session {
 
 export interface Appointment {
   appointmentId: number;
-  title: string;
+  appointmentReason: string;
   userName: string;
   adminName: string;
-  status: string;
+  status: "REQUESTED" | "CANCELED" | "CONFIRMED";
+  date: string;
+  startTime: string;
+  endTime: string;
 }
-
 export interface AppointmentDetails {
   appointmentId: number;
   userName: string;
   adminName: string;
-  timeSlot: {
-    startTime: string;
-    endTime: string;
-  };
+  timeSlotDate: string;
+  timeSlotStartTime: string;
+  timeSlotEndTime: string;
   appointmentReason: string;
   status: "REQUESTED" | "CANCELED" | "CONFIRMED";
+  phoneNumber: string;
+  fullName: string;
+  severityLevel: "LOW" | "MEDIUM" | "HIGH";
 }
 
-// Interface for Appointment
-// export interface Appointment {
-//   appointmentId: number;
-//   appointmentReason: string;
-//   userName: string;
-//   adminName: string;
-//   status: "REQUESTED" | "CANCELED" | "CONFIRMED";
-//   date: string;
-//   startTime: string;
-//   endTime: string;
-// }
-
-// // Interface for AppointmentDetails
-// export interface AppointmentDetails {
-//   appointmentId: number;
-//   userName: string;
-//   adminName: string;
-//   timeSlotDate: string;
-//   timeSlotStartTime: string;
-//   timeSlotEndTime: string;
-//   appointmentReason: string;
-//   status: "REQUESTED" | "CANCELED" | "CONFIRMED";
-//   phoneNumber: string;
-//   fullName: string;
-//   severityLevel: string;
-// }
+export interface AdminDetails {
+  adminId: number;
+  userId: number;
+  fullName: string;
+  adminNotes: string;
+  qualifications: string;
+  contactNumber: string;
+  email: string;
+  profilePictureUrl: string;
+  createdAt: string;
+  updatedAt: string;
+}
