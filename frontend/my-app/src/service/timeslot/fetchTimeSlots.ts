@@ -1,8 +1,8 @@
 import axios from 'axios';
 
 // Function to get the time slots based on the date range
-export const fetchTimeSlots = async (accessToken : string ,startDate : string, endDate : string) => {
-  const url = `http://localhost:8080/mental-health/api/v1/time-slots/1/date-range?startDate=${startDate}&endDate=${endDate}`;
+export const fetchTimeSlots = async (accessToken : string,userID : string | null ,startDate : string, endDate : string) => {
+  const url = `http://localhost:8080/mental-health/api/v1/time-slots/${userID}/date-range?startDate=${startDate}&endDate=${endDate}`;
 
   try {
     // Sending the GET request

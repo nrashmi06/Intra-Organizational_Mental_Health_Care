@@ -1,5 +1,5 @@
-const deleteTimeSlots = async (token: string, startDate: string, endDate: string) => {
-    const url = `http://localhost:8080/mental-health/api/v1/time-slots/1/date-range?startDate=${startDate}&endDate=${endDate}&isAvailable=true`;
+const deleteTimeSlots = async (token: string,userID : string | null, startDate: string, endDate: string) => {
+    const url = `http://localhost:8080/mental-health/api/v1/time-slots/${userID}/date-range?startDate=${startDate}&endDate=${endDate}&isAvailable=true`;
   
     try {
       const response = await fetch(url, {

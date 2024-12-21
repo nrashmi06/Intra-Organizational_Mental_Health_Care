@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-export const confirmTimeSlots = async (accessToken: string, timeSlots: any[], startDate: string, endDate: string) => {
-  const url = `http://localhost:8080/mental-health/api/v1/time-slots/1/date-range?startDate=${startDate}&endDate=${endDate}`;
+export const confirmTimeSlots = async (accessToken: string,userID : string | null , timeSlots: any[], startDate: string, endDate: string) => {
+  const url = `http://localhost:8080/mental-health/api/v1/time-slots/${userID}/date-range?startDate=${startDate}&endDate=${endDate}`;
 
   const requestBody = {
     timeSlots

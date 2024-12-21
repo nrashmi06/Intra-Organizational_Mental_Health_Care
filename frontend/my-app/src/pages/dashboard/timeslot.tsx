@@ -74,7 +74,7 @@ const TimeSlotPage = () => {
     const end = getEndDate();
     const fetchData = async () => {
       try {
-        const confirmedData = await fetchTimeSlots(token, today, end);
+        const confirmedData = await fetchTimeSlots(token,userID, today, end);
         const groupedConfirmedSlots = confirmedData.reduce((acc: any, slot: any) => {
           acc[slot.date] = acc[slot.date] || [];
           acc[slot.date].push(slot);
@@ -94,7 +94,7 @@ const TimeSlotPage = () => {
     end.setDate(end.getDate() - 1);
     const formattedEnd = end.toISOString().split('T')[0];
 
-    deleteTimeSlots(token, start, formattedEnd); // Delete old slots
+    deleteTimeSlots(token,userID, start, formattedEnd); // Delete old slots
   }, []);
 
   const handleAddTimeSlot = () => {
@@ -126,7 +126,7 @@ const TimeSlotPage = () => {
 
   const handleConfirmSelectedSlots = async () => {
     try {
-      const response = await confirmTimeSlots(token, selectedSlots, startDate, endDate);
+      const response = await confirmTimeSlots(token,userID, selectedSlots, startDate, endDate);
       console.log(response);
       setSelectedSlots([]);
       alert('Selected time slots confirmed!');
@@ -277,45 +277,44 @@ const TimeSlotPage = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {Object.entries(groupedSlots).map(([date, slots]) => (
-                console.log(slots),
-              <div key={date} className="space-y-2">
-                <h3 className="font-semibold text-lg">{date}</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {(slots as Array<{ startTime: string; endTime: string; isAvailable: boolean; timeSlotId: string }>).map((slot, index) => {
-                    const isSelected = selectedSlot && selectedSlot.timeSlotId === slot.timeSlotId;
-                    return (
-                      <div
-                        key={index}
-                        className={`p-4 rounded-lg shadow-md hover:shadow-lg transition-all cursor-pointer ${
-                          isSelected
-                            ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
-                            : 'bg-white hover:bg-gray-50 border-2 border-gray-200'
-                        }`}
-                        onClick={() => {
-                          setSelectedSlot(slot);
-                          console.log("slot selected : ", selectedSlot);
-                          setNewStartTime(slot.startTime);
-                          setNewEndTime(slot.endTime);
-                          setIsModalOpen(true);
-                        }}
-                      >
-                        
-                        <div className="text-center">
-                          <p className="font-medium">{slot.startTime} - {slot.endTime}</p>
-                          <p className={`text-sm ${slot.isAvailable ? 'text-green-500' : 'text-red-500'}`}>
-                            {slot.isAvailable ? 'Available' : 'Not Available'}
-                          </p>
+        <div className="space-y-4">
+            {Object.entries(groupedSlots)
+              .sort(([dateA], [dateB]) => new Date(dateA).getTime() - new Date(dateB).getTime()) // Sort dates in ascending order
+              .map(([date, slots]) => (
+                <div key={date} className="space-y-2">
+                  <h3 className="font-semibold text-lg">{date}</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {(slots as Array<{ startTime: string; endTime: string; isAvailable: boolean; timeSlotId: string }>).map((slot, index) => {
+                      const isSelected = selectedSlot && selectedSlot.timeSlotId === slot.timeSlotId;
+                      return (
+                        <div
+                          key={index}
+                          className={`p-4 rounded-lg shadow-md hover:shadow-lg transition-all cursor-pointer ${
+                            isSelected
+                              ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
+                              : 'bg-white hover:bg-gray-50 border-2 border-gray-200'
+                          }`}
+                          onClick={() => {
+                            setSelectedSlot(slot);
+                            console.log("slot selected : ", slot);
+                            setNewStartTime(slot.startTime);
+                            setNewEndTime(slot.endTime);
+                            setIsModalOpen(true);
+                          }}
+                        >
+                          <div className="text-center">
+                            <p className="font-medium">{slot.startTime} - {slot.endTime}</p>
+                            <p className={`text-sm ${slot.isAvailable ? 'text-green-500' : 'text-red-500'}`}>
+                              {slot.isAvailable ? 'Available' : 'Booked'}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
           </div>
-
           {/* Modal for Update/Delete */}
           {isModalOpen && selectedSlot && (
             console.log("selected slot : ", selectedSlot),
