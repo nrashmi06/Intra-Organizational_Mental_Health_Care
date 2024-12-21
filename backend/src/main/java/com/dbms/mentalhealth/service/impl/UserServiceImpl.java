@@ -435,6 +435,9 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         if (appointments == null) {
             appointments = Collections.emptyList();
         }
+        if(sessions == null){
+            sessions = Collections.emptyList();
+        }
 
         return UserMapper.toUserDataResponseDTO(user, sessions, appointments);
     }

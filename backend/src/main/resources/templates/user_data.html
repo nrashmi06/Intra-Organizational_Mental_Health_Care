@@ -49,24 +49,24 @@
             color: #2c3e50;
         }
 
-        .user-info {
+        .user-info, .session-info {
             display: table;
             width: 100%;
             margin-bottom: 15px;
         }
 
-        .user-info p {
+        .user-info p, .session-info p {
             display: table-row;
-            border-bottom: 1px solid #ecf0f1;
         }
 
-        .user-info p strong {
+        .user-info p strong, .session-info p strong {
             display: table-cell;
             color: #2c3e50;
             padding: 5px 0;
+            width: 150px;
         }
 
-        .user-info p span {
+        .user-info p span, .session-info p span {
             display: table-cell;
             padding: 5px 0 5px 10px;
         }
@@ -75,54 +75,62 @@
             background-color: #f9f9f9;
             border-radius: 5px;
             padding: 15px;
-            max-height: 300px;
-            overflow: hidden;
+            margin: 15px 0;
             border: 1px solid #e0e0e0;
         }
 
         .chat-message {
-            margin: 10px 0;
-            padding: 10px 15px;
+            margin: 15px 0;
+            padding: 12px 15px;
             border-radius: 15px;
             max-width: 80%;
-            clear: both;
             position: relative;
             font-size: 0.9em;
+            word-wrap: break-word;
         }
 
         .chat-message.user {
             background-color: #3498db;
             color: white;
-            float: right;
-            clear: both;
+            margin-left: auto;
         }
 
         .chat-message.listener {
             background-color: #ecf0f1;
             color: #2c3e50;
-            float: left;
-            clear: both;
+            margin-right: auto;
+        }
+
+        .message-info {
+            font-size: 0.8em;
+            margin-bottom: 4px;
+        }
+
+        .user .message-info {
+            text-align: right;
+            color: #eee;
+        }
+
+        .listener .message-info {
+            color: #666;
         }
 
         .appointment-details {
-            display: table;
-            width: 100%;
+            margin: 15px 0;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            border: 1px solid #e0e0e0;
         }
 
         .appointment-details p {
-            display: table-row;
-            border-bottom: 1px solid #ecf0f1;
+            margin: 8px 0;
         }
 
-        .appointment-details p strong {
-            display: table-cell;
+        .appointment-details strong {
+            display: inline-block;
+            width: 150px;
             color: #2c3e50;
-            padding: 5px 0;
-        }
-
-        .appointment-details p span {
-            display: table-cell;
-            padding: 5px 0 5px 10px;
         }
 
         @media print {
@@ -134,6 +142,19 @@
             .section {
                 page-break-inside: avoid;
             }
+            .chat-container {
+                break-inside: avoid;
+            }
+        }
+
+        .page-break {
+            page-break-before: always;
+        }
+
+        .timestamp {
+            font-size: 0.75em;
+            color: #666;
+            margin-top: 4px;
         }
     </style>
 </head>
@@ -158,32 +179,36 @@
 <div class="section">
     <h2 class="section-title">Sessions</h2>
     <div th:each="session : ${userData.sessions}">
-        <div class="session-details">
+        <div class="session-info">
             <p><strong>Session ID:</strong> <span th:text="${session.sessionId}"></span></p>
             <p><strong>Listener Name:</strong> <span th:text="${session.listenerName}"></span></p>
+            <p><strong>Date:</strong> <span th:text="${session.sessionDate}"></span></p>
         </div>
         <div class="chat-container">
-            <div th:each="message, iterStat : ${session.chatMessages}">
-                <div class="chat-message"
-                     th:classappend="${iterStat.index % 2 == 0} ? 'user' : 'listener'"
-                     th:text="${message}"></div>
+            <div th:each="message : ${session.chatMessages}">
+                <div class="chat-message" th:classappend="${message.sender == userData.anonymousName} ? 'user' : 'listener'">
+                    <div class="message-info">
+                        <span th:text="${message.sender}"></span>
+                    </div>
+                    <div th:text="${message.content}"></div>
+                    <div class="timestamp" th:text="${message.timestamp}"></div>
+                </div>
             </div>
         </div>
+        <div class="page-break"></div>
     </div>
 </div>
 
 <div class="section">
     <h2 class="section-title">Appointments</h2>
-    <div class="appointment-details">
-        <div th:each="appointment : ${userData.appointments}">
-            <p><strong>Appointment ID:</strong> <span th:text="${appointment.appointmentId}"></span></p>
-            <p><strong>Admin Name:</strong> <span th:text="${appointment.adminName}"></span></p>
-            <p><strong>Reason:</strong> <span th:text="${appointment.appointmentReason}"></span></p>
-            <p><strong>Status:</strong> <span th:text="${appointment.status}"></span></p>
-            <p><strong>Date:</strong> <span th:text="${appointment.date}"></span></p>
-            <p><strong>Start Time:</strong> <span th:text="${appointment.startTime}"></span></p>
-            <p><strong>End Time:</strong> <span th:text="${appointment.endTime}"></span></p>
-        </div>
+    <div th:each="appointment : ${userData.appointments}" class="appointment-details">
+        <p><strong>Appointment ID:</strong> <span th:text="${appointment.appointmentId}"></span></p>
+        <p><strong>Admin Name:</strong> <span th:text="${appointment.adminName}"></span></p>
+        <p><strong>Reason:</strong> <span th:text="${appointment.appointmentReason}"></span></p>
+        <p><strong>Status:</strong> <span th:text="${appointment.status}"></span></p>
+        <p><strong>Date:</strong> <span th:text="${appointment.date}"></span></p>
+        <p><strong>Start Time:</strong> <span th:text="${appointment.startTime}"></span></p>
+        <p><strong>End Time:</strong> <span th:text="${appointment.endTime}"></span></p>
     </div>
 </div>
 </body>
