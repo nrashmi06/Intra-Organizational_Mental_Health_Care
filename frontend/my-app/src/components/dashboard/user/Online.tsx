@@ -37,7 +37,7 @@ export function OnlineListenersTable() {
     if (eventSource) {
       eventSource.close();
     }
-    const newEventSource = getActiveUserByRoleName("user", token, (data) => {
+    const newEventSource = getActiveUserByRoleName("onlineUsers", token, (data) => {
       setUsers(data);
     });
     setEventSource(newEventSource);

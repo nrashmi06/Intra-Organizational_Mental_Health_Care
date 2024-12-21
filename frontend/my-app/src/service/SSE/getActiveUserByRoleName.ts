@@ -1,4 +1,4 @@
-import {User} from "@/lib/types";
+import { User } from "@/lib/types";
 
 export const getActiveUserByRoleName = (
   type: string,
