@@ -1,6 +1,7 @@
 package com.dbms.mentalhealth.model;
 
 import com.dbms.mentalhealth.enums.AppointmentStatus;
+import com.dbms.mentalhealth.enums.SeverityLevel;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -40,6 +41,16 @@ public class Appointment {
 
     @Column(name = "cancellation_reason")
     private String cancellationReason;  // Optional: Reason for cancellation (nullable)
+
+    @Column(name = "phone_number", nullable = false)
+    private String phoneNumber;
+
+    @Column(name = "full_name", nullable = false)
+    private String fullName;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "severity_level", nullable = false)
+    private SeverityLevel severityLevel;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

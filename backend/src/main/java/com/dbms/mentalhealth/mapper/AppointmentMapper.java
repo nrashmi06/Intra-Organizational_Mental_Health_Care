@@ -13,23 +13,28 @@ public class AppointmentMapper {
         Appointment appointment = new Appointment();
         appointment.setAppointmentReason(dto.getAppointmentReason());
         appointment.setStatus(AppointmentStatus.REQUESTED);
+        appointment.setPhoneNumber(dto.getPhoneNumber());
+        appointment.setFullName(dto.getFullName());
+        appointment.setSeverityLevel(dto.getSeverityLevel());
         return appointment;
     }
 
     public static AppointmentResponseDTO toDTO(Appointment appointment) {
-        TimeSlotDTO timeSlotDTO = new TimeSlotDTO(
-                appointment.getTimeSlot().getStartTime(),
-                appointment.getTimeSlot().getEndTime()
-        );
         return new AppointmentResponseDTO(
                 appointment.getAppointmentId(),
-                appointment.getUser().getAnonymousName(),  // Assuming User has a getName() method
-                appointment.getAdmin().getFullName(),  // Assuming Admin has a getName() method
-                timeSlotDTO,
+                appointment.getUser().getAnonymousName(),
+                appointment.getAdmin().getFullName(),
+                appointment.getTimeSlot().getDate().toString(),
+                appointment.getTimeSlot().getStartTime().toString(),
+                appointment.getTimeSlot().getEndTime().toString(),
                 appointment.getAppointmentReason(),
-                appointment.getStatus().name()
+                appointment.getStatus().name(),
+                appointment.getPhoneNumber(),
+                appointment.getFullName(),
+                appointment.getSeverityLevel()
         );
     }
+
     public static AppointmentSummaryResponseDTO toSummaryDTO(Appointment appointment) {
         return new AppointmentSummaryResponseDTO(
                 appointment.getAppointmentId(),
