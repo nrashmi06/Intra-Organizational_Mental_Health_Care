@@ -15,7 +15,7 @@ export default function WelcomePage() {
     if (role === 'ADMIN') {
       // Set a timer to redirect after 2 seconds
       const timer = setTimeout(() => {
-         router.push('/dashboardnew');
+         router.push('/dashboard');
       }, 2000);
 
       // Cleanup the timer when the component is unmounted

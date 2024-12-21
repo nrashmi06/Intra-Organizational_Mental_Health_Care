@@ -5,8 +5,8 @@ import clsx from "clsx";
 import Link from 'next/link';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'default' | 'ghost' | 'outline' | 'link'; // Customize the types of button variants
-  size?: 'sm' | 'md' | 'lg' | 'icon';
+  variant?: 'default' | 'outline' | 'link'; // Customize the types of button variants
+  size?: 'sm' | 'md' | 'lg';
   href?: string; // Optional href prop to make the button a link
   children: React.ReactNode; // Content inside the button (e.g., text, icons)
   onClick?: () => void; // Optional onClick handler
