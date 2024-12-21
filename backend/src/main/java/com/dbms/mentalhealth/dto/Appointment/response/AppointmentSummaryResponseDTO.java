@@ -10,7 +10,7 @@ import java.time.LocalTime;
 @AllArgsConstructor
 public class AppointmentSummaryResponseDTO {
     private Integer appointmentId;
-    private String title;
+    private String appointmentReason;
     private String userName;
     private String adminName;
     private String status;
