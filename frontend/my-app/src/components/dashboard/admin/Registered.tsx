@@ -108,7 +108,7 @@ export function RegisteredAdminsTable() {
                   <Button
                     variant="link"
                     className="text-purple-500"
-                    href={`/dashboard/admin/appointments/${admin.adminId}`}
+                    href={`/dashboard/admin/appointments/${admin.adminId}?req=registeredAdmins`}
                   >
                     Appointments
                   </Button>

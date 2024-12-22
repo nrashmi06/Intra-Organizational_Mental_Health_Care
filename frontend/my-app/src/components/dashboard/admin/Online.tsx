@@ -98,7 +98,7 @@ export function OnlineAdminsTable() {
                     
                     <Button
                       variant="link"
-                      href={`/dashboard/admin/appointments/${user.userId}`}
+                      href={`/dashboard/admin/appointments/${user.userId}?req=onlineAdmins`}
                     >
                       Appointments
                     </Button>
