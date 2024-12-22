@@ -90,20 +90,28 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<AppointmentSummaryResponseDTO> getAppointmentsByAdmin(Integer userId) {
-        Integer adminId;
-        if (userId == null) {
-            adminId = jwtUtils.getUserIdFromContext(); // Get the current admin's ID from the JWT token
+    public List<AppointmentSummaryResponseDTO> getAppointmentsByAdmin(Integer userId, Integer adminId) {
+        Integer adminUserId;
+        List<Appointment> appointments;
+        if (userId == null && adminId == null) {
+            adminUserId = jwtUtils.getUserIdFromContext(); // Get the current admin's ID from the JWT token
+            adminId = adminRepository.findByUser_UserId(adminUserId)
+                    .orElseThrow(() -> new AdminNotFoundException("Admin not found"))
+                    .getAdminId();
+            appointments = appointmentRepository.findByAdmin_AdminId(adminId);
+        } else if (userId == null) {
+            appointments = appointmentRepository.findByAdmin_AdminId(adminId);
         } else {
             adminId = adminRepository.findByUser_UserId(userId)
                     .orElseThrow(() -> new AdminNotFoundException("Admin not found"))
                     .getAdminId();
+            appointments = appointmentRepository.findByAdmin_AdminId(adminId);
         }
-        List<Appointment> appointments = appointmentRepository.findByAdmin_AdminId(adminId);
         return appointments.stream()
                 .map(AppointmentMapper::toSummaryDTO)
                 .toList();
     }
+
 
     // In AppointmentServiceImpl.java
     @Override
