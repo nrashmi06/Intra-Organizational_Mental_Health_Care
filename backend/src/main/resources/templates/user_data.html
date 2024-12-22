@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>User Data Report</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+
+        .report-header {
+            text-align: center;
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+
+        .report-header h1 {
+            margin: 0;
+            font-weight: normal;
+        }
+
+        .section {
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            padding: 20px;
+            page-break-inside: avoid;
+        }
+
+        .section-title {
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .user-info, .session-info {
+            display: table;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        .user-info p, .session-info p {
+            display: table-row;
+        }
+
+        .user-info p strong, .session-info p strong {
+            display: table-cell;
+            color: #2c3e50;
+            padding: 5px 0;
+            width: 150px;
+        }
+
+        .user-info p span, .session-info p span {
+            display: table-cell;
+            padding: 5px 0 5px 10px;
+        }
+
+        .chat-container {
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+            border: 1px solid #e0e0e0;
+        }
+
+        .chat-message {
+            margin: 15px 0;
+            padding: 12px 15px;
+            border-radius: 15px;
+            max-width: 80%;
+            position: relative;
+            font-size: 0.9em;
+            word-wrap: break-word;
+        }
+
+        .chat-message.user {
+            background-color: #3498db;
+            color: white;
+            margin-left: auto;
+        }
+
+        .chat-message.listener {
+            background-color: #ecf0f1;
+            color: #2c3e50;
+            margin-right: auto;
+        }
+
+        .message-info {
+            font-size: 0.8em;
+            margin-bottom: 4px;
+        }
+
+        .user .message-info {
+            text-align: right;
+            color: #eee;
+        }
+
+        .listener .message-info {
+            color: #666;
+        }
+
+        .appointment-details {
+            margin: 15px 0;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .appointment-details p {
+            margin: 8px 0;
+        }
+
+        .appointment-details strong {
+            display: inline-block;
+            width: 150px;
+            color: #2c3e50;
+        }
+
+        @media print {
+            body {
+                max-width: none;
+                margin: 0;
+                padding: 0;
+            }
+            .section {
+                page-break-inside: avoid;
+            }
+            .chat-container {
+                break-inside: avoid;
+            }
+        }
+
+        .page-break {
+            page-break-before: always;
+        }
+
+        .timestamp {
+            font-size: 0.75em;
+            color: #666;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+<div class="report-header">
+    <h1>User Data Report</h1>
+</div>
+
+<div class="section">
+    <h2 class="section-title">User Information</h2>
+    <div class="user-info">
+        <p><strong>User ID:</strong> <span th:text="${userData.userId}"></span></p>
+        <p><strong>Email:</strong> <span th:text="${userData.email}"></span></p>
+        <p><strong>Anonymous Name:</strong> <span th:text="${userData.anonymousName}"></span></p>
+        <p><strong>Profile Status:</strong> <span th:text="${userData.profileStatus}"></span></p>
+        <p><strong>Role:</strong> <span th:text="${userData.role}"></span></p>
+        <p><strong>Total Sessions:</strong> <span th:text="${userData.totalSessions}"></span></p>
+        <p><strong>Total Appointments:</strong> <span th:text="${userData.totalAppointments}"></span></p>
+    </div>
+</div>
+
+<div class="section">
+    <h2 class="section-title">Sessions</h2>
+    <div th:each="session : ${userData.sessions}">
+        <div class="session-info">
+            <p><strong>Session ID:</strong> <span th:text="${session.sessionId}"></span></p>
+            <p><strong>Listener Name:</strong> <span th:text="${session.listenerName}"></span></p>
+            <p><strong>Date:</strong> <span th:text="${session.sessionDate}"></span></p>
+        </div>
+        <div class="chat-container">
+            <div th:each="message : ${session.chatMessages}">
+                <div class="chat-message" th:classappend="${message.sender == userData.anonymousName} ? 'user' : 'listener'">
+                    <div class="message-info">
+                        <span th:text="${message.sender}"></span>
+                    </div>
+                    <div th:text="${message.content}"></div>
+                    <div class="timestamp" th:text="${message.timestamp}"></div>
+                </div>
+            </div>
+        </div>
+        <div class="page-break"></div>
+    </div>
+</div>
+
+<div class="section">
+    <h2 class="section-title">Appointments</h2>
+    <div th:each="appointment : ${userData.appointments}" class="appointment-details">
+        <p><strong>Appointment ID:</strong> <span th:text="${appointment.appointmentId}"></span></p>
+        <p><strong>Admin Name:</strong> <span th:text="${appointment.adminName}"></span></p>
+        <p><strong>Reason:</strong> <span th:text="${appointment.appointmentReason}"></span></p>
+        <p><strong>Status:</strong> <span th:text="${appointment.status}"></span></p>
+        <p><strong>Date:</strong> <span th:text="${appointment.date}"></span></p>
+        <p><strong>Start Time:</strong> <span th:text="${appointment.startTime}"></span></p>
+        <p><strong>End Time:</strong> <span th:text="${appointment.endTime}"></span></p>
+    </div>
+</div>
+</body>
+</html>

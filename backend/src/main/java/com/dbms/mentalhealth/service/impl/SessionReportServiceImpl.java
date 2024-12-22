@@ -9,6 +9,8 @@ import com.dbms.mentalhealth.model.SessionReport;
 import com.dbms.mentalhealth.repository.SessionReportRepository;
 import com.dbms.mentalhealth.service.SessionReportService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -27,6 +29,7 @@ public class SessionReportServiceImpl implements SessionReportService {
     }
 
     @Override
+    @Transactional
     public SessionReportResponseDTO createReport(SessionReportRequestDTO requestDTO) {
         SessionReport sessionReport = sessionReportMapper.toEntity(requestDTO);
         sessionReport = sessionReportRepository.save(sessionReport);
@@ -34,6 +37,7 @@ public class SessionReportServiceImpl implements SessionReportService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<SessionReportResponseDTO> getReportBySessionId(Integer sessionId) {
         List<SessionReport> reportList = sessionReportRepository.findBySession_SessionId(sessionId);
         if (reportList.isEmpty()) {
@@ -45,6 +49,7 @@ public class SessionReportServiceImpl implements SessionReportService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public SessionReportResponseDTO getReportById(Integer reportId) {
         SessionReport sessionReport = sessionReportRepository.findById(reportId)
                 .orElseThrow(() -> new ReportNotFoundException("Report with id " + reportId + " not found"));
@@ -52,6 +57,7 @@ public class SessionReportServiceImpl implements SessionReportService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<SessionReportResponseDTO> getAllUserReports(Integer userId) {
         List<SessionReport> reportList = sessionReportRepository.findByUser_UserId(userId);
         if (reportList.isEmpty()) {
@@ -63,6 +69,7 @@ public class SessionReportServiceImpl implements SessionReportService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public SessionReportSummaryResponseDTO getReportSummary() {
         List<SessionReport> reports = sessionReportRepository.findAll();
         if (reports.isEmpty()) {

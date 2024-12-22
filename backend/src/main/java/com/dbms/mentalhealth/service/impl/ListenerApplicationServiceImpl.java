@@ -1,6 +1,6 @@
 package com.dbms.mentalhealth.service.impl;
 
-import com.dbms.mentalhealth.dto.listenerApplication.request.UpdateApplicationStatusRequestDTO;
+import org.springframework.transaction.annotation.Transactional;
 import com.dbms.mentalhealth.dto.listenerApplication.response.ListenerApplicationSummaryResponseDTO;
 import com.dbms.mentalhealth.dto.Listener.response.ListenerDetailsResponseDTO;
 import com.dbms.mentalhealth.dto.listenerApplication.request.ListenerApplicationRequestDTO;
@@ -31,7 +31,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.security.core.GrantedAuthority;
 
@@ -39,8 +38,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
-
+import java.util.concurrent.CompletableFuture;
 
 @Service
 public class ListenerApplicationServiceImpl implements ListenerApplicationService {
@@ -90,8 +88,8 @@ public class ListenerApplicationServiceImpl implements ListenerApplicationServic
         ListenerApplication listenerApplication = ListenerApplicationMapper.toEntity(applicationRequestDTO, user);
 
         // Handle Certificate Upload
-        String certificateUrl = imageStorageService.uploadImage(certificate);
-        listenerApplication.setCertificateUrl(certificateUrl);
+        CompletableFuture<String> certificateUrlFuture = imageStorageService.uploadImage(certificate);
+        listenerApplication.setCertificateUrl(certificateUrlFuture.get());
 
         // Set additional fields
         listenerApplication.setApplicationStatus(ListenerApplicationStatus.PENDING);
@@ -116,6 +114,7 @@ public class ListenerApplicationServiceImpl implements ListenerApplicationServic
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ListenerApplicationResponseDTO getApplicationById(Integer applicationId) {
         // Extract user ID and role from security context
         Integer userId = jwtUtils.getUserIdFromContext();
@@ -146,10 +145,8 @@ public class ListenerApplicationServiceImpl implements ListenerApplicationServic
         return ListenerApplicationMapper.toResponseDTO(listenerApplication);
     }
 
-
-
-
     @Override
+    @Transactional
     public void deleteApplication(Integer applicationId) {
         // Extract user ID and role from the security context
         Integer userId = jwtUtils.getUserIdFromContext();
@@ -176,8 +173,8 @@ public class ListenerApplicationServiceImpl implements ListenerApplicationServic
         listenerApplicationRepository.deleteById(applicationId);
     }
 
-
     @Override
+    @Transactional(readOnly = true)
     public List<ListenerApplicationSummaryResponseDTO> getAllApplications() {
         List<ListenerApplication> applications = listenerApplicationRepository.findAll();
         return applications.stream()
@@ -209,11 +206,11 @@ public class ListenerApplicationServiceImpl implements ListenerApplicationServic
         if (certificate != null && !certificate.isEmpty()) {
             // Delete current image if exists
             if (listenerApplication.getCertificateUrl() != null) {
-                imageStorageService.deleteImage(listenerApplication.getCertificateUrl());
+                imageStorageService.deleteImage(listenerApplication.getCertificateUrl()).get();
             }
             // Upload new image
-            String certificateUrl = imageStorageService.uploadImage(certificate);
-            updatedApplication.setCertificateUrl(certificateUrl);
+            CompletableFuture<String> certificateUrlFuture = imageStorageService.uploadImage(certificate);
+            updatedApplication.setCertificateUrl(certificateUrlFuture.get());
         } else {
             // Retain the current certificate URL
             updatedApplication.setCertificateUrl(listenerApplication.getCertificateUrl());
@@ -284,8 +281,8 @@ public class ListenerApplicationServiceImpl implements ListenerApplicationServic
         return null;
     }
 
-
     @Override
+    @Transactional(readOnly = true)
     public List<ListenerApplicationSummaryResponseDTO> getApplicationByApprovalStatus(String status) {
         try {
             ListenerApplicationStatus applicationStatus = ListenerApplicationStatus.valueOf(status.toUpperCase());
@@ -299,7 +296,9 @@ public class ListenerApplicationServiceImpl implements ListenerApplicationServic
             throw new RuntimeException("An error occurred while fetching applications by approval status", e);
         }
     }
+
     @Override
+    @Transactional(readOnly = true)
     public ListenerApplicationResponseDTO getApplicationsByUserId(Integer userId) {
         ListenerApplication application = listenerApplicationRepository.findByUser_UserId(userId);
         if (application == null) {
@@ -320,6 +319,4 @@ public class ListenerApplicationServiceImpl implements ListenerApplicationServic
                 .findFirst()
                 .orElse("ROLE_USER") : "ROLE_USER";
     }
-
-
 }

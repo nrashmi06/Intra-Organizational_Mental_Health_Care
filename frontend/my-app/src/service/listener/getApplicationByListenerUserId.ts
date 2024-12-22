@@ -1,7 +1,12 @@
-export const getAdminByUserID = async (userId: number, token: string) => {
+// src/service/listener/getCertificate.ts
+
+export const getApplicationByListenerUserId = async (
+  userId: number,
+  token: string
+) => {
   try {
     const response = await fetch(
-      `http://localhost:8080/mental-health/api/v1/admins/profile?userId=${userId}`,
+      `http://localhost:8080/mental-health/api/v1/listener-applications/listener/${userId}`,
       {
         method: "GET",
         headers: {
@@ -11,8 +16,6 @@ export const getAdminByUserID = async (userId: number, token: string) => {
       }
     );
 
-    console.log("Response: ", response);
-
     if (!response.ok) {
       throw new Error(`Error: ${response.statusText}`);
     }
@@ -20,7 +23,7 @@ export const getAdminByUserID = async (userId: number, token: string) => {
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error("Error fetching admin profile:", error);
+    console.error("Error fetching listener certificate:", error);
     throw error;
   }
 };

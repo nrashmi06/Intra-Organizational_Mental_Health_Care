@@ -2,7 +2,9 @@ package com.dbms.mentalhealth.service;
 
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.concurrent.CompletableFuture;
+
 public interface ImageStorageService {
-    String uploadImage(MultipartFile image) throws Exception;
-    void deleteImage(String imageUrl) throws Exception;
+    CompletableFuture<String> uploadImage(MultipartFile image) throws Exception;
+    CompletableFuture<Void> deleteImage(String imageUrl) throws Exception;
 }

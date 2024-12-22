@@ -9,6 +9,7 @@ import com.dbms.mentalhealth.repository.UserRepository;
 import com.dbms.mentalhealth.service.UserActivityService;
 import com.github.benmanes.caffeine.cache.Cache;
 import org.slf4j.Logger;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 

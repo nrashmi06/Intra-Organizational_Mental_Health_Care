@@ -8,7 +8,7 @@ import com.dbms.mentalhealth.mapper.TimeSlotMapper;
 import com.dbms.mentalhealth.model.TimeSlot;
 import com.dbms.mentalhealth.repository.TimeSlotRepository;
 import com.dbms.mentalhealth.service.TimeSlotService;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -65,6 +65,7 @@ public class TimeSlotServiceImpl implements TimeSlotService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<TimeSlotResponseDTO> getTimeSlotsByDateRangeAndAvailability(Integer adminId, LocalDate startDate, LocalDate endDate, Boolean isAvailable) {
         List<TimeSlot> timeSlots;
         if (isAvailable == null) {

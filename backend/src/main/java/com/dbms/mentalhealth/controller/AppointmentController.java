@@ -5,6 +5,7 @@ import com.dbms.mentalhealth.dto.Appointment.request.UpdateAppointmentStatusRequ
 import com.dbms.mentalhealth.dto.Appointment.response.AppointmentResponseDTO;
 import com.dbms.mentalhealth.dto.Appointment.response.AppointmentSummaryResponseDTO;
 import com.dbms.mentalhealth.exception.appointment.AppointmentNotFoundException;
+import com.dbms.mentalhealth.exception.user.UserNotFoundException;
 import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.service.AppointmentService;
 import com.dbms.mentalhealth.urlMapper.AppointmentUrlMapping;
@@ -27,9 +28,11 @@ public class AppointmentController {
         this.jwtUtils = jwtUtils;
     }
 
-    @PreAuthorize("hasRole('USER')")
     @PostMapping(AppointmentUrlMapping.BOOK_APPOINTMENT)
     public ResponseEntity<?> createAppointment(@RequestBody AppointmentRequestDTO appointmentRequestDTO) {
+        if (appointmentRequestDTO.getFullName() == null || appointmentRequestDTO.getFullName().isEmpty() || appointmentRequestDTO.getPhoneNumber() == null || appointmentRequestDTO.getPhoneNumber().isEmpty() || appointmentRequestDTO.getSeverityLevel() == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Some fields are missing");
+        }
         try {
             AppointmentResponseDTO appointmentResponseDTO = appointmentService.createAppointment(appointmentRequestDTO);
             return ResponseEntity.ok(appointmentResponseDTO);
@@ -48,16 +51,18 @@ public class AppointmentController {
         }
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping(AppointmentUrlMapping.GET_APPOINTMENTS_BY_ADMIN)
-    public ResponseEntity<?> getAppointmentsByAdmin(@RequestParam(value = "adminId", required = false) Integer adminId) {
+    public ResponseEntity<List<AppointmentSummaryResponseDTO>> getAppointmentsByAdmin(
+            @RequestParam(value = "userId", required = false) Integer userId,
+            @RequestParam(value = "adminId", required = false) Integer adminId) {
         try {
-            List<AppointmentSummaryResponseDTO> appointments = appointmentService.getAppointmentsByAdmin(adminId);
+            List<AppointmentSummaryResponseDTO> appointments = appointmentService.getAppointmentsByAdmin(userId, adminId);
             return ResponseEntity.ok(appointments);
         } catch (AppointmentNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
     }
+
 
     @GetMapping(AppointmentUrlMapping.GET_APPOINTMENT_BY_ID)
     public ResponseEntity<?> getAppointmentById(@PathVariable Integer appointmentId) {

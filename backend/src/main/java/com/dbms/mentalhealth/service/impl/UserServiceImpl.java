@@ -3,6 +3,7 @@ package com.dbms.mentalhealth.service.impl;
 import com.dbms.mentalhealth.dto.user.request.UserLoginRequestDTO;
 import com.dbms.mentalhealth.dto.user.request.UserRegistrationRequestDTO;
 import com.dbms.mentalhealth.dto.user.request.UserUpdateRequestDTO;
+import com.dbms.mentalhealth.dto.user.response.UserDataResponseDTO;
 import com.dbms.mentalhealth.dto.user.response.UserLoginResponseDTO;
 import com.dbms.mentalhealth.dto.user.response.UserRegistrationResponseDTO;
 import com.dbms.mentalhealth.dto.user.response.UserInfoResponseDTO;
@@ -10,8 +11,12 @@ import com.dbms.mentalhealth.enums.ProfileStatus;
 import com.dbms.mentalhealth.enums.Role;
 import com.dbms.mentalhealth.exception.user.*;
 import com.dbms.mentalhealth.mapper.UserMapper;
+import com.dbms.mentalhealth.model.Appointment;
 import com.dbms.mentalhealth.model.EmailVerification;
+import com.dbms.mentalhealth.model.Session;
+import com.dbms.mentalhealth.repository.AppointmentRepository;
 import com.dbms.mentalhealth.repository.EmailVerificationRepository;
+import com.dbms.mentalhealth.repository.SessionRepository;
 import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.model.User;
 import com.dbms.mentalhealth.repository.UserRepository;
@@ -20,7 +25,7 @@ import com.dbms.mentalhealth.service.RefreshTokenService;
 import com.dbms.mentalhealth.service.UserActivityService;
 import com.dbms.mentalhealth.service.UserService;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -49,8 +54,10 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     private final EmailService emailService;
     private final RefreshTokenService refreshTokenService;
     private final UserActivityService userActivityService;
+    private final SessionRepository sessionRepository;
+    private final AppointmentRepository appointmentRepository;
 
-    public UserServiceImpl(UserRepository userRepository, UserActivityService userActivityService, RefreshTokenService refreshTokenService, JwtUtils jwtUtils, @Lazy AuthenticationManager authenticationManager, PasswordEncoder passwordEncoder, EmailVerificationRepository emailVerificationRepository, EmailService emailService) {
+    public UserServiceImpl(UserRepository userRepository, UserActivityService userActivityService, RefreshTokenService refreshTokenService, JwtUtils jwtUtils, @Lazy AuthenticationManager authenticationManager, PasswordEncoder passwordEncoder, EmailVerificationRepository emailVerificationRepository, EmailService emailService, SessionRepository sessionRepository, AppointmentRepository appointmentRepository) {
         this.userRepository = userRepository;
         this.jwtUtils = jwtUtils;
         this.authenticationManager = authenticationManager;
@@ -59,6 +66,8 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         this.emailService = emailService;
         this.refreshTokenService = refreshTokenService;
         this.userActivityService = userActivityService;
+        this.sessionRepository = sessionRepository;
+        this.appointmentRepository = appointmentRepository;
     }
 
     @Override
@@ -85,6 +94,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
+    @Transactional
     public Map<String, Object> loginUser(UserLoginRequestDTO userLoginDTO) {
         Authentication authentication;
         try {
@@ -360,6 +370,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
+    @Transactional
     public void setUserActiveStatus(String email, boolean isActive) {
         User user = userRepository.findByEmail(email);
         if (user != null) {
@@ -375,6 +386,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
+    @Transactional
     public void suspendOrUnSuspendUser(Integer userId, String action) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + userId));
@@ -389,6 +401,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<User> getAllUsers() {
         return userRepository.findAll().stream()
                 .filter(user -> user.getRole().equals(Role.USER))
@@ -396,6 +409,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<User> getUsersByProfileStatus(String status) {
         ProfileStatus profileStatus = ProfileStatus.valueOf(status.toUpperCase());
         return userRepository.findByProfileStatus(profileStatus).stream()
@@ -403,4 +417,58 @@ public class UserServiceImpl implements UserService, UserDetailsService {
                 .toList();
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public UserDataResponseDTO getUserData(Integer userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + userId));
+
+        List<Session> sessions;
+        List<Appointment> appointments = null;
+
+        if (user.getRole() == Role.LISTENER) {
+            sessions = sessionRepository.findByListener_ListenerId(userId);
+        } else {
+            sessions = sessionRepository.findByUser_UserId(userId);
+            appointments = appointmentRepository.findByUser_UserId(userId);
+        }
+        if (appointments == null) {
+            appointments = Collections.emptyList();
+        }
+        if(sessions == null){
+            sessions = Collections.emptyList();
+        }
+
+        return UserMapper.toUserDataResponseDTO(user, sessions, appointments);
+    }
+
+    public void sendDataRequestVerificationEmail(String email) {
+        User user = userRepository.findByEmail(email);
+        if (user == null) {
+            throw new UserNotFoundException("User not found with email: " + email);
+        }
+        String token = UUID.randomUUID().toString().replaceAll("[^0-9]", "").substring(0, 6);
+        EmailVerification emailVerification = new EmailVerification();
+        emailVerification.setUserId(user.getUserId());
+        emailVerification.setVerificationCode(token);
+        emailVerification.setEmail(email);
+        emailVerification.setExpiryTime(LocalDateTime.now().plusHours(24));
+        emailVerification.setStatus("pending");
+        emailVerification.setCreatedAt(LocalDateTime.now());
+        emailVerificationRepository.save(emailVerification);
+
+        emailService.sendDataRequestVerificationEmail(user.getEmail(), token);
+    }
+    @Override
+    public void verifyDataRequestCode(String verificationCode) {
+        EmailVerification emailVerification = emailVerificationRepository.findByVerificationCode(verificationCode)
+                .orElseThrow(() -> new InvalidVerificationCodeException("Invalid verification code"));
+
+        if (emailVerification.getExpiryTime().isBefore(LocalDateTime.now())) {
+            throw new InvalidVerificationCodeException("Verification code has expired");
+        }
+
+        emailVerification.setStatus("verified");
+        emailVerificationRepository.save(emailVerification);
+    }
 }

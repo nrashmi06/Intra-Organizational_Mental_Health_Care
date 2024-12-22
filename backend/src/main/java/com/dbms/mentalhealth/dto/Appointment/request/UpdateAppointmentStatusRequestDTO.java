@@ -6,4 +6,5 @@ import lombok.Data;
 public class UpdateAppointmentStatusRequestDTO {
     private String status;
     private String cancellationReason;
+
 }

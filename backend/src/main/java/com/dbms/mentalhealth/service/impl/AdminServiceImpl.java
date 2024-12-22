@@ -13,6 +13,7 @@ import com.dbms.mentalhealth.repository.UserRepository;
 import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.service.AdminService;
 import com.dbms.mentalhealth.service.ImageStorageService;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -22,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 public class AdminServiceImpl implements AdminService {
@@ -42,6 +44,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
+    @Transactional
     public AdminProfileResponseDTO createAdminProfile(AdminProfileRequestDTO adminProfileRequestDTO, MultipartFile profilePicture) throws Exception {
         String email = getCurrentUserEmail();
         User user = userRepository.findByEmail(email);
@@ -58,10 +61,10 @@ public class AdminServiceImpl implements AdminService {
             throw new AdminNotFoundException("Admin profile already exists");
         }
 
-        // Upload image and get URL
-        String profilePictureUrl = imageStorageService.uploadImage(profilePicture);
+        // Upload image and get URL asynchronously
+        CompletableFuture<String> profilePictureUrlFuture = imageStorageService.uploadImage(profilePicture);
+        String profilePictureUrl = profilePictureUrlFuture.get();
         Admin admin = adminMapper.toEntity(adminProfileRequestDTO, user, profilePictureUrl);
-
 
         Admin savedAdmin = adminRepository.save(admin);
 
@@ -69,6 +72,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public AdminProfileResponseDTO getAdminProfile(Integer userId, Integer adminId) {
         if (userId != null) {
             User user = userRepository.findById(userId)
@@ -91,6 +95,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
+    @Transactional
     public AdminProfileResponseDTO updateAdminProfile(AdminProfileRequestDTO adminProfileRequestDTO, MultipartFile profilePicture) throws Exception {
         Integer userId = jwtUtils.getUserIdFromContext();
         Admin admin = adminRepository.findByUser_UserId(userId)
@@ -102,8 +107,9 @@ public class AdminServiceImpl implements AdminService {
             if (profilePictureUrl != null) {
                 imageStorageService.deleteImage(profilePictureUrl);
             }
-            // Upload new image
-            profilePictureUrl = imageStorageService.uploadImage(profilePicture);
+            // Upload new image asynchronously
+            CompletableFuture<String> profilePictureUrlFuture = imageStorageService.uploadImage(profilePicture);
+            profilePictureUrl = profilePictureUrlFuture.get();
         }
 
         admin.setAdminNotes(adminProfileRequestDTO.getAdminNotes());
@@ -118,6 +124,7 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
+    @Transactional
     public String deleteAdminProfile(Integer adminId) {
         Admin admin = adminRepository.findByAdminId(adminId)
                 .orElseThrow(() -> new AdminNotFoundException("Admin profile not found"));
@@ -125,7 +132,6 @@ public class AdminServiceImpl implements AdminService {
         adminRepository.delete(admin);
         return "Admin profile deleted successfully";
     }
-
 
     @Override
     public List<AdminProfileSummaryResponseDTO> getAllAdmins() {

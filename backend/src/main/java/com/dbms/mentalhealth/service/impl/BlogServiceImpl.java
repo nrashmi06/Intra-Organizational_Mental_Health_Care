@@ -20,7 +20,7 @@ import com.dbms.mentalhealth.service.EmailService;
 import com.dbms.mentalhealth.service.ImageStorageService;
 import com.dbms.mentalhealth.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -30,9 +30,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
-
-import static java.util.stream.Collectors.toList;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 public class BlogServiceImpl implements BlogService {
@@ -47,7 +45,7 @@ public class BlogServiceImpl implements BlogService {
     private final AdminRepository adminRepository;
 
     @Autowired
-    public BlogServiceImpl(UserRepository userRepository, ImageStorageService imageStorageService, BlogRepository blogRepository, BlogLikeRepository blogLikeRepository, UserServiceImpl userService, JwtUtils jwtUtils, EmailService emailService, AdminRepository adminRepository) {
+    public BlogServiceImpl(UserRepository userRepository, ImageStorageService imageStorageService, BlogRepository blogRepository, BlogLikeRepository blogLikeRepository, UserService userService, JwtUtils jwtUtils, EmailService emailService, AdminRepository adminRepository) {
         this.blogRepository = blogRepository;
         this.blogLikeRepository = blogLikeRepository;
         this.userService = userService;
@@ -65,21 +63,20 @@ public class BlogServiceImpl implements BlogService {
         blog.setUserId(userId);
 
         if (image != null && !image.isEmpty()) {
-            String imageUrl = imageStorageService.uploadImage(image);
-            blog.setImageUrl(imageUrl);
+            CompletableFuture<String> imageUrlFuture = imageStorageService.uploadImage(image);
+            blog.setImageUrl(imageUrlFuture.get());
         }
         if (blog.getBlogApprovalStatus() == null) {
             blog.setBlogApprovalStatus(BlogApprovalStatus.PENDING);
         }
         Blog createdBlog = blogRepository.save(blog);
 
-        // Send email notification to the user
+        // Send email notifications asynchronously
         String userEmail = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found"))
                 .getEmail();
         emailService.sendBlogSubmissionReceivedEmail(userEmail, createdBlog.getId().toString());
 
-        // Send email notification to all admins
         List<String> adminEmails = adminRepository.findAll().stream()
                 .map(Admin::getEmail)
                 .toList();
@@ -90,6 +87,7 @@ public class BlogServiceImpl implements BlogService {
         return BlogMapper.toResponseDTO(createdBlog, false);
     }
 
+    @Transactional(readOnly = true)
     public Optional<BlogResponseDTO> getBlogById(Integer blogId) {
         Integer userId = getUserIdFromContext();
         boolean isAdmin = userService.isAdmin(userId);
@@ -108,15 +106,15 @@ public class BlogServiceImpl implements BlogService {
 
     @Transactional
     public BlogResponseDTO updateBlog(Integer blogId, BlogRequestDTO blogRequestDTO, MultipartFile image) throws Exception {
-        Blog blog = blogRepository.findById(blogId).orElseThrow(() -> new RuntimeException("Blog not found"));
+        Blog blog = blogRepository.findById(blogId).orElseThrow(() -> new BlogNotFoundException("Blog not found"));
 
         if (!isCurrentUserPublisher(blog.getUserId())) {
             throw new RuntimeException("You are not authorized to edit this blog");
         }
         if (image != null && !image.isEmpty()) {
-            imageStorageService.deleteImage(blog.getImageUrl());
-            String imageUrl = imageStorageService.uploadImage(image);
-            blog.setImageUrl(imageUrl);
+            imageStorageService.deleteImage(blog.getImageUrl()).get();
+            CompletableFuture<String> imageUrlFuture = imageStorageService.uploadImage(image);
+            blog.setImageUrl(imageUrlFuture.get());
         }
         blog.setTitle(blogRequestDTO.getTitle());
         blog.setContent(blogRequestDTO.getContent());
@@ -131,7 +129,7 @@ public class BlogServiceImpl implements BlogService {
     public void deleteBlog(Integer blogId) throws Exception {
         Blog blog = blogRepository.findById(blogId).orElseThrow(() -> new BlogNotFoundException("Blog not found"));
         if (blog.getImageUrl() != null) {
-            imageStorageService.deleteImage(blog.getImageUrl());
+            imageStorageService.deleteImage(blog.getImageUrl()).get();
         }
         blogRepository.deleteById(blogId);
     }
@@ -171,6 +169,7 @@ public class BlogServiceImpl implements BlogService {
         return BlogMapper.toResponseDTO(updatedBlog, likedByCurrentUser);
     }
 
+    @Transactional
     public BlogResponseDTO likeBlog(Integer blogId) {
         Integer userId = getUserIdFromContext();
 
@@ -189,6 +188,7 @@ public class BlogServiceImpl implements BlogService {
         return BlogMapper.toResponseDTO(blog, true);
     }
 
+    @Transactional
     public BlogResponseDTO unlikeBlog(Integer blogId) {
         Integer userId = getUserIdFromContext();
 
@@ -203,7 +203,7 @@ public class BlogServiceImpl implements BlogService {
         return BlogMapper.toResponseDTO(blog, false);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public List<BlogSummaryDTO> getBlogsByUser(Integer userId) {
         Integer currentUserId = getUserIdFromContext();
         boolean isAdmin = userService.isAdmin(currentUserId);
@@ -226,7 +226,7 @@ public class BlogServiceImpl implements BlogService {
         }
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public List<BlogSummaryDTO> searchBlogsByPartialTitle(String title) {
         String normalizedTitle = title.trim().toLowerCase();
         Integer userId = getUserIdFromContext();
@@ -240,7 +240,7 @@ public class BlogServiceImpl implements BlogService {
                 .toList();
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public List<BlogSummaryDTO> getBlogsByApprovalStatus(String status) {
         Integer userId = getUserIdFromContext();
         boolean isAdmin = userService.isAdmin(userId);

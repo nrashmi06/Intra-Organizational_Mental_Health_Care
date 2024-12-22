@@ -6,30 +6,16 @@ import { RootState } from "@/store";
 import { getListenerDetails } from "@/service/listener/getListenerDetails";
 import { Star, X } from "lucide-react"; // Importing Lucid React Icons
 import { initiateSession } from "@/service/session/initiateSession";
-
+import { ListenerDetails } from "@/lib/types";
 interface ListenerModalProps {
-  selectedListener: CompleteListenerDetails;
   closeModal: () => void;
-}
-export interface CompleteListenerDetails {
-  listenerId: number;
-  userEmail: string;
-  canApproveBlogs: boolean;
-  maxDailySessions: number;
-  totalSessions: number;
-  totalMessagesSent: number | null;
-  feedbackCount: number;
-  averageRating: number;
-  joinedAt: string;
-  approvedBy: string;
-  anonymousName: string;
   userId: number;
 }
 
 const SendMessageModal: React.FC<{
   closeModal: () => void;
-  selectedListener: CompleteListenerDetails;
-}> = ({ closeModal, selectedListener }) => {
+  userId: number;
+}> = ({ closeModal, userId }) => {
   const [message, setMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [alert, setAlert] = useState(""); // Alert message state
@@ -45,17 +31,11 @@ const SendMessageModal: React.FC<{
 
     setIsSending(true);
     try {
-      const response = await initiateSession(
-        selectedListener.userId,
-        message,
-        token
-      );
+      const response = await initiateSession(userId, message, token);
 
       if (response) {
         setAlert("Message sent successfully!");
         setMessage("");
-
-        // Wait for 3 seconds and close the modal
         setTimeout(() => {
           setAlert("");
           closeModal();
@@ -117,22 +97,19 @@ const SendMessageModal: React.FC<{
 };
 
 const ListenerModal: React.FC<ListenerModalProps> = ({
-  selectedListener,
   closeModal,
+  userId,
 }) => {
   const [detailedListener, setDetailedListener] =
-    useState<CompleteListenerDetails | null>(null);
+    useState<ListenerDetails | null>(null);
   const token = useSelector((state: RootState) => state.auth.accessToken);
   const [sendMessage, setSendMessage] = useState(false);
 
   useEffect(() => {
     const fetchListenerDetails = async () => {
       try {
-        console.log("Fetching listener details for:", selectedListener.userId);
-        const details = await getListenerDetails(
-          selectedListener.userId,
-          token
-        );
+        console.log("Fetching listener details for:", userId);
+        const details = await getListenerDetails(userId, token);
         setDetailedListener(details);
         console.log("Listener details:", details);
       } catch (error) {
@@ -141,7 +118,7 @@ const ListenerModal: React.FC<ListenerModalProps> = ({
     };
 
     fetchListenerDetails();
-  }, [selectedListener.userId, token]);
+  }, [userId, token]);
 
   const renderRatingStars = (rating: number) => {
     const stars = [];
@@ -225,7 +202,7 @@ const ListenerModal: React.FC<ListenerModalProps> = ({
       {sendMessage && (
         <SendMessageModal
           closeModal={() => setSendMessage(false)}
-          selectedListener={selectedListener}
+          userId={userId}
         />
       )}
     </div>

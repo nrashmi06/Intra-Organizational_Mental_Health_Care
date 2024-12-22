@@ -32,9 +32,9 @@ export const createBlog = async (
     });
     formData.append('blog', blogBlob, 'blog.json');
 
-    // Debugging: Log the FormData contents
-    for (const [key, value] of formData.entries()) {
-      console.log(`FormData - ${key}:`, value);
+    // Debug: Log FormData contents
+    for (const [value] of formData.entries()) {
+      console.log('FormData -${key}:', value);
     }
 
     // Make the POST request using the API endpoint
