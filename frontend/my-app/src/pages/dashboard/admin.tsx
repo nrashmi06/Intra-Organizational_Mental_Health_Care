@@ -2,7 +2,7 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { OnlineAdminsTable } from "@/components/dashboard/admin/Online";
-import { RegisteredUsersTable } from "@/components/dashboard/user/Registered";
+import { RegisteredAdminsTable } from "@/components/dashboard/admin/Registered";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 
 const AdminPage = () => {
@@ -17,7 +17,7 @@ const AdminPage = () => {
           <OnlineAdminsTable />
         </TabsContent>
         <TabsContent value="registered" className="space-y-4">
-          <RegisteredUsersTable />
+          <RegisteredAdminsTable />
         </TabsContent>
       </Tabs>
     </div>

@@ -17,12 +17,12 @@ import StackNavbar from "@/components/ui/stackNavbar";
 import { Appointment } from "@/lib/types";
 import { getAppointments } from "@/service/user/GetAppointments";
 
-const UserAppointments = () => {
+const AdminAppointments = () => {
   const router = useRouter();
   const { id } = router.query;
   const token = useSelector((state: RootState) => state.auth.accessToken);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [userId, setUserId] = useState<number | null>(null);
+  const [adminId, setAdminId] = useState<number | null>(null);
   const [selectedAppointment, setSelectedAppointment] = useState<number | null>(
     null
   );
@@ -32,16 +32,16 @@ const UserAppointments = () => {
     if (id) {
       const parsedId = parseInt(id as string, 10);
       if (!isNaN(parsedId)) {
-        setUserId(parsedId);
+        setAdminId(parsedId);
         fetchAppointments(parsedId);
       }
     }
   }, [id]);
 
-  const fetchAppointments = async (userId: number) => {
+  const fetchAppointments = async (adminId: number) => {
     try {
-      const response = await getAppointments({ token, userId });
-      if (response?.ok) {
+      const response = await getAppointments({ token, adminId });
+      if (response) {
         const appointmentData: Appointment[] = await response.json();
         setAppointments(appointmentData);
       } else {
@@ -75,9 +75,23 @@ const UserAppointments = () => {
   };
 
   const stackItems = [
-    { label: "User Dashboard", href: "/dashboard/user" },
-    { label: "User Appointments", href: `/dashboard/user/appointments/${id}` },
+    { label: "Admin Dashboard", href: "/dashboard/admin" },
+    {
+      label: "Admin Appointments",
+      href: `/dashboard/admin/appointments/${id}`,
+    },
   ];
+
+  if (appointments.length === 0) {
+    return (
+      <>
+        <StackNavbar items={stackItems} />
+        <div className="text-gray-500 flex items-center justify-center h-full p-4">
+          No appointments found for Admin Id {id}
+        </div>
+      </>
+    );
+  }
 
   const AppointmentCard = ({ appointment }: { appointment: Appointment }) => (
     <div
@@ -145,8 +159,6 @@ const UserAppointments = () => {
   return (
     <>
       <StackNavbar items={stackItems} />
-
-      {/* Mobile Menu Toggle */}
       <div className="lg:hidden fixed top-16 right-4 z-50">
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -157,15 +169,12 @@ const UserAppointments = () => {
       </div>
 
       <div className="flex flex-col lg:flex-row h-[calc(100vh-64px)]">
-        {/* Mobile Menu Overlay */}
         <div
           className={`fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity lg:hidden ${
             isMobileMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
           }`}
           onClick={() => setIsMobileMenuOpen(false)}
         />
-
-        {/* Appointments List Section */}
         <div
           className={`w-full lg:w-1/3 bg-gray-50 border-r border-gray-200 overflow-y-auto 
                      fixed lg:relative z-40 transition-transform duration-300 ease-in-out
@@ -176,7 +185,7 @@ const UserAppointments = () => {
                      }
                      h-[calc(100vh-64px)] lg:h-auto`}
         >
-          {userId && (
+          {adminId && (
             <div className="space-y-4 p-4">
               {appointments.map((appointment) => (
                 <AppointmentCard
@@ -186,12 +195,10 @@ const UserAppointments = () => {
               ))}
             </div>
           )}
-          {!userId && (
+          {!adminId && (
             <p className="text-gray-500 p-4">Loading user information...</p>
           )}
         </div>
-
-        {/* Appointment Detail View Section */}
         <div className="w-full lg:w-2/3 bg-gray-100 min-h-[calc(100vh-64px)]">
           {selectedAppointment ? (
             <AppointmentDetailView
@@ -209,8 +216,8 @@ const UserAppointments = () => {
   );
 };
 
-UserAppointments.getLayout = (page: any) => (
+AdminAppointments.getLayout = (page: any) => (
   <DashboardLayout>{page}</DashboardLayout>
 );
 
-export default UserAppointments;
+export default AdminAppointments;

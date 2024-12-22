@@ -107,7 +107,7 @@ export function OnlineListenersTable() {
                 <TableRow>
                   <TableCell>{listener.userId}</TableCell>
                   <TableCell>{listener.anonymousName}</TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right p-0">
                     <Button variant="link" onClick={() => handleDetailsModal()}>
                       Details
                     </Button>

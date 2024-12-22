@@ -18,6 +18,13 @@ export interface Admin {
   userId: number;
   anonymousName: string;
 }
+
+export interface AdminSummary {
+  adminId: number;
+  fullName: string;
+  adminNotes: string;
+  contactNumber: string;
+}
 export interface Listener {
   userId: number;
   anonymousName: string;

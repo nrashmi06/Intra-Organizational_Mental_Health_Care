@@ -87,7 +87,7 @@ export function OnlineUsersTable() {
                 <TableRow>
                   <TableCell>{user.userId}</TableCell>
                   <TableCell>{user.anonymousName}</TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right p-0">
                     <Button variant="link" onClick={() => handleDetailsModal()}>
                       Details
                     </Button>

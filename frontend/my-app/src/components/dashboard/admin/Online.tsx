@@ -91,19 +91,14 @@ export function OnlineAdminsTable() {
                 <TableRow>
                   <TableCell>{user.userId}</TableCell>
                   <TableCell>{user.anonymousName}</TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right p-0">
                     <Button variant="link" onClick={() => handleDetailsModal()}>
                       Details
                     </Button>
+                    
                     <Button
                       variant="link"
-                      href={`/dashboard/user/sessions/${user.userId}`}
-                    >
-                      Sessions
-                    </Button>
-                    <Button
-                      variant="link"
-                      href={`/dashboard/user/appointments/${user.userId}`}
+                      href={`/dashboard/admin/appointments/${user.userId}`}
                     >
                       Appointments
                     </Button>

@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { User, CheckCircle, Calendar, Mail, Shield, X } from "lucide-react";
+import { User, Calendar, Mail, X, Award, FileText, Phone, Contact } from "lucide-react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { fetchAdminProfile } from "@/service/adminProfile/GetAdminProfile";
-import { changeStatus } from "@/service/user/ChangeStatus";
-import router from "next/router";
-import { Button } from "@/components/ui/button";
 import { AdminDetails } from "@/lib/types";
+import Image from "next/image";
 
 interface DetailsProps {
   userId: number;
@@ -18,21 +16,27 @@ interface DetailsProps {
 const ModalDetails: React.FC<DetailsProps> = ({
   userId,
   handleClose,
-  statusFilter,
-  setSuccessMessage,
 }) => {
-  const [admin, setAdmin] = useState<AdminDetails | null>(null);
+  const [adminDetails, setAdmin] = useState<AdminDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const token = useSelector((state: RootState) => state.auth.accessToken);
-
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
   useEffect(() => {
     const fetchData = async () => {
       try {
         const data = await fetchAdminProfile(token, userId);
         setAdmin(data);
       } catch (error) {
-        setError("Error fetching user details." + error);
+        setError("Error fetching admin details." + error);
       } finally {
         setIsLoading(false);
       }
@@ -49,22 +53,9 @@ const ModalDetails: React.FC<DetailsProps> = ({
     return <div className="text-red-500 text-center p-4">{error}</div>;
   }
 
-  if (!admin) {
+  if (!adminDetails) {
     return <div className="text-center p-4">No details available.</div>;
   }
-  const handleAction = async (userId: number, statusFilter: string) => {
-    const action = statusFilter === "ACTIVE" ? "suspend" : "unsuspend";
-    try {
-      await changeStatus(userId, token, action);
-      setSuccessMessage?.(`User ${action}ed successfully.`);
-      setTimeout(() => {
-        setSuccessMessage?.(null);
-      }, 2000);
-      router.reload();
-    } catch (error) {
-      console.error("Error changing approval status:", error);
-    }
-  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
@@ -78,84 +69,90 @@ const ModalDetails: React.FC<DetailsProps> = ({
 
         <div className="p-6 space-y-4">
           <h2 className="text-xl font-semibold text-center border-b pb-4">
-            User Details
+            Admin Details
           </h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex items-center p-4 rounded-lg border">
-              <Mail className="mr-2 text-blue-500" />
-              <div>
-                <p className="text-sm font-medium text-gray-500">Email</p>
-                <p className="text-sm">{user.email}</p>
-              </div>
-            </div>
-            <div className="flex items-center p-4 rounded-lg border">
-              <User className="mr-2 text-indigo-500" />
-              <div>
-                <p className="text-sm font-medium text-gray-500">
-                  Anonymous Name
-                </p>
-                <p className="text-sm">{user.anonymousName}</p>
-              </div>
-            </div>
-            <div className="flex items-center p-4 rounded-lg border">
-              <CheckCircle className="mr-2 text-purple-500" />
-              <div>
-                <p className="text-sm font-medium text-gray-500">Role</p>
-                <p className="text-sm">{user.role}</p>
-              </div>
-            </div>
-            <div className="flex items-center p-4 rounded-lg border">
-              <Shield className="mr-2 text-teal-500" />
-              <div>
-                <p className="text-sm font-medium text-gray-500">Status</p>
-                <p className="text-sm">{user.profileStatus}</p>
-              </div>
-            </div>
-            <div className="flex items-center p-4 rounded-lg border">
-              <Calendar className="mr-2 text-green-500" />
-              <div>
-                <p className="text-sm font-medium text-gray-500">Created At</p>
-                <p className="text-sm">
-                  {new Date(user.createdAt).toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "short",
-                    day: "numeric",
-                  })}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center p-4 rounded-lg border">
-              <Calendar className="mr-2 text-orange-500" />
-              <div>
-                <p className="text-sm font-medium text-gray-500">Last Seen</p>
-                <p className="text-sm">
-                  {new Date(user.lastSeen).toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "short",
-                    day: "numeric",
-                  })}
-                </p>
-              </div>
-            </div>
-            <div className="p-4 rounded-lg border">
-              <p className="text-sm font-medium text-gray-500">Active</p>
-              <p className="text-sm">{user.active ? "Yes" : "No"}</p>
-            </div>
-            {statusFilter && (
-              <div className="p-4 flex justify-end">
-                <Button
-                  variant="outline"
-                  className={`${
-                    statusFilter === "ACTIVE"
-                      ? "text-red-500 bg-red-100"
-                      : "text-green-500 bg-green-100"
-                  }`}
-                  onClick={() => handleAction(user.id, statusFilter)}
-                >
-                  {statusFilter === "ACTIVE" ? "Suspend" : "Unsuspend"} User
-                </Button>
+
+          <div className="flex items-center space-x-6">
+            {adminDetails.profilePictureUrl ? (
+              <Image
+                src={adminDetails.profilePictureUrl}
+                alt={adminDetails.fullName}
+                height={400}
+                width={400}
+                className="w-24 h-24 rounded-full border-2 border-gray object-cover"
+              />
+            ) : (
+              <div className="w-24 h-24  rounded-full flex items-center justify-center">
+                <User className="w-12 h-12" />
               </div>
             )}
+            <div>
+              <h1 className="text-3xl font-bold ">
+                {adminDetails.fullName}
+              </h1>
+              <p className=" text-sm flex items-center">
+                <Mail className="w-4 h-4 mr-2" /> {adminDetails.email}
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="p-6 grid md:grid-cols-2 gap-6">
+          <div>
+            <h2 className="text-xl font-semibold mb-4 flex items-center">
+              <Contact className="w-5 h-5 mr-2 text-blue-600" />
+              Contact Information
+            </h2>
+            <div className="space-y-2">
+              <p className="flex items-center">
+                <Phone className="w-4 h-4 mr-2 text-gray-500" />
+                {adminDetails.contactNumber || "Not provided"}
+              </p>
+              <p className="flex items-center">
+                <Mail className="w-4 h-4 mr-2 text-gray-500" />
+                {adminDetails.email}
+              </p>
+            </div>
+          </div>
+
+          <div>
+            <h2 className="text-xl font-semibold mb-4 flex items-center">
+              <Award className="w-5 h-5 mr-2 text-blue-600" />
+              Qualifications
+            </h2>
+            <p className="text-gray-700">
+              {adminDetails.qualifications || "No qualifications listed"}
+            </p>
+          </div>
+        </div>
+        <div className="p-6 bg-gray-50 border-t">
+          <h2 className="text-xl font-semibold mb-4 flex items-center">
+            <FileText className="w-5 h-5 mr-2 text-blue-600" />
+            Admin Notes
+          </h2>
+            <div className="max-h-32 overflow-y-auto">
+            <p className="text-gray-700">
+              {adminDetails.adminNotes || "No additional notes"}
+            </p>
+            </div>
+        </div>
+        <div className="p-6 bg-gray-100 grid md:grid-cols-2 gap-4">
+          <div>
+            <h3 className="font-semibold flex items-center">
+              <Calendar className="w-4 h-4 mr-2 text-blue-600" />
+              Created At
+            </h3>
+            <p className="text-gray-600">
+              {formatDate(adminDetails.createdAt)}
+            </p>
+          </div>
+          <div>
+            <h3 className="font-semibold flex items-center">
+              <Calendar className="w-4 h-4 mr-2 text-blue-600" />
+              Last Updated
+            </h3>
+            <p className="text-gray-600">
+              {formatDate(adminDetails.updatedAt)}
+            </p>
           </div>
         </div>
       </div>
@@ -164,3 +161,4 @@ const ModalDetails: React.FC<DetailsProps> = ({
 };
 
 export default ModalDetails;
+

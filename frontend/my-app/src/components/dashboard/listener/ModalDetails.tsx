@@ -186,7 +186,7 @@ const DetailsModal: React.FC<DetailsProps> = ({
                     handleAction(listener.listenerId, statusFilter)
                   }
                 >
-                  {statusFilter === "ACTIVE" ? "Suspend" : "Unsuspend"} Listener
+                  {statusFilter === "ACTIVE" ? "Suspend" : "Activate"} Listener
                 </Button>
               </div>
             )}

@@ -159,7 +159,7 @@ const ModalDetails: React.FC<DetailsProps> = ({
                   }`}
                   onClick={() => handleAction(user.id, statusFilter)}
                 >
-                  {statusFilter === "ACTIVE" ? "Suspend" : "Unsuspend"} User
+                  {statusFilter === "ACTIVE" ? "Suspend" : "Activate"} User
                 </Button>
               </div>
             )}

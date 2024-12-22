@@ -157,7 +157,7 @@ export function RegisteredListenersTable() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Listener ID</TableHead>
+              <TableHead>ID</TableHead>
               <TableHead>Anonymous Name</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Actions</TableHead>
