@@ -1,6 +1,5 @@
 import axios from 'axios';
-
-// Define the FormData interface correctly with string types for each field
+import {APPOINTMENT_API_ENDPOINTS} from '@/mapper/appointmentMapper';  // Import the appointment API endpoint mappings
 interface FormData {
   adminId: string;
   timeSlotId: string;
@@ -14,11 +13,8 @@ interface FormData {
 const createAppointment = async (token: string, formData: FormData) => {
   try {
     const response = await axios.post(
-      'http://localhost:8080/mental-health/api/v1/appointments', 
-      {
-        ...formData,
-        timeSlotId: formData.timeSlotId, // Ensure selected time slot ID is included
-      },
+      APPOINTMENT_API_ENDPOINTS.BOOK_APPOINTMENT, // Use the mapped URL
+      formData, // Pass the form data
       {
         headers: {
           'Content-Type': 'application/json',
@@ -26,11 +22,11 @@ const createAppointment = async (token: string, formData: FormData) => {
         },
       }
     );
-    return response; // Return response to handle success in the component
-  } catch (error) {
-    const err = error as any;
-    console.error('Error creating appointment:', err.response?.data || err.message);
-    throw err; // Throw error to be handled in the component
+    
+    return response; // Return response on success
+  } catch (error: any) {
+    console.error('Error creating appointment:', error.response?.data || error.message || error);
+    throw error; // Throw error to be handled by the component
   }
 };
 

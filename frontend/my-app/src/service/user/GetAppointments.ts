@@ -1,11 +1,9 @@
 import axios from "axios";
-
-const API_BASE_URL =
-  "http://localhost:8080/mental-health/api/v1/appointments/user";
+import {APPOINTMENT_API_ENDPOINTS} from '@/mapper/appointmentMapper';
 
 export const getAppointments = async (token: string, userId: number) => {
   try {
-    const url = `${API_BASE_URL}?userId=${userId}`;
+    const url = `${APPOINTMENT_API_ENDPOINTS.GET_APPOINTMENTS_BY_USER}/${userId}`;
 
     const response = await axios.get(url, {
       headers: {

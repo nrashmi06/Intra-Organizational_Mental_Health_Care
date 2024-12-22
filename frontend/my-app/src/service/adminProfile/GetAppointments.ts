@@ -1,7 +1,6 @@
 import axios from "axios";
+import {APPOINTMENT_API_ENDPOINTS} from '@/mapper/appointmentMapper';
 
-const API_BASE_URL =
-  "http://localhost:8080/mental-health/api/v1/appointments/admin";
 
 interface GetAppointmentsParams {
   token: string;
@@ -15,7 +14,7 @@ export const getAppointments = async ({
   userId,
 }: GetAppointmentsParams) => {
   try {
-    let url = API_BASE_URL;
+    let url = APPOINTMENT_API_ENDPOINTS.GET_APPOINTMENTS_BY_ADMIN;
 
     if (adminId) {
       url += `?adminId=${adminId}`;
