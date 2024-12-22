@@ -22,8 +22,6 @@ public class ApplicationConfig {
     @Value("${spring.app.jwtSecret}")
     private String jwtSecret;
 
-
-
     @Value("${DB_PASSWORD:211004}")
     private String dbPassword;
 
