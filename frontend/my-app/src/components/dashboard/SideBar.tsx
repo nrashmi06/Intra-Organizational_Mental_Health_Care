@@ -20,6 +20,7 @@ const routes = [
   { label: "Listener", icon: Headphones, href: "/dashboard/listener" },
   { label: "User", icon: Users, href: "/dashboard/user" },
   { label: "Admin", icon: ShieldCheck, href: "/dashboard/admin" },
+  { label : "Timeslot", icon: Calendar, href: "/dashboard/timeslot"}, 
   { label: "Helpline", icon: PhoneCall, href: "/dashboard/helpline" },
   { label: "Send Mass Email", icon: Mail, href: "/dashboard/sendemail" },
 ];
