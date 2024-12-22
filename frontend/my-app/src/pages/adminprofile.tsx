@@ -9,9 +9,9 @@ import { RootState } from "@/store";
 import { Input } from "@/components/ui/input";
 import { useSelector } from "react-redux";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
-import ReactQuill from "react-quill"; // Importing ReactQuill
+import ReactQuill from "react-quill";
 import { Button } from "@/components/ui/button";
-import "react-quill/dist/quill.snow.css"; // Import the Quill styles
+import "react-quill/dist/quill.snow.css";
 
 interface AdminProfile {
   fullName: string;
