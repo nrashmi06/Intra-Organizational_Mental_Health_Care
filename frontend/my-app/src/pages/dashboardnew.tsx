@@ -23,6 +23,7 @@ const DashboardPage = () => {
   const [statusFilter, setStatusFilter] = useState<
     "pending" | "approved" | "rejected"
   >("pending");
+  const [loading, setLoading] = useState(true);
   const token = useSelector((state: RootState) => state.auth.accessToken);
 
   const loadBlogs = async () => {
@@ -38,10 +39,13 @@ const DashboardPage = () => {
       }
     } catch (error) {
       console.error("Error fetching blogs:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
+    setLoading(true);
     loadBlogs();
   }, [token, statusFilter]);
 
@@ -80,7 +84,11 @@ const DashboardPage = () => {
             <h2 className="text-xl font-bold">Blogs</h2>
             <div className="flex gap-2 mt-2 md:mt-0">
               <Button
-                onClick={() => setStatusFilter("pending")}
+                onClick={() => {
+                  setBlogs([]);
+                  setLoading(true);
+                  setStatusFilter("pending");
+                }}
                 className={`${
                   statusFilter === "pending"
                     ? "bg-purple-500 text-white"
@@ -90,7 +98,11 @@ const DashboardPage = () => {
                 Pending
               </Button>
               <Button
-                onClick={() => setStatusFilter("approved")}
+                onClick={() => {
+                  setBlogs([]);
+                  setLoading(true);
+                  setStatusFilter("approved");
+                }}
                 className={`${
                   statusFilter === "approved"
                     ? "bg-purple-500 text-white"
@@ -100,7 +112,11 @@ const DashboardPage = () => {
                 Approved
               </Button>
               <Button
-                onClick={() => setStatusFilter("rejected")}
+                onClick={() => {
+                  setBlogs([]);
+                  setLoading(true);
+                  setStatusFilter("rejected");
+                }}
                 className={`${
                   statusFilter === "rejected"
                     ? "bg-purple-500 text-white"
@@ -111,7 +127,11 @@ const DashboardPage = () => {
               </Button>
             </div>
           </div>
-          <BlogApprovalTable blogs={blogs} statusFilter={statusFilter} />
+          {loading ? (
+            <div className="p-4 text-center">Loading...</div>
+          ) : (
+            <BlogApprovalTable blogs={blogs} statusFilter={statusFilter} />
+          )}
         </div>
       </section>
     </div>

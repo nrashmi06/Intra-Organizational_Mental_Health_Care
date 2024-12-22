@@ -135,80 +135,92 @@ export function RegisteredUsersTable() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {paginatedUsers.map((user) => (
+            {paginatedUsers.length === 0 ? (
+              <TableRow>
+              <TableCell colSpan={5} className="text-center">
+                No registered users found.
+              </TableCell>
+              </TableRow>
+            ) : (
+              paginatedUsers.map((user) => (
               <TableRow key={user.id}>
                 <TableCell>{user.id}</TableCell>
                 <TableCell>
-                  {user.anonymousName}
-                  {user.active && (
-                    <span className="relative inline-block align-top ml-1">
-                      <span className="absolute top-[-0.5em] right-[-0.5em] inline-block w-2 h-2 bg-green-500 rounded-full"></span>
-                    </span>
-                  )}
+                {user.anonymousName}
+                {user.active && (
+                  <span className="relative inline-block align-top ml-1">
+                  <span className="absolute top-[-0.5em] right-[-0.5em] inline-block w-2 h-2 bg-green-500 rounded-full"></span>
+                  </span>
+                )}
                 </TableCell>
 
                 <TableCell>{user.email}</TableCell>
 
                 <TableCell>
-                  <div
-                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
-                    ${
-                      statusFilter === "ACTIVE"
-                        ? "bg-green-100 text-green-800"
-                        : "bg-red-100 text-red-800"
-                    }`}
-                  >
-                    {statusFilter}
-                  </div>
+                <div
+                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                  ${
+                  statusFilter === "ACTIVE"
+                    ? "bg-green-100 text-green-800"
+                    : "bg-red-100 text-red-800"
+                  }`}
+                >
+                  {statusFilter}
+                </div>
                 </TableCell>
                 <TableCell className="text-right relative">
-                  <Button
-                    variant="link"
-                    onClick={() => toggleDropdown(user.id)}
-                  >
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
+                <Button
+                  variant="link"
+                  onClick={() => toggleDropdown(user.id)}
+                >
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
                 </TableCell>
                 {detailsModal && selectedUser === user.id && (
-                  <Details
-                    userId={user.id}
-                    handleClose={handleModalClose}
-                    statusFilter={statusFilter}
-                    setSuccessMessage={setSuccessMessage}
-                  />
+                <Details
+                  userId={user.id}
+                  handleClose={handleModalClose}
+                  statusFilter={statusFilter}
+                  setSuccessMessage={setSuccessMessage}
+                />
                 )}
                 {activeDropdown === user.id && (
-                  <div
-                    ref={dropdownRef}
-                    className="fixed right-16 top-[319px] w-44 bg-white border rounded-md shadow-lg z-50"
+                <div
+                  ref={dropdownRef}
+                  className="fixed right-16 top-[319px] w-44 bg-white border rounded-md shadow-lg z-50"
+                >
+                  <ul className="flex flex-col justify-center items-start">
+                  <Button
+                    variant="link"
+                    className={`${
+                    statusFilter === "ACTIVE"
+                      ? "text-red-500"
+                      : "text-green-500"
+                    }`}
+                    onClick={() => handleDetailsModal(user.id)}
                   >
-                    <ul className="flex flex-col justify-center items-start">
-                      <Button
-                        variant="link"
-                        className={`${statusFilter === "ACTIVE" ? "text-red-500" : "text-green-500"}`}
-                        onClick={() => handleDetailsModal(user.id)}
-                      >
-                        {statusFilter === "ACTIVE" ? "Suspend" : "Activate"}
-                      </Button>
-                      <Button
-                        variant="link"
-                        className="text-purple-500"
-                        href={`/dashboard/user/sessions/${user.id}`}
-                      >
-                        Sessions
-                      </Button>
-                      <Button
-                        variant="link"
-                        className="text-purple-500"
-                        href={`/dashboard/user/appointments/${user.id}`}
-                      >
-                        Appointments
-                      </Button>
-                    </ul>
-                  </div>
+                    {statusFilter === "ACTIVE" ? "Suspend" : "Activate"}
+                  </Button>
+                  <Button
+                    variant="link"
+                    className="text-purple-500"
+                    href={`/dashboard/user/sessions/${user.id}`}
+                  >
+                    Sessions
+                  </Button>
+                  <Button
+                    variant="link"
+                    className="text-purple-500"
+                    href={`/dashboard/user/appointments/${user.id}`}
+                  >
+                    Appointments
+                  </Button>
+                  </ul>
+                </div>
                 )}
               </TableRow>
-            ))}
+              ))
+            )}
           </TableBody>
         </Table>
       </div>

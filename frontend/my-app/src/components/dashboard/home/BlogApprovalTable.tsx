@@ -75,7 +75,7 @@ const BlogApprovalTable: React.FC<BlogApprovalTableProps> = ({ blogs, statusFilt
                                                     'gray' // Pending status is gray
                                             }
                                         >
-                                            {statusFilter === 'pending' ? 'Pending' : statusFilter}
+                                            {statusFilter === 'pending' ? 'Pending' : statusFilter.toUpperCase()}
                                         </Badge>
                                     </p>
                                 </TableCell>
@@ -108,7 +108,7 @@ const BlogApprovalTable: React.FC<BlogApprovalTableProps> = ({ blogs, statusFilt
                         ))
                     ) : (
                         <TableRow>
-                            <TableCell>
+                            <TableCell colSpan={5}>
                                 <p className="text-center text-gray-500">No {statusFilter} blogs found</p>
                             </TableCell>
                         </TableRow>

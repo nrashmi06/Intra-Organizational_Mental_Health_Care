@@ -179,10 +179,11 @@ export default function VerifyAndDownload() {
                 </div>
 
                 <Button
-                  className="w-full mt-4 bg-black text-white hover:bg-black/90"
+                  className="w-full mt-4 bg-black text-white hover:bg-black/90 disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={handleSubmitOtp}
+                  disabled={otp.some((digit) => digit === "") || isRequestingOtp}
                 >
-                  Submit OTP
+                  {isRequestingOtp ? "Submitting..." : "Submit OTP"}
                 </Button>
               </>
             )}

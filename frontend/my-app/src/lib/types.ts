@@ -37,6 +37,13 @@ export interface User {
   active: boolean;
 }
 
+export interface UserSummary {
+  userId: number;
+  anonymousName: string;
+  email: string;
+  active: boolean;
+}
+
 export interface ListenerDetails {
   listenerId: number;
   userEmail: string;

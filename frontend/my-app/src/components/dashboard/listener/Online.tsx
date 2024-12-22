@@ -102,43 +102,51 @@ export function OnlineListenersTable() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {paginatedListeners.map((listener) => (
+            {paginatedListeners.length === 0 ? (
+              <TableRow>
+              <TableCell colSpan={3} className="text-center">
+                No listeners found.
+              </TableCell>
+              </TableRow>
+            ) : (
+              paginatedListeners.map((listener) => (
               <React.Fragment key={listener.userId}>
                 <TableRow>
-                  <TableCell>{listener.userId}</TableCell>
-                  <TableCell>{listener.anonymousName}</TableCell>
-                  <TableCell className="text-right p-0">
-                    <Button variant="link" onClick={() => handleDetailsModal()}>
-                      Details
-                    </Button>
-                    <Button
-                      variant="link"
-                      href={`/dashboard/listener/sessions/${listener.userId}`}
-                    >
-                      Sessions
-                    </Button>
-                    <Button
-                      variant="link"
-                      onClick={() => handleApplicationModal(listener.userId)}
-                    >
-                      Application
-                    </Button>
-                  </TableCell>
+                <TableCell>{listener.userId}</TableCell>
+                <TableCell>{listener.anonymousName}</TableCell>
+                <TableCell className="text-right p-0">
+                  <Button variant="link" onClick={() => handleDetailsModal()}>
+                  Details
+                  </Button>
+                  <Button
+                  variant="link"
+                  href={`/dashboard/listener/sessions/${listener.userId}`}
+                  >
+                  Sessions
+                  </Button>
+                  <Button
+                  variant="link"
+                  onClick={() => handleApplicationModal(listener.userId)}
+                  >
+                  Application
+                  </Button>
+                </TableCell>
                 </TableRow>
                 {detailsModal && (
-                  <DetailsModal
-                    userId={listener.userId}
-                    handleClose={handleModalClose}
-                  />
+                <DetailsModal
+                  userId={listener.userId}
+                  handleClose={handleModalClose}
+                />
                 )}
                 {applicationModal && application && (
-                  <ApplicationModal
-                    data={application}
-                    handleClose={handleModalClose}
-                  />
+                <ApplicationModal
+                  data={application}
+                  handleClose={handleModalClose}
+                />
                 )}
               </React.Fragment>
-            ))}
+              ))
+            )}
           </TableBody>
         </Table>
       </div>
