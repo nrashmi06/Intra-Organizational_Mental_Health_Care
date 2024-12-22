@@ -15,7 +15,7 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import AppointmentDetailView from "@/components/dashboard/AppointmentDetailView";
 import StackNavbar from "@/components/ui/stackNavbar";
 import { Appointment } from "@/lib/types";
-import { getAppointments } from "@/service/user/GetAppointments";
+import { getAppointments } from "@/service/adminProfile/GetAppointments";
 
 const UserAppointments = () => {
   const router = useRouter();
