@@ -1,6 +1,6 @@
 // src/service/user/getAppointmentsByUserId.ts
 
-export const getAppointmentDetails = async (appointmentId: number, token: string) => {
+export const getAppointmentDetails = async (appointmentId: string, token: string) => {
   try {
     const response = await fetch(
       `http://localhost:8080/mental-health/api/v1/appointments/${appointmentId}`,

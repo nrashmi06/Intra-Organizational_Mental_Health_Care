@@ -1,6 +1,6 @@
 // src/service/user/getUserDetails.ts
 
-export const getUserDetails = async (userId: number, token: string) => {
+export const getUserDetails = async (userId: string, token: string) => {
   try {
     const response = await fetch(
       `http://localhost:8080/mental-health/api/v1/users/${userId}`,

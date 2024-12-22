@@ -1,6 +1,6 @@
 //application details from listner user id OR application id
 export interface ListenerApplication {
-  applicationId: number;
+  applicationId: string;
   fullName: string;
   branch: string;
   semester: number;
@@ -15,37 +15,37 @@ export interface ListenerApplication {
 }
 
 export interface Admin {
-  userId: number;
+  userId: string;
   anonymousName: string;
 }
 
 export interface AdminSummary {
-  adminId: number;
+  adminId: string;
   fullName: string;
   adminNotes: string;
   contactNumber: string;
 }
 export interface Listener {
-  userId: number;
+  userId: string;
   anonymousName: string;
 }
 
 export interface User {
-  id: number;
+  id: string;
   anonymousName: string;
   email: string;
   active: boolean;
 }
 
 export interface UserSummary {
-  userId: number;
+  userId: string;
   anonymousName: string;
   email: string;
   active: boolean;
 }
 
 export interface ListenerDetails {
-  listenerId: number;
+  listenerId: string;
   userEmail: string;
   canApproveBlogs: boolean;
   maxDailySessions: number;
@@ -58,7 +58,7 @@ export interface ListenerDetails {
 }
 
 export interface UserDetails {
-  id: number;
+  id: string;
   email: string;
   anonymousName: string;
   role: string;
@@ -70,14 +70,14 @@ export interface UserDetails {
 }
 
 export interface Session {
-  sessionId: number;
+  sessionId: string;
   userId: number;
   listenerId: number;
   sessionStatus: string;
 }
 
 export interface Appointment {
-  appointmentId: number;
+  appointmentId: string;
   appointmentReason: string;
   userName: string;
   adminName: string;
@@ -87,7 +87,7 @@ export interface Appointment {
   endTime: string;
 }
 export interface AppointmentDetails {
-  appointmentId: number;
+  appointmentId: string;
   userName: string;
   adminName: string;
   timeSlotDate: string;
@@ -101,7 +101,7 @@ export interface AppointmentDetails {
 }
 
 export interface AdminDetails {
-  adminId: number;
+  adminId: string;
   userId: number;
   fullName: string;
   adminNotes: string;

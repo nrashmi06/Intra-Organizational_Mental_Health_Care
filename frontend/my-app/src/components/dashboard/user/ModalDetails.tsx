@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { UserDetails } from "@/lib/types";
 
 interface DetailsProps {
-  userId: number;
+  userId: string;
   handleClose: () => void;
   statusFilter?: string;
   setSuccessMessage?: (message: string | null) => void;
@@ -59,7 +59,7 @@ const ModalDetails: React.FC<DetailsProps> = ({
   if (!user) {
     return <div className="text-center p-4">No details available.</div>;
   }
-  const handleAction = async (userId: number, statusFilter: string) => {
+  const handleAction = async (userId: string, statusFilter: string) => {
     const action = statusFilter === "ACTIVE" ? "suspend" : "unsuspend";
     try {
       await changeStatus(userId, token, action);

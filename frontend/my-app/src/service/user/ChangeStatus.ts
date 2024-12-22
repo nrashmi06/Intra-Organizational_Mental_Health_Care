@@ -5,8 +5,7 @@ import axios from "axios";
 const API_BASE_URL = "http://localhost:8080/mental-health/api/v1/users";
 
 export const changeStatus = async (
-  userId: number,
-
+  userId: string,
   token: string,
   action: string
 ) => {

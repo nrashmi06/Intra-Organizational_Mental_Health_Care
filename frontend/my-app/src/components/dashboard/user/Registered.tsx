@@ -29,12 +29,12 @@ export function RegisteredUsersTable() {
   const [users, setUsers] = useState<User[]>([]);
   const [statusFilter, setStatusFilter] = useState<string>("ACTIVE");
   const [currentPage, setCurrentPage] = useState(1);
-  const [activeDropdown, setActiveDropdown] = useState<number | null>(null);
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const itemsPerPage = 5;
   const accessToken = useSelector((state: RootState) => state.auth.accessToken);
   const [detailsModal, setDetailsModal] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<number | null>(null);
+  const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   useEffect(() => {
     fetchUsersByProfileStatus("ACTIVE");
@@ -51,7 +51,7 @@ export function RegisteredUsersTable() {
     }
   };
 
-  const toggleDropdown = (userId: number) => {
+  const toggleDropdown = (userId: string) => {
     setActiveDropdown((prev) => (prev === userId ? null : userId));
   };
 
@@ -60,7 +60,7 @@ export function RegisteredUsersTable() {
     setSelectedUser(null);
   };
 
-  const handleDetailsModal = (userId: number) => {
+  const handleDetailsModal = (userId: string) => {
     setSelectedUser(userId);
     setDetailsModal(true);
     setActiveDropdown(null);

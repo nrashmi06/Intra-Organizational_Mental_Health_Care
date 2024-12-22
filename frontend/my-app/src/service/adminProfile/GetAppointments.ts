@@ -5,8 +5,8 @@ const API_BASE_URL =
 
 interface GetAppointmentsParams {
   token: string;
-  adminId?: number;
-  userId?: number;
+  adminId?: string;
+  userId?: string;
 }
 
 export const getAppointments = async ({

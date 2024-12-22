@@ -41,7 +41,7 @@ export function RegisteredListenersTable() {
   const [application, setApplication] = useState<ListenerApplication | null>(
     null
   );
-  const [selectedListener, setSelectedListener] = useState<number | null>(null);
+  const [selectedListener, setSelectedListener] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   useEffect(() => {
     fetchListenersByProfileStatus("ACTIVE");
@@ -59,7 +59,7 @@ export function RegisteredListenersTable() {
     }
   };
 
-  const fetchApplicationData = async (userId: number) => {
+  const fetchApplicationData = async (userId: string) => {
     try {
       const fetchedApplication = await getApplicationByListenerUserId(
         userId,
@@ -79,13 +79,13 @@ export function RegisteredListenersTable() {
     setApplication(null);
   };
 
-  const handleApplicationModal = async (userId: number) => {
+  const handleApplicationModal = async (userId: string) => {
     setSelectedListener(userId);
     await fetchApplicationData(userId);
     setDropdown(false);
   };
 
-  const handleDetailsModal = (userId: number) => {
+  const handleDetailsModal = (userId: string) => {
     setSelectedListener(userId);
     setDetailsModal(true);
     setDropdown(false);

@@ -1,6 +1,6 @@
 // src/service/session/getSessionMessages.ts
 
-export const getSessionMessages = async (sessionId: number, token: string) => {
+export const getSessionMessages = async (sessionId: string, token: string) => {
   try {
     const response = await fetch(
       `http://localhost:8080/mental-health/api/v1/sessions/messages/${sessionId}`,

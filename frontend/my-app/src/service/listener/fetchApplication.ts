@@ -7,7 +7,7 @@ const API_BASE_URL =
 
 export const fetchApplication = async (
   accessToken: string,
-  applicationId?: number
+  applicationId?: string
 ) => {
   try {
     const url = applicationId

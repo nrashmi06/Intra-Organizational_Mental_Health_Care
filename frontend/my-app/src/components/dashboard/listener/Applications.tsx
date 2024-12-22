@@ -54,7 +54,7 @@ export function ListenerApplicationsTable() {
     }
   };
 
-  const fetchApplicationDetails = async (applicationId: number) => {
+  const fetchApplicationDetails = async (applicationId: string) => {
     try {
       const applicationData = await fetchApplication(
         accessToken,
@@ -78,7 +78,7 @@ export function ListenerApplicationsTable() {
     setSelectedApplication(null);
   };
 
-  const handleApplicationModal = async (applicationId: number) => {
+  const handleApplicationModal = async (applicationId: string) => {
     await fetchApplicationDetails(applicationId);
   };
 

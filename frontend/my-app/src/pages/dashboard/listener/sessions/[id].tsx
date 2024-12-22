@@ -14,22 +14,22 @@ const ListenerSessions = () => {
   const { id } = router.query;
   const token = useSelector((state: RootState) => state.auth.accessToken);
   const [sessions, setSessions] = useState<Session[]>([]);
-  const [listenerId, setListenerId] = useState<number | null>(null);
-  const [selectedSession, setSelectedSession] = useState<number | null>(null);
+  const [listenerId, setListenerId] = useState<string | null>(null);
+  const [selectedSession, setSelectedSession] = useState<string | null>(null);
   const [detailView, setDetailView] = useState<"report" | "feedback" | "messages" | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     if (id) {
-      const parsedId = parseInt(id as string, 10);
-      if (!isNaN(parsedId)) {
+      const parsedId = id as string;
+      if (parsedId) {
         setListenerId(parsedId);
         fetchSessions(parsedId);
       }
     }
   }, [id]);
 
-  const fetchSessions = async (listenerId: number) => {
+  const fetchSessions = async (listenerId: string) => {
     try {
       const response = await getSessionListByRole(listenerId, "listener", token);
       if (response?.ok) {
@@ -44,7 +44,7 @@ const ListenerSessions = () => {
   };
 
   const handleDetailView = (
-    sessionId: number,
+    sessionId: string,
     view: "report" | "feedback" | "messages"
   ) => {
     setSelectedSession(sessionId);

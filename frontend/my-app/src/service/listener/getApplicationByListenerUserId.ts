@@ -1,7 +1,7 @@
 // src/service/listener/getCertificate.ts
 
 export const getApplicationByListenerUserId = async (
-  userId: number,
+  userId: string,
   token: string
 ) => {
   try {

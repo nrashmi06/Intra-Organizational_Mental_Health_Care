@@ -14,22 +14,24 @@ const ListenerSessions = () => {
   const { id } = router.query;
   const token = useSelector((state: RootState) => state.auth.accessToken);
   const [sessions, setSessions] = useState<Session[]>([]);
-  const [userId, setUserId] = useState<number | null>(null);
-  const [selectedSession, setSelectedSession] = useState<number | null>(null);
-  const [detailView, setDetailView] = useState<"report" | "feedback" | "messages" | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [selectedSession, setSelectedSession] = useState<string | null>(null);
+  const [detailView, setDetailView] = useState<
+    "report" | "feedback" | "messages" | null
+  >(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     if (id) {
-      const parsedId = parseInt(id as string, 10);
-      if (!isNaN(parsedId)) {
+      const parsedId = id as string;
+      if (parsedId) {
         setUserId(parsedId);
         fetchSessions(parsedId);
       }
     }
   }, [id]);
 
-  const fetchSessions = async (userId: number) => {
+  const fetchSessions = async (userId: string) => {
     try {
       const response = await getSessionListByRole(userId, "user", token);
       if (response?.ok) {
@@ -44,7 +46,7 @@ const ListenerSessions = () => {
   };
 
   const handleDetailView = (
-    sessionId: number,
+    sessionId: string,
     view: "report" | "feedback" | "messages"
   ) => {
     setSelectedSession(sessionId);
@@ -70,10 +72,10 @@ const ListenerSessions = () => {
           <span
             className={`px-3 py-1 rounded-full text-sm font-medium w-fit ${
               session.sessionStatus === "Completed"
-          ? "bg-green-100 text-green-800"
-          : session.sessionStatus === "In Progress"
-          ? "bg-yellow-100 text-yellow-800"
-          : "bg-gray-100 text-gray-800"
+                ? "bg-green-100 text-green-800"
+                : session.sessionStatus === "In Progress"
+                ? "bg-yellow-100 text-yellow-800"
+                : "bg-gray-100 text-gray-800"
             }`}
           >
             {session.sessionStatus}
@@ -110,7 +112,7 @@ const ListenerSessions = () => {
   return (
     <>
       <StackNavbar items={stackItems} />
-      
+
       {/* Mobile Menu Toggle */}
       <div className="lg:hidden fixed top-16 right-4 z-50">
         <button
@@ -134,7 +136,11 @@ const ListenerSessions = () => {
         <div
           className={`w-full lg:w-1/3 bg-gray-50 border-r border-gray-200 overflow-y-auto 
                      fixed lg:relative z-40 transition-transform duration-300 ease-in-out
-                     ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+                     ${
+                       isMobileMenuOpen
+                         ? "translate-x-0"
+                         : "-translate-x-full lg:translate-x-0"
+                     }
                      h-[calc(100vh-64px)] lg:h-auto`}
         >
           {userId && (

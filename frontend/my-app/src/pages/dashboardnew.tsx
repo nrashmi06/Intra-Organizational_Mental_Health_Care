@@ -13,7 +13,7 @@ import BlogApprovalTable from "@/components/dashboard/home/BlogApprovalTable";
 import UserCountGrid from "@/components/dashboard/home/LiveCount";
 
 interface BlogApproval {
-  id: number;
+  id: string;
   title: string;
   status: "pending" | "approved" | "rejected";
 }

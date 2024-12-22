@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-export const fetchAdminProfile = async (token: string, userId?: number) => {
+export const fetchAdminProfile = async (token: string, userId?: string) => {
   try {
     console.log("Fetching admin profile...");
     console.log("Token: ", token);

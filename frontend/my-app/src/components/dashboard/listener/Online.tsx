@@ -35,7 +35,7 @@ export function OnlineListenersTable() {
     setDetailsModal(false);
   };
 
-  const handleApplicationModal = async (userId: number) => {
+  const handleApplicationModal = async (userId: string) => {
     await fetchApplicationData(userId);
   };
 
@@ -56,7 +56,7 @@ export function OnlineListenersTable() {
     };
   }, [token]);
 
-  const fetchApplicationData = async (userId: number) => {
+  const fetchApplicationData = async (userId: string) => {
     try {
       const fetchedApplication = await getApplicationByListenerUserId(userId, token);
       setApplication(fetchedApplication);

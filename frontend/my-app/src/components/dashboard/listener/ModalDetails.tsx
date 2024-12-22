@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { ListenerDetails } from "@/lib/types";
 
 interface DetailsProps {
-  userId: number;
+  userId: string;
   handleClose: () => void;
   statusFilter?: string;
   setSuccessMessage?: (message: string | null) => void;
@@ -60,7 +60,7 @@ const DetailsModal: React.FC<DetailsProps> = ({
   if (!listener) {
     return <div className="text-center p-4">No details available.</div>;
   }
-  const handleAction = async (listenerId: number, statusFilter: string) => {
+  const handleAction = async (listenerId: string, statusFilter: string) => {
     const action = statusFilter === "ACTIVE" ? "suspend" : "unsuspend";
     try {
       await changeStatus(listenerId, token, action);

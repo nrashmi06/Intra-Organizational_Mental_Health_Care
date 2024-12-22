@@ -5,7 +5,7 @@ import { getSessionReport } from "@/service/session/getSessionReport";
 import { useState, useEffect } from "react";
 interface DetailViewProps {
   type: "report" | "feedback" | "messages" | null;
-  sessionId: number | null;
+  sessionId: string | null;
   token: string;
 }
 

@@ -62,7 +62,7 @@ const ApplicationModal: React.FC<{
     });
   };
   const handleStatusChange = async (
-    applicationId: number,
+    applicationId: string,
     newStatus: "APPROVED" | "REJECTED"
   ) => {
     try {

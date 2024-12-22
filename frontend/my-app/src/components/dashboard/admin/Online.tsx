@@ -53,7 +53,7 @@ export function OnlineAdminsTable() {
   const filteredAdmins = admins.filter(
     (user) =>
       user.anonymousName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.userId.toString().toLowerCase().includes(searchQuery.toLowerCase())
+      user.userId.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const paginatedAdmins = filteredAdmins.slice(

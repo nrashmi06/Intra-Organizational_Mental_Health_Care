@@ -7,7 +7,7 @@ import { AdminDetails } from "@/lib/types";
 import Image from "next/image";
 
 interface DetailsProps {
-  userId: number;
+  userId: string;
   handleClose: () => void;
   statusFilter?: string;
   setSuccessMessage?: (message: string | null) => void;

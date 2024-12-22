@@ -5,7 +5,7 @@ import { getAppointmentDetails } from '@/service/user/GetAppointmentDetails';
 import { AppointmentDetails } from '@/lib/types';
 
 interface DetailViewProps {
-  appointmentId: number | null;
+  appointmentId: string | null;
   token: string;
 }
 

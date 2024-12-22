@@ -6,7 +6,7 @@ const API_BASE_URL =
   "http://localhost:8080/mental-health/api/v1/listener-applications";
 
 export const deleteApplication = async (
-  applicationId: number | null,
+  applicationId: string | null,
   accessToken: string
 ) => {
   try {
@@ -27,7 +27,7 @@ export const deleteApplication = async (
 };
 
 export const updateApplication = async (
-  applicationId: number,
+  applicationId: string,
   accessToken: string,
   updatedData: {
     fullName: string;

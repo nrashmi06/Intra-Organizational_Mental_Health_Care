@@ -6,7 +6,7 @@ const API_BASE_URL =
   "http://localhost:8080/mental-health/api/v1/listener-applications";
 
 export const approveListener = async (
-  applicationId: number,
+  applicationId: string,
   accessToken: string,
   status: "APPROVED" | "REJECTED" | "PENDING"
 ) => {
