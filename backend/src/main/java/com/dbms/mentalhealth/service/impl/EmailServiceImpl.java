@@ -12,6 +12,7 @@ import jakarta.mail.internet.MimeMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.mail.MailSendException;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -33,19 +34,21 @@ public class EmailServiceImpl implements EmailService {
     private final JavaMailSender javaMailSender;
     private final TemplateEngine templateEngine;
     private final UserRepository userRepository;
+    private final String baseUrl;
 
     @Autowired
-    public EmailServiceImpl(JavaMailSender javaMailSender, TemplateEngine templateEngine, UserRepository userRepository) {
+    public EmailServiceImpl(JavaMailSender javaMailSender, TemplateEngine templateEngine, UserRepository userRepository, @Value("${spring.app.base-url}") String baseUrl) {
         this.javaMailSender = javaMailSender;
         this.templateEngine = templateEngine;
         this.userRepository = userRepository;
+        this.baseUrl = baseUrl;
     }
 
     @Override
     public void sendVerificationEmail(String email, String code) {
         logger.info("Starting to send verification email to: {}", email);
         String subject = "Verify your email address";
-        String verificationUrl = "http://localhost:8080/mental-health" + UserUrlMapping.VERIFY_EMAIL + "?token=" + code;
+        String verificationUrl = baseUrl + UserUrlMapping.VERIFY_EMAIL + "?token=" + code;
         Context context = new Context();
         context.setVariable("verificationUrl", verificationUrl);
         String body = templateEngine.process("verificationEmailTemplate", context);
