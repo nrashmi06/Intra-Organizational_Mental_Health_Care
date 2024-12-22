@@ -94,27 +94,35 @@ export function RegisteredAdminsTable() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {paginatedAdmins.map((admin) => (
-              <TableRow key={admin.adminId}>
-                <TableCell>{admin.adminId}</TableCell>
-                <TableCell>{admin.fullName}</TableCell>
-                <TableCell className="max-w-md">
-                  <div className="max-h-20 overflow-y-auto">
-                    {admin.adminNotes}
-                  </div>
-                </TableCell>
-                <TableCell>{admin.contactNumber}</TableCell>
-                <TableCell className="text-right relative p-0">
-                  <Button
-                    variant="link"
-                    className="text-purple-500"
-                    href={`/dashboard/admin/appointments/${admin.adminId}`}
-                  >
-                    Appointments
-                  </Button>
+            {paginatedAdmins.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center">
+                  No admins found.
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              paginatedAdmins.map((admin) => (
+                <TableRow key={admin.adminId}>
+                  <TableCell>{admin.adminId}</TableCell>
+                  <TableCell>{admin.fullName}</TableCell>
+                  <TableCell className="max-w-md">
+                    <div className="max-h-20 overflow-y-auto">
+                      {admin.adminNotes}
+                    </div>
+                  </TableCell>
+                  <TableCell>{admin.contactNumber}</TableCell>
+                  <TableCell className="text-right relative p-0">
+                    <Button
+                      variant="link"
+                      className="text-purple-500"
+                      href={`/dashboard/admin/appointments/${admin.adminId}?req=registeredAdmins`}
+                    >
+                      Appointments
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>

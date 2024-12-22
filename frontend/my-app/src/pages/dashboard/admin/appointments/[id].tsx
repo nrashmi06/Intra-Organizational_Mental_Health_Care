@@ -15,11 +15,11 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import AppointmentDetailView from "@/components/dashboard/AppointmentDetailView";
 import StackNavbar from "@/components/ui/stackNavbar";
 import { Appointment } from "@/lib/types";
-import { getAppointments } from "@/service/adminProfile/GetAppointments"
+import { getAppointments } from "@/service/adminProfile/GetAppointments";
 
 const AdminAppointments = () => {
   const router = useRouter();
-  const { id } = router.query;
+  const { id, req } = router.query;
   const token = useSelector((state: RootState) => state.auth.accessToken);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [adminId, setAdminId] = useState<number | null>(null);
@@ -33,19 +33,18 @@ const AdminAppointments = () => {
       const parsedId = parseInt(id as string, 10);
       if (!isNaN(parsedId)) {
         setAdminId(parsedId);
-        fetchAppointments(parsedId);
+        fetchAppointments(parsedId, req as string);
       }
     }
-  }, [id]);
+  }, [id, req]);
 
-  const fetchAppointments = async (adminId: number) => {
+  const fetchAppointments = async (parsedId: number, req: string) => {
     try {
-      const response = await getAppointments({ token, adminId });
+      const params =
+        req === "onlineAdmins" ? { userId: parsedId } : { adminId: parsedId };
+      const response = await getAppointments({ token, ...params });
       if (response.status === 200) {
-        const appointmentData: Appointment[] = await response.data;
-        setAppointments(appointmentData);
-      } else {
-        console.error("Failed to fetch appointments:");
+        setAppointments(response.data);
       }
     } catch (error) {
       console.error("Error fetching appointments:", error);

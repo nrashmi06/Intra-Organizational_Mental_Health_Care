@@ -86,32 +86,43 @@ export function OnlineAdminsTable() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {paginatedAdmins.map((user) => (
-              <React.Fragment key={user.userId}>
-                <TableRow>
-                  <TableCell>{user.userId}</TableCell>
-                  <TableCell>{user.anonymousName}</TableCell>
-                  <TableCell className="text-right p-0">
-                    <Button variant="link" onClick={() => handleDetailsModal()}>
-                      Details
-                    </Button>
-                    
-                    <Button
-                      variant="link"
-                      href={`/dashboard/admin/appointments/${user.userId}`}
-                    >
-                      Appointments
-                    </Button>
-                  </TableCell>
-                </TableRow>
-                {detailsModal && (
-                  <ModalDetails
-                    userId={user.userId}
-                    handleClose={handleModalClose}
-                  />
-                )}
-              </React.Fragment>
-            ))}
+            {paginatedAdmins.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={3} className="text-center">
+                  No admins found.
+                </TableCell>
+              </TableRow>
+            ) : (
+              paginatedAdmins.map((user) => (
+                <React.Fragment key={user.userId}>
+                  <TableRow>
+                    <TableCell>{user.userId}</TableCell>
+                    <TableCell>{user.anonymousName}</TableCell>
+                    <TableCell className="text-right p-0">
+                      <Button
+                        variant="link"
+                        onClick={() => handleDetailsModal()}
+                      >
+                        Details
+                      </Button>
+
+                      <Button
+                        variant="link"
+                        href={`/dashboard/admin/appointments/${user.userId}?req=onlineAdmins`}
+                      >
+                        Appointments
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                  {detailsModal && (
+                    <ModalDetails
+                      userId={user.userId}
+                      handleClose={handleModalClose}
+                    />
+                  )}
+                </React.Fragment>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>

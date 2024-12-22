@@ -164,82 +164,92 @@ export function RegisteredListenersTable() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {paginatedListeners.map((listener) => (
-              <TableRow key={listener.userId}>
-                <TableCell>{listener.userId}</TableCell>
-                <TableCell>{listener.anonymousName}</TableCell>
-                <TableCell>
-                  <div
-                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
-                    ${
-                      statusFilter === "ACTIVE"
-                        ? "bg-green-100 text-green-800"
-                        : "bg-red-100 text-red-800"
-                    }`}
-                  >
-                    {statusFilter}
-                  </div>
+            {paginatedListeners.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={4} className="text-center">
+                  No listeners found.
                 </TableCell>
-                <TableCell className="text-right relative">
-                  <Button
-                    variant="link"
-                    onClick={() => setDropdown((prev) => !prev)}
-                  >
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </TableCell>
-                {detailsModal && selectedListener === listener.userId && (
-                  <Details
-                    userId={listener.userId}
-                    handleClose={handleModalClose}
-                    statusFilter={statusFilter}
-                    setSuccessMessage={setSuccessMessage}
-                  />
-                )}
-                {applicationModal &&
-                  selectedListener === listener.userId &&
-                  application && (
-                    <ListenerDetailsForAdmin
-                      data={application}
+              </TableRow>
+            ) : (
+              paginatedListeners.map((listener) => (
+                <TableRow key={listener.userId}>
+                  <TableCell>{listener.userId}</TableCell>
+                  <TableCell>{listener.anonymousName}</TableCell>
+                  <TableCell>
+                    <div
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                  ${
+                    statusFilter === "ACTIVE"
+                      ? "bg-green-100 text-green-800"
+                      : "bg-red-100 text-red-800"
+                  }`}
+                    >
+                      {statusFilter}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right relative">
+                    <Button
+                      variant="link"
+                      onClick={() => setDropdown((prev) => !prev)}
+                    >
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                  {detailsModal && selectedListener === listener.userId && (
+                    <Details
+                      userId={listener.userId}
                       handleClose={handleModalClose}
+                      statusFilter={statusFilter}
+                      setSuccessMessage={setSuccessMessage}
                     />
                   )}
-                {dropdown && (
-                  <div
-                    ref={dropdownRef}
-                    className="fixed right-16 top-[319px] w-44 bg-white border rounded-md shadow-lg"
-                  >
-                    <ul className="flex flex-col justify-center items-start">
-                      <Button
-                        variant="link"
-                        className={`${
-                          statusFilter === "ACTIVE"
-                            ? "text-red-500"
-                            : "text-green-500"
-                        }`}
-                        onClick={() => handleDetailsModal(listener.userId)}
-                      >
-                        {statusFilter === "ACTIVE" ? "Suspend" : "Activate"}
-                      </Button>
-                      <Button
-                        variant="link"
-                        className="text-purple-500"
-                        href={`/dashboard/listener/sessions/${listener.userId}`}
-                      >
-                        Sessions
-                      </Button>
-                      <Button
-                        variant="link"
-                        className="text-purple-500"
-                        onClick={() => handleApplicationModal(listener.userId)}
-                      >
-                        Application
-                      </Button>
-                    </ul>
-                  </div>
-                )}
-              </TableRow>
-            ))}
+                  {applicationModal &&
+                    selectedListener === listener.userId &&
+                    application && (
+                      <ListenerDetailsForAdmin
+                        data={application}
+                        handleClose={handleModalClose}
+                      />
+                    )}
+                  {dropdown && (
+                    <div
+                      ref={dropdownRef}
+                      className="fixed right-16 top-[319px] w-44 bg-white border rounded-md shadow-lg"
+                    >
+                      <ul className="flex flex-col justify-center items-start">
+                        <Button
+                          variant="link"
+                          className={`${
+                            statusFilter === "ACTIVE"
+                              ? "text-red-500"
+                              : "text-green-500"
+                          }`}
+                          onClick={() => handleDetailsModal(listener.userId)}
+                        >
+                          {statusFilter === "ACTIVE" ? "Suspend" : "Activate"}
+                        </Button>
+                        <Button
+                          variant="link"
+                          className="text-purple-500"
+                          href={`/dashboard/listener/sessions/${listener.userId}`}
+                        >
+                          Sessions
+                        </Button>
+                        <Button
+                          variant="link"
+                          className="text-purple-500"
+                          onClick={() =>
+                            handleApplicationModal(listener.userId)
+                          }
+                        >
+                          Application
+                        </Button>
+                      </ul>
+                    </div>
+                  )}
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>

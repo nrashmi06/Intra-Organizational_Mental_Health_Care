@@ -14,13 +14,13 @@ import { getActiveUserByRoleName } from "@/service/SSE/getActiveUserByRoleName";
 import { RootState } from "@/store";
 import { useSelector } from "react-redux";
 import ModalDetails from "./ModalDetails";
-import { User } from "@/lib/types";
+import { UserSummary } from "@/lib/types";
 
 export function OnlineUsersTable() {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10; // Number of items per page
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<UserSummary[]>([]);
   const [eventSource, setEventSource] = useState<EventSource | null>(null);
   const token = useSelector((state: RootState) => state.auth.accessToken);
   const [detailsModal, setDetailsModal] = useState(false);
@@ -81,39 +81,47 @@ export function OnlineUsersTable() {
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody>
-            {paginatedUsers.map((user) => (
+            <TableBody>
+            {paginatedUsers.length === 0 ? (
+              <TableRow>
+              <TableCell colSpan={3} className="text-center">
+                No users found.
+              </TableCell>
+              </TableRow>
+            ) : (
+              paginatedUsers.map((user) => (
               <React.Fragment key={user.userId}>
                 <TableRow>
-                  <TableCell>{user.userId}</TableCell>
-                  <TableCell>{user.anonymousName}</TableCell>
-                  <TableCell className="text-right p-0">
-                    <Button variant="link" onClick={() => handleDetailsModal()}>
-                      Details
-                    </Button>
-                    <Button
-                      variant="link"
-                      href={`/dashboard/user/sessions/${user.userId}`}
-                    >
-                      Sessions
-                    </Button>
-                    <Button
-                      variant="link"
-                      href={`/dashboard/user/appointments/${user.userId}`}
-                    >
-                      Appointments
-                    </Button>
-                  </TableCell>
+                <TableCell>{user.userId}</TableCell>
+                <TableCell>{user.anonymousName}</TableCell>
+                <TableCell className="text-right p-0">
+                  <Button variant="link" onClick={() => handleDetailsModal()}>
+                  Details
+                  </Button>
+                  <Button
+                  variant="link"
+                  href={`/dashboard/user/sessions/${user.userId}`}
+                  >
+                  Sessions
+                  </Button>
+                  <Button
+                  variant="link"
+                  href={`/dashboard/user/appointments/${user.userId}`}
+                  >
+                  Appointments
+                  </Button>
+                </TableCell>
                 </TableRow>
                 {detailsModal && (
-                  <ModalDetails
-                    userId={user.userId}
-                    handleClose={handleModalClose}
-                  />
+                <ModalDetails
+                  userId={user.userId}
+                  handleClose={handleModalClose}
+                />
                 )}
               </React.Fragment>
-            ))}
-          </TableBody>
+              ))
+            )}
+            </TableBody>
         </Table>
       </div>
 
