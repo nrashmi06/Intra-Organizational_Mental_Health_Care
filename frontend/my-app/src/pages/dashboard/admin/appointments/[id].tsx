@@ -15,7 +15,7 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import AppointmentDetailView from "@/components/dashboard/AppointmentDetailView";
 import StackNavbar from "@/components/ui/stackNavbar";
 import { Appointment } from "@/lib/types";
-import { getAppointments } from "@/service/user/GetAppointments";
+import { getAppointments } from "@/service/adminProfile/GetAppointments"
 
 const AdminAppointments = () => {
   const router = useRouter();
@@ -41,11 +41,11 @@ const AdminAppointments = () => {
   const fetchAppointments = async (adminId: number) => {
     try {
       const response = await getAppointments({ token, adminId });
-      if (response) {
-        const appointmentData: Appointment[] = await response.json();
+      if (response.status === 200) {
+        const appointmentData: Appointment[] = await response.data;
         setAppointments(appointmentData);
       } else {
-        console.error("Failed to fetch appointments:", response?.statusText);
+        console.error("Failed to fetch appointments:");
       }
     } catch (error) {
       console.error("Error fetching appointments:", error);

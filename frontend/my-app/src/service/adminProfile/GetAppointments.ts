@@ -29,7 +29,7 @@ export const getAppointments = async ({
       },
     });
     console.log("Appointments fetched successfully:", response);
-    return response.data;
+    return response;
   } catch (error: any) {
     console.error("Error fetching appointments:", error);
     throw error;
