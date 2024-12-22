@@ -1,14 +1,13 @@
 import axios from 'axios';
+import { API_ENDPOINTS } from '@/mapper/userMapper'; // Import the userMapper
 
 interface ForgotPasswordResponse {
   message: string;
 }
 
 const forgotPassword = async (email: string): Promise<string> => {
-  const endpoint = 'http://localhost:8080/mental-health/api/v1/users/forgot-password';
-
   try {
-    const response = await axios.post<ForgotPasswordResponse>(endpoint, { email });
+    const response = await axios.post<ForgotPasswordResponse>(API_ENDPOINTS.FORGOT_PASSWORD, { email });
     // Assuming the response structure matches the example provided
     return response.data.message;
   } catch (error: any) {

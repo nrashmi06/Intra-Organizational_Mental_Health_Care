@@ -1,10 +1,11 @@
 import { setUser } from "@/store/authSlice";
 import { AppDispatch } from "@/store/index";
+import { API_ENDPOINTS } from "@/mapper/userMapper";
 
 export const loginUser = (email: string, password: string) => async (dispatch: AppDispatch) => {
   try {
     // API call to login
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/mental-health/api/v1/users/login`, {
+    const response = await fetch(API_ENDPOINTS.LOGIN, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

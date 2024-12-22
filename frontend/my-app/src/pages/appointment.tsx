@@ -65,7 +65,7 @@ export default function BookAppointment() {
         const data = await fetchAdmins(token);
         setAdmins(data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "An error occurred");
+        console.error('Error fetching admins:', err);
       }
     }
     loadAdmins();
@@ -320,7 +320,5 @@ const handleSubmit = (event: React.FormEvent) => {
     </div>
   );
 }
-function setError(arg0: string) {
-  throw new Error('Function not implemented.');
-}
+
 

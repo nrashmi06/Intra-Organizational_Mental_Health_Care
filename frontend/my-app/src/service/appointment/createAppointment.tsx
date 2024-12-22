@@ -14,7 +14,7 @@ interface FormData {
 const createAppointment = async (token: string, formData: FormData) => {
   try {
     const response = await axios.post(
-      'http://localhost:8080/mental-health/api/v1/appointments', // API endpoint
+      'http://localhost:8080/mental-health/api/v1/appointments', 
       {
         ...formData,
         timeSlotId: formData.timeSlotId, // Ensure selected time slot ID is included
