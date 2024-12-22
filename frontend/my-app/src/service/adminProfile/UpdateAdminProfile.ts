@@ -1,5 +1,6 @@
 import axios from "axios";
 import { AdminProfile, AdminProfileResponse } from "./CreateAdminProfile";
+import { ADMIN_PROFILE_API_ENDPOINTS } from "@/mapper/adminProfileMapper";
 
 export const updateAdminProfile = async (
   profile: AdminProfile,  // Change to AdminProfile type
@@ -33,7 +34,7 @@ export const updateAdminProfile = async (
 
     // Make the PUT request to update the profile
     const response = await axios.put<AdminProfileResponse>(
-      `http://localhost:8080/mental-health/api/v1/admins/profile`,
+      ADMIN_PROFILE_API_ENDPOINTS.UPDATE_ADMIN_PROFILE,
       formData,
       {
         headers: {

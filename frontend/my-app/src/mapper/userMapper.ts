@@ -13,8 +13,10 @@ export const API_ENDPOINTS = {
   GET_USER_BY_ID: (userId: string) => `${BASE_API}/${userId}`,
   UPDATE_USER: (userId: string) => `${BASE_API}/${userId}`,
   DELETE_USER: (userId: string) => `${BASE_API}/${userId}`,
-  SUSPEND_USER: (userId: string) => `${BASE_API}/suspend/${userId}`,
+  SUSPEND_USER: (userId: string ) => `${BASE_API}/suspend/${userId}`,
   CHANGE_PASSWORD: (userId: string) => `${BASE_API}/${userId}/change-password`,
   FORGOT_PASSWORD: `${BASE_API}/forgot-password`,
   RESET_PASSWORD: `${BASE_API}/reset-password`,
+  REQUEST_VERIFICATION_CODE: `${BASE_API}/request-verification-code`,
+  VERIFY_OTP: `${BASE_API}/verify-code-and-get-pdf`,
 };

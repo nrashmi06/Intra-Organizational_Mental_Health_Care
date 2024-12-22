@@ -1,9 +1,10 @@
 import axios from 'axios';
+import {API_ENDPOINTS} from '@/mapper/userMapper';
 
 const requestVerificationCode = async (accessToken: string) => {
     try {
         const response = await axios.post(
-            'http://localhost:8080/mental-health/api/v1/users/request-verification-code',
+            API_ENDPOINTS.REQUEST_VERIFICATION_CODE,
             {},
             {
                 headers: {

@@ -1,4 +1,5 @@
 import axios from "axios";
+import { EMERGENCY_API_ENDPOINTS } from "@/mapper/emergencyMapper";
 
 export const updateEmergencyHelpline = async (
   helplineId: string,
@@ -13,7 +14,7 @@ export const updateEmergencyHelpline = async (
 ) => {
   try {
     const response = await axios.put(
-      `http://localhost:8080/mental-health/api/v1/emergency-helpline/${helplineId}`,
+      `${EMERGENCY_API_ENDPOINTS.DELETE_EMERGENCY(helplineId)}`,
       body,
       {
         headers: {

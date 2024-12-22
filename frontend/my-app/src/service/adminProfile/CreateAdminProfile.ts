@@ -1,6 +1,6 @@
 import axios from 'axios';
+import { ADMIN_PROFILE_API_ENDPOINTS } from '@/mapper/adminProfileMapper';
 
-const API_BASE_URL = 'http://localhost:8080/mental-health/api/v1/admins';
 
 export interface AdminProfile {
   fullName: string;
@@ -53,7 +53,7 @@ export const createAdminProfile = async (
       }
   
       // Make the POST request
-      const response = await axios.post<AdminProfileResponse>(`${API_BASE_URL}`, 
+      const response = await axios.post<AdminProfileResponse>(`${ADMIN_PROFILE_API_ENDPOINTS.CREATE_ADMIN_PROFILE}`, 
         formData, {
         headers: {
           Authorization: `Bearer ${accessToken}`,

@@ -1,10 +1,11 @@
 import axios from "axios";
+import { API_ENDPOINTS } from "@/mapper/userMapper";
 
 const verifyOtpForDownload = async (
   verificationCode: string,
   accessToken: string
 ) => {
-  const apiUrl = `http://localhost:8080/mental-health/api/v1/users/verify-code-and-get-pdf?verificationCode=${verificationCode}`;
+  const apiUrl = `${API_ENDPOINTS.VERIFY_OTP}?verificationCode=${verificationCode}`;
 
   try {
     const response = await axios.post(apiUrl, null, {
