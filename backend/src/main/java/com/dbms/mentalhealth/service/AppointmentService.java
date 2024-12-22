@@ -10,7 +10,7 @@ import java.util.List;
 public interface AppointmentService {
     AppointmentResponseDTO createAppointment(AppointmentRequestDTO appointmentRequestDTO);
     List<AppointmentSummaryResponseDTO> getAppointmentsByUser(Integer userId);
-    List<AppointmentSummaryResponseDTO> getAppointmentsByAdmin(Integer adminId);
+    List<AppointmentSummaryResponseDTO> getAppointmentsByAdmin(Integer userId, Integer adminId);
     AppointmentResponseDTO getAppointmentById(Integer appointmentId);
     void cancelAppointment(Integer appointmentId, String cancellationReason);
     List<AppointmentSummaryResponseDTO> getAppointmentsByDateRange(LocalDate startDate, LocalDate endDate);
