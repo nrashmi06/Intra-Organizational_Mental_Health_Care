@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/router";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store"; // Import RootState to access Redux state
-import {clearUser} from "@/store/authSlice"; // Import the clearUser action
+import { clearUser } from "@/store/authSlice"; // Import the clearUser action
 
 export default function Navbar() {
   const router = useRouter();
@@ -16,7 +16,8 @@ export default function Navbar() {
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
-  const toggleServicesDropdown = () => setIsServicesDropdownOpen(!isServicesDropdownOpen);
+  const toggleServicesDropdown = () =>
+    setIsServicesDropdownOpen(!isServicesDropdownOpen);
 
   const handleLogout = () => {
     dispatch(clearUser()); // Clear user data from Redux state
@@ -42,7 +43,9 @@ export default function Navbar() {
               height={40}
               className="rounded-full"
             />
-            <span className="text-xl font-semibold text-white">SerenitySphere</span>
+            <span className="text-xl font-semibold text-white">
+              SerenitySphere
+            </span>
           </div>
 
           {/* Desktop Navigation */}
@@ -50,19 +53,25 @@ export default function Navbar() {
             <nav className="flex flex-row items-center gap-6 px-4">
               <Link
                 href="/"
-                className={`text-sm font-medium text-white ${router.pathname === "/" ? "underline" : ""}`}
+                className={`text-sm font-medium text-white ${
+                  router.pathname === "/" ? "underline" : ""
+                }`}
               >
                 Home
               </Link>
               <Link
                 href="/blog/all"
-                className={`text-sm font-medium text-white ${router.pathname === "/blog" ? "underline" : ""}`}
+                className={`text-sm font-medium text-white ${
+                  router.pathname === "/blog" ? "underline" : ""
+                }`}
               >
                 Blog
               </Link>
               <Link
                 href="/helpline"
-                className={`text-sm font-medium text-white ${router.pathname === "/helpline" ? "underline" : ""}`}
+                className={`text-sm font-medium text-white ${
+                  router.pathname === "/helpline" ? "underline" : ""
+                }`}
               >
                 Helpline
               </Link>
@@ -71,7 +80,9 @@ export default function Navbar() {
               <div className="relative">
                 <button
                   onClick={toggleServicesDropdown}
-                  className={`text-sm font-medium text-white ${router.pathname === "/services" ? "underline" : ""}`}
+                  className={`text-sm font-medium text-white ${
+                    router.pathname === "/services" ? "underline" : ""
+                  }`}
                 >
                   Services
                 </button>
@@ -98,13 +109,21 @@ export default function Navbar() {
                     >
                       Match a Listener
                     </Link>
+                    <Link
+                      href="/download"
+                      className="block px-4 py-2 text-sm hover:bg-gray-100"
+                    >
+                      Download My Data
+                    </Link>
                   </div>
                 )}
               </div>
 
               <Link
                 href="/about"
-                className={`text-sm font-medium text-white ${router.pathname === "/about" ? "underline" : ""}`}
+                className={`text-sm font-medium text-white ${
+                  router.pathname === "/about" ? "underline" : ""
+                }`}
               >
                 About
               </Link>
@@ -113,7 +132,10 @@ export default function Navbar() {
               <div className="flex flex-row items-center gap-4">
                 {!user.accessToken ? (
                   <>
-                    <Link href="/signin" className="text-sm font-medium text-white">
+                    <Link
+                      href="/signin"
+                      className="text-sm font-medium text-white"
+                    >
                       Sign-in
                     </Link>
                     <Link
@@ -136,11 +158,13 @@ export default function Navbar() {
           </div>
 
           {/* Hamburger Icon for Mobile */}
-          <button
-            className="md:hidden text-white"
-            onClick={toggleMenu}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+          <button className="md:hidden text-white" onClick={toggleMenu}>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              width="24"
+              height="24"
+            >
               <path
                 fill="none"
                 stroke="currentColor"
@@ -169,19 +193,25 @@ export default function Navbar() {
           <nav className="flex flex-col items-center gap-6 px-4">
             <Link
               href="/"
-              className={`text-sm font-medium text-white ${router.pathname === "/" ? "underline" : ""}`}
+              className={`text-sm font-medium text-white ${
+                router.pathname === "/" ? "underline" : ""
+              }`}
             >
               Home
             </Link>
             <Link
               href="/blog/all"
-              className={`text-sm font-medium text-white ${router.pathname === "/blog" ? "underline" : ""}`}
+              className={`text-sm font-medium text-white ${
+                router.pathname === "/blog" ? "underline" : ""
+              }`}
             >
               Blog
             </Link>
             <Link
               href="/helpline"
-              className={`text-sm font-medium text-white ${router.pathname === "/helpline" ? "underline" : ""}`}
+              className={`text-sm font-medium text-white ${
+                router.pathname === "/helpline" ? "underline" : ""
+              }`}
             >
               Helpline
             </Link>
@@ -190,7 +220,9 @@ export default function Navbar() {
             <div className="relative">
               <button
                 onClick={toggleServicesDropdown}
-                className={`text-sm font-medium text-white ${router.pathname === "/services" ? "underline" : ""}`}
+                className={`text-sm font-medium text-white ${
+                  router.pathname === "/services" ? "underline" : ""
+                }`}
               >
                 Services
               </button>
@@ -225,7 +257,10 @@ export default function Navbar() {
             <div className="flex flex-col items-center gap-4">
               {!user.accessToken ? (
                 <>
-                  <Link href="/sign-in" className="text-sm font-medium text-white">
+                  <Link
+                    href="/sign-in"
+                    className="text-sm font-medium text-white"
+                  >
                     Sign-in
                   </Link>
                   <Link

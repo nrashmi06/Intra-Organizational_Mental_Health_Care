@@ -29,7 +29,6 @@ const ListenerPage = () => {
   )
 }
 
-
 ListenerPage.getLayout = (page: any) => <DashboardLayout>{page}</DashboardLayout>;
 
 export default ListenerPage;

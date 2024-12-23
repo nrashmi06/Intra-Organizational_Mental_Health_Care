@@ -5,21 +5,7 @@ import Navbar from "@/components/navbar/navbar3";
 import { getActiveListeners } from "@/service/SSE/getActiveListeners";
 import { Button } from "@/components/ui/button";
 import ListenerDetails from "@/components/listener/ListenerDetails";
-
-interface Listener {
-  listenerId: number;
-  userEmail: string;
-  canApproveBlogs: boolean;
-  maxDailySessions: number;
-  totalSessions: number;
-  totalMessagesSent: number | null;
-  feedbackCount: number;
-  averageRating: number;
-  joinedAt: string; // ISO date string
-  approvedBy: string;
-  anonymousName: string;
-  userId: number;
-}
+import { Listener } from "@/lib/types";
 
 const Details: React.FC<{ listener: Listener; onView: () => void }> = ({
   listener,
@@ -55,10 +41,8 @@ export default function Component() {
 
   useEffect(() => {
     const eventSource = getActiveListeners(token, (data) => {
-      setListeners(data); // Replace the current list with the new list
+      setListeners(data); 
     });
-
-    // Clean up the EventSource connection when the component unmounts
     return () => {
       eventSource.close();
     };
@@ -84,8 +68,8 @@ export default function Component() {
       </div>
       {selectedListener && (
         <ListenerDetails
-          selectedListener={selectedListener}
           closeModal={closeModal}
+          userId={selectedListener.userId}
         />
       )}
     </div>

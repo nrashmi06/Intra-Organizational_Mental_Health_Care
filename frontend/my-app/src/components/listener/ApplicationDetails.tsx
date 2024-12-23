@@ -4,22 +4,9 @@ import Navbar from "@/components/navbar/Navbar2";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-
-interface ApplicationData {
-  applicationId: number;
-  fullName: string;
-  branch: string;
-  semester: number;
-  usn: string;
-  phoneNumber: string;
-  certificateUrl: string;
-  applicationStatus: string;
-  reasonForApplying: string;
-  submissionDate: string;
-}
-
+import { ListenerApplication } from "@/lib/types";
 interface ApplicationDetailsProps {
-  applicationData: ApplicationData;
+  applicationData: ListenerApplication;
   onEdit: (data: any) => void;
   onDelete: () => void;
 }
@@ -30,7 +17,8 @@ const ApplicationDetails: React.FC<ApplicationDetailsProps> = ({
   onDelete,
 }) => {
   const [isModalOpen, setModalOpen] = useState(false);
-  const [formData, setFormData] = useState<ApplicationData>(applicationData);
+  const [formData, setFormData] =
+    useState<ListenerApplication>(applicationData);
   const [imageFile, setImageFile] = useState<File | null>(null);
 
   const handleEdit = () => {

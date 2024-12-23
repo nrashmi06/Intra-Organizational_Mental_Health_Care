@@ -1,8 +1,9 @@
 // services/emergency/DeleteEmergencyHelpline.ts
 import axios from "axios";
+import { EMERGENCY_API_ENDPOINTS } from "@/mapper/emergencyMapper";
 
 export const deleteEmergencyHelpline = async (helplineId: string, token: string): Promise<void> => {
-  const apiUrl = `http://localhost:8080/mental-health/api/v1/emergency-helpline/${helplineId}`;
+  const apiUrl = `${EMERGENCY_API_ENDPOINTS.DELETE_EMERGENCY(helplineId)}`;
   try {
     await axios.delete(apiUrl, {
       headers: {

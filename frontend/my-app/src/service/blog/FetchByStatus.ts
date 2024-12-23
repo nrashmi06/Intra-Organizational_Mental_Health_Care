@@ -1,3 +1,5 @@
+import { BLOG_API_ENDPOINTS } from '@/mapper/blogMapper';  // Import the endpoint mapper
+
 export async function fetchBlogs(status?: string, token?: string) {
   if (!token) {
     throw new Error('No token found');
@@ -9,37 +11,39 @@ export async function fetchBlogs(status?: string, token?: string) {
   };
 
   const url = status
-    ? `http://localhost:8080/mental-health/api/v1/blogs?status=${status}`
-    : 'http://localhost:8080/mental-health/api/v1/blogs?status=pending'; // Fetch all blogs without status filter
+    ? `${BLOG_API_ENDPOINTS.GET_BLOGS_BY_APPROVAL_STATUS}?status=${status}`  // Use the mapped URL for status
+    : `${BLOG_API_ENDPOINTS.GET_BLOGS_BY_APPROVAL_STATUS}?status=pending`; // Default to pending status if no status is provided
 
-  const response = await fetch(url, { method: 'GET', headers });
+  try {
+    const response = await fetch(url, { method: 'GET', headers });
 
-  // Check if the response is JSON
-  const contentType = response.headers.get('Content-Type');
-  
-  if (contentType && contentType.includes('application/json')) {
-    const data = await response.json();
+    // Ensure the response is in the expected format (JSON or plain text)
+    const contentType = response.headers.get('Content-Type');
 
-    // Ensure that the response data is an array before returning
-    if (Array.isArray(data)) {
-      return data;
+    if (contentType && contentType.includes('application/json')) {
+      const data = await response.json();
+
+      // Ensure that the response data is an array before returning
+      if (Array.isArray(data)) {
+        return data;
+      } else {
+        console.error('Expected an array but got:', data);
+        return [];  // Return an empty array if the response is not an array
+      }
+    } else if (contentType && contentType.includes('text/plain')) {
+      // Handle text/plain response (for errors or other messages)
+      const textData = await response.text();
+      console.error('Received plain text:', textData);
+
+      // Wrap the plain text into a JSON object to maintain consistency
+      return { message: textData };
     } else {
-      console.error('Expected an array but got:', data);
-      return [];  // Return an empty array in case the response is not an array
+      // Handle unexpected content type
+      throw new Error(`Expected JSON or plain text, but got ${contentType}`);
     }
-  } else if (contentType && contentType.includes('text/plain')) {
-    // Handle text/plain response (for errors or other messages)
-    const textData = await response.text();
-    console.error('Received plain text:', textData);
-
-    // Convert plain text to JSON
-    const jsonData = {
-      message: textData,  // Wrap the text in a JSON object
-    };
-
-    return jsonData;
-  } else {
-    // Handle unexpected content type
-    throw new Error(`Expected JSON or plain text, but got ${contentType}`);
+  } catch (error) {
+    // Catch and log any unexpected errors during the fetch process
+    console.error('Error fetching blogs:', error);
+    throw new Error('Failed to fetch blogs');
   }
 }

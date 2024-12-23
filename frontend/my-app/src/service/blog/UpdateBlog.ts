@@ -1,6 +1,5 @@
 import axios from 'axios';
-
-const API_BASE_URL = 'http://localhost:8080/mental-health/api/v1';
+import { BLOG_API_ENDPOINTS } from '@/mapper/blogMapper'; // Adjust the path if needed
 
 export const updateBlog = async (
   id: number,
@@ -19,24 +18,34 @@ export const updateBlog = async (
     formData.append('image', blogData.image);
   }
 
-  const blogRequestDTO = {
-    title: blogData.title,
-    content: blogData.content,
-    summary: blogData.summary,
-    userId: blogData.userId,
-  };
+  // Only include properties that are defined
+  const blogRequestDTO: { [key: string]: any } = {};
+  if (blogData.title) blogRequestDTO.title = blogData.title;
+  if (blogData.content) blogRequestDTO.content = blogData.content;
+  if (blogData.summary) blogRequestDTO.summary = blogData.summary;
+  if (blogData.userId) blogRequestDTO.userId = blogData.userId;
 
+  // Append the blog data as JSON in a blob
   const blogBlob = new Blob([JSON.stringify(blogRequestDTO)], {
     type: 'application/json',
   });
   formData.append('blog', blogBlob, 'blog.json');
 
-  const response = await axios.put(`${API_BASE_URL}/blogs/${id}`, formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  return response.data;
+  try {
+    const response = await axios.put(BLOG_API_ENDPOINTS.UPDATE_BLOG(id), formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error('Error updating blog:', error.response?.data || error.message);
+      throw new Error(error.response?.data?.message || 'Failed to update blog');
+    } else {
+      console.error('Unexpected error:', error);
+      throw new Error('An unexpected error occurred while updating the blog');
+    }
+  }
 };

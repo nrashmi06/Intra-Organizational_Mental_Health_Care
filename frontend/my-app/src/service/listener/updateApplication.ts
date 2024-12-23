@@ -1,11 +1,8 @@
-//to update the application
-
 import axios from "axios";
+import { LISTENER_APPLICATION_API_ENDPOINTS } from "@/mapper/listnerMapper"; // Import URL mappings
 
-const API_BASE_URL =
-  "http://localhost:8080/mental-health/api/v1/listener-applications";
-
-export const createApplication = async (
+export const updateApplication = async (
+  applicationId: string, // ID of the application to update
   applicationData: {
     fullName: string;
     branch: string;
@@ -13,7 +10,7 @@ export const createApplication = async (
     semester: number;
     phoneNumber: string;
     reasonForApplying: string;
-    image: File; // Ensure this is a File object
+    image?: File; // Optional: Include if updating the certificate
   },
   accessToken: string
 ) => {
@@ -21,8 +18,10 @@ export const createApplication = async (
     // Create FormData instance
     const formData = new FormData();
 
-    // Add the image file to FormData
-    formData.append("certificate", applicationData.image);
+    // Add the image file to FormData if it exists
+    if (applicationData.image) {
+      formData.append("certificate", applicationData.image);
+    }
 
     // Prepare application data as a JSON object
     const applicationRequestDTO = {
@@ -45,13 +44,17 @@ export const createApplication = async (
       console.log(`FormData - ${key}:`, value);
     }
 
-    // Make the POST request
-    const response = await axios.post(`${API_BASE_URL}\${}`, formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
+    // Make the PUT request to the update endpoint
+    const response = await axios.put(
+      LISTENER_APPLICATION_API_ENDPOINTS.UPDATE_APPLICATION(applicationId),
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
 
     return response.data;
   } catch (error: any) {
@@ -69,7 +72,7 @@ export const createApplication = async (
     throw new Error(
       error.response?.data?.message ||
         error.response?.data?.error ||
-        "Failed to submit application"
+        "Failed to update application"
     );
   }
 };

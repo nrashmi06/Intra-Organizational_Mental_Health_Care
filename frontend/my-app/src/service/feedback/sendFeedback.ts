@@ -1,5 +1,5 @@
 // api/submitFeedback.ts
-
+import { FEEDBACK_API_ENDPOINTS } from "@/mapper/feedbackMapper";
 const submitFeedback = async (
     auth: string,
     sessionId: string,
@@ -7,7 +7,7 @@ const submitFeedback = async (
     comment: string
   ) => {
     try {
-      const response = await fetch("http://localhost:8080/mental-health/api/v1/session-feedback", {
+      const response = await fetch(FEEDBACK_API_ENDPOINTS.CREATE_FEEDBACK, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

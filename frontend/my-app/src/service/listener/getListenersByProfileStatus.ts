@@ -1,20 +1,19 @@
 import axios from "axios";
-
-const API_BASE_URL = "http://localhost:8080/mental-health/api/v1/listeners";
+import { LISTENER_API_ENDPOINTS } from "@/mapper/listenerProfileMapper";
 
 export const getListenersByProfileStatus = async (
   token: string,
-  type: string
+  status: string
 ) => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/all`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      params: {
-        type: type,
-      },
-    });
+    const response = await axios.get(
+      LISTENER_API_ENDPOINTS.GET_ALL_LISTENERS_BY_STATUS(status),
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
