@@ -6,12 +6,9 @@ export const fetchApplication = async (
   applicationId?: string | null
 ) => {
   try {
-    if (!applicationId) {
-      throw new Error("Application ID cannot be null");
-    }
     const url = applicationId
       ? `${LISTENER_APPLICATION_API_ENDPOINTS.GET_APPLICATION_BY_ID}?applicationId=${applicationId}` // URL for fetching by application ID
-      : LISTENER_APPLICATION_API_ENDPOINTS.GET_ALL_APPLICATIONS; // URL for fetching all applications
+      : LISTENER_APPLICATION_API_ENDPOINTS.GET_APPLICATION_BY_ID; // URL for fetching all applications
 
     const response = await axios.get(url, {
       headers: {

@@ -27,7 +27,10 @@ export function RegisteredAdminsTable() {
   const fetchAdminProfiles = async () => {
     try {
       const response = await fetchAdmins(accessToken);
-      setAdmins(response);
+      const data = await response.json();
+      console.log("Data:", data);
+      setAdmins(data);
+      console.log("Admins:", admins);
     } catch (error) {
       console.error("Error fetching listeners by profile status:", error);
     }
@@ -103,9 +106,10 @@ export function RegisteredAdminsTable() {
                   <TableCell>{admin.adminId}</TableCell>
                   <TableCell>{admin.fullName}</TableCell>
                   <TableCell className="max-w-md">
-                    <div className="max-h-20 overflow-y-auto">
-                      {admin.adminNotes}
-                    </div>
+                  <div
+                  className="text-gray-700"
+                  dangerouslySetInnerHTML={{ __html: admin.adminNotes }}
+                />
                   </TableCell>
                   <TableCell>{admin.contactNumber}</TableCell>
                   <TableCell className="text-right relative p-0">

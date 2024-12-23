@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Home, MoreVertical, Send } from 'lucide-react';
 import { endSession } from "@/service/session/endSession";
 import { clearSessionId } from "@/store/chatSlice"; // Action to clear session ID
+const BASE_API = `${process.env.NEXT_PUBLIC_WEBSOCKET_URL}`;
 
 const ChatPage = () => {
   const router = useRouter();
@@ -29,7 +30,7 @@ const ChatPage = () => {
   useEffect(() => {
     if (sessionId && accessToken) {
       // Construct WebSocket URL
-      const socketUrl = `ws://localhost:8080/mental-health/chat/${sessionId}/${username}?token=${accessToken}`;
+      const socketUrl = `${BASE_API}/mental-health/chat/${sessionId}/${username}?token=${accessToken}`;
 
       // Create WebSocket connection
       const ws = new WebSocket(socketUrl);

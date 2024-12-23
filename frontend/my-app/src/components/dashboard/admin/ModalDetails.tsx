@@ -130,9 +130,10 @@ const ModalDetails: React.FC<DetailsProps> = ({
             Admin Notes
           </h2>
             <div className="max-h-32 overflow-y-auto">
-            <p className="text-gray-700">
-              {adminDetails.adminNotes || "No additional notes"}
-            </p>
+            <div
+                  className="text-gray-700"
+                  dangerouslySetInnerHTML={{ __html: adminDetails.adminNotes }}
+                />
             </div>
         </div>
         <div className="p-6 bg-gray-100 grid md:grid-cols-2 gap-4">
