@@ -35,7 +35,8 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 @Service
-@Primary public class BlogServiceImpl implements BlogService {
+@Primary
+public class BlogServiceImpl implements BlogService {
 
     private final UserRepository userRepository;
     private final BlogRepository blogRepository;
@@ -140,10 +141,11 @@ import java.util.concurrent.CompletableFuture;
     @Transactional
     public void deleteBlog(Integer blogId) throws Exception {
         Blog blog = blogRepository.findById(blogId).orElseThrow(() -> new BlogNotFoundException("Blog not found"));
+        blogLikeRepository.deleteAllByBlog(blog);
         if (blog.getImageUrl() != null) {
             imageStorageService.deleteImage(blog.getImageUrl()).get();
         }
-        blogRepository.deleteById(blogId);
+        blogRepository.delete(blog);
     }
 
     private boolean isCurrentUserPublisher(Integer blogUserId) {
