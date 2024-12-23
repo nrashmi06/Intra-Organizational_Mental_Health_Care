@@ -1,24 +1,21 @@
-//delete a listener application or update the listener application
-
 import axios from "axios";
-
-const API_BASE_URL =
-  "http://localhost:8080/mental-health/api/v1/listener-applications";
+import { LISTENER_APPLICATION_API_ENDPOINTS } from "@/mapper/listnerMapper"; // Import the mapper
 
 export const deleteApplication = async (
-  applicationId: number | null,
+  applicationId: number,
   accessToken: string
 ) => {
   try {
-    const url = applicationId
-      ? `${API_BASE_URL}/${applicationId}`
-      : API_BASE_URL;
+    // Use the mapped endpoint for deleting the application
+    const url =`${LISTENER_APPLICATION_API_ENDPOINTS.DELETE_APPLICATION(applicationId.toString())}`;
+    
 
     const result = await axios.delete(url, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
     });
+
     return result;
   } catch (error) {
     console.error("Error deleting application:", error);
@@ -69,9 +66,9 @@ export const updateApplication = async (
       console.log(`FormData - ${key}:`, value);
     }
 
-    // Make the PUT request
+    // Use the mapped endpoint for updating the application
     const response = await axios.put(
-      `${API_BASE_URL}/${applicationId}`,
+      `${LISTENER_APPLICATION_API_ENDPOINTS.UPDATE_APPLICATION(applicationId.toString())}`,
       formData,
       {
         headers: {

@@ -1,12 +1,13 @@
-// src/service/listener/getCertificate.ts
+import { LISTENER_APPLICATION_API_ENDPOINTS } from "@/mapper/listnerMapper"; // Import the URL mapper
 
 export const getApplicationByListenerUserId = async (
   userId: number,
   token: string
 ) => {
   try {
+    // Use the mapped endpoint for fetching application by listener's user ID
     const response = await fetch(
-      `http://localhost:8080/mental-health/api/v1/listener-applications/listener/${userId}`,
+      LISTENER_APPLICATION_API_ENDPOINTS.GET_APPLICATION_BY_LISTENERS_USER_ID(userId.toString()),
       {
         method: "GET",
         headers: {
