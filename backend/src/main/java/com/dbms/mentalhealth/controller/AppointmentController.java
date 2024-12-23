@@ -4,11 +4,7 @@ import com.dbms.mentalhealth.dto.Appointment.request.AppointmentRequestDTO;
 import com.dbms.mentalhealth.dto.Appointment.request.UpdateAppointmentStatusRequestDTO;
 import com.dbms.mentalhealth.dto.Appointment.response.AppointmentResponseDTO;
 import com.dbms.mentalhealth.dto.Appointment.response.AppointmentSummaryResponseDTO;
-import com.dbms.mentalhealth.enums.AppointmentStatus;
 import com.dbms.mentalhealth.exception.appointment.AppointmentNotFoundException;
-import com.dbms.mentalhealth.exception.user.UserNotFoundException;
-import com.dbms.mentalhealth.mapper.AppointmentMapper;
-import com.dbms.mentalhealth.model.Appointment;
 import com.dbms.mentalhealth.repository.AppointmentRepository;
 import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.service.AppointmentService;
@@ -126,10 +122,11 @@ public class AppointmentController {
         }
     }
 
-    @GetMapping(AppointmentUrlMapping.GET_APPOINTMENTS_BY_STATUS)
-    public ResponseEntity<?> getAppointmentsByStatus(@RequestParam("status") String status) {
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping(AppointmentUrlMapping.GET_APPOINTMENTS_BY_ADMIN_STATUS)
+    public ResponseEntity<?> getAppointmentsByAdminStatus(@RequestParam("status") String status) {
         try {
-            List<AppointmentSummaryResponseDTO> appointments = appointmentService.getAppointmentsByStatus(status);
+            List<AppointmentSummaryResponseDTO> appointments = appointmentService.getAppointmentsByAdminStatus(status);
             return ResponseEntity.ok(appointments);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());

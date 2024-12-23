@@ -35,20 +35,22 @@ public class EmailServiceImpl implements EmailService {
     private final TemplateEngine templateEngine;
     private final UserRepository userRepository;
     private final String baseUrl;
+    private final String contextPath;
 
     @Autowired
-    public EmailServiceImpl(JavaMailSender javaMailSender, TemplateEngine templateEngine, UserRepository userRepository, @Value("${spring.app.base-url}") String baseUrl) {
+    public EmailServiceImpl(JavaMailSender javaMailSender, TemplateEngine templateEngine, UserRepository userRepository, @Value("${spring.app.base-url}") String baseUrl, @Value("${context.path}") String contextPath) {
         this.javaMailSender = javaMailSender;
         this.templateEngine = templateEngine;
         this.userRepository = userRepository;
         this.baseUrl = baseUrl;
+        this.contextPath = contextPath;
     }
 
     @Override
     public void sendVerificationEmail(String email, String code) {
         logger.info("Starting to send verification email to: {}", email);
         String subject = "Verify your email address";
-        String verificationUrl = baseUrl + UserUrlMapping.VERIFY_EMAIL + "?token=" + code;
+        String verificationUrl = baseUrl + contextPath + UserUrlMapping.VERIFY_EMAIL + "?token=" + code;
         Context context = new Context();
         context.setVariable("verificationUrl", verificationUrl);
         String body = templateEngine.process("verificationEmailTemplate", context);

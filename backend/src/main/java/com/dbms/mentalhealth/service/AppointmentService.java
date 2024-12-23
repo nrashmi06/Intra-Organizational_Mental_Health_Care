@@ -16,5 +16,5 @@ public interface AppointmentService {
     List<AppointmentSummaryResponseDTO> getAppointmentsByDateRange(LocalDate startDate, LocalDate endDate);
     void updateAppointmentStatus(Integer appointmentId, String status, String cancellationReason);
     List<AppointmentSummaryResponseDTO> getUpcomingAppointmentsForAdmin();
-    public List<AppointmentSummaryResponseDTO> getAppointmentsByStatus(String status);
+    public List<AppointmentSummaryResponseDTO> getAppointmentsByAdminStatus(String status);
 }

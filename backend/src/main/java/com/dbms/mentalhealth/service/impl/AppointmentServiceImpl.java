@@ -209,7 +209,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<AppointmentSummaryResponseDTO> getAppointmentsByStatus(String status) {
+    public List<AppointmentSummaryResponseDTO> getAppointmentsByAdminStatus(String status) {
         try {
             // Check if the status is valid
             if (status == null || status.isEmpty()) {
@@ -224,8 +224,13 @@ public class AppointmentServiceImpl implements AppointmentService {
                 throw new IllegalArgumentException("Invalid status: " + status, e);
             }
 
-            // Fetch appointments by status
-            List<Appointment> appointments = appointmentRepository.findByStatus(appointmentStatus);
+            // Get the current admin's ID from the JWT token
+            Integer adminUserId = jwtUtils.getUserIdFromContext();
+            Admin admin = adminRepository.findByUser_UserId(adminUserId)
+                    .orElseThrow(() -> new AdminNotFoundException("Admin not found"));
+
+            // Fetch appointments by status for the current admin
+            List<Appointment> appointments = appointmentRepository.findByAdminAndStatus(admin, appointmentStatus);
 
             // Map appointments to DTOs
             return appointments.stream()
