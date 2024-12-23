@@ -2,7 +2,10 @@ import axios from 'axios';
 import { TIME_SLOT_API_ENDPOINTS } from '@/mapper/timeslotMapper';
 
 export const confirmTimeSlots = async (accessToken: string,userID : string | null , timeSlots: any[], startDate: string, endDate: string) => {
-  const url = `${TIME_SLOT_API_ENDPOINTS.CREATE_TIME_SLOTS_IN_DATE_RANGE}?startDate=${startDate}&endDate=${endDate}`;
+  if (!userID) {
+    throw new Error('userID cannot be null');
+  }
+  const url = `${TIME_SLOT_API_ENDPOINTS.CREATE_TIME_SLOTS_IN_DATE_RANGE(userID)}?startDate=${startDate}&endDate=${endDate}`;
 
   const requestBody = { 
     timeSlots
