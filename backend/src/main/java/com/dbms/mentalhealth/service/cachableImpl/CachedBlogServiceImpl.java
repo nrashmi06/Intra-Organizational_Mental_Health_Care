@@ -17,6 +17,7 @@ import java.util.Optional;
 import java.util.logging.Logger;
 
 @Service
+@Primary
 public class CachedBlogServiceImpl implements BlogService {
 
     private final BlogService blogService;
@@ -60,7 +61,7 @@ public class CachedBlogServiceImpl implements BlogService {
     }
 
     @Override
-    @CacheEvict(value = "blogCache", key = "#result.postId")
+    @CacheEvict(value = "blogCache", key = "#result.id")
     public BlogResponseDTO createBlog(BlogRequestDTO blogRequestDTO, MultipartFile image) throws Exception {
         logger.info("Creating blog with request: " + blogRequestDTO);
         return blogService.createBlog(blogRequestDTO, image);

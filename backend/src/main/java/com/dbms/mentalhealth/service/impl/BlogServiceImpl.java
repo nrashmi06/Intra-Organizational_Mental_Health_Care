@@ -35,7 +35,6 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 @Service
-@Primary
 public class BlogServiceImpl implements BlogService {
 
     private final UserRepository userRepository;
@@ -158,7 +157,7 @@ public class BlogServiceImpl implements BlogService {
         blog.setBlogApprovalStatus(isApproved ? BlogApprovalStatus.APPROVED : BlogApprovalStatus.REJECTED);
 
         if (isApproved) {
-            blog.setApprovedBy(getUserIdFromContext().toString()); // Assuming the current user is the approver
+            blog.setApprovedBy(getUserIdFromContext().toString());
             blog.setPublishDate(LocalDateTime.now());
         } else {
             blog.setApprovedBy(null);
