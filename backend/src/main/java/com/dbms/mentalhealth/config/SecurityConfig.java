@@ -1,10 +1,12 @@
 package com.dbms.mentalhealth.config;
+
 import com.dbms.mentalhealth.security.CustomAccessDeniedHandler;
 import com.dbms.mentalhealth.security.SseAuthenticationFilter;
 import com.dbms.mentalhealth.security.jwt.AuthEntryPointJwt;
 import com.dbms.mentalhealth.security.jwt.AuthTokenFilter;
 import com.dbms.mentalhealth.urlMapper.EmergencyHelplineUrlMapping;
 import com.dbms.mentalhealth.urlMapper.UserUrlMapping;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -21,8 +23,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import java.util.Arrays;
 
+import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
@@ -32,17 +34,20 @@ public class SecurityConfig {
     private final AuthTokenFilter authTokenFilter;
     private final CustomAccessDeniedHandler accessDeniedHandler;
     private final SseAuthenticationFilter sseAuthenticationFilter;
+    private final String allowedOrigins;
 
     public SecurityConfig(
             AuthEntryPointJwt unauthorizedHandler,
             AuthTokenFilter authTokenFilter,
             CustomAccessDeniedHandler accessDeniedHandler,
-            SseAuthenticationFilter sseAuthenticationFilter
+            SseAuthenticationFilter sseAuthenticationFilter,
+            @Value("${allowed.origins}") String allowedOrigins
     ) {
         this.unauthorizedHandler = unauthorizedHandler;
         this.authTokenFilter = authTokenFilter;
         this.accessDeniedHandler = accessDeniedHandler;
         this.sseAuthenticationFilter = sseAuthenticationFilter;
+        this.allowedOrigins = allowedOrigins;
     }
 
     @Bean
@@ -79,10 +84,6 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-
-        // Get allowed origins from environment variable
-        String allowedOrigins = System.getenv().getOrDefault("ALLOWED_ORIGINS",
-                "http://localhost:3000,http://127.0.0.1:5500");
 
         configuration.setAllowedOrigins(
                 Arrays.stream(allowedOrigins.split(","))

@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 public class CacheConfig {
 
     private final CommonRemovalListener commonRemovalListener;
-
+    private final Integer duration = 5;
     public CacheConfig(@Lazy CommonRemovalListener commonRemovalListener) {
         this.commonRemovalListener = commonRemovalListener;
     }
@@ -23,7 +23,7 @@ public class CacheConfig {
     @Bean
     public Cache<String, UserActivityDTO> userDetailsCache() {
         return Caffeine.newBuilder()
-                .expireAfterWrite(5, TimeUnit.MINUTES)
+                .expireAfterWrite(duration, TimeUnit.MINUTES)
                 .maximumSize(1000)
                 .removalListener(commonRemovalListener)
                 .build();
@@ -32,7 +32,7 @@ public class CacheConfig {
     @Bean
     public Cache<String, List<UserActivityDTO>> roleBasedDetailsCache() {
         return Caffeine.newBuilder()
-                .expireAfterWrite(5, TimeUnit.MINUTES)
+                .expireAfterWrite(duration, TimeUnit.MINUTES)
                 .maximumSize(1000)
                 .removalListener(commonRemovalListener)
                 .build();
@@ -41,7 +41,7 @@ public class CacheConfig {
     @Bean
     public Cache<String, LocalDateTime> lastSeenCache() {
         return Caffeine.newBuilder()
-                .expireAfterWrite(5, TimeUnit.MINUTES)
+                .expireAfterWrite(duration, TimeUnit.MINUTES)
                 .maximumSize(1000)
                 .removalListener(commonRemovalListener)
                 .build();

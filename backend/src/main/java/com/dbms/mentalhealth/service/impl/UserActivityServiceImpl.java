@@ -9,7 +9,6 @@ import com.dbms.mentalhealth.repository.UserRepository;
 import com.dbms.mentalhealth.service.UserActivityService;
 import com.github.benmanes.caffeine.cache.Cache;
 import org.slf4j.Logger;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -277,7 +276,7 @@ public class UserActivityServiceImpl implements UserActivityService {
                 .filter(entry -> {
                     LocalDateTime lastSeen = entry.getValue();
                     return lastSeen != null &&
-                            lastSeen.isBefore(now.minusMinutes(4));
+                            lastSeen.isBefore(now.minusMinutes(5));
                 })
                 .map(Map.Entry::getKey)
                 .toList();
