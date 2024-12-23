@@ -1,4 +1,3 @@
-// ChatWebSocketHandler.java
 package com.dbms.mentalhealth.config;
 
 import com.dbms.mentalhealth.model.ChatMessage;
@@ -168,7 +167,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             });
         }
     }
-    // ChatWebSocketHandler.java
+
     public boolean endSession(String sessionId) {
         Map<String, WebSocketSession> sessionsForId = chatSessions.remove(sessionId);
         if (sessionsForId != null) {
@@ -188,6 +187,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             return false;
         }
     }
+
     private String createSystemMessage(String content) {
         return "SYSTEM: " + content;
     }

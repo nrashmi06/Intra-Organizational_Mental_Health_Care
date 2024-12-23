@@ -1,10 +1,15 @@
 package com.dbms.mentalhealth.config;
+
 import com.dbms.mentalhealth.security.CustomAccessDeniedHandler;
 import com.dbms.mentalhealth.security.SseAuthenticationFilter;
+import com.dbms.mentalhealth.security.WebSocketAuthenticationFilter;
 import com.dbms.mentalhealth.security.jwt.AuthEntryPointJwt;
 import com.dbms.mentalhealth.security.jwt.AuthTokenFilter;
 import com.dbms.mentalhealth.urlMapper.EmergencyHelplineUrlMapping;
 import com.dbms.mentalhealth.urlMapper.UserUrlMapping;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -21,32 +26,40 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import java.util.Arrays;
 
+import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
+    private static final Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
+
     private final AuthEntryPointJwt unauthorizedHandler;
     private final AuthTokenFilter authTokenFilter;
     private final CustomAccessDeniedHandler accessDeniedHandler;
     private final SseAuthenticationFilter sseAuthenticationFilter;
+    private final String allowedOrigins;
+    private final WebSocketAuthenticationFilter webSocketAuthenticationFilter;
 
     public SecurityConfig(
             AuthEntryPointJwt unauthorizedHandler,
             AuthTokenFilter authTokenFilter,
             CustomAccessDeniedHandler accessDeniedHandler,
-            SseAuthenticationFilter sseAuthenticationFilter
+            SseAuthenticationFilter sseAuthenticationFilter,
+            @Value("${allowed.origins}") String allowedOrigins,
+            WebSocketAuthenticationFilter webSocketAuthenticationFilter
     ) {
         this.unauthorizedHandler = unauthorizedHandler;
         this.authTokenFilter = authTokenFilter;
         this.accessDeniedHandler = accessDeniedHandler;
         this.sseAuthenticationFilter = sseAuthenticationFilter;
+        this.allowedOrigins = allowedOrigins;
+        this.webSocketAuthenticationFilter = webSocketAuthenticationFilter;
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, WebSocketAuthenticationFilter webSocketAuthenticationFilter) throws Exception {
         return http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(requests -> requests
@@ -58,7 +71,6 @@ public class SecurityConfig {
                                 UserUrlMapping.RESEND_VERIFICATION_EMAIL,
                                 UserUrlMapping.USER_LOGIN,
                                 UserUrlMapping.RENEW_TOKEN,
-                                "/chat/**",
                                 EmergencyHelplineUrlMapping.GET_ALL_EMERGENCY_HELPLINES
                         ).permitAll()
                         .anyRequest().authenticated()
@@ -68,21 +80,22 @@ public class SecurityConfig {
                 )
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(unauthorizedHandler)
-                        .accessDeniedHandler(accessDeniedHandler)
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            logger.warn("Access denied for request: {} {}. Reason: {}",
+                                    request.getMethod(), request.getRequestURI(), accessDeniedException.getMessage());
+                            accessDeniedHandler.handle(request, response, accessDeniedException);
+                        })
                 )
                 .csrf(AbstractHttpConfigurer::disable)
                 .addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(sseAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(webSocketAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-
-        // Get allowed origins from environment variable
-        String allowedOrigins = System.getenv().getOrDefault("ALLOWED_ORIGINS",
-                "http://localhost:3000,http://127.0.0.1:5500");
 
         configuration.setAllowedOrigins(
                 Arrays.stream(allowedOrigins.split(","))

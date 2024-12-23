@@ -206,4 +206,42 @@ public class AppointmentServiceImpl implements AppointmentService {
                 .map(AppointmentMapper::toSummaryDTO)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<AppointmentSummaryResponseDTO> getAppointmentsByAdminStatus(String status) {
+        try {
+            // Check if the status is valid
+            if (status == null || status.isEmpty()) {
+                throw new IllegalArgumentException("Status cannot be null or empty");
+            }
+
+            // Convert the status to the AppointmentStatus enum
+            AppointmentStatus appointmentStatus;
+            try {
+                appointmentStatus = AppointmentStatus.valueOf(status.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Invalid status: " + status, e);
+            }
+
+            // Get the current admin's ID from the JWT token
+            Integer adminUserId = jwtUtils.getUserIdFromContext();
+            Admin admin = adminRepository.findByUser_UserId(adminUserId)
+                    .orElseThrow(() -> new AdminNotFoundException("Admin not found"));
+
+            // Fetch appointments by status for the current admin
+            List<Appointment> appointments = appointmentRepository.findByAdminAndStatus(admin, appointmentStatus);
+
+            // Map appointments to DTOs
+            return appointments.stream()
+                    .map(AppointmentMapper::toSummaryDTO)
+                    .toList();
+        } catch (IllegalArgumentException e) {
+            // Handle invalid status
+            throw new IllegalArgumentException("Invalid status: " + status, e);
+        } catch (Exception e) {
+            // Handle other exceptions
+            throw new RuntimeException("An error occurred while fetching appointments by status", e);
+        }
+    }
 }

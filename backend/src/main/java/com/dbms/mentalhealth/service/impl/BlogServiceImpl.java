@@ -5,6 +5,7 @@ import com.dbms.mentalhealth.dto.blog.response.BlogResponseDTO;
 import com.dbms.mentalhealth.dto.blog.response.BlogSummaryDTO;
 import com.dbms.mentalhealth.enums.BlogApprovalStatus;
 import com.dbms.mentalhealth.exception.blog.BlogNotFoundException;
+import com.dbms.mentalhealth.exception.token.UnauthorizedException;
 import com.dbms.mentalhealth.exception.user.UserNotFoundException;
 import com.dbms.mentalhealth.mapper.BlogMapper;
 import com.dbms.mentalhealth.model.Admin;
@@ -20,6 +21,7 @@ import com.dbms.mentalhealth.service.EmailService;
 import com.dbms.mentalhealth.service.ImageStorageService;
 import com.dbms.mentalhealth.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.context.annotation.Primary;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -33,6 +35,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 @Service
+@Primary
 public class BlogServiceImpl implements BlogService {
 
     private final UserRepository userRepository;
@@ -87,29 +90,39 @@ public class BlogServiceImpl implements BlogService {
         return BlogMapper.toResponseDTO(createdBlog, false);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public Optional<BlogResponseDTO> getBlogById(Integer blogId) {
         Integer userId = getUserIdFromContext();
         boolean isAdmin = userService.isAdmin(userId);
 
-        return blogRepository.findById(blogId)
-                .map(blog -> {
-                    if (blog.getBlogApprovalStatus() == BlogApprovalStatus.APPROVED || isAdmin) {
-                        blog.setViewCount(blog.getViewCount() + 1);
-                        blogRepository.save(blog);
-                        boolean likedByCurrentUser = blogLikeRepository.existsByBlogIdAndUserUserId(blogId, userId);
-                        return BlogMapper.toResponseDTO(blog, likedByCurrentUser);
-                    }
-                    return null;
-                });
+        Optional<Blog> optionalBlog = blogRepository.findById(blogId);
+
+        if (optionalBlog.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Blog blog = optionalBlog.get();
+
+        if (blog.getBlogApprovalStatus() != BlogApprovalStatus.APPROVED && !isAdmin) {
+            throw new UnauthorizedException("Blog not approved yet");
+        }
+
+        blog.setViewCount(blog.getViewCount() + 1);
+        blogRepository.save(blog);
+        boolean likedByCurrentUser = blogLikeRepository.existsByBlogIdAndUserUserId(blogId, userId);
+        BlogResponseDTO responseDTO = BlogMapper.toResponseDTO(blog, likedByCurrentUser);
+
+        return Optional.of(responseDTO);
     }
+
+
 
     @Transactional
     public BlogResponseDTO updateBlog(Integer blogId, BlogRequestDTO blogRequestDTO, MultipartFile image) throws Exception {
         Blog blog = blogRepository.findById(blogId).orElseThrow(() -> new BlogNotFoundException("Blog not found"));
 
         if (!isCurrentUserPublisher(blog.getUserId())) {
-            throw new RuntimeException("You are not authorized to edit this blog");
+            throw new UnauthorizedException("You are not authorized to edit this blog");
         }
         if (image != null && !image.isEmpty()) {
             imageStorageService.deleteImage(blog.getImageUrl()).get();
@@ -128,10 +141,11 @@ public class BlogServiceImpl implements BlogService {
     @Transactional
     public void deleteBlog(Integer blogId) throws Exception {
         Blog blog = blogRepository.findById(blogId).orElseThrow(() -> new BlogNotFoundException("Blog not found"));
+        blogLikeRepository.deleteAllByBlog(blog);
         if (blog.getImageUrl() != null) {
             imageStorageService.deleteImage(blog.getImageUrl()).get();
         }
-        blogRepository.deleteById(blogId);
+        blogRepository.delete(blog);
     }
 
     private boolean isCurrentUserPublisher(Integer blogUserId) {
@@ -144,7 +158,7 @@ public class BlogServiceImpl implements BlogService {
         blog.setBlogApprovalStatus(isApproved ? BlogApprovalStatus.APPROVED : BlogApprovalStatus.REJECTED);
 
         if (isApproved) {
-            blog.setApprovedBy(getUserIdFromContext().toString()); // Assuming the current user is the approver
+            blog.setApprovedBy(getUserIdFromContext().toString());
             blog.setPublishDate(LocalDateTime.now());
         } else {
             blog.setApprovedBy(null);
@@ -175,9 +189,8 @@ public class BlogServiceImpl implements BlogService {
 
         Blog blog = blogRepository.findById(blogId).orElseThrow(() -> new BlogNotFoundException("Blog not found"));
         if (blogLikeRepository.existsByBlogIdAndUserUserId(blogId, userId)) {
-            throw new RuntimeException("Blog already liked");
+            throw new RuntimeException("Blog already liked by the user");
         }
-
         BlogLike blogLike = new BlogLike();
         blogLike.setBlog(blog);
         blogLike.setUser(userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found")));
@@ -246,7 +259,7 @@ public class BlogServiceImpl implements BlogService {
         boolean isAdmin = userService.isAdmin(userId);
 
         if (!isAdmin && !status.equalsIgnoreCase("approved")) {
-            throw new IllegalArgumentException("Only approved blogs can be retrieved by non-admin users");
+            throw new UnauthorizedException("Only approved blogs can be retrieved by non-admin users");
         }
 
         BlogApprovalStatus blogApprovalStatus;

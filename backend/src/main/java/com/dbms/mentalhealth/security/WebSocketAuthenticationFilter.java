@@ -15,12 +15,12 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 @Component
-public class SseAuthenticationFilter extends OncePerRequestFilter {
+public class WebSocketAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtils jwtUtils;
     private final UserService userService;
 
-    public SseAuthenticationFilter(JwtUtils jwtUtils, @Lazy UserService userService) {
+    public WebSocketAuthenticationFilter(JwtUtils jwtUtils, @Lazy UserService userService) {
         this.jwtUtils = jwtUtils;
         this.userService = userService;
     }
@@ -29,14 +29,14 @@ public class SseAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        // Check if it's an SSE request
-        if (request.getRequestURI().contains("/sse")) {
+        // Check if it's a WebSocket request
+        if (request.getRequestURI().contains("/chat")) {
             // Extract token from query parameter
             String token = request.getParameter("token");
 
             if (token == null || token.isEmpty()) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.getWriter().write("Token is required for SSE connection");
+                response.getWriter().write("Token is required for WebSocket connection");
                 return;
             }
 

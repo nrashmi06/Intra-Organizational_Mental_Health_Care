@@ -20,7 +20,7 @@ public class CommonRemovalListener implements RemovalListener<String, Object> {
     @Override
     public void onRemoval(String key, Object value, RemovalCause cause) {
         if (cause.wasEvicted()) {
-            log.info("User with key {} was evicted from the cache");
+            log.info("User with key:"+key+"was evicted from the cache");
             userActivityService.markUserInactive(key);
         }
     }
