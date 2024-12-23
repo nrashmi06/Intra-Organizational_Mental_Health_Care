@@ -42,3 +42,4 @@ const deleteTimeSlots = async (
 };
 
 export default deleteTimeSlots;
+

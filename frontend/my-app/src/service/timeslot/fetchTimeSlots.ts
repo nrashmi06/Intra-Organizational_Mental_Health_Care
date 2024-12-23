@@ -21,6 +21,7 @@ export const fetchTimeSlots = async (
     const response = await axios.get(url, {
       headers: {
         "Content-Type": "application/json",
+
         Authorization: `Bearer ${accessToken}`, // Send the access token in the headers
       },
     });
@@ -32,6 +33,7 @@ export const fetchTimeSlots = async (
     } else {
       console.error("Error fetching time slots:", error);
     }
+
     throw error; // Rethrow to handle in the calling function
   }
 };

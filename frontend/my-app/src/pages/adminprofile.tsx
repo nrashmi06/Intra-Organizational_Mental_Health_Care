@@ -161,6 +161,7 @@ export default function AdminProfile() {
               </div>
               <div>
                 <label className="block text-purple-700 font-semibold mb-2">About You</label>
+
                 <ReactQuill
                   value={profile?.adminNotes || ""}
                   onChange={handleQuillChange}
@@ -279,3 +280,4 @@ const Field = ({ label, ...props }: { label: string; [key: string]: any }) => (
 );
 
 AdminProfile.getLayout = (page: React.ReactNode) => <DashboardLayout>{page}</DashboardLayout>;
+
