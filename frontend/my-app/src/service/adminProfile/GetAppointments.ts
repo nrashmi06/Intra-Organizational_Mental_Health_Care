@@ -4,8 +4,8 @@ import {APPOINTMENT_API_ENDPOINTS} from '@/mapper/appointmentMapper';
 
 interface GetAppointmentsParams {
   token: string;
-  adminId?: number;
-  userId?: number;
+  adminId?: string;
+  userId?: string;
 }
 
 export const getAppointments = async ({

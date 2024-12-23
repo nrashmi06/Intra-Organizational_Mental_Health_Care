@@ -3,7 +3,7 @@ import axios from "axios";
 const API_BASE_URL = "http://localhost:8080/mental-health/api/v1/sessions";
 
 export const initiateSession = async (
-  listenerId: number,
+  listenerId: string,
   message: string,
   token: string
 ) => {

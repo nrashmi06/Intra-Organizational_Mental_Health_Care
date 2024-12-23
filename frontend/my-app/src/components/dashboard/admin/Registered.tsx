@@ -40,10 +40,7 @@ export function RegisteredAdminsTable() {
   const filteredAdmins = admins.filter((admin) => {
     const matchesSearch =
       admin.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      admin.adminId
-        .toString()
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase());
+      admin.adminId.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesSearch;
   });
 

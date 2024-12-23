@@ -2,7 +2,7 @@ import axios from "axios";
 import { LISTENER_APPLICATION_API_ENDPOINTS } from "@/mapper/listnerMapper"; // Import the mapper
 
 export const deleteApplication = async (
-  applicationId: number,
+  applicationId: string | null,
   accessToken: string
 ) => {
   try {
@@ -24,7 +24,7 @@ export const deleteApplication = async (
 };
 
 export const updateApplication = async (
-  applicationId: number,
+  applicationId: string,
   accessToken: string,
   updatedData: {
     fullName: string;

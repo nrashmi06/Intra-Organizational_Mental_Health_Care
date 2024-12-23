@@ -3,7 +3,7 @@ import { LISTENER_APPLICATION_API_ENDPOINTS } from "@/mapper/listnerMapper"; // 
 
 export const fetchApplication = async (
   accessToken: string,
-  applicationId?: number
+  applicationId?: string
 ) => {
   try {
     // Use the mapped endpoint for fetching application by ID or all applications

@@ -22,23 +22,23 @@ const AdminAppointments = () => {
   const { id, req } = router.query;
   const token = useSelector((state: RootState) => state.auth.accessToken);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [adminId, setAdminId] = useState<number | null>(null);
-  const [selectedAppointment, setSelectedAppointment] = useState<number | null>(
+  const [adminId, setAdminId] = useState<string | null>(null);
+  const [selectedAppointment, setSelectedAppointment] = useState<string | null>(
     null
   );
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     if (id) {
-      const parsedId = parseInt(id as string, 10);
-      if (!isNaN(parsedId)) {
+      const parsedId = id as string;
+      if (parsedId) {
         setAdminId(parsedId);
         fetchAppointments(parsedId, req as string);
       }
     }
   }, [id, req]);
 
-  const fetchAppointments = async (parsedId: number, req: string) => {
+  const fetchAppointments = async (parsedId: string, req: string) => {
     try {
       const params =
         req === "onlineAdmins" ? { userId: parsedId } : { adminId: parsedId };
@@ -51,7 +51,7 @@ const AdminAppointments = () => {
     }
   };
 
-  const handleDetailView = (appointmentId: number) => {
+  const handleDetailView = (appointmentId: string) => {
     setSelectedAppointment(appointmentId);
     setIsMobileMenuOpen(false); // Close mobile menu when viewing details
   };

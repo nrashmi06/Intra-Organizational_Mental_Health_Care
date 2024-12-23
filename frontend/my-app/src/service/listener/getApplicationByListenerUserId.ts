@@ -1,7 +1,7 @@
 import { LISTENER_APPLICATION_API_ENDPOINTS } from "@/mapper/listnerMapper"; // Import the URL mapper
 
 export const getApplicationByListenerUserId = async (
-  userId: number,
+  userId: string,
   token: string
 ) => {
   try {

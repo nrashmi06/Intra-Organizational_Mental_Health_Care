@@ -9,12 +9,12 @@ import { initiateSession } from "@/service/session/initiateSession";
 import { ListenerDetails } from "@/lib/types";
 interface ListenerModalProps {
   closeModal: () => void;
-  userId: number;
+  userId: string;
 }
 
 const SendMessageModal: React.FC<{
   closeModal: () => void;
-  userId: number;
+  userId: string;
 }> = ({ closeModal, userId }) => {
   const [message, setMessage] = useState("");
   const [isSending, setIsSending] = useState(false);

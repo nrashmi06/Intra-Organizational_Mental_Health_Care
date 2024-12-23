@@ -1,7 +1,7 @@
 //get all the sessions of a role using the role id
 
 export const getSessionListByRole = async (
-  id: number,
+  id: string,
   role: string,
   token: string
 ) => {

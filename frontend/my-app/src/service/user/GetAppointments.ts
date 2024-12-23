@@ -1,7 +1,7 @@
 import axios from "axios";
 import {APPOINTMENT_API_ENDPOINTS} from '@/mapper/appointmentMapper';
 
-export const getAppointments = async (token: string, userId: number) => {
+export const getAppointments = async (token: string, userId: string) => {
   try {
     const url = `${APPOINTMENT_API_ENDPOINTS.GET_APPOINTMENTS_BY_USER}/${userId}`;
 

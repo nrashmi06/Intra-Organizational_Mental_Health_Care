@@ -2,7 +2,7 @@ import axios from "axios";
 import { LISTENER_APPLICATION_API_ENDPOINTS } from "@/mapper/listnerMapper"; // Import the mapper
 
 export const approveListener = async (
-  applicationId: number,
+  applicationId: string,
   accessToken: string,
   status: "APPROVED" | "REJECTED" | "PENDING"
 ) => {

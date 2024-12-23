@@ -1,6 +1,6 @@
 import { API_ENDPOINTS } from "@/mapper/userMapper"; // Adjust path as per your project structure
 
-export const getUserDetails = async (userId: number, token: string) => {
+export const getUserDetails = async (userId: string, token: string) => {
   try {
     // Use the dynamic endpoint from envMapper.js
     const url = API_ENDPOINTS.GET_USER_BY_ID(userId.toString());

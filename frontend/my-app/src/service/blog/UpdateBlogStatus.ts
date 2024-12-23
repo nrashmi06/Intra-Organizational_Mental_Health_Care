@@ -2,7 +2,7 @@
 import axios from 'axios';
 import { BLOG_API_ENDPOINTS } from '@/mapper/blogMapper';
 
-export const changeBlogApprovalStatus = async (id: number, status: 'approved' | 'rejected', token: string) => {
+export const changeBlogApprovalStatus = async (id: string, status: 'approved' | 'rejected', token: string) => {
   try {
     const response = await axios.put(
       `${BLOG_API_ENDPOINTS.UPDATE_BLOG_APPROVAL_STATUS(id)}?isApproved=${status === 'approved'}`, 

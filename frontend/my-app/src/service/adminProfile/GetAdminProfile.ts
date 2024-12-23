@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { ADMIN_PROFILE_API_ENDPOINTS } from '@/mapper/adminProfileMapper'; // Import the API mapper
 
-export const fetchAdminProfile = async (token: string, userId?: number) => {
+export const fetchAdminProfile = async (token: string, userId?: string) => {
   try {
     console.log("Fetching admin profile...");
     console.log("Token: ", token);

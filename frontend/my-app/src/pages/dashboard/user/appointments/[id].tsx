@@ -22,23 +22,23 @@ const UserAppointments = () => {
   const { id } = router.query;
   const token = useSelector((state: RootState) => state.auth.accessToken);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [userId, setUserId] = useState<number | null>(null);
-  const [selectedAppointment, setSelectedAppointment] = useState<number | null>(
+  const [userId, setUserId] = useState<string | null>(null);
+  const [selectedAppointment, setSelectedAppointment] = useState<string | null>(
     null
   );
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     if (id) {
-      const parsedId = parseInt(id as string, 10);
-      if (!isNaN(parsedId)) {
+      const parsedId = id as string;
+      if (parsedId) {
         setUserId(parsedId);
         fetchAppointments(parsedId);
       }
     }
   }, [id]);
 
-  const fetchAppointments = async (userId: number) => {
+  const fetchAppointments = async (userId: string) => {
     try {
       const response = await getAppointments(token, userId);
       if (response?.status === 200) {
@@ -52,7 +52,7 @@ const UserAppointments = () => {
     }
   };
 
-  const handleDetailView = (appointmentId: number) => {
+  const handleDetailView = (appointmentId: string) => {
     setSelectedAppointment(appointmentId);
     setIsMobileMenuOpen(false); // Close mobile menu when viewing details
   };
@@ -78,6 +78,16 @@ const UserAppointments = () => {
     { label: "User Dashboard", href: "/dashboard/user" },
     { label: "User Appointments", href: `/dashboard/user/appointments/${id}` },
   ];
+  if (appointments.length === 0) {
+    return (
+      <>
+        <StackNavbar items={stackItems} />
+        <div className="text-gray-500 flex items-center justify-center h-full p-4">
+          No appointments found for User ID {id}
+        </div>
+      </>
+    );
+  }
 
   const AppointmentCard = ({ appointment }: { appointment: Appointment }) => (
     <div
