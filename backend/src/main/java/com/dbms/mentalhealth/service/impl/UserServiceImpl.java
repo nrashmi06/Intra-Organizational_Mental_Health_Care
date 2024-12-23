@@ -85,7 +85,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     public boolean isAdmin(Integer userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("User not found with ID: " + userId));
+                .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + userId));
         return user.getRole().equals(Role.ADMIN);
     }
 
@@ -363,8 +363,6 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     public void updateUserActivity(String email) {
         User user = userRepository.findByEmail(email);
         if (user != null) {
-            user.setLastSeen(LocalDateTime.now());
-            userRepository.save(user);
             userActivityService.updateLastSeen(email);
         }
     }
@@ -375,11 +373,8 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         User user = userRepository.findByEmail(email);
         if (user != null) {
             if (isActive) {
-                user.setLastSeen(LocalDateTime.now());
-                userRepository.save(user);
                 userActivityService.updateLastSeen(email);
             }else{
-                userRepository.save(user);
                 userActivityService.markUserInactive(email);
             }
         }

@@ -5,7 +5,7 @@ import com.dbms.mentalhealth.dto.Appointment.request.UpdateAppointmentStatusRequ
 import com.dbms.mentalhealth.dto.Appointment.response.AppointmentResponseDTO;
 import com.dbms.mentalhealth.dto.Appointment.response.AppointmentSummaryResponseDTO;
 import com.dbms.mentalhealth.exception.appointment.AppointmentNotFoundException;
-import com.dbms.mentalhealth.exception.user.UserNotFoundException;
+import com.dbms.mentalhealth.repository.AppointmentRepository;
 import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.service.AppointmentService;
 import com.dbms.mentalhealth.urlMapper.AppointmentUrlMapping;
@@ -22,10 +22,12 @@ public class AppointmentController {
 
     private final AppointmentService appointmentService;
     private final JwtUtils jwtUtils;
+    private final AppointmentRepository appointmentRepository;
 
-    public AppointmentController(AppointmentService appointmentService, JwtUtils jwtUtils) {
+    public AppointmentController(AppointmentService appointmentService, JwtUtils jwtUtils, AppointmentRepository appointmentRepository) {
         this.appointmentService = appointmentService;
         this.jwtUtils = jwtUtils;
+        this.appointmentRepository = appointmentRepository;
     }
 
     @PostMapping(AppointmentUrlMapping.BOOK_APPOINTMENT)
@@ -115,6 +117,19 @@ public class AppointmentController {
         try {
             List<AppointmentSummaryResponseDTO> appointments = appointmentService.getUpcomingAppointmentsForAdmin();
             return ResponseEntity.ok(appointments);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping(AppointmentUrlMapping.GET_APPOINTMENTS_BY_ADMIN_STATUS)
+    public ResponseEntity<?> getAppointmentsByAdminStatus(@RequestParam("status") String status) {
+        try {
+            List<AppointmentSummaryResponseDTO> appointments = appointmentService.getAppointmentsByAdminStatus(status);
+            return ResponseEntity.ok(appointments);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }

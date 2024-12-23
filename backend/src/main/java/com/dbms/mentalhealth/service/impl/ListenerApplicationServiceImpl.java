@@ -148,28 +148,18 @@ public class ListenerApplicationServiceImpl implements ListenerApplicationServic
     @Override
     @Transactional
     public void deleteApplication(Integer applicationId) {
-        // Extract user ID and role from the security context
         Integer userId = jwtUtils.getUserIdFromContext();
         String role = getRoleFromContext();
-
-        // Find Listener Application by ID
         ListenerApplication listenerApplication = listenerApplicationRepository.findById(applicationId)
                 .orElseThrow(() -> new ListenerApplicationNotFoundException(
                         "Listener Application not found for ID: " + applicationId));
 
-        // Check if the user is authorized to delete the application
         if (!"ROLE_ADMIN".equals(role) && !listenerApplication.getUser().getUserId().equals(userId)) {
             throw new AccessDeniedException("Access denied for deleting Listener Application with ID: " + applicationId);
         }
-
-        // Get the user associated with the Listener Application
         User user = listenerApplication.getUser();
-
-        // Update user's role to USER and remove associated Listener
         user.setRole(Role.USER);
         userRepository.save(user);
-
-        listenerRepository.findByUser(user).ifPresent(listenerRepository::delete);
         listenerApplicationRepository.deleteById(applicationId);
     }
 

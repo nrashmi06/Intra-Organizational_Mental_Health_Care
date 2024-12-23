@@ -18,11 +18,13 @@ import com.dbms.mentalhealth.service.impl.RefreshTokenServiceImpl;
 import com.dbms.mentalhealth.urlMapper.UserUrlMapping;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.Map;
 
@@ -33,12 +35,14 @@ public class AuthController {
     private final UserService userService;
     private final AuthenticationManager authenticationManager;
     private final RefreshTokenServiceImpl refreshTokenService;
+    private final String baseUrl;
 
-    public AuthController(UserService userService, JwtUtils jwtUtils, AuthenticationManager authenticationManager, RefreshTokenServiceImpl refreshTokenService) {
+    public AuthController(UserService userService, JwtUtils jwtUtils, AuthenticationManager authenticationManager, RefreshTokenServiceImpl refreshTokenService, @Value("${spring.app.base-url}") String baseUrl) {
         this.userService = userService;
         this.jwtUtils = jwtUtils;
         this.authenticationManager = authenticationManager;
         this.refreshTokenService = refreshTokenService;
+        this.baseUrl = baseUrl;
     }
 
     @PostMapping(UserUrlMapping.USER_REGISTER)
@@ -46,6 +50,7 @@ public class AuthController {
         UserRegistrationResponseDTO userDTO = userService.registerUser(userRegistrationDTO);
         return ResponseEntity.ok(userDTO);
     }
+
 
     @PostMapping(UserUrlMapping.USER_LOGIN)
     public ResponseEntity<?> authenticateUser(@RequestBody UserLoginRequestDTO loginRequest, HttpServletResponse response) {
@@ -56,17 +61,20 @@ public class AuthController {
             String refreshToken = (String) loginResponse.get("refreshToken");
             UserLoginResponseDTO responseDTO = (UserLoginResponseDTO) loginResponse.get("user");
 
+
+            // Determine if the secure attribute should be set to true
+            boolean isSecure = !baseUrl.contains("localhost");
+
             // Corrected cookie configuration
             Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
-
             refreshTokenCookie.setHttpOnly(true);
-            refreshTokenCookie.setSecure(false); // Set to 'true' in production when using HTTPS
+            refreshTokenCookie.setSecure(isSecure); // Set to 'true' if BASE_URL is not localhost
             refreshTokenCookie.setPath("/mental-health/api/v1/users"); // Set to root path '/' for application-wide availability
             refreshTokenCookie.setMaxAge(24 * 60 * 60); // 1 day expiration
             refreshTokenCookie.setDomain("localhost"); // Optional: Ensure cookie is scoped to localhost for dev
 
             // Add SameSite attribute for cross-origin requests (if needed)
-            response.addHeader("Set-Cookie", "refreshToken=" + refreshToken + "; HttpOnly; Secure=false; Path=/; Max-Age=86400; SameSite=None");
+            response.addHeader("Set-Cookie", "refreshToken=" + refreshToken + "; HttpOnly; Secure=" + isSecure + "; Path=/; Max-Age=86400; SameSite=None");
 
             response.addCookie(refreshTokenCookie);
 
@@ -138,9 +146,9 @@ public class AuthController {
 
             // Create a new refresh token cookie
             Cookie refreshTokenCookie = new Cookie("refreshToken", renewResponse.get("refreshToken").toString());
-
+            boolean isSecure = !baseUrl.contains("localhost");
             refreshTokenCookie.setHttpOnly(true);   // Make sure it's not accessible via JavaScript
-            refreshTokenCookie.setSecure(false);     // Set to 'true' in production with HTTPS
+            refreshTokenCookie.setSecure(isSecure);     // Set to 'true' in production with HTTPS
             refreshTokenCookie.setPath("/mental-health/api/v1/users");
             refreshTokenCookie.setMaxAge(24 * 60 * 60); // 1 day expiration
 

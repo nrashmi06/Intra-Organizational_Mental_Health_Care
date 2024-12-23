@@ -1,44 +1,64 @@
-version: '3.8' # Updated version for better compatibility and features
+version: '3.8'
 
 services:
   db:
     image: postgres:17.0
-    container_name: postgres_db # Assign a meaningful name for easy identification
+    container_name: postgres_db
     environment:
-      POSTGRES_USER: ${DB_USERNAME:-postgres}        # Default to 'postgres' if not set
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-211004}     # Default to '211004' if not set
-      POSTGRES_DB: mentalhealth                     # Database name is hardcoded
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      # Persistent volume for database data
     ports:
-      - "${DB_PORT:-5432}:5432"                     # Default DB port, can be overridden
+      - "${DB_PORT}:5432"
     networks:
       - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   app:
     build:
-      context: .                                    # Builds app from the current directory
+      context: .
     depends_on:
-      - db                                          # Ensures 'db' starts before the app
+      db:
+        condition: service_healthy
     environment:
-      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev} # Default to 'prod', can override
-      SPRING_DATASOURCE_URL: jdbc:postgresql://${DB_HOST:-db}:${DB_PORT:-5432}/mentalhealth
-      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME:-postgres}
-      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-211004}
-      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:3000,http://127.0.0.1:5500}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:${DB_PORT}/${DB_NAME}
+      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      BASE_URL: ${BASE_URL}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
+      JWT_SECRET: ${JWT_SECRET}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
+      CLOUDINARY_URL: ${CLOUDINARY_URL}
+      MAX_FILE_SIZE: ${MAX_FILE_SIZE}
+      MAX_REQUEST_SIZE: ${MAX_REQUEST_SIZE}
+      FILE_SIZE_THRESHOLD: ${FILE_SIZE_THRESHOLD}
+      CONTEXT_PATH: ${CONTEXT_PATH}
+      SPRING_LOG_LEVEL: ${SPRING_LOG_LEVEL}
+      SCHEDULER_USER_ACTIVITY_CLEANUP_INTERVAL: ${SCHEDULER_USER_ACTIVITY_CLEANUP_INTERVAL}
     ports:
-      - "${APP_PORT:-8080}:8080"                    # Default app port, can be overridden
+      - "${APP_PORT:-8080}:8080"
     volumes:
-      - ./target:/app/target                        # Mounts the compiled app JARs
+      - ./target:/app/target
     command: >
-      sh -c "java -jar /app/target/your-app.jar"    # Runs the Spring Boot app
+      sh -c "java -jar /app/target/your-app.jar"
     networks:
       - app-network
+    restart: unless-stopped
 
 volumes:
-  postgres_data:                                    # Persistent volume for the database
+  postgres_data:
 
 networks:
   app-network:
-    driver: bridge                                  # Default network driver for app services
+    driver: bridge
