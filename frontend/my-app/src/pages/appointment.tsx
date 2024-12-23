@@ -20,6 +20,7 @@ import { fetchAdmins } from '@/service/adminProfile/getAllAdmin';
 import { RootState } from '@/store';
 import axios from 'axios';
 import createAppointment from '@/service/appointment/createAppointment';
+import fetchTimeSlots from '@/service/timeslot/fetchTimeSlotsTrue';
 
 export default function BookAppointment() {
   const [showTooltip, setShowTooltip] = useState(false);
@@ -84,20 +85,8 @@ export default function BookAppointment() {
       const isAvailable = true;
 
       try {
-        const url = `http://localhost:8080/mental-health/api/v1/time-slots/${adminId}/date-range`;
-
-        const response = await axios.get(url, {
-          params: {
-            startDate,
-            endDate,
-            isAvailable,
-          },
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        setAvailableSlots(response.data);
+        const timeSlots = await fetchTimeSlots(adminId, startDate, endDate, isAvailable, token);
+        setAvailableSlots(timeSlots);
       } catch (error) {
         if (axios.isAxiosError(error)) {
           console.error('Error fetching time slots:', error.response?.data || error.message);

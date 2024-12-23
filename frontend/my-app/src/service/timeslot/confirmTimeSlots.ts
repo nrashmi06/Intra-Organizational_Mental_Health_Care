@@ -1,9 +1,10 @@
 import axios from 'axios';
+import { TIME_SLOT_API_ENDPOINTS } from '@/mapper/timeslotMapper';
 
 export const confirmTimeSlots = async (accessToken: string,userID : string | null , timeSlots: any[], startDate: string, endDate: string) => {
-  const url = `http://localhost:8080/mental-health/api/v1/time-slots/${userID}/date-range?startDate=${startDate}&endDate=${endDate}`;
+  const url = `${TIME_SLOT_API_ENDPOINTS.CREATE_TIME_SLOTS_IN_DATE_RANGE}?startDate=${startDate}&endDate=${endDate}`;
 
-  const requestBody = {
+  const requestBody = { 
     timeSlots
   };
 
