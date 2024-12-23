@@ -3,6 +3,7 @@ package com.dbms.mentalhealth.config;
 import com.dbms.mentalhealth.dto.UserActivity.UserActivityDTO;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
@@ -15,7 +16,10 @@ import java.util.concurrent.TimeUnit;
 public class CacheConfig {
 
     private final CommonRemovalListener commonRemovalListener;
-    private final Integer duration = 5;
+
+    @Value("${cache.duration.minutes:5}")
+    private Integer duration;
+
     public CacheConfig(@Lazy CommonRemovalListener commonRemovalListener) {
         this.commonRemovalListener = commonRemovalListener;
     }
@@ -26,6 +30,7 @@ public class CacheConfig {
                 .expireAfterWrite(duration, TimeUnit.MINUTES)
                 .maximumSize(1000)
                 .removalListener(commonRemovalListener)
+                .recordStats()
                 .build();
     }
 
@@ -35,6 +40,7 @@ public class CacheConfig {
                 .expireAfterWrite(duration, TimeUnit.MINUTES)
                 .maximumSize(1000)
                 .removalListener(commonRemovalListener)
+                .recordStats()
                 .build();
     }
 
@@ -44,6 +50,7 @@ public class CacheConfig {
                 .expireAfterWrite(duration, TimeUnit.MINUTES)
                 .maximumSize(1000)
                 .removalListener(commonRemovalListener)
+                .recordStats()
                 .build();
     }
 }
