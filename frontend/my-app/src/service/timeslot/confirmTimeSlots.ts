@@ -8,6 +8,7 @@ export const confirmTimeSlots = async (accessToken: string,userID : string | nul
   const url = `${TIME_SLOT_API_ENDPOINTS.CREATE_TIME_SLOTS_IN_DATE_RANGE(userID)}?startDate=${startDate}&endDate=${endDate}`;
 
   const requestBody = { 
+
     timeSlots
   };
 

@@ -75,6 +75,7 @@ const TimeSlotPage = () => {
     const fetchData = async () => {
       try {
         const confirmedData = await fetchTimeSlots(token,userID, today, end);
+
         const groupedConfirmedSlots = confirmedData.reduce((acc: any, slot: any) => {
           acc[slot.date] = acc[slot.date] || [];
           acc[slot.date].push(slot);
@@ -315,6 +316,7 @@ const TimeSlotPage = () => {
                 </div>
               ))}
           </div>
+
           {/* Modal for Update/Delete */}
           {isModalOpen && selectedSlot && (
             console.log("selected slot : ", selectedSlot),
