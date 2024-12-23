@@ -7,7 +7,10 @@ export const deleteApplication = async (
 ) => {
   try {
     // Use the mapped endpoint for deleting the application
-    const url =`${LISTENER_APPLICATION_API_ENDPOINTS.DELETE_APPLICATION(applicationId.toString())}`;
+    if (!applicationId) {
+      throw new Error("Application ID cannot be null");
+    }
+    const url = `${LISTENER_APPLICATION_API_ENDPOINTS.DELETE_APPLICATION(applicationId.toString())}`;
     
 
     const result = await axios.delete(url, {

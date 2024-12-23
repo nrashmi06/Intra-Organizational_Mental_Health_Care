@@ -3,10 +3,12 @@ import { LISTENER_APPLICATION_API_ENDPOINTS } from "@/mapper/listnerMapper"; // 
 
 export const fetchApplication = async (
   accessToken: string,
-  applicationId?: string
+  applicationId?: string | null
 ) => {
   try {
-    // Use the mapped endpoint for fetching application by ID or all applications
+    if (!applicationId) {
+      throw new Error("Application ID cannot be null");
+    }
     const url = applicationId
       ? `${LISTENER_APPLICATION_API_ENDPOINTS.GET_APPLICATION_BY_ID}?applicationId=${applicationId}` // URL for fetching by application ID
       : LISTENER_APPLICATION_API_ENDPOINTS.GET_ALL_APPLICATIONS; // URL for fetching all applications
