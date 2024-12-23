@@ -44,7 +44,6 @@ public class SseAuthenticationFilter extends OncePerRequestFilter {
                 // Validate the token
                 if (jwtUtils.validateJwtToken(token)) {
                     String email = jwtUtils.getUserNameFromJwtToken(token);
-                    String role = jwtUtils.getRoleFromJwtToken(token);
 
                     UserDetails userDetails = userService.loadUserByUsername(email);
 
@@ -52,8 +51,6 @@ public class SseAuthenticationFilter extends OncePerRequestFilter {
                     UsernamePasswordAuthenticationToken authentication =
                             new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                     SecurityContextHolder.getContext().setAuthentication(authentication);
-
-                    // Update user activity
                     userService.updateUserActivity(email);
                 } else {
                     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

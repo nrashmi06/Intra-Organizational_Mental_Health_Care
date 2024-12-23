@@ -250,6 +250,8 @@ public class UserActivityServiceImpl implements UserActivityService {
     public void updateLastSeen(String email) {
         User user = userRepository.findByEmail(email);
         user.setIsActive(true);
+        user.setLastSeen(LocalDateTime.now());
+        userRepository.save(user);
         lastSeenMap.put(email, user.getLastSeen());
         UserActivityDTO dto = UserActivityMapper.toUserActivityDTO(user);
         // Remove stale map data first

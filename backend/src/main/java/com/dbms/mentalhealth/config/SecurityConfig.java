@@ -6,6 +6,8 @@ import com.dbms.mentalhealth.security.jwt.AuthEntryPointJwt;
 import com.dbms.mentalhealth.security.jwt.AuthTokenFilter;
 import com.dbms.mentalhealth.urlMapper.EmergencyHelplineUrlMapping;
 import com.dbms.mentalhealth.urlMapper.UserUrlMapping;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,6 +32,8 @@ import java.util.Arrays;
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
+    private static final Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
+
     private final AuthEntryPointJwt unauthorizedHandler;
     private final AuthTokenFilter authTokenFilter;
     private final CustomAccessDeniedHandler accessDeniedHandler;
@@ -73,7 +77,11 @@ public class SecurityConfig {
                 )
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(unauthorizedHandler)
-                        .accessDeniedHandler(accessDeniedHandler)
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            logger.warn("Access denied for request: {} {}. Reason: {}",
+                                    request.getMethod(), request.getRequestURI(), accessDeniedException.getMessage());
+                            accessDeniedHandler.handle(request, response, accessDeniedException);
+                        })
                 )
                 .csrf(AbstractHttpConfigurer::disable)
                 .addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class)

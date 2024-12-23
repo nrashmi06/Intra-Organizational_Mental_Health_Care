@@ -20,6 +20,7 @@ import com.dbms.mentalhealth.exception.sse.UserNotOnlineException;
 import com.dbms.mentalhealth.exception.timeslot.InvalidTimeSlotException;
 import com.dbms.mentalhealth.exception.timeslot.TimeSlotNotFoundException;
 import com.dbms.mentalhealth.exception.token.JwtTokenExpiredException;
+import com.dbms.mentalhealth.exception.token.UnauthorizedException;
 import com.dbms.mentalhealth.exception.user.*;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.http.HttpStatus;
@@ -184,7 +185,10 @@ public class CustomExceptionHandler {
     public ResponseEntity<Object> handleUserNotOnlineException(UserNotOnlineException ex, WebRequest request) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
-
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<String> handleUnauthorizedException(UnauthorizedException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.FORBIDDEN);
+    }
     @ExceptionHandler(EmailAlreadyInUseException.class)
     public ResponseEntity<String> handleEmailAlreadyInUseException(EmailAlreadyInUseException ex, WebRequest request) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT);

@@ -65,19 +65,15 @@ public class AuthTokenFilter extends OncePerRequestFilter {
 
         String requestURI = request.getRequestURI();
 
-        // Skip JWT validation for excluded URLs
         if (EXCLUDED_URLS.contains(requestURI)) {
             logger.info("Skipping JWT validation for excluded URL: {}", requestURI);
             filterChain.doFilter(request, response);
             return;
         }
-
         String jwt = parseJwt(request);
 
-        // Log the received JWT token
         logger.info("Received JWT token: {}", jwt);
 
-        // Validate and process JWT only if it exists
         if (jwt != null) {
             try {
                 if (jwtUtils.validateJwtToken(jwt)) {
@@ -99,6 +95,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
 
                     // Update user activity
                     userService.updateUserActivity(email);
+                    logger.info("User authenticated: {}", email);
                 }
             } catch (ExpiredJwtException ex) {
                 logger.warn("JWT expired: {}", ex.getMessage());
