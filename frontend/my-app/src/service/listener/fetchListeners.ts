@@ -1,23 +1,21 @@
-//fetch all listener applications of all kinds
-
 import axios from "axios";
-
-const API_BASE_URL =
-  "http://localhost:8080/mental-health/api/v1/listener-applications";
+import { LISTENER_APPLICATION_API_ENDPOINTS } from "@/mapper/listnerMapper"; // Import the URL mapper
 
 export const fetchListeners = async (accessToken: string) => {
   try {
-    const response = await axios.get(API_BASE_URL, {
+    // Use the mapped endpoint for fetching all listener applications
+    const response = await axios.get(LISTENER_APPLICATION_API_ENDPOINTS.GET_ALL_APPLICATIONS, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
     });
+
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response?.status === 404) {
       return null;
     }
-    console.error("Error fetching application:", error);
+    console.error("Error fetching listener applications:", error);
     throw error;
   }
 };

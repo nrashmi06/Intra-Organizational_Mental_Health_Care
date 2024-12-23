@@ -1,18 +1,14 @@
-//to suspend or unsuspend
-
 import axios from "axios";
-
-const API_BASE_URL = "http://localhost:8080/mental-health/api/v1/listeners";
+import { LISTENER_API_ENDPOINTS } from "@/mapper/listenerProfileMapper";
 
 export const changeStatus = async (
-  listenerId: number,
-
+  listenerId: string,
   token: string,
   action: string
 ) => {
   try {
     const response = await axios.put(
-      `${API_BASE_URL}/suspend/${listenerId}?action=${action}`,
+      LISTENER_API_ENDPOINTS.SUSPEND_OR_UNSUSPEND_LISTENER(listenerId, action),
       {},
       {
         headers: {

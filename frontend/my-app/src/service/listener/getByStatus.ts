@@ -1,13 +1,14 @@
-//fetch applications of one kind
 import axios from "axios";
+import { LISTENER_APPLICATION_API_ENDPOINTS } from "@/mapper/listnerMapper"; // Import the URL mapper
 
 export const GetByApproval = async (
   token: string,
   status: "PENDING" | "APPROVED" | "REJECTED"
 ) => {
   try {
+    // Use the mapped endpoint for fetching applications by approval status
     const response = await axios.get(
-      `http://localhost:8080/mental-health/api/v1/listener-applications/status?status=${status}`,
+      `${LISTENER_APPLICATION_API_ENDPOINTS.GET_APPLICATION_BY_APPROVAL_STATUS}?status=${status}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -17,5 +18,6 @@ export const GetByApproval = async (
     return response;
   } catch (error) {
     console.error("Error fetching listeners by approval status:", error);
+    throw error; // Re-throw to allow the calling code to handle the error
   }
 };

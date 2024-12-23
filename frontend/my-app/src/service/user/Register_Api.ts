@@ -1,7 +1,5 @@
 import axios from "axios";
-
-const API_BASE_URL = 'http://localhost:8080/mental-health/api/v1/users';
-
+import { API_ENDPOINTS } from "@/mapper/userMapper";
 
 // Define the structure of the payload when registering a user
 export interface RegisterUserPayload {
@@ -13,24 +11,27 @@ export interface RegisterUserPayload {
 // Define a custom error response interface (if applicable)
 interface ErrorResponse {
   message: string;
-  status: number;
+  status?: number; // Optional, in case the backend doesn't return status
 }
 
+// Service to register a user
 export const registerUser = async (data: RegisterUserPayload) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/register`, data, {
+    const response = await axios.post(API_ENDPOINTS.REGISTER, data, {
       headers: {
         "Content-Type": "application/json",
       },
     });
-    return response.data; // Return the response data
+    return response.data; // Return the successful response data
   } catch (error: unknown) {
-    // Handle and type the error more specifically
-    console.error("Error registering user:", error);
+    // Handle axios-specific errors
     if (axios.isAxiosError(error)) {
-      throw (error.response?.data as ErrorResponse) || "An unexpected error occurred";
+      console.error("API error while registering user:", error.response?.data || error.message);
+      // Throw a meaningful error message for further handling
+      throw error.response?.data as ErrorResponse || { message: "An unexpected API error occurred" };
     } else {
-      throw "An unexpected error occurred";
+      console.error("Unexpected error:", error);
+      throw { message: "An unexpected error occurred" };
     }
   }
 };

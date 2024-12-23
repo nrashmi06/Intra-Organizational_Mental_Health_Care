@@ -1,20 +1,20 @@
+import { SSE_API_ENDPOINTS } from '@/mapper/sseMapper'; 
+
 interface UserDetails {
   userId: string;
   anonymousName: string;
 }
 
 export const getAllSSE = (token: string, onMessage: (data: any) => void) => {
-  const eventSource = new EventSource(
-    `http://localhost:8080/mental-health/api/v1/sse/allOnlineUsers?token=${encodeURIComponent(
-      token
-    )}`
-  );
+  const url = `${SSE_API_ENDPOINTS.SSE_ALL_ONLINE_USERS}?token=${encodeURIComponent(token)}`;
+
+  const eventSource = new EventSource(url);
 
   eventSource.onopen = () => {
     console.log("SSE connection opened.");
   };
 
-  // Handle custom event type: "userDetails"
+  // Handle custom event type: "allUsers"
   eventSource.addEventListener("allUsers", (event) => {
     try {
       const data: UserDetails[] = JSON.parse(event.data);
@@ -27,7 +27,7 @@ export const getAllSSE = (token: string, onMessage: (data: any) => void) => {
 
   eventSource.onerror = (error) => {
     console.error("SSE error:", error);
-    eventSource.close(); // Close the connection on persistent error
+    eventSource.close(); 
   };
 
   return eventSource;

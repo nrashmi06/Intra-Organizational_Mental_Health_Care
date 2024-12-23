@@ -1,6 +1,5 @@
-import axios from 'axios';
-
-const API_BASE_URL = "http://localhost:8080/mental-health/api/v1/session-report";
+import axios from "axios";
+import { REPORT_API_ENDPOINTS } from "@/mapper/reportMapper";
 
 export const submitFeedback = async (
   sessionId: number,
@@ -9,9 +8,8 @@ export const submitFeedback = async (
   accessToken: string
 ) => {
   try {
-     
     const response = await axios.post(
-      `${API_BASE_URL}`,
+      REPORT_API_ENDPOINTS.CREATE_REPORT, // Use the mapped endpoint
       {
         sessionId,
         reportContent,

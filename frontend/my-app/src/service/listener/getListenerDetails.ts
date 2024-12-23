@@ -1,19 +1,17 @@
 //get details of a listener from the listener Table using the userId of the listener
 import axios from "axios";
+import { LISTENER_API_ENDPOINTS } from "@/mapper/listenerProfileMapper";
 
-const API_BASE_URL = "http://localhost:8080/mental-health/api/v1/listeners";
-
-export const getListenerDetails = async (id: number, token: string) => {
+export const getListenerDetails = async (id: string, token: string) => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/details`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      params: {
-        type: "userId",
-        id: id,
-      },
-    });
+    const response = await axios.get(
+      LISTENER_API_ENDPOINTS.GET_LISTENER_BY_ID_OR_TYPE("userId", id),
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -24,3 +22,4 @@ export const getListenerDetails = async (id: number, token: string) => {
     throw error;
   }
 };
+
