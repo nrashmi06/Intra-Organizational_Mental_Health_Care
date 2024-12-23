@@ -19,4 +19,5 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
     List<Appointment> findByAdmin_AdminId(Integer adminId);
     List<Appointment> findByTimeSlot_DateBetween(LocalDate startDate, LocalDate endDate);
     List<Appointment> findByAdminAndTimeSlot_DateAndTimeSlot_StartTimeAfterOrTimeSlot_DateAfter(Admin admin, LocalDate date, LocalTime startTime, LocalDate nextDate);
+    List<Appointment> findByStatus(AppointmentStatus status);
 }

@@ -206,4 +206,37 @@ public class AppointmentServiceImpl implements AppointmentService {
                 .map(AppointmentMapper::toSummaryDTO)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<AppointmentSummaryResponseDTO> getAppointmentsByStatus(String status) {
+        try {
+            // Check if the status is valid
+            if (status == null || status.isEmpty()) {
+                throw new IllegalArgumentException("Status cannot be null or empty");
+            }
+
+            // Convert the status to the AppointmentStatus enum
+            AppointmentStatus appointmentStatus;
+            try {
+                appointmentStatus = AppointmentStatus.valueOf(status.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Invalid status: " + status, e);
+            }
+
+            // Fetch appointments by status
+            List<Appointment> appointments = appointmentRepository.findByStatus(appointmentStatus);
+
+            // Map appointments to DTOs
+            return appointments.stream()
+                    .map(AppointmentMapper::toSummaryDTO)
+                    .toList();
+        } catch (IllegalArgumentException e) {
+            // Handle invalid status
+            throw new IllegalArgumentException("Invalid status: " + status, e);
+        } catch (Exception e) {
+            // Handle other exceptions
+            throw new RuntimeException("An error occurred while fetching appointments by status", e);
+        }
+    }
 }

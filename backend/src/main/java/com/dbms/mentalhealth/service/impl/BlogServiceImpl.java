@@ -35,6 +35,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 @Service
+@Primary
 public class BlogServiceImpl implements BlogService {
 
     private final UserRepository userRepository;

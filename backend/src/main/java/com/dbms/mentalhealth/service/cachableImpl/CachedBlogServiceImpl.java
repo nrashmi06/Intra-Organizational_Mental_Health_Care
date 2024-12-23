@@ -17,7 +17,6 @@ import java.util.Optional;
 import java.util.logging.Logger;
 
 @Service
-@Primary
 public class CachedBlogServiceImpl implements BlogService {
 
     private final BlogService blogService;
