@@ -1,18 +1,18 @@
-//fetch the application of the user with or without the application ID.
-
 import axios from "axios";
-
-const API_BASE_URL =
-  "http://localhost:8080/mental-health/api/v1/listener-applications/application";
+import { LISTENER_APPLICATION_API_ENDPOINTS } from "@/mapper/listnerMapper"; // Import the URL mapper
 
 export const fetchApplication = async (
   accessToken: string,
-  applicationId?: string
+  applicationId?: string | null
 ) => {
   try {
+    if (!applicationId) {
+      throw new Error("Application ID cannot be null");
+    }
     const url = applicationId
-      ? `${API_BASE_URL}?applicationId=${applicationId}`
-      : API_BASE_URL;
+      ? `${LISTENER_APPLICATION_API_ENDPOINTS.GET_APPLICATION_BY_ID}?applicationId=${applicationId}` // URL for fetching by application ID
+      : LISTENER_APPLICATION_API_ENDPOINTS.GET_ALL_APPLICATIONS; // URL for fetching all applications
+
     const response = await axios.get(url, {
       headers: {
         Authorization: `Bearer ${accessToken}`,

@@ -1,10 +1,11 @@
 // src/service/blog/UpdateBlogStatus.ts
 import axios from 'axios';
+import { BLOG_API_ENDPOINTS } from '@/mapper/blogMapper';
 
 export const changeBlogApprovalStatus = async (id: string, status: 'approved' | 'rejected', token: string) => {
   try {
     const response = await axios.put(
-      `http://localhost:8080/mental-health/api/v1/blogs/${id}/approval-status?isApproved=${status === 'approved'}`, 
+      `${BLOG_API_ENDPOINTS.UPDATE_BLOG_APPROVAL_STATUS(id)}?isApproved=${status === 'approved'}`, 
       { status }, 
       { headers: { Authorization: `Bearer ${token}` } }
     );

@@ -1,6 +1,7 @@
-import axios from "axios";
+// src/service/session/initiateSession.ts
 
-const API_BASE_URL = "http://localhost:8080/mental-health/api/v1/sessions";
+import axios from "axios";
+import { SESSION_API_ENDPOINTS } from "@/mapper/sessionMapper";
 
 export const initiateSession = async (
   listenerId: string,
@@ -8,8 +9,9 @@ export const initiateSession = async (
   token: string
 ) => {
   try {
+    const url = SESSION_API_ENDPOINTS.INITIATE_SESSION(listenerId); // Use mapped endpoint
     const response = await axios.post(
-      `${API_BASE_URL}/initiate/${listenerId}`,
+      url,
       { message },
       {
         headers: {

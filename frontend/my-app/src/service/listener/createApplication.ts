@@ -1,9 +1,5 @@
-//create a new application
-
 import axios from "axios";
-
-const API_BASE_URL =
-  "http://localhost:8080/mental-health/api/v1/listener-applications/submit";
+import { LISTENER_APPLICATION_API_ENDPOINTS } from "@/mapper/listnerMapper"; // Import the mapper
 
 export const createApplication = async (
   applicationData: {
@@ -46,12 +42,16 @@ export const createApplication = async (
     }
 
     // Make the POST request
-    const response = await axios.post(`${API_BASE_URL}`, formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
+    const response = await axios.post(
+      `${LISTENER_APPLICATION_API_ENDPOINTS.SUBMIT_APPLICATION}`, // Use the mapped endpoint
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
 
     return response.data;
   } catch (error: any) {

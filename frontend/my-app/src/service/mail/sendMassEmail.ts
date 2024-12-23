@@ -1,12 +1,12 @@
+// src/service/email/sendMassEmail.ts
 import axios from "axios";
-
-const API_BASE_URL = "http://localhost:8080/mental-health/api/v1";
+import { EMAIL_API_ENDPOINTS } from "@/mapper/emailMapper"; // Import from the mapper file
 
 export const sendMassEmail = async (
   emailData: {
     subject: string;
     body: string;
-    files: File[]; 
+    files: File[];
   },
   recipientType: string,
   accessToken: string
@@ -18,8 +18,9 @@ export const sendMassEmail = async (
     emailData.files.forEach((file, index) => {
       formData.append(`files[${index}]`, file);
     });
+
     const response = await axios.post(
-      `${API_BASE_URL}/email/mass?recipientType=${recipientType}`,
+      EMAIL_API_ENDPOINTS.SEND_MASS_EMAIL(recipientType), // Using the endpoint from the mapper
       formData,
       {
         headers: {

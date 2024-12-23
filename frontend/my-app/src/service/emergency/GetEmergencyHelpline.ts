@@ -1,12 +1,13 @@
 
 import axios from 'axios';
+import { EMERGENCY_API_ENDPOINTS } from '@/mapper/emergencyMapper';
 
 // Function to fetch all emergency helplines
 export async function getAllHelplines( token: string) {
   try {
     //get access token from reduc
     
-    const response = await axios.get('http://localhost:8080/mental-health/api/v1/emergency-helpline', {
+    const response = await axios.get(EMERGENCY_API_ENDPOINTS.GET_ALL_EMERGENCY, {
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,

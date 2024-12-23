@@ -1,4 +1,5 @@
 import axios from "axios";
+import { API_ENDPOINTS } from "@/mapper/userMapper";
 
 // Define the interface for the request parameters
 interface ResetPasswordParams {
@@ -6,10 +7,10 @@ interface ResetPasswordParams {
   newPassword: string;
 }
 
-const BASE_URL = "http://localhost:8080/mental-health/api/v1";
+// Service to reset the password
 const resetPassword = async ({ token, newPassword }: ResetPasswordParams): Promise<string> => {
   try {
-    const response = await axios.post(`${BASE_URL}/users/reset-password`, {
+    const response = await axios.post(API_ENDPOINTS.RESET_PASSWORD, {
       token,
       newPassword,
     });
@@ -20,6 +21,7 @@ const resetPassword = async ({ token, newPassword }: ResetPasswordParams): Promi
     // Extract meaningful error message
     const errorMessage =
       error.response?.data?.message || "An error occurred while resetting the password.";
+    console.error("Error resetting password:", errorMessage);
     throw new Error(errorMessage);
   }
 };

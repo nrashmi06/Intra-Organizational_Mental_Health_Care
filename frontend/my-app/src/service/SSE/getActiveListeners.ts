@@ -1,15 +1,16 @@
+import { SSE_API_ENDPOINTS } from '@/mapper/sseMapper'; // Adjust the path as needed
+
 interface ListenerDetails {
   userId: string;
   anonymousName: string;
 }
+
 export const getActiveListeners = (
   token: string,
   onMessage: (data: any) => void
 ) => {
   const eventSource = new EventSource(
-    `http://localhost:8080/mental-health/api/v1/sse/onlineListeners?token=${encodeURIComponent(
-      token
-    )}`
+    `${SSE_API_ENDPOINTS.SSE_ONLINE_LISTENERS}?token=${encodeURIComponent(token)}`
   );
 
   eventSource.onopen = () => {

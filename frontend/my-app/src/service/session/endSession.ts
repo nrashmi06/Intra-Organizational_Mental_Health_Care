@@ -1,12 +1,13 @@
 import axios from "axios";
+import { SESSION_API_ENDPOINTS } from "@/mapper/sessionMapper"; // Import the mapper
 
 export const endSession = async (sessionId: number, accessToken: string) => {
-  const url = `http://localhost:8080/mental-health/api/v1/sessions/end/${sessionId}`;
+  const url = SESSION_API_ENDPOINTS.END_SESSION(sessionId.toString()); // Get the endpoint from the mapper
 
   try {
     const response = await axios.post(
       url,
-      {},
+      {}, // Empty body for the POST request
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,

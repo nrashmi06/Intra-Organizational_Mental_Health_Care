@@ -1,6 +1,8 @@
+import { ADMIN_PROFILE_API_ENDPOINTS } from "@/mapper/adminProfileMapper";
+
 export async function fetchAdmins(accessToken: string) {
 
-  const response = await fetch("http://localhost:8080/mental-health/api/v1/admins", {
+  const response = await fetch(ADMIN_PROFILE_API_ENDPOINTS.GET_ALL_ADMIN_PROFILE, {
     method: "GET",
     headers: {
       "Authorization": `Bearer ${accessToken}`,

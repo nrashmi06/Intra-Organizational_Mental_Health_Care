@@ -1,6 +1,5 @@
 import axios from 'axios';
-
-const BASE_URL = 'http://localhost:8080/mental-health/api/v1';
+import { EMERGENCY_API_ENDPOINTS } from '@/mapper/emergencyMapper';
 
 export const createEmergencyHelpline = async (helplineData:{
     name: string;
@@ -10,7 +9,7 @@ export const createEmergencyHelpline = async (helplineData:{
     priority: number;
 } , token: string) => {
   try {
-    const response = await axios.post(`${BASE_URL}/emergency-helpline`, helplineData, {
+    const response = await axios.post(`${EMERGENCY_API_ENDPOINTS.CREATE_EMERGENCY}`, helplineData, {
       headers: {
         'Content-Type': 'application/json',
          Authorization: `Bearer ${token}`,

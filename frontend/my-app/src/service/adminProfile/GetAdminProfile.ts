@@ -1,12 +1,15 @@
 import axios from 'axios';
+import { ADMIN_PROFILE_API_ENDPOINTS } from '@/mapper/adminProfileMapper'; // Import the API mapper
 
 export const fetchAdminProfile = async (token: string, userId?: string) => {
   try {
     console.log("Fetching admin profile...");
     console.log("Token: ", token);
+
+    // Use the proper endpoint from the mapper
     const url = userId
-      ? `http://localhost:8080/mental-health/api/v1/admins/profile?userId=${userId}`
-      : `http://localhost:8080/mental-health/api/v1/admins/profile`;
+      ? `${ADMIN_PROFILE_API_ENDPOINTS.GET_ADMIN_PROFILE}?userId=${userId}`
+      : ADMIN_PROFILE_API_ENDPOINTS.GET_ADMIN_PROFILE;
 
     const response = await axios.get(url, {
       headers: {

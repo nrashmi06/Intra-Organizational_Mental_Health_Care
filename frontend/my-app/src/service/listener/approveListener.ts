@@ -1,9 +1,5 @@
-//approve the listener as rejected or approved
-
 import axios from "axios";
-
-const API_BASE_URL =
-  "http://localhost:8080/mental-health/api/v1/listener-applications";
+import { LISTENER_APPLICATION_API_ENDPOINTS } from "@/mapper/listnerMapper"; // Import the mapper
 
 export const approveListener = async (
   applicationId: string,
@@ -11,10 +7,10 @@ export const approveListener = async (
   status: "APPROVED" | "REJECTED" | "PENDING"
 ) => {
   try {
-    const url = `${API_BASE_URL}/${applicationId}/update-status?status=${status}`;
+    const url = LISTENER_APPLICATION_API_ENDPOINTS.UPDATE_APPLICATION_STATUS(applicationId.toString()); // Use the mapped endpoint
     const response = await axios.put(
-      url,
-      {},
+      `${url}?status=${status}`, // Append status query parameter
+      {}, // You can pass any body content here if needed, empty object for now
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -25,9 +21,9 @@ export const approveListener = async (
     return response;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      console.error("Error approving listener:");
+      console.error("Error approving listener:", error.response?.data || error.message);
     } else {
-      console.error("Error approving listener:");
+      console.error("Error approving listener:", error);
     }
   }
 };

@@ -9,8 +9,9 @@ import { RootState } from "@/store";
 import { Input } from "@/components/ui/input";
 import { useSelector } from "react-redux";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
-import { Textarea } from "@/components/ui/textarea";
+import ReactQuill from "react-quill";
 import { Button } from "@/components/ui/button";
+import "react-quill/dist/quill.snow.css";
 
 interface AdminProfile {
   fullName: string;
@@ -34,6 +35,10 @@ export default function AdminProfile() {
   ) => {
     const { name, value } = e.target;
     setProfile((prev) => (prev ? { ...prev, [name]: value } : null));
+  };
+
+  const handleQuillChange = (value: string) => {
+    setProfile((prev) => (prev ? { ...prev, adminNotes: value } : null));
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -156,10 +161,10 @@ export default function AdminProfile() {
               </div>
               <div>
                 <label className="block text-purple-700 font-semibold mb-2">About You</label>
-                <Textarea
-                  name="adminNotes"
+
+                <ReactQuill
                   value={profile?.adminNotes || ""}
-                  onChange={handleInputChange}
+                  onChange={handleQuillChange}
                   className="min-h-[120px]"
                   placeholder="Tell us about yourself..."
                 />
@@ -236,7 +241,10 @@ export default function AdminProfile() {
                   <Book className="mr-3" />
                   <span className="font-semibold">About Me</span>
                 </div>
-                <p className="text-gray-700">{profile.adminNotes}</p>
+                <div
+                  className="text-gray-700"
+                  dangerouslySetInnerHTML={{ __html: profile.adminNotes }}
+                />
               </div>
 
               <div className="flex justify-end mt-6">
@@ -272,3 +280,4 @@ const Field = ({ label, ...props }: { label: string; [key: string]: any }) => (
 );
 
 AdminProfile.getLayout = (page: React.ReactNode) => <DashboardLayout>{page}</DashboardLayout>;
+
