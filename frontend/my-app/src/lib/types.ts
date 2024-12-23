@@ -19,6 +19,12 @@ export interface Admin {
   anonymousName: string;
 }
 
+export interface BlogApproval {
+  id: string;
+  title: string;
+  status: "pending" | "approved" | "rejected";
+}
+
 export interface AdminSummary {
   adminId: string;
   fullName: string;

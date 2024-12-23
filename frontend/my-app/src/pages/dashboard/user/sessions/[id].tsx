@@ -62,6 +62,18 @@ const ListenerSessions = () => {
       : []),
   ];
 
+  if (sessions.length === 0) {
+    return (
+      <>
+        <StackNavbar items={stackItems} />
+        <div className="text-gray-500 flex items-center justify-center h-full p-4">
+          No sessions by User Id {id} yet!
+        </div>
+      </>
+    );
+  }
+
+
   const SessionCard = ({ session }: { session: Session }) => (
     <div className="bg-white shadow-sm rounded-lg p-6 border border-gray-100 hover:shadow-md transition-all duration-200">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4">

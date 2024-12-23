@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, User, UserCog, CalendarCheck, FileText } from 'lucide-react';
+import { Clock, User, UserCog, CalendarCheck, FileText, X } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { getAppointmentDetails } from '@/service/user/GetAppointmentDetails';
 import { AppointmentDetails } from '@/lib/types';
@@ -53,22 +53,18 @@ const AppointmentDetailView: React.FC<DetailViewProps> = ({
 
   const getStatusIcon = (status: AppointmentDetails['status']) => {
     const icons = {
-      REQUESTED: '🕒',
-      CANCELED: '❌',
-      CONFIRMED: '✅'
+      REQUESTED: <Clock size={16} />,
+      CANCELED: <X size={16} />,
+      CONFIRMED: <CalendarCheck size={16} />
     };
     return icons[status];
   };
 
   const formatTime = (timeString: string) => {
-    return new Date(timeString).toLocaleTimeString('en-US', {
+    return new Date(`2000-01-01T${timeString}`).toLocaleTimeString('en-US', {
       hour: 'numeric',
       minute: '2-digit',
       hour12: true,
-      weekday: 'short',
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
     });
   };
 
@@ -107,7 +103,7 @@ const AppointmentDetailView: React.FC<DetailViewProps> = ({
           <CardTitle>
             Appointment Details
           </CardTitle>
-          <div className={`px-4 py-2 rounded-full text-sm font-medium border ${getStatusStyle(appointmentDetails.status)}`}>
+          <div className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border ${getStatusStyle(appointmentDetails.status)}`}>
             {getStatusIcon(appointmentDetails.status)} {appointmentDetails.status}
           </div>
         </div>

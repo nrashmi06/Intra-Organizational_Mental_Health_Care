@@ -11,12 +11,7 @@ import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import BlogApprovalTable from "@/components/dashboard/home/BlogApprovalTable";
 import UserCountGrid from "@/components/dashboard/home/LiveCount";
-
-interface BlogApproval {
-  id: string;
-  title: string;
-  status: "pending" | "approved" | "rejected";
-}
+import { BlogApproval } from "@/lib/types";
 
 const DashboardPage = () => {
   const [blogs, setBlogs] = useState<BlogApproval[]>([]);

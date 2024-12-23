@@ -1,4 +1,3 @@
-//Navbar for the dashboard
 "use client";
 
 import { LogOut } from "lucide-react";
@@ -16,9 +15,16 @@ export default function Navbar({ children }: NavbarProps) {
   const router = useRouter();
   const dispatch = useDispatch();
 
-  const handleLogout = () => {
-    dispatch(clearUser());
-    router.push("/signin");
+  const handleLogout = async () => {
+    try {
+      // First, navigate to signin page
+      await router.push("/signin");
+      
+      // Only clear the user state after navigation is complete
+      dispatch(clearUser());
+    } catch (error) {
+      console.error("Navigation failed:", error);
+    }
   };
 
   return (

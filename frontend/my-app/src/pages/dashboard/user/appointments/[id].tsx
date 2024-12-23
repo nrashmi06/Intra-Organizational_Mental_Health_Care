@@ -78,6 +78,16 @@ const UserAppointments = () => {
     { label: "User Dashboard", href: "/dashboard/user" },
     { label: "User Appointments", href: `/dashboard/user/appointments/${id}` },
   ];
+  if (appointments.length === 0) {
+    return (
+      <>
+        <StackNavbar items={stackItems} />
+        <div className="text-gray-500 flex items-center justify-center h-full p-4">
+          No appointments found for User ID {id}
+        </div>
+      </>
+    );
+  }
 
   const AppointmentCard = ({ appointment }: { appointment: Appointment }) => (
     <div

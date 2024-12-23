@@ -138,7 +138,7 @@ export function RegisteredUsersTable() {
             {paginatedUsers.length === 0 ? (
               <TableRow>
               <TableCell colSpan={5} className="text-center">
-                No registered users found.
+                No {statusFilter.toLowerCase()} users found.
               </TableCell>
               </TableRow>
             ) : (

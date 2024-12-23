@@ -16,7 +16,9 @@ const ListenerSessions = () => {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [listenerId, setListenerId] = useState<string | null>(null);
   const [selectedSession, setSelectedSession] = useState<string | null>(null);
-  const [detailView, setDetailView] = useState<"report" | "feedback" | "messages" | null>(null);
+  const [detailView, setDetailView] = useState<
+    "report" | "feedback" | "messages" | null
+  >(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -31,7 +33,11 @@ const ListenerSessions = () => {
 
   const fetchSessions = async (listenerId: string) => {
     try {
-      const response = await getSessionListByRole(listenerId, "listener", token);
+      const response = await getSessionListByRole(
+        listenerId,
+        "listener",
+        token
+      );
       if (response?.ok) {
         const sessionData: Session[] = await response.json();
         setSessions(sessionData);
@@ -59,6 +65,17 @@ const ListenerSessions = () => {
       ? [{ label: detailView.charAt(0).toUpperCase() + detailView.slice(1) }]
       : []),
   ];
+
+  if (sessions.length === 0) {
+    return (
+      <>
+        <StackNavbar items={stackItems} />
+        <div className="text-gray-500 flex items-center justify-center h-full p-4">
+          No sessions by Listener user Id {id} yet!
+        </div>
+      </>
+    );
+  }
 
   const SessionCard = ({ session }: { session: Session }) => (
     <div className="bg-white shadow-sm rounded-lg p-4 border border-gray-100 hover:shadow-md transition-all duration-200">
@@ -110,7 +127,7 @@ const ListenerSessions = () => {
   return (
     <>
       <StackNavbar items={stackItems} />
-      
+
       {/* Mobile Menu Toggle */}
       <div className="lg:hidden fixed top-16 right-4 z-50">
         <button
@@ -134,7 +151,11 @@ const ListenerSessions = () => {
         <div
           className={`w-full lg:w-1/3 bg-gray-50 border-r border-gray-200 overflow-y-auto 
                      fixed lg:relative z-40 transition-transform duration-300 ease-in-out
-                     ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+                     ${
+                       isMobileMenuOpen
+                         ? "translate-x-0"
+                         : "-translate-x-full lg:translate-x-0"
+                     }
                      h-[calc(100vh-64px)] lg:h-auto`}
         >
           {listenerId && (
