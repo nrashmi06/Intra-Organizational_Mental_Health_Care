@@ -1,30 +1,27 @@
-//get all the sessions of a role using the role id
+// src/service/session/getSessionListByRole.ts
+import { SESSION_API_ENDPOINTS } from "@/mapper/sessionMapper"; // Import the session mapper
 
-export const getSessionListByRole = async (
-  id: string,
-  role: string,
-  token: string
-) => {
+export const getSessionListByRole = async (id: string, role: string, token: string) => {
   try {
-    const response = await fetch(
-      `http://localhost:8080/mental-health/api/v1/sessions/user/${id}?role=${role}`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const url = `${SESSION_API_ENDPOINTS.GET_SESSIONS_BY_USER_ID_OR_LISTENER_ID(id)}?role=${role}`; // Use the mapped URL
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
 
     if (!response.ok) {
       throw new Error(`Error: ${response.statusText}`);
     }
 
-    console.log("Listener sessions response:", response);
-    const data = response;
+    const data = await response.json(); // Ensure the response is parsed as JSON
+    console.log("Listener sessions response:", data);
     return data;
   } catch (error) {
     console.error("Error fetching listener sessions:", error);
+    throw error; // Re-throw the error for further handling
   }
 };
