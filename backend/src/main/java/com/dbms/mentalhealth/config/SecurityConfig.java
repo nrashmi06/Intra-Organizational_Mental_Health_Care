@@ -2,6 +2,7 @@ package com.dbms.mentalhealth.config;
 
 import com.dbms.mentalhealth.security.CustomAccessDeniedHandler;
 import com.dbms.mentalhealth.security.SseAuthenticationFilter;
+import com.dbms.mentalhealth.security.WebSocketAuthenticationFilter;
 import com.dbms.mentalhealth.security.jwt.AuthEntryPointJwt;
 import com.dbms.mentalhealth.security.jwt.AuthTokenFilter;
 import com.dbms.mentalhealth.urlMapper.EmergencyHelplineUrlMapping;
@@ -39,23 +40,26 @@ public class SecurityConfig {
     private final CustomAccessDeniedHandler accessDeniedHandler;
     private final SseAuthenticationFilter sseAuthenticationFilter;
     private final String allowedOrigins;
+    private final WebSocketAuthenticationFilter webSocketAuthenticationFilter;
 
     public SecurityConfig(
             AuthEntryPointJwt unauthorizedHandler,
             AuthTokenFilter authTokenFilter,
             CustomAccessDeniedHandler accessDeniedHandler,
             SseAuthenticationFilter sseAuthenticationFilter,
-            @Value("${allowed.origins}") String allowedOrigins
+            @Value("${allowed.origins}") String allowedOrigins,
+            WebSocketAuthenticationFilter webSocketAuthenticationFilter
     ) {
         this.unauthorizedHandler = unauthorizedHandler;
         this.authTokenFilter = authTokenFilter;
         this.accessDeniedHandler = accessDeniedHandler;
         this.sseAuthenticationFilter = sseAuthenticationFilter;
         this.allowedOrigins = allowedOrigins;
+        this.webSocketAuthenticationFilter = webSocketAuthenticationFilter;
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, WebSocketAuthenticationFilter webSocketAuthenticationFilter) throws Exception {
         return http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(requests -> requests
@@ -67,7 +71,6 @@ public class SecurityConfig {
                                 UserUrlMapping.RESEND_VERIFICATION_EMAIL,
                                 UserUrlMapping.USER_LOGIN,
                                 UserUrlMapping.RENEW_TOKEN,
-                                "/chat/**",
                                 EmergencyHelplineUrlMapping.GET_ALL_EMERGENCY_HELPLINES
                         ).permitAll()
                         .anyRequest().authenticated()
@@ -86,6 +89,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(sseAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(webSocketAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 

@@ -65,7 +65,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
 
         String requestURI = request.getRequestURI();
 
-        if (EXCLUDED_URLS.contains(requestURI)) {
+        if (EXCLUDED_URLS.contains(requestURI)|| requestURI.contains(CONTEXT_PATH + "/chat")) {
             logger.info("Skipping JWT validation for excluded URL: {}", requestURI);
             filterChain.doFilter(request, response);
             return;
