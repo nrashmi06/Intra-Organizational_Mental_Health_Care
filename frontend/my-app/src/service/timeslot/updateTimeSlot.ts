@@ -39,7 +39,7 @@ const handleUpdateTimeSlot = async (
         errorMessage = errorData.message || errorMessage;
       } catch (error) {
         // If response is not JSON, log the plain text error
-        console.error('Error response is not JSON:', responseText);
+        console.error('Error response is not JSON:', error, responseText);
       }
 
       throw new Error(errorMessage);

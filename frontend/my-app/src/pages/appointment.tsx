@@ -64,7 +64,8 @@ export default function BookAppointment() {
       if (!token) return;
       try {
         const response = await fetchAdmins(token);
-        setAdmins(response);
+        const data = await response.json();
+        setAdmins(data);
       } catch (err) {
         console.error('Error fetching admins:', err);
       }
@@ -251,7 +252,7 @@ const handleSubmit = (event: React.FormEvent) => {
                       <div className="absolute z-50 w-64 p-3 bg-white text-sm text-gray-600 rounded-lg shadow-lg border border-gray-100 left-full top-1/2 transform -translate-y-1/2 ml-2">
                         <div className="absolute left-[-8px] top-1/2 transform -translate-y-1/2 w-4 h-4 bg-white rotate-45 border-b border-r border-gray-100" />
                         <div className="relative">
-                          Please provide details about why you're seeking an appointment to help us better assist you.
+                          Please provide details about why you&apos;re seeking an appointment to help us better assist you.
                         </div>
                       </div>
                     )}

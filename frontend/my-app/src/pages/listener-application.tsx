@@ -33,7 +33,9 @@ export default function ListenerApplication() {
 
     const checkApplication = async () => {
       try {
+        console.log("Checking application");
         const response = await fetchApplication(accessToken);
+        console.log("Response:", response);
         setApplicationData(response);
         setApplicationExists(response !== null);
       } catch (error) {
