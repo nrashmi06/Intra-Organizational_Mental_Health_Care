@@ -24,9 +24,9 @@ export default function MyApp({ Component, pageProps }: AppPropsWithLayout) {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const getLayout = Component.getLayout ?? ((page) => page);
-  
+
   // Check if current route is a dashboard route
-  const isDashboardRoute = router.pathname.startsWith('/dashboard');
+  const isDashboardRoute = router.pathname.startsWith("/dashboard");
 
   useEffect(() => {
     const handleStart = (url: string) => {
@@ -55,7 +55,13 @@ export default function MyApp({ Component, pageProps }: AppPropsWithLayout) {
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
         {loading && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/80">
+          <div
+            className={
+              isDashboardRoute
+                ? ""
+                : "fixed inset-0 z-50 flex items-center justify-center bg-white/80"
+            }
+          >
             {isDashboardRoute ? <DashboardLoader /> : <Loading />}
           </div>
         )}
