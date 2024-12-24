@@ -12,6 +12,8 @@ import com.dbms.mentalhealth.dto.adminSettings.response.AdminSettingsResponseDTO
 import com.dbms.mentalhealth.dto.chatMessage.ChatMessageDTO;
 import com.dbms.mentalhealth.dto.session.SessionResponseDTO;
 import com.dbms.mentalhealth.dto.session.SessionSummaryDTO;
+import com.dbms.mentalhealth.dto.session.response.SessionReportResponseDTO;
+import com.dbms.mentalhealth.dto.session.response.SessionReportSummaryResponseDTO;
 import com.dbms.mentalhealth.dto.sessionFeedback.response.SessionFeedbackResponseDTO;
 import com.dbms.mentalhealth.dto.sessionFeedback.response.SessionFeedbackSummaryResponseDTO;
 import com.github.benmanes.caffeine.cache.Cache;
@@ -219,4 +221,36 @@ public class CacheConfig {
                 .build();
     }
 
+    @Bean
+    public Cache<Integer, SessionReportResponseDTO> sessionReportCache() {
+        return Caffeine.newBuilder()
+                .expireAfterAccess(cacheExpiry, TimeUnit.MINUTES)
+                .maximumSize(100)
+                .removalListener((key, value, cause) ->
+                        logger.info(String.format("Key %s was removed (%s)", key, cause)))
+                .recordStats()
+                .build();
+    }
+
+    @Bean
+    public Cache<String, List<SessionReportResponseDTO>> sessionReportListCache() {
+        return Caffeine.newBuilder()
+                .expireAfterWrite(cacheExpiry, TimeUnit.MINUTES)
+                .maximumSize(50)
+                .removalListener((key, value, cause) ->
+                        logger.info(String.format("Key %s was removed (%s)", key, cause)))
+                .recordStats()
+                .build();
+    }
+
+    @Bean
+    public Cache<String, SessionReportSummaryResponseDTO> sessionReportSummaryCache() {
+        return Caffeine.newBuilder()
+                .expireAfterWrite(cacheExpiry, TimeUnit.MINUTES)
+                .maximumSize(1)
+                .removalListener((key, value, cause) ->
+                        logger.info(String.format("Key %s was removed (%s)", key, cause)))
+                .recordStats()
+                .build();
+    }
 }
