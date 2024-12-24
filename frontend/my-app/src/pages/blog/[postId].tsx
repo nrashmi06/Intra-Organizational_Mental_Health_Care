@@ -1,16 +1,16 @@
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
-import { fetchBlogById, toggleLikeOnBlog } from '@/service/blog/GetBlogBuID';
-import { updateBlog } from '@/service/blog/UpdateBlog';
-import { RootState } from '@/store';
-import { useSelector } from 'react-redux';
-import Navbar1 from '@/components/navbar/NavBar';
-import Navbar2 from '@/components/navbar/navbar4';
-import { Heart, Eye, Pencil, Trash } from 'lucide-react';
-import '@/styles/global.css';
-import Head from 'next/head';
-import EditBlogModal from '@/components/blog/EditBlogModal';
-import DeleteBlogByID from '@/service/blog/DeleteBlogByID';
+import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
+import { fetchBlogById, toggleLikeOnBlog } from "@/service/blog/GetBlogBuID";
+import { updateBlog } from "@/service/blog/UpdateBlog";
+import { RootState } from "@/store";
+import { useSelector } from "react-redux";
+import Navbar1 from "@/components/navbar/NavBar";
+import Navbar2 from "@/components/navbar/navbar4";
+import { Heart, Eye, Pencil, Trash } from "lucide-react";
+import "@/styles/global.css";
+import Head from "next/head";
+import EditBlogModal from "@/components/blog/EditBlogModal";
+import DeleteBlogByID from "@/service/blog/DeleteBlogByID";
 
 const BlogPost = () => {
   const router = useRouter();
@@ -32,7 +32,6 @@ const BlogPost = () => {
   }
 
   const [article, setArticle] = useState<Article | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [editMode, setEditMode] = useState<boolean>(false);
   const [editedBlogData, setEditedBlogData] = useState<{
@@ -40,9 +39,9 @@ const BlogPost = () => {
     content: string;
     summary: string;
   }>({
-    title: '',
-    content: '',
-    summary: '',
+    title: "",
+    content: "",
+    summary: "",
   });
   const role = useSelector((state: RootState) => state.auth.role);
 
@@ -51,15 +50,12 @@ const BlogPost = () => {
 
     const fetchArticle = async () => {
       try {
-        setLoading(true);
         setError(null);
         const response = await fetchBlogById(Number(postId), token);
         setArticle(response);
       } catch (error) {
-        console.error(error); 
-        setError('Failed to fetch the article. Please try again later');
-      } finally {
-        setLoading(false);
+        console.error(error);
+        setError("Failed to fetch the article. Please try again later");
       }
     };
 
@@ -79,7 +75,7 @@ const BlogPost = () => {
         prevArticle ? { ...prevArticle, ...updatedArticle } : null
       );
     } catch (error) {
-      console.error('Failed to update like status:', error);
+      console.error("Failed to update like status:", error);
     }
   };
 
@@ -96,26 +92,34 @@ const BlogPost = () => {
 
   const handleDeleteClick = async () => {
     DeleteBlogByID(Number(postId), token);
-    console.log('Deleted');
+    console.log("Deleted");
   };
 
   const handleSaveChanges = async () => {
-    if (!editedBlogData.title || !editedBlogData.content || !editedBlogData.summary) {
-      setError('Please fill in all fields.');
+    if (
+      !editedBlogData.title ||
+      !editedBlogData.content ||
+      !editedBlogData.summary
+    ) {
+      setError("Please fill in all fields.");
       return;
     }
 
     try {
-      const updatedArticle = await updateBlog(Number(postId), {
-        ...editedBlogData,
-        userId: Number(ReduxuserId),
-      }, token);
+      const updatedArticle = await updateBlog(
+        Number(postId),
+        {
+          ...editedBlogData,
+          userId: Number(ReduxuserId),
+        },
+        token
+      );
 
       setArticle(updatedArticle);
       setEditMode(false);
     } catch (error) {
-      console.error('Failed to save blog updates:', error);
-      setError('Failed to save blog updates.');
+      console.error("Failed to save blog updates:", error);
+      setError("Failed to save blog updates.");
     }
   };
 
@@ -123,7 +127,6 @@ const BlogPost = () => {
     setEditMode(false);
     setError(null);
   };
-
 
   if (error) {
     return (
@@ -138,10 +141,10 @@ const BlogPost = () => {
       <Head>
         <title>{article?.title}</title>
       </Head>
-      
+
       {/* Navbar with absolute positioning */}
       <div className="relative top-0 left-0 w-full z-40">
-      {role === 'ADMIN' ? <Navbar2 /> : <Navbar1 />}
+        {role === "ADMIN" ? <Navbar2 /> : <Navbar1 />}
       </div>
 
       {/* Blog content with overlay positioning */}
@@ -166,19 +169,19 @@ const BlogPost = () => {
 
             {/* Metadata and Actions */}
             <div className="flex justify-between items-center text-sm text-gray-600 pb-4 border-b border-gray-200">
-            <span className="text-gray-500">
-                  {article?.publishDate
-                  ? new Date(article.publishDate).toLocaleString('en-US', {
-                  weekday: 'short', 
-                  year: 'numeric',
-                  month: 'short', 
-                  day: 'numeric',
-                  hour: '2-digit', 
-                  minute: '2-digit', 
-                  hour12: true, 
-                })
-                : null}
-            </span>
+              <span className="text-gray-500">
+                {article?.publishDate
+                  ? new Date(article.publishDate).toLocaleString("en-US", {
+                      weekday: "short",
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: true,
+                    })
+                  : null}
+              </span>
               <div className="flex items-center space-x-4">
                 {/* View Count */}
                 <div className="flex items-center space-x-1 text-gray-600">
@@ -194,10 +197,12 @@ const BlogPost = () => {
                 >
                   <Heart
                     className={`w-5 h-5 transition-colors duration-300 
-                      ${article?.likedByCurrentUser 
-                        ? 'text-red-500 fill-red-500' 
-                        : 'text-gray-500 group-hover:text-red-400'}`}
-                    fill={article?.likedByCurrentUser ? 'currentColor' : 'none'}
+                      ${
+                        article?.likedByCurrentUser
+                          ? "text-red-500 fill-red-500"
+                          : "text-gray-500 group-hover:text-red-400"
+                      }`}
+                    fill={article?.likedByCurrentUser ? "currentColor" : "none"}
                   />
                   <span>{article?.likeCount}</span>
                 </button>
@@ -205,14 +210,14 @@ const BlogPost = () => {
                 {/* Edit and Delete Actions */}
                 {article?.userId === Number(ReduxuserId) && (
                   <div className="flex items-center space-x-3">
-                    <button 
-                      onClick={handleEditClick} 
+                    <button
+                      onClick={handleEditClick}
                       className="text-gray-500 hover:text-blue-600 transition-colors"
                     >
                       <Pencil className="w-5 h-5" />
                     </button>
-                    <button 
-                      onClick={handleDeleteClick} 
+                    <button
+                      onClick={handleDeleteClick}
                       className="text-gray-500 hover:text-red-600 transition-colors"
                     >
                       <Trash className="w-5 h-5" />
@@ -235,7 +240,9 @@ const BlogPost = () => {
               <h2 className="text-2xl font-semibold text-gray-900 border-l-4 border-green-500 pl-4 mb-4">
                 Summary
               </h2>
-              <p className="leading-relaxed italic text-gray-700">{article?.summary}</p>
+              <p className="leading-relaxed italic text-gray-700">
+                {article?.summary}
+              </p>
             </div>
           </div>
         </div>
