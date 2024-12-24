@@ -17,9 +17,7 @@ export const getSessionListByRole = async (id: string, role: string, token: stri
       throw new Error(`Error: ${response.statusText}`);
     }
 
-    const data = await response.json(); // Ensure the response is parsed as JSON
-    console.log("Listener sessions response:", data);
-    return data;
+    return response;
   } catch (error) {
     console.error("Error fetching listener sessions:", error);
     throw error; // Re-throw the error for further handling

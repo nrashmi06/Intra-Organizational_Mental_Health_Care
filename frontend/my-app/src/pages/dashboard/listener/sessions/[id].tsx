@@ -26,7 +26,9 @@ const ListenerSessions = () => {
       const parsedId = id as string;
       if (parsedId) {
         setListenerId(parsedId);
+        console.log("Listener Id:", parsedId);
         fetchSessions(parsedId);
+        
       }
     }
   }, [id]);
@@ -41,6 +43,7 @@ const ListenerSessions = () => {
       if (response?.ok) {
         const sessionData: Session[] = await response.json();
         setSessions(sessionData);
+        console.log("Listener sessions response:", sessionData);
       } else {
         console.error("Failed to fetch sessions:", response?.statusText);
       }

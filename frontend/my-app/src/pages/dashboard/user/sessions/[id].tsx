@@ -95,27 +95,27 @@ const ListenerSessions = () => {
         </div>
       </div>
 
-      <div className="flex gap-2 mt-4">
+      <div className="flex flex-wrap gap-2">
         <button
           onClick={() => handleDetailView(session.sessionId, "report")}
-          className="flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 transition-colors text-sm font-medium"
+          className="flex items-center gap-2 px-3 py-2 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 transition-colors text-sm font-medium flex-1 justify-center sm:justify-start"
         >
           <FileText size={18} />
-          <span className="hidden sm:inline">Report</span>
+          <span>Report</span>
         </button>
         <button
           onClick={() => handleDetailView(session.sessionId, "feedback")}
-          className="flex items-center gap-2 px-3 py-1 bg-green-50 text-green-600 rounded-md hover:bg-green-100 transition-colors text-sm font-medium"
+          className="flex items-center gap-2 px-3 py-2 bg-green-50 text-green-600 rounded-md hover:bg-green-100 transition-colors text-sm font-medium flex-1 justify-center sm:justify-start"
         >
           <MessageSquare size={18} />
-          <span className="hidden sm:inline">Feedback</span>
+          <span>Feedback</span>
         </button>
         <button
           onClick={() => handleDetailView(session.sessionId, "messages")}
-          className="flex items-center gap-2 px-3 py-1 bg-purple-50 text-purple-600 rounded-md hover:bg-purple-100 transition-colors text-sm font-medium"
+          className="flex items-center gap-2 px-3 py-2 bg-purple-50 text-purple-600 rounded-md hover:bg-purple-100 transition-colors text-sm font-medium flex-1 justify-center sm:justify-start"
         >
           <Eye size={18} />
-          <span className="hidden sm:inline">Messages</span>
+          <span>Messages</span>
         </button>
       </div>
     </div>
