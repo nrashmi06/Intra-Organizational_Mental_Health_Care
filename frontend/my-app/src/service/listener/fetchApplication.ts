@@ -6,6 +6,8 @@ export const fetchApplication = async (
   applicationId?: string | null
 ) => {
   try {
+    console.log("fetching application");
+    console.log("fetching application");
     const url = applicationId
       ? `${LISTENER_APPLICATION_API_ENDPOINTS.GET_APPLICATION_BY_ID}?applicationId=${applicationId}` // URL for fetching by application ID
       : LISTENER_APPLICATION_API_ENDPOINTS.GET_APPLICATION_BY_ID; // URL for fetching all applications

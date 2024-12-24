@@ -194,8 +194,7 @@ export default function Component() {
                 />
 
                 <Button
-                  onClick={(e) => {
-                    e.preventDefault();
+                  onClick={() => {
                     document.getElementById("image")?.click();
                   }}
                   variant="outline"
