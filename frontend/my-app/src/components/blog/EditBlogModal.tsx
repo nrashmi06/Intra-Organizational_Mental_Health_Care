@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 
 interface EditBlogModalProps {
   title: string;
@@ -64,7 +65,7 @@ const EditBlogModal: React.FC<EditBlogModalProps> = ({
             onChange={(e) => onChange('image', e.target.files?.[0] || null)}
           />
           {image && (
-            <img
+            <Image
               src={URL.createObjectURL(image)}
               alt="Selected"
               className="mt-2 w-full h-32 object-cover rounded-md"

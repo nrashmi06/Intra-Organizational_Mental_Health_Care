@@ -14,5 +14,5 @@ export async function fetchAdmins(accessToken: string) {
     throw new Error(`Error fetching admins: ${response.statusText}`);
   }
 
-  return response;
+  return response.json();
 }

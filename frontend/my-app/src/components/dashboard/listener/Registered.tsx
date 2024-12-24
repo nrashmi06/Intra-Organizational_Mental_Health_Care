@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { CheckCircle2, MoreHorizontal, Search } from "lucide-react";
 import {
   Table,
@@ -43,21 +43,24 @@ export function RegisteredListenersTable() {
   );
   const [selectedListener, setSelectedListener] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  
+
+  const fetchListenersByProfileStatus = useCallback(
+    async (status: "ACTIVE" | "SUSPENDED") => {
+      try {
+        const response = await getListenersByProfileStatus(accessToken, status);
+        setListeners(response);
+        setStatusFilter(status);
+      } catch (error) {
+        console.error("Error fetching listeners by profile status:", error);
+      }
+    },
+    [accessToken]
+  );
+
   useEffect(() => {
     fetchListenersByProfileStatus("ACTIVE");
-  }, []);
-
-  const fetchListenersByProfileStatus = async (
-    status: "ACTIVE" | "SUSPENDED"
-  ) => {
-    try {
-      const response = await getListenersByProfileStatus(accessToken, status);
-      setListeners(response);
-      setStatusFilter(status);
-    } catch (error) {
-      console.error("Error fetching listeners by profile status:", error);
-    }
-  };
+  }, [fetchListenersByProfileStatus]);
 
   const fetchApplicationData = async (userId: string) => {
     try {
