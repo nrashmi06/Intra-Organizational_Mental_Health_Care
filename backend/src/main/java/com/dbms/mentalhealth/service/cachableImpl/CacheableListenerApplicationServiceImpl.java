@@ -22,10 +22,10 @@ public class CacheableListenerApplicationServiceImpl implements ListenerApplicat
     private final ListenerApplicationServiceImpl listenerApplicationServiceImpl;
     private final Cache<Integer, ListenerApplicationResponseDTO> listenerApplicationCache;
     private final Cache<String, List<ListenerApplicationSummaryResponseDTO>> listenerApplicationListCache;
-    private final Cache<Integer, ListenerDetailsResponseDTO> listenerDetailsCache;
+    private final Cache<String, ListenerDetailsResponseDTO> listenerDetailsCache;
     private static final Logger logger = LoggerFactory.getLogger(CacheableListenerApplicationServiceImpl.class);
 
-    public CacheableListenerApplicationServiceImpl(ListenerApplicationServiceImpl listenerApplicationServiceImpl, Cache<Integer, ListenerApplicationResponseDTO> listenerApplicationCache, Cache<String, List<ListenerApplicationSummaryResponseDTO>> listenerApplicationListCache, Cache<Integer, ListenerDetailsResponseDTO> listenerDetailsCache) {
+    public CacheableListenerApplicationServiceImpl(ListenerApplicationServiceImpl listenerApplicationServiceImpl, Cache<Integer, ListenerApplicationResponseDTO> listenerApplicationCache, Cache<String, List<ListenerApplicationSummaryResponseDTO>> listenerApplicationListCache, Cache<String, ListenerDetailsResponseDTO> listenerDetailsCache) {
         this.listenerApplicationServiceImpl = listenerApplicationServiceImpl;
         this.listenerApplicationCache = listenerApplicationCache;
         this.listenerApplicationListCache = listenerApplicationListCache;
@@ -110,7 +110,7 @@ public class CacheableListenerApplicationServiceImpl implements ListenerApplicat
     public ListenerDetailsResponseDTO updateApplicationStatus(Integer applicationId, String status) {
         logger.info("Updating application status for listener application ID: {} to {}", applicationId, status);
         ListenerDetailsResponseDTO response = listenerApplicationServiceImpl.updateApplicationStatus(applicationId, status);
-        listenerDetailsCache.put(applicationId, response);
+        listenerDetailsCache.put(String.valueOf(applicationId), response);
         listenerApplicationListCache.invalidateAll();
         logger.info("Listener details cache updated and list cache invalidated after status update for application ID: {}", applicationId);
         return response;

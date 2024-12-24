@@ -5,6 +5,7 @@ import com.dbms.mentalhealth.dto.Appointment.response.AppointmentSummaryResponse
 import com.dbms.mentalhealth.dto.EmergencyHelpline.EmergencyHelplineDTO;
 import com.dbms.mentalhealth.dto.Listener.response.ListenerDetailsResponseDTO;
 import com.dbms.mentalhealth.dto.TimeSlot.response.TimeSlotResponseDTO;
+import com.dbms.mentalhealth.dto.UserActivity.UserActivityDTO;
 import com.dbms.mentalhealth.dto.blog.response.BlogResponseDTO;
 import com.dbms.mentalhealth.dto.blog.response.BlogSummaryDTO;
 import com.dbms.mentalhealth.dto.Admin.response.AdminProfileResponseDTO;
@@ -278,11 +279,23 @@ public class CacheConfig {
                 .recordStats()
                 .build();
     }
+
     @Bean
-    public Cache<Integer, ListenerDetailsResponseDTO> listenerDetailsCache() {
+    public Cache<String, ListenerDetailsResponseDTO> listenerDetailsCache() {
         return Caffeine.newBuilder()
                 .expireAfterAccess(cacheExpiry, TimeUnit.MINUTES)
                 .maximumSize(100)
+                .removalListener((key, value, cause) ->
+                        logger.info(String.format("Key %s was removed (%s)", key, cause)))
+                .recordStats()
+                .build();
+    }
+
+    @Bean
+    public Cache<String, List<UserActivityDTO>> listenerListCache() {
+        return Caffeine.newBuilder()
+                .expireAfterWrite(cacheExpiry, TimeUnit.MINUTES)
+                .maximumSize(50)
                 .removalListener((key, value, cause) ->
                         logger.info(String.format("Key %s was removed (%s)", key, cause)))
                 .recordStats()
