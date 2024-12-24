@@ -64,8 +64,8 @@ export default function BookAppointment() {
       if (!token) return;
       try {
         const response = await fetchAdmins(token);
-        const data = await response.json();
-        setAdmins(data);
+        setAdmins(response);
+        console.log('Admins:', admins);
       } catch (err) {
         console.error('Error fetching admins:', err);
       }
