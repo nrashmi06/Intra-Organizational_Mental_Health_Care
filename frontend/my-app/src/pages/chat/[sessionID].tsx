@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
@@ -9,7 +9,6 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Home, MoreVertical, Send } from 'lucide-react';
 import { endSession } from "@/service/session/endSession";
-import { clearSessionId } from "@/store/chatSlice"; // Action to clear session ID
 const BASE_API = `${process.env.NEXT_PUBLIC_WEBSOCKET_URL}`;
 
 const ChatPage = () => {
