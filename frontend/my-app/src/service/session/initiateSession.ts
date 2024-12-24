@@ -27,6 +27,5 @@ export const initiateSession = async (
     } else {
       console.error("Error initiating session:", error);
     }
-    throw error;
   }
 };

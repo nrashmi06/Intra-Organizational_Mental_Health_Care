@@ -83,10 +83,6 @@ export default function ListenerApplication() {
     handleDelete();
   };
 
-  if (applicationExists === null) {
-    return <div>Loading...</div>;
-  }
-
   return (
     <div>
       {applicationExists ? (

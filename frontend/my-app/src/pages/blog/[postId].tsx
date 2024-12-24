@@ -123,26 +123,11 @@ const BlogPost = () => {
     setError(null);
   };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="loader"></div>
-      </div>
-    );
-  }
 
   if (error) {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <p>{error}</p>
-      </div>
-    );
-  }
-
-  if (!article) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <p>No article found.</p>
       </div>
     );
   }
