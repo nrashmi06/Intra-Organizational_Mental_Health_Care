@@ -125,11 +125,24 @@ const BlogApprovalTable: React.FC<BlogApprovalTableProps> = ({
                           className="cursor-pointer text-red-500"
                         />
                       </div>
+                    ) : statusFilter === "approved" ? (
+                      <div className="flex justify-center">
+                        <X
+                          onClick={() => handleApproval(blog.id, "rejected")} // Call handleApproval here
+                          className="cursor-pointer text-red-500"
+                        />
+                      </div>
                     ) : (
-                      <span className="m-6">-</span>
+                      <div className="flex justify-center">
+                        <Check
+                          onClick={() => handleApproval(blog.id, "approved")} // Call handleApproval here
+                          className="cursor-pointer text-green-500"
+                        />
+                      </div>
                     )}
                   </p>
                 </TableCell>
+
                 <TableCell>
                   <p className="text-center">
                     <Link href={`/blog/${blog.id}`}>
