@@ -4,6 +4,7 @@ import com.dbms.mentalhealth.dto.blog.response.BlogResponseDTO;
 import com.dbms.mentalhealth.dto.blog.response.BlogSummaryDTO;
 import com.dbms.mentalhealth.dto.Admin.response.AdminProfileResponseDTO;
 import com.dbms.mentalhealth.dto.Admin.response.AdminProfileSummaryResponseDTO;
+import com.dbms.mentalhealth.dto.adminSettings.response.AdminSettingsResponseDTO;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.slf4j.Logger;
@@ -62,6 +63,17 @@ public class CacheConfig {
         return Caffeine.newBuilder()
                 .expireAfterWrite(cacheExpiry, TimeUnit.MINUTES)
                 .maximumSize(50)
+                .removalListener((key, value, cause) ->
+                        logger.info(String.format("Key %s was removed (%s)", key, cause)))
+                .recordStats()
+                .build();
+    }
+
+    @Bean
+    public Cache<Integer, AdminSettingsResponseDTO> adminSettingsCache() {
+        return Caffeine.newBuilder()
+                .expireAfterAccess(cacheExpiry, TimeUnit.MINUTES)
+                .maximumSize(100)
                 .removalListener((key, value, cause) ->
                         logger.info(String.format("Key %s was removed (%s)", key, cause)))
                 .recordStats()
