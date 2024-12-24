@@ -1,5 +1,5 @@
 package com.dbms.mentalhealth.config;
-
+import com.dbms.mentalhealth.dto.TimeSlot.response.TimeSlotResponseDTO;
 import com.dbms.mentalhealth.dto.blog.response.BlogResponseDTO;
 import com.dbms.mentalhealth.dto.blog.response.BlogSummaryDTO;
 import com.dbms.mentalhealth.dto.Admin.response.AdminProfileResponseDTO;
@@ -73,6 +73,17 @@ public class CacheConfig {
     public Cache<Integer, AdminSettingsResponseDTO> adminSettingsCache() {
         return Caffeine.newBuilder()
                 .expireAfterAccess(cacheExpiry, TimeUnit.MINUTES)
+                .maximumSize(100)
+                .removalListener((key, value, cause) ->
+                        logger.info(String.format("Key %s was removed (%s)", key, cause)))
+                .recordStats()
+                .build();
+    }
+
+    @Bean
+    public Cache<Integer, List<TimeSlotResponseDTO>> timeSlotCache() {
+        return Caffeine.newBuilder()
+                .expireAfterWrite(cacheExpiry, TimeUnit.MINUTES)
                 .maximumSize(100)
                 .removalListener((key, value, cause) ->
                         logger.info(String.format("Key %s was removed (%s)", key, cause)))
