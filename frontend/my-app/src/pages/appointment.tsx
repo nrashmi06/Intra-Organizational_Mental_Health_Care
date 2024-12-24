@@ -61,10 +61,10 @@ export default function BookAppointment() {
   // Fetch admins data
   useEffect(() => {
     async function loadAdmins() {
-      if (!token) return; // Skip fetching if the token is not available
+      if (!token) return;
       try {
-        const data = await fetchAdmins(token);
-        setAdmins(data);
+        const response = await fetchAdmins(token);
+        setAdmins(response);
       } catch (err) {
         console.error('Error fetching admins:', err);
       }

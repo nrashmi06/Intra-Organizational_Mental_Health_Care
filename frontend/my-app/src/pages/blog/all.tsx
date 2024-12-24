@@ -12,11 +12,8 @@ import { fetchBlogs } from "@/service/blog/FetchByStatus"; // Import the fetchBl
 import { RootState } from "@/store";
 import { useSelector } from "react-redux";
 
-
-
 export default function AllBlogsPage() {
   const router = useRouter();
-  
   interface BlogPost {
     imageUrl: string;
     summary: string;
@@ -58,6 +55,7 @@ export default function AllBlogsPage() {
           setLoading(false);
         })
         .catch(err => {
+          console.error(err);
           setError("Failed to load blogs");
           setLoading(false);
         });
@@ -131,9 +129,10 @@ export default function AllBlogsPage() {
       ) : (
         <div className="container mx-auto px-4 py-12">
           <div className="grid md:grid-cols-3 gap-8">
-            {currentPosts.map((post) => (
-              <BlogCard post={post} />
-            ))}
+          {currentPosts.map((post) => (
+            <BlogCard key={post.id} post={post} />
+          ))}
+
           </div>
         </div>
       )}

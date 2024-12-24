@@ -3,12 +3,11 @@ import { useRouter } from "next/router";
 import { useDispatch } from "react-redux";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { loginUser } from "@/service/user/Login"; // Import login function
-import { subscribeToNotifications } from "@/service/notification/subscribeNotification"; // Import subscribe function
+import { loginUser } from "@/service/user/Login";
 import Navbar from "@/components/navbar/NavBar";
 import Footer from "@/components/footer/Footer";
-import { Eye, EyeOff } from "lucide-react"; // Eye icon for password toggle
-import Image from "next/image"; // Import Image from next/image
+import { Eye, EyeOff } from "lucide-react"; 
+import Image from "next/image"; 
 
 export default function SignIn() {
   const [showPassword, setShowPassword] = useState(false);

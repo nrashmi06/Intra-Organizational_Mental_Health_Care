@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Pencil, Phone, Mail, Book, Save, X } from "lucide-react";
+import { Pencil, Phone, Mail, Book, X } from "lucide-react";
 import "@/styles/global.css";
 import Image from "next/image";
 import { createAdminProfile } from "@/service/adminProfile/CreateAdminProfile";
@@ -54,7 +54,7 @@ export default function AdminProfile() {
     if (!profile) return;
 
     try {
-      const { profilePictureUrl, profilePicture = null, ...profileData } = profile;
+      const { profilePicture = null, ...profileData } = profile;
       if (isCreating) {
         const createdProfile = await createAdminProfile({ ...profileData, profilePicture }, token);
         setProfile(createdProfile);

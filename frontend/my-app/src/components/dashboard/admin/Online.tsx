@@ -34,9 +34,6 @@ export function OnlineAdminsTable() {
   };
 
   useEffect(() => {
-    if (eventSource) {
-      eventSource.close();
-    }
     const newEventSource = getActiveUserByRoleName(
       "onlineAdmins",
       token,
@@ -45,6 +42,7 @@ export function OnlineAdminsTable() {
       }
     );
     setEventSource(newEventSource);
+  
     return () => {
       newEventSource?.close();
     };

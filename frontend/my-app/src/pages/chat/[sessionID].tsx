@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -14,7 +14,6 @@ const BASE_API = `${process.env.NEXT_PUBLIC_WEBSOCKET_URL}`;
 
 const ChatPage = () => {
   const router = useRouter();
-  const dispatch = useDispatch();
   const [websocket, setWebSocket] = useState<WebSocket | null>(null);
   const [messages, setMessages] = useState<string[]>([]);
   const [messageInput, setMessageInput] = useState<string>('');
@@ -25,7 +24,6 @@ const ChatPage = () => {
   const sessionId = useSelector((state: RootState) => state.chat.sessionId);
   const role = useSelector((state: RootState) => state.auth.role);
 
-  const messageRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (sessionId && accessToken) {
@@ -37,6 +35,7 @@ const ChatPage = () => {
 
       ws.onopen = () => {
         setConnectionStatus("Connected");
+        console.log("WebSocket connected : ", connectionStatus);
         console.log("WebSocket connected");
       };
 

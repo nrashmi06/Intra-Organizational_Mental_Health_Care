@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Badge, CheckCircle2, Search } from "lucide-react";
 import {
   Table,
@@ -38,21 +38,23 @@ export function ListenerApplicationsTable() {
   const [selectedApplication, setSelectedApplication] =
     useState<ListenerApplication | null>(null);
 
-  useEffect(() => {
-    fetchListenersByStatus("PENDING");
-  }, []);
-
-  const fetchListenersByStatus = async (
-    status: "PENDING" | "APPROVED" | "REJECTED"
-  ) => {
-    try {
-      const response = await GetByApproval(accessToken, status);
-      setApplications(response?.data);
-      setStatusFilter(status);
-    } catch (error) {
-      console.error("Error fetching listeners:", error);
-    }
-  };
+    const fetchListenersByStatus = useCallback(
+      async (status: "PENDING" | "APPROVED" | "REJECTED") => {
+        try {
+          const response = await GetByApproval(accessToken, status);
+          setApplications(response?.data);
+          setStatusFilter(status);
+        } catch (error) {
+          console.error("Error fetching listeners:", error);
+        }
+      },
+      [accessToken]
+    );
+    
+    useEffect(() => {
+      fetchListenersByStatus("PENDING");
+    }, [fetchListenersByStatus]);
+    
 
   const fetchApplicationDetails = async (applicationId: string) => {
     try {
