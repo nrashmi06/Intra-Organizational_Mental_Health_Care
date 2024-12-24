@@ -26,17 +26,17 @@ export default function MyApp({ Component, pageProps }: AppPropsWithLayout) {
   const getLayout = Component.getLayout ?? ((page) => page);
   
   // Check if current route is a dashboard route
-  const isDashboardRoute = router.pathname.startsWith('/dashboard')
+  const isDashboardRoute = router.pathname.startsWith('/dashboard');
 
   useEffect(() => {
-    let timer: NodeJS.Timeout;
-
-    const handleStart = () => {
-      timer = setTimeout(() => setLoading(true), 0);
+    const handleStart = (url: string) => {
+      // Only show loader if navigating to a different path
+      if (url !== router.asPath) {
+        setLoading(true);
+      }
     };
 
     const handleComplete = () => {
-      clearTimeout(timer);
       setLoading(false);
     };
 
@@ -45,7 +45,6 @@ export default function MyApp({ Component, pageProps }: AppPropsWithLayout) {
     router.events.on("routeChangeError", handleComplete);
 
     return () => {
-      clearTimeout(timer);
       router.events.off("routeChangeStart", handleStart);
       router.events.off("routeChangeComplete", handleComplete);
       router.events.off("routeChangeError", handleComplete);
@@ -55,7 +54,11 @@ export default function MyApp({ Component, pageProps }: AppPropsWithLayout) {
   return (
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
-        {loading && (isDashboardRoute ? <DashboardLoader /> : <Loading />)}
+        {loading && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/80">
+            {isDashboardRoute ? <DashboardLoader /> : <Loading />}
+          </div>
+        )}
         <NotificationWrapper>
           <NotificationPopup />
           {getLayout(<Component {...pageProps} />)}
