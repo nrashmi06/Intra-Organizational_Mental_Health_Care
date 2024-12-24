@@ -1,4 +1,3 @@
-// CacheableEmergencyHelplineServiceImpl.java
 package com.dbms.mentalhealth.service.cachableImpl;
 
 import com.dbms.mentalhealth.dto.EmergencyHelpline.EmergencyHelplineDTO;
@@ -8,9 +7,10 @@ import com.github.benmanes.caffeine.cache.Cache;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
-import java.util.logging.Logger;
 
 @Service
 @Primary
@@ -19,7 +19,7 @@ public class CacheableEmergencyHelplineServiceImpl implements EmergencyHelplineS
     private final EmergencyHelplineServiceImpl emergencyHelplineServiceImpl;
     private final Cache<Integer, EmergencyHelplineDTO> emergencyHelplineCache;
     private final Cache<Integer, List<EmergencyHelplineDTO>> emergencyHelplineListCache;
-    private static final Logger logger = Logger.getLogger(CacheableEmergencyHelplineServiceImpl.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(CacheableEmergencyHelplineServiceImpl.class);
 
     public CacheableEmergencyHelplineServiceImpl(EmergencyHelplineServiceImpl emergencyHelplineServiceImpl, Cache<Integer, EmergencyHelplineDTO> emergencyHelplineCache, Cache<Integer, List<EmergencyHelplineDTO>> emergencyHelplineListCache) {
         this.emergencyHelplineServiceImpl = emergencyHelplineServiceImpl;
@@ -32,18 +32,18 @@ public class CacheableEmergencyHelplineServiceImpl implements EmergencyHelplineS
     @Transactional(readOnly = true)
     public List<EmergencyHelplineDTO> getAllEmergencyHelplines() {
         int cacheKey = "all_helplines".hashCode();
-        logger.info("Cache lookup for all emergency helplines with key: " + cacheKey);
+        logger.info("Cache lookup for all emergency helplines with key: {}", cacheKey);
 
         List<EmergencyHelplineDTO> cachedHelplines = emergencyHelplineListCache.getIfPresent(cacheKey);
         if (cachedHelplines != null) {
-            logger.info("Cache HIT - Returning cached emergency helplines");
+            logger.debug("Cache HIT - Returning cached emergency helplines");
             return cachedHelplines;
         }
 
         logger.info("Cache MISS - Fetching emergency helplines from database");
         List<EmergencyHelplineDTO> response = emergencyHelplineServiceImpl.getAllEmergencyHelplines();
         emergencyHelplineListCache.put(cacheKey, response);
-        logger.info("Cached all emergency helplines");
+        logger.debug("Cached all emergency helplines");
 
         return response;
     }
@@ -64,7 +64,7 @@ public class CacheableEmergencyHelplineServiceImpl implements EmergencyHelplineS
         EmergencyHelplineDTO response = emergencyHelplineServiceImpl.updateEmergencyHelpline(helplineId, emergencyHelplineDTO);
         emergencyHelplineCache.put(helplineId, response);
         emergencyHelplineListCache.invalidateAll();
-        logger.info("Updated emergency helpline cache and invalidated list cache for helpline ID: " + helplineId);
+        logger.info("Updated emergency helpline cache and invalidated list cache for helpline ID: {}", helplineId);
         return response;
     }
 
@@ -74,6 +74,6 @@ public class CacheableEmergencyHelplineServiceImpl implements EmergencyHelplineS
         emergencyHelplineServiceImpl.deleteEmergencyHelpline(helplineId);
         emergencyHelplineCache.invalidate(helplineId);
         emergencyHelplineListCache.invalidateAll();
-        logger.info("Emergency helpline removed from cache and list cache invalidated for helpline ID: " + helplineId);
+        logger.info("Emergency helpline removed from cache and list cache invalidated for helpline ID: {}", helplineId);
     }
 }

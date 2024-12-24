@@ -24,7 +24,6 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -227,12 +226,12 @@ public class SessionServiceImpl implements SessionService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<SessionResponseDTO> getSessionsByListenersUserId(Integer userId) {
+    public List<SessionSummaryDTO> getSessionsByListenersUserId(Integer userId) {
         Listener listener = listenerRepository.findByUser_UserId(userId)
                 .orElseThrow(() -> new ListenerNotFoundException("Listener not found"));
         List<Session> sessions = sessionRepository.findByListener_ListenerId(listener.getListenerId());
         return sessions.stream()
-                .map(SessionMapper::toSessionResponseDTO)
-                .collect(Collectors.toList());
+                .map(SessionMapper::toSessionSummaryDTO)
+                .toList();
     }
 }
