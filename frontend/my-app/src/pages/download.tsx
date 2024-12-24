@@ -19,6 +19,7 @@ export default function VerifyAndDownload() {
   const [successMessage, setSuccessMessage] = useState("");
   const [isOtpRequested, setIsOtpRequested] = useState(false);
   const [isRequestingOtp, setIsRequestingOtp] = useState(false);
+  const [isSubmittingOtp, setIsSubmittingOtp] = useState(false);
   const router = useRouter();
   const accesstoken = useSelector((state: RootState) => state.auth.accessToken);
 
@@ -61,6 +62,7 @@ export default function VerifyAndDownload() {
 
   // Handle OTP submission and download
   const handleSubmitOtp = async () => {
+    setIsSubmittingOtp(true);
     try {
       const enteredOtp = otp.join("");
 
@@ -69,40 +71,41 @@ export default function VerifyAndDownload() {
       if (response?.status !== 200) {
         setErrorMessage("Invalid OTP. Please try again.");
         setTimeout(() => {
-            setErrorMessage("");
-            setOtp(["", "", "", "", "", ""]);
+          setErrorMessage("");
+          setOtp(["", "", "", "", "", ""]);
         }, 2000);
-      }
-      else{
+      } else {
         const fileBlob = response?.data;
-      // Create a download link for the PDF
-      const url = window.URL.createObjectURL(
-        new Blob([fileBlob], { type: "application/pdf" })
-      );
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", "UserDataReport.pdf"); // Set file name
-      document.body.appendChild(link);
+        // Create a download link for the PDF
+        const url = window.URL.createObjectURL(
+          new Blob([fileBlob], { type: "application/pdf" })
+        );
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", "UserDataReport.pdf"); // Set file name
+        document.body.appendChild(link);
 
-      // Trigger the file download
-      link.click();
+        // Trigger the file download
+        link.click();
 
-      // Clean up
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(link);
+        // Clean up
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(link);
 
-      // Set success message
-      setSuccessMessage("PDF downloaded successfully!");
+        // Set success message
+        setSuccessMessage("PDF downloaded successfully!");
 
-      // Redirect to home page
-      setTimeout(() => {
-        router.push("/");
-      }, 2000);
+        // Redirect to home page
+        setTimeout(() => {
+          router.push("/");
+        }, 2000);
       }
     } catch (error) {
       console.error("Error during OTP verification or file download:", error);
       setErrorMessage("Invalid OTP. Please try again.");
       setOtp(["", "", "", "", "", ""]);
+    } finally {
+      setIsSubmittingOtp(false);
     }
   };
 
@@ -181,9 +184,9 @@ export default function VerifyAndDownload() {
                 <Button
                   className="w-full mt-4 bg-black text-white hover:bg-black/90 disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={handleSubmitOtp}
-                  disabled={otp.some((digit) => digit === "") || isRequestingOtp}
+                  disabled={otp.some((digit) => digit === "") || isSubmittingOtp}
                 >
-                  {isRequestingOtp ? "Submitting..." : "Submit OTP"}
+                  {isSubmittingOtp ? "Submitting..." : "Submit OTP"}
                 </Button>
               </>
             )}
@@ -193,9 +196,7 @@ export default function VerifyAndDownload() {
               <p className="text-red-500 text-center mt-4">{errorMessage}</p>
             )}
             {successMessage && (
-              <p className="text-green-500 text-center mt-4">
-                {successMessage}
-              </p>
+              <p className="text-green-500 text-center mt-4">{successMessage}</p>
             )}
           </div>
         </div>
