@@ -81,8 +81,8 @@ public class SessionController {
     }
 
     @GetMapping(SessionUrlMapping.GET_SESSIONS_BY_LISTENERS_USER_ID)
-    public ResponseEntity<List<SessionResponseDTO>> getSessionsByListenersUserId(@PathVariable Integer userId) {
-        List<SessionResponseDTO> sessions = sessionService.getSessionsByListenersUserId(userId);
+    public ResponseEntity<List<SessionSummaryDTO>> getSessionsByListenersUserId(@PathVariable Integer userId) {
+        List<SessionSummaryDTO> sessions = sessionService.getSessionsByListenersUserId(userId);
         return ResponseEntity.ok(sessions);
     }
 }
