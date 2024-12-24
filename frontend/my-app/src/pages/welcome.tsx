@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -12,19 +12,18 @@ export default function WelcomePage() {
   const role = useSelector((state: RootState) => state.auth.role);
 
   useEffect(() => {
-    if (role === 'ADMIN') {
+    if (role === "ADMIN") {
       // Set a timer to redirect after 2 seconds
       const timer = setTimeout(() => {
-         router.push('/dashboardnew');
+        router.push("/dashboard");
       }, 2000);
 
       // Cleanup the timer when the component is unmounted
       return () => clearTimeout(timer);
-    }
-    else {
+    } else {
       // Set a timer to redirect after 2 seconds
       const timer = setTimeout(() => {
-         router.push('/');
+        router.push("/");
       }, 2000);
 
       // Cleanup the timer when the component is unmounted
@@ -35,7 +34,10 @@ export default function WelcomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-100 to-purple-100">
       {/* Main Content */}
-      <main className="container mx-auto px-4 flex flex-col-reverse md:flex-row items-center justify-between" style={{ minHeight: 'calc(100vh - 80px)' }}>
+      <main
+        className="container mx-auto px-4 flex flex-col-reverse md:flex-row items-center justify-between"
+        style={{ minHeight: "calc(100vh - 80px)" }}
+      >
         {/* Image Section */}
         <div className="w-full md:w-1/2 mt-6 md:mt-0">
           <Image
@@ -47,7 +49,7 @@ export default function WelcomePage() {
             priority
           />
         </div>
-        
+
         {/* Text Section */}
         <div className="w-full md:w-1/2 space-y-4 text-center md:text-left">
           <h1 className="text-4xl md:text-6xl font-bold leading-tight">

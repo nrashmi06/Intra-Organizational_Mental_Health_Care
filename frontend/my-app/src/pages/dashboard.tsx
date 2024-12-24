@@ -12,6 +12,7 @@ import { useSelector } from "react-redux";
 import BlogApprovalTable from "@/components/dashboard/home/BlogApprovalTable";
 import UserCountGrid from "@/components/dashboard/home/LiveCount";
 import { BlogApproval } from "@/lib/types";
+import "@/styles/global.css";
 
 const DashboardPage = () => {
   const [blogs, setBlogs] = useState<BlogApproval[]>([]);
@@ -29,6 +30,7 @@ const DashboardPage = () => {
           token
         );
         setBlogs(Array.isArray(data) ? data : []);
+        console.log("Fetched blogs:", data);
       } else {
         console.error("No token found");
       }
@@ -123,7 +125,9 @@ const DashboardPage = () => {
             </div>
           </div>
           {loading ? (
-            <div className="p-4 text-center">Loading...</div>
+            <div className="flex justify-center items-center min-h-[200px]">
+              <div className="loader"></div>
+            </div>
           ) : (
             <BlogApprovalTable blogs={blogs} statusFilter={statusFilter} />
           )}
