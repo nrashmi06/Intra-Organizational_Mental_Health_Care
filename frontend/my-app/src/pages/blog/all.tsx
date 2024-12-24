@@ -19,7 +19,6 @@ import { useSelector } from "react-redux";
 
 export default function AllBlogsPage() {
   const router = useRouter();
-
   interface BlogPost {
     imageUrl: string;
     summary: string;

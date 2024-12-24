@@ -9,4 +9,5 @@ export const APPOINTMENT_API_ENDPOINTS = {
   CANCEL_APPOINTMENT: (appointmentId: string) => `${BASE_API}/${appointmentId}/cancel`, // Cancel an appointment with a reason
   GET_APPOINTMENTS_BY_DATE_RANGE: `${BASE_API}/date`, // Get all appointments within a date range
   GET_CURRENT_ADMIN_UPCOMING_APPOINTMENTS: `${BASE_API}/upcoming`, // Get all upcoming appointments for the current admin
+  GET_CURRENT_ADMIN_UPCOMING_APPOINTMENTS_BY_STATUS: `${BASE_API}/status`, // Get all upcoming appointments for the current admin by status
 };

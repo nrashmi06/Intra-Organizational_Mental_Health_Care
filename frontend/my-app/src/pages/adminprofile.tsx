@@ -55,7 +55,7 @@ export default function AdminProfile() {
     if (!profile) return;
 
     try {
-      const { profilePictureUrl, profilePicture = null, ...profileData } = profile;
+      const { profilePicture = null, ...profileData } = profile;
       if (isCreating) {
         const createdProfile = await createAdminProfile({ ...profileData, profilePicture }, token);
         setProfile(createdProfile);

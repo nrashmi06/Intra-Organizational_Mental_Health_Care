@@ -3,7 +3,6 @@ import React from 'react'
 export const Textarea = ({
   id,
   label,
-  name,
   placeholder,
   value,
   onChange,

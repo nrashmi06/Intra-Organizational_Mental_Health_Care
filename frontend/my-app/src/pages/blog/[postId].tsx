@@ -56,7 +56,8 @@ const BlogPost = () => {
         const response = await fetchBlogById(Number(postId), token);
         setArticle(response);
       } catch (error) {
-        setError('Failed to fetch the article. Please try again later.');
+        console.error(error); 
+        setError('Failed to fetch the article. Please try again later');
       } finally {
         setLoading(false);
       }

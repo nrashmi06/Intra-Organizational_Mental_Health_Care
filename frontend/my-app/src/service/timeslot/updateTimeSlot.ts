@@ -1,4 +1,5 @@
 import { TIME_SLOT_API_ENDPOINTS } from "@/mapper/timeslotMapper";
+
 const handleUpdateTimeSlot = async (
   token: string, 
   userID: string | null, 
@@ -12,8 +13,9 @@ const handleUpdateTimeSlot = async (
   }
 
   try {
-      console.log ("start", startTime); 
-      console.log ("end", endTime);
+    console.log("start", startTime);
+    console.log("end", endTime);
+    
     // Construct the API URL with the appropriate userID and timeSlotId
     const url = `${TIME_SLOT_API_ENDPOINTS.UPDATE_TIME_SLOTS_BY_ID(userID, timeSlotId)}`;
     
@@ -31,11 +33,11 @@ const handleUpdateTimeSlot = async (
     if (!response.ok) {
       let errorMessage = 'Failed to update the time slot';
       const responseText = await response.text(); // Read as text first for debugging
-      
+
       try {
         const errorData = JSON.parse(responseText); // Try to parse the response text as JSON
         errorMessage = errorData.message || errorMessage;
-      } catch (jsonError) {
+      } catch (error) {
         // If response is not JSON, log the plain text error
         console.error('Error response is not JSON:', responseText);
       }
@@ -53,4 +55,3 @@ const handleUpdateTimeSlot = async (
 };
 
 export default handleUpdateTimeSlot;
-

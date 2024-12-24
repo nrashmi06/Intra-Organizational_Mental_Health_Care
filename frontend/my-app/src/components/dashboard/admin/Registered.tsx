@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { Search } from "lucide-react";
 import {
   Table,
@@ -24,7 +24,7 @@ export function RegisteredAdminsTable() {
   const itemsPerPage = 5;
   const accessToken = useSelector((state: RootState) => state.auth.accessToken);
 
-  const fetchAdminProfiles = async () => {
+  const fetchAdminProfiles = useCallback(async () => {
     try {
       const response = await fetchAdmins(accessToken);
       const data = await response.json();
@@ -34,11 +34,11 @@ export function RegisteredAdminsTable() {
     } catch (error) {
       console.error("Error fetching listeners by profile status:", error);
     }
-  };
-
+  }, [accessToken]);
+  
   useEffect(() => {
     fetchAdminProfiles();
-  }, []);
+  }, [fetchAdminProfiles]);
 
   const filteredAdmins = admins.filter((admin) => {
     const matchesSearch =

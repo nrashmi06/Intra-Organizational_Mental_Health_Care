@@ -54,7 +54,8 @@ export function OnlineListenersTable() {
     return () => {
       newEventSource.close();
     };
-  }, [token]);
+  }, [token]);  // Add eventSource as a dependency
+  
 
   const fetchApplicationData = async (userId: string) => {
     try {

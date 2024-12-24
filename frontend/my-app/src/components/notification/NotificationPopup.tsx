@@ -5,7 +5,7 @@ import { X } from "lucide-react"; // Import close icon
 import { clearNotifications } from "@/store/notificationSlice"; // Action to clear notifications
 import { replyNotification } from "@/service/session/replyNotification"; // Assuming API utility exists
 import { useRouter } from "next/router";
-import { setSessionId, clearSessionId } from "@/store/chatSlice"; // Assuming actions exist
+import { setSessionId} from "@/store/chatSlice"; // Assuming actions exist
 
 const NotificationPopup: React.FC = () => {
   const dispatch = useDispatch();

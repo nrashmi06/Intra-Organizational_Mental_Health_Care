@@ -9,6 +9,8 @@ import {
   deleteApplication,
   updateApplication,
 } from "@/service/listener/deleteAndUpdate";
+import { useDispatch } from "react-redux";
+import { clearUser } from "@/store/authSlice";
 
 export default function ListenerApplication() {
   const { accessToken } = useSelector((state: RootState) => state.auth);
@@ -18,10 +20,10 @@ export default function ListenerApplication() {
   const [applicationData, setApplicationData] = useState<any>(null);
   const [isDeleted, setIsDeleted] = useState(false);
   const [isUpdated, setIsUpdated] = useState(false);
-  const [confirmationPopupVisible, setConfirmationPopupVisible] = useState(
-    false
-  );
+  const [confirmationPopupVisible, setConfirmationPopupVisible] =
+    useState(false);
   const router = useRouter();
+  const dispatch = useDispatch();
 
   useEffect(() => {
     if (!accessToken) {
@@ -62,8 +64,9 @@ export default function ListenerApplication() {
     try {
       await deleteApplication(applicationData.applicationId, accessToken);
       setIsDeleted(true);
-      setTimeout(() => {
-        router.push("/");
+      setTimeout(async () => {
+        await router.push("/signin");
+        dispatch(clearUser());
       }, 2000);
     } catch (error) {
       console.error("Failed to delete application:", error);
@@ -131,8 +134,7 @@ export default function ListenerApplication() {
               Application Deleted!
             </h3>
             <p className="text-sm text-gray-600">
-              Your application has been deleted successfully. Redirecting to
-              homepage...
+              Your application has been deleted successfully. Logging you out..
             </p>
           </div>
         </div>
