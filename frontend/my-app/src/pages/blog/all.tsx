@@ -19,6 +19,7 @@ import { useSelector } from "react-redux";
 
 export default function AllBlogsPage() {
   const router = useRouter();
+
   interface BlogPost {
     imageUrl: string;
     summary: string;
@@ -144,7 +145,7 @@ export default function AllBlogsPage() {
         <div className="container mx-auto px-4 py-12">
           <div className="grid md:grid-cols-3 gap-8">
             {currentPosts.map((post) => (
-              <BlogCard post={post} key={post.id}/>
+              <BlogCard post={post} key={post.id} />
             ))}
           </div>
         </div>

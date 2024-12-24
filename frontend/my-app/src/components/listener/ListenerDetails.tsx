@@ -6,7 +6,6 @@ import { Star, X, MessageCircle, Calendar, Shield } from "lucide-react";
 import { initiateSession } from "@/service/session/initiateSession";
 import { ListenerDetails } from "@/lib/types";
 import "@/styles/global.css";
-
 interface ListenerModalProps {
   closeModal: () => void;
   userId: string;
