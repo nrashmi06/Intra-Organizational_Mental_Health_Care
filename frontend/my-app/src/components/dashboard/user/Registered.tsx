@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { CheckCircle2, MoreHorizontal, Search } from "lucide-react";
 import {
   Table,
@@ -36,11 +36,8 @@ export function RegisteredUsersTable() {
   const [detailsModal, setDetailsModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  useEffect(() => {
-    fetchUsersByProfileStatus("ACTIVE");
-  }, []);
-
-  const fetchUsersByProfileStatus = async (status: "ACTIVE" | "SUSPENDED") => {
+  
+  const fetchUsersByProfileStatus = useCallback(async (status: "ACTIVE" | "SUSPENDED") => {
     try {
       const response = await getUsersByProfileStatus(accessToken, status);
       setUsers(response);
@@ -49,7 +46,12 @@ export function RegisteredUsersTable() {
     } catch (error) {
       console.error("Error fetching users by profile status:", error);
     }
-  };
+  }, [accessToken]);
+  
+  useEffect(() => {
+    fetchUsersByProfileStatus("ACTIVE");
+  }, [fetchUsersByProfileStatus]); 
+  
 
   const toggleDropdown = (userId: string) => {
     setActiveDropdown((prev) => (prev === userId ? null : userId));

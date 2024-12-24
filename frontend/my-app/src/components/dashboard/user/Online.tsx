@@ -44,7 +44,8 @@ export function OnlineUsersTable() {
     return () => {
       newEventSource?.close();
     };
-  }, [token]);
+  }, [token]);  // Add eventSource as a dependency
+  
 
   const filteredUsers = users.filter(
     (user) =>

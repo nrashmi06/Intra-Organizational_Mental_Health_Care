@@ -35,7 +35,7 @@ const store = configureStore({
     notification: persistedNotificationReducer, // Add your notification reducer
     chat: persistedChatReducer, // Add your chat reducer
   },
-  devTools: process.env.NODE_ENV !== 'production', // Enable Redux DevTools in development
+  devTools: true, // Enable Redux DevTools in development
 });
 
 // Create the persistor for Redux Persist

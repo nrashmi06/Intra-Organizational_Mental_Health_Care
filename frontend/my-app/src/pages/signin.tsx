@@ -3,12 +3,12 @@ import { useRouter } from "next/router";
 import { useDispatch } from "react-redux";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { loginUser } from "@/service/user/Login"; // Import login function
-import { subscribeToNotifications } from "@/service/notification/subscribeNotification"; // Import subscribe function
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { loginUser } from "@/service/user/Login";
 import Navbar from "@/components/navbar/NavBar";
 import Footer from "@/components/footer/Footer";
-import { Eye, EyeOff } from "lucide-react"; // Eye icon for password toggle
-import Image from "next/image"; // Import Image from next/image
+import { Eye, EyeOff } from "lucide-react";
+import Image from "next/image";
 
 export default function SignIn() {
   const [showPassword, setShowPassword] = useState(false);
@@ -16,7 +16,6 @@ export default function SignIn() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isErrorPopupVisible, setIsErrorPopupVisible] = useState(false);
   const router = useRouter();
   const dispatch = useDispatch();
 
@@ -25,39 +24,22 @@ export default function SignIn() {
 
     if (!email || !password) {
       setError("Please fill in both fields.");
-      setIsErrorPopupVisible(true);
       return;
     }
 
     setLoading(true);
     setError(null);
 
-    try {
-      // Call login function
-      const response = await loginUser(email, password)(dispatch);
-      if (response) {
-        // Assuming response contains token
-  
-        // Navigate to the welcome page
-        router.push("/welcome");
-  
-        }
-      else {
-        setError("Login failed. Please try again.");
-        setIsErrorPopupVisible(true);
-      }
-    } catch (error) {
-      console.error("Error:", error);
-      setError((error as Error).message || "Something went wrong.");
-      setIsErrorPopupVisible(true);
-    } finally {
-      setLoading(false);
+    // Call login function and handle the response
+    const response = await loginUser(email, password)(dispatch);
+    
+    if (response.success) {
+      router.push("/welcome");
+    } else {
+      setError(response.error);
     }
-  };
-
-  const closeErrorPopup = () => {
-    setIsErrorPopupVisible(false);
-    setError(null);
+    
+    setLoading(false);
   };
 
   return (
@@ -118,25 +100,25 @@ export default function SignIn() {
                 </div>
               </div>
 
-              <Button type="submit" className="w-full bg-black text-white hover:bg-black/90" disabled={loading}>
+              <Button 
+                type="submit" 
+                className="w-full bg-black text-white hover:bg-black/90" 
+                disabled={loading}
+              >
                 {loading ? "Signing In..." : "Sign In"}
               </Button>
+
+              {error && (
+                <Alert className="mt-4 border-red-200 bg-red-50">
+                  <AlertDescription className="text-red-800">
+                    {error}
+                  </AlertDescription>
+                </Alert>
+              )}
             </form>
           </div>
         </div>
       </main>
-
-      {isErrorPopupVisible && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-10">
-          <div className="bg-white p-6 rounded-lg shadow-lg text-center">
-            <h3 className="text-lg font-semibold text-red-600">Error</h3>
-            <p className="text-sm text-gray-600">{error}</p>
-            <Button onClick={closeErrorPopup} className="mt-4 bg-black text-white hover:bg-black/90">
-              Close
-            </Button>
-          </div>
-        </div>
-      )}
 
       <Footer />
     </div>

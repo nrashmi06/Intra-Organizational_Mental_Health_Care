@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus , Trash2 , Pencil } from 'lucide-react';
+import { Plus, Trash2, Pencil } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { RootState } from '@/store';
 import { useSelector } from 'react-redux';
@@ -20,7 +20,7 @@ const Component = () => {
     emergencyType: '',
     priority: 1,
   });
-  
+
   interface Helpline {
     helplineId: string;
     name: string;
@@ -38,32 +38,30 @@ const Component = () => {
   const [isUpdateMode, setIsUpdateMode] = useState(false);
   const [selectedHelplineId, setSelectedHelplineId] = useState<string | null>(null);
 
-// Open modal with existing data for update
-const handleEditHelpline = (helpline: Helpline) => {
-  setNewHelpline(helpline); // Populate modal with existing data
-  setSelectedHelplineId(helpline.helplineId); // Store the ID of the helpline being edited
-  setIsUpdateMode(true); // Set to update mode
-  setModalOpen(true); // Open modal
-};
+  // Open modal with existing data for update
+  const handleEditHelpline = (helpline: Helpline) => {
+    setNewHelpline(helpline); // Populate modal with existing data
+    setSelectedHelplineId(helpline.helplineId); // Store the ID of the helpline being edited
+    setIsUpdateMode(true); // Set to update mode
+    setModalOpen(true); // Open modal
+  };
 
-// Submit the update to the API
-const handleUpdateSubmit = async () => {
-  if (!selectedHelplineId) return;
+  // Submit the update to the API
+  const handleUpdateSubmit = async () => {
+    if (!selectedHelplineId) return;
 
-  try {
-    await updateEmergencyHelpline(selectedHelplineId, token, newHelpline); // Call the API
-    setModalOpen(false); // Close modal
-    setIsUpdateMode(false); // Exit update mode
-    setShouldRefetch((prev) => !prev); // Trigger data refetch
-  } catch (error) {
-    console.error("Failed to update helpline:", error);
-  }
-};
-
+    try {
+      await updateEmergencyHelpline(selectedHelplineId, token, newHelpline); // Call the API
+      setModalOpen(false); // Close modal
+      setIsUpdateMode(false); // Exit update mode
+      setShouldRefetch((prev) => !prev); // Trigger data refetch
+    } catch (error) {
+      console.error("Failed to update helpline:", error);
+    }
+  };
 
   const handleAddHelpline = () => setModalOpen(true);
   const handleCloseModal = () => setModalOpen(false);
-
 
   const handleDeleteHelpline = async (helplineId: string) => {
     try {
@@ -72,7 +70,7 @@ const handleUpdateSubmit = async () => {
     } catch (error) {
       console.error("Failed to delete helpline:", error);
     }
-  }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -89,7 +87,7 @@ const handleUpdateSubmit = async () => {
     }
   };
 
-  // Fetch all helplines on component mount or when shouldRefetch changes
+  // Fetch all helplines on component mount or when shouldRefetch or token changes
   useEffect(() => {
     const fetchHelplines = async () => {
       try {
@@ -101,7 +99,7 @@ const handleUpdateSubmit = async () => {
     };
 
     fetchHelplines();
-  }, [shouldRefetch]); // Rerun useEffect when shouldRefetch changes
+  }, [shouldRefetch, token]); // Rerun useEffect when shouldRefetch or token changes
 
   return (
     <div className="min-h-screen">
@@ -111,9 +109,9 @@ const handleUpdateSubmit = async () => {
             Add Helpline Number
           </h1>
           <div>
-              <Button onClick={handleAddHelpline}>
-                <Plus className="h-10 w-10 text-yellow-300" />
-             </Button>
+            <Button onClick={handleAddHelpline}>
+              <Plus className="h-10 w-10 text-yellow-300" />
+            </Button>
           </div>
         </div>
         <div className="rounded-lg bg-white p-6 shadow-lg">
@@ -125,11 +123,7 @@ const handleUpdateSubmit = async () => {
                 <TableHead>Country Code</TableHead>
                 <TableHead>Emergency Type</TableHead>
                 <TableHead>Priority</TableHead>
-                {
-                  userRole === 'ADMIN' && (
-                    <TableHead>Action</TableHead>
-                  )
-                }
+                {userRole === 'ADMIN' && <TableHead>Action</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -147,22 +141,20 @@ const handleUpdateSubmit = async () => {
                     <TableCell>{helpline.countryCode}</TableCell>
                     <TableCell>{helpline.emergencyType}</TableCell>
                     <TableCell>{helpline.priority}</TableCell>
-                    {
-                      userRole === 'ADMIN' && (
-                        <TableCell>
-                          <div className='flex justify-around '>
-                            <Trash2
-                              className="h-6 w-6 text-red-500 cursor-pointer hover:text-red-700"
-                              onClick={() => handleDeleteHelpline(helpline.helplineId)} 
-                            />
-                            <Pencil
-                               className="h-6 w-6 text-blue-500 cursor-pointer hover:text-blue-700"
-                               onClick={() => handleEditHelpline(helpline)}
-                            />
-                          </div>
-                        </TableCell>
-                      )
-                    }
+                    {userRole === 'ADMIN' && (
+                      <TableCell>
+                        <div className="flex justify-around">
+                          <Trash2
+                            className="h-6 w-6 text-red-500 cursor-pointer hover:text-red-700"
+                            onClick={() => handleDeleteHelpline(helpline.helplineId)}
+                          />
+                          <Pencil
+                            className="h-6 w-6 text-blue-500 cursor-pointer hover:text-blue-700"
+                            onClick={() => handleEditHelpline(helpline)}
+                          />
+                        </div>
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))
               )}
@@ -175,33 +167,31 @@ const handleUpdateSubmit = async () => {
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-            <h2 className="text-2xl font-bold mb-4">Add New Helpline</h2>
+            <h2 className="text-2xl font-bold mb-4">{isUpdateMode ? 'Update Helpline' : 'Add New Helpline'}</h2>
             <form>
-              {/* Input Fields */}
-              {[
-                { label: "Name", name: "name" },
+              {[{ label: "Name", name: "name" },
                 { label: "Phone Number", name: "phoneNumber" },
                 { label: "Country Code", name: "countryCode" },
                 { label: "Emergency Type", name: "emergencyType" },
-                { label: "Priority", name: "priority", type: "number" },
-              ].map(({ label, name, type = "text" }) => (
-                <div key={name} className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700">{label}</label>
-                  <input
-                    type={type}
-                    name={name}
-                    value={(newHelpline as any)[name]}
-                    onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1"
-                  />
-                </div>
-              ))}
+                { label: "Priority", name: "priority", type: "number" }]
+                .map(({ label, name, type = "text" }) => (
+                  <div key={name} className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700">{label}</label>
+                    <input
+                      type={type}
+                      name={name}
+                      value={(newHelpline as any)[name]}
+                      onChange={handleInputChange}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1"
+                    />
+                  </div>
+                ))}
               <div className="flex justify-end">
                 <Button onClick={handleCloseModal} className="mr-2">
                   Cancel
                 </Button>
-                <Button type="button" onClick={handleSubmit}>
-                  Submit
+                <Button type="button" onClick={isUpdateMode ? handleUpdateSubmit : handleSubmit}>
+                  {isUpdateMode ? 'Update' : 'Submit'}
                 </Button>
               </div>
             </form>
@@ -211,10 +201,8 @@ const handleUpdateSubmit = async () => {
 
     </div>
   );
-}
+};
 
 Component.getLayout = (page: any) => <DashboardLayout>{page}</DashboardLayout>;
 
 export default Component;
-
-

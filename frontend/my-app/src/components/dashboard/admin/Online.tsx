@@ -45,6 +45,7 @@ export function OnlineAdminsTable() {
       }
     );
     setEventSource(newEventSource);
+  
     return () => {
       newEventSource?.close();
     };

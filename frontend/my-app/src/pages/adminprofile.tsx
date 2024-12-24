@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Pencil, Phone, Mail, Book, Save, X } from "lucide-react";
+import { Pencil, Phone, Mail, Book, X } from "lucide-react";
 import "@/styles/global.css";
 import Image from "next/image";
 import { createAdminProfile } from "@/service/adminProfile/CreateAdminProfile";
@@ -9,9 +9,10 @@ import { RootState } from "@/store";
 import { Input } from "@/components/ui/input";
 import { useSelector } from "react-redux";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
-import ReactQuill from "react-quill";
+import dynamic from "next/dynamic"; 
 import { Button } from "@/components/ui/button";
 import "react-quill/dist/quill.snow.css";
+const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
 
 interface AdminProfile {
   fullName: string;
@@ -54,7 +55,7 @@ export default function AdminProfile() {
     if (!profile) return;
 
     try {
-      const { profilePictureUrl, profilePicture = null, ...profileData } = profile;
+      const { profilePicture = null, ...profileData } = profile;
       if (isCreating) {
         const createdProfile = await createAdminProfile({ ...profileData, profilePicture }, token);
         setProfile(createdProfile);
@@ -257,13 +258,7 @@ export default function AdminProfile() {
               </div>
             </div>
           </div>
-        ) : (
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-pulse text-purple-600 text-2xl">
-              Loading Profile...
-            </div>
-          </div>
-        )}
+        ) : null}
       </main>
     </div>
   );
@@ -280,4 +275,3 @@ const Field = ({ label, ...props }: { label: string; [key: string]: any }) => (
 );
 
 AdminProfile.getLayout = (page: React.ReactNode) => <DashboardLayout>{page}</DashboardLayout>;
-

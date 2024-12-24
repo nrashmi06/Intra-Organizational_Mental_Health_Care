@@ -11,18 +11,20 @@ import {
   PhoneCall,
   Mail,
   X,
+  Pin,
 } from "lucide-react";
 import Image from "next/image";
 
 const routes = [
-  { label: "Dashboard", icon: LayoutDashboard, href: "/dashboardnew" },
+  { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
   { label: "Scheduler", icon: Calendar, href: "/dashboard/scheduler" },
   { label: "Listener", icon: Headphones, href: "/dashboard/listener" },
   { label: "User", icon: Users, href: "/dashboard/user" },
   { label: "Admin", icon: ShieldCheck, href: "/dashboard/admin" },
   { label : "Timeslot", icon: Calendar, href: "/dashboard/timeslot"}, 
+  { label: "Appointments", icon: Pin, href: "/dashboard/appointments" },
   { label: "Helpline", icon: PhoneCall, href: "/dashboard/helpline" },
-  { label: "Send Mass Email", icon: Mail, href: "/dashboard/sendemail" },
+  { label: "Send Mass Email", icon: Mail, href: "/dashboard/sendemail" }
 ];
 
 type SidebarProps = {

@@ -152,7 +152,7 @@ export default function Component() {
                       <div className="pt-12 pb-8 px-8">
                         <div className="text-center mb-8">
                           <h2 className="text-xl font-bold text-gray-800">{admin.fullName}</h2>
-                          <p className="text-sm text-gray-600">{admin.adminNotes}</p>
+                            <p className="text-sm text-gray-600" dangerouslySetInnerHTML={{ __html: admin.adminNotes }}></p>
                         </div>
                         <p className="text-sm text-gray-500 text-center">Contact: {admin.contactNumber}</p>
                       </div>
