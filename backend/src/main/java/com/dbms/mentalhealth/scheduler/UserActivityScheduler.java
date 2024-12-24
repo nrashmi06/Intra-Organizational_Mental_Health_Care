@@ -9,12 +9,14 @@ import java.util.logging.Logger;
 
 @Component
 public class UserActivityScheduler {
-    UserActivityService userActivityService;
-    Logger logger = Logger.getLogger(UserActivityScheduler.class.getName());
+    private final UserActivityService userActivityService;
+    private final Logger logger = Logger.getLogger(UserActivityScheduler.class.getName());
+
     public UserActivityScheduler(UserActivityService userActivityService) {
         this.userActivityService = userActivityService;
     }
-    @Scheduled(fixedRate = 60 * 60 * 1000) // 1 hr
+
+    @Scheduled(fixedRateString = "${scheduler.user-activity-cleanup-interval}")
     public void cleanupExpiredUsers() {
         logger.info("Cleaning up expired users");
         List<String> expiredUsers = userActivityService.findExpiredUsers();
