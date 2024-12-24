@@ -3,6 +3,7 @@ package com.dbms.mentalhealth.config;
 import com.dbms.mentalhealth.dto.Appointment.response.AppointmentResponseDTO;
 import com.dbms.mentalhealth.dto.Appointment.response.AppointmentSummaryResponseDTO;
 import com.dbms.mentalhealth.dto.EmergencyHelpline.EmergencyHelplineDTO;
+import com.dbms.mentalhealth.dto.Listener.response.ListenerDetailsResponseDTO;
 import com.dbms.mentalhealth.dto.TimeSlot.response.TimeSlotResponseDTO;
 import com.dbms.mentalhealth.dto.blog.response.BlogResponseDTO;
 import com.dbms.mentalhealth.dto.blog.response.BlogSummaryDTO;
@@ -10,6 +11,8 @@ import com.dbms.mentalhealth.dto.Admin.response.AdminProfileResponseDTO;
 import com.dbms.mentalhealth.dto.Admin.response.AdminProfileSummaryResponseDTO;
 import com.dbms.mentalhealth.dto.adminSettings.response.AdminSettingsResponseDTO;
 import com.dbms.mentalhealth.dto.chatMessage.ChatMessageDTO;
+import com.dbms.mentalhealth.dto.listenerApplication.response.ListenerApplicationResponseDTO;
+import com.dbms.mentalhealth.dto.listenerApplication.response.ListenerApplicationSummaryResponseDTO;
 import com.dbms.mentalhealth.dto.session.SessionResponseDTO;
 import com.dbms.mentalhealth.dto.session.SessionSummaryDTO;
 import com.dbms.mentalhealth.dto.session.response.SessionReportResponseDTO;
@@ -248,6 +251,38 @@ public class CacheConfig {
         return Caffeine.newBuilder()
                 .expireAfterWrite(cacheExpiry, TimeUnit.MINUTES)
                 .maximumSize(1)
+                .removalListener((key, value, cause) ->
+                        logger.info(String.format("Key %s was removed (%s)", key, cause)))
+                .recordStats()
+                .build();
+    }
+
+    @Bean
+    public Cache<Integer, ListenerApplicationResponseDTO> listenerApplicationCache() {
+        return Caffeine.newBuilder()
+                .expireAfterAccess(cacheExpiry, TimeUnit.MINUTES)
+                .maximumSize(100)
+                .removalListener((key, value, cause) ->
+                        logger.info(String.format("Key %s was removed (%s)", key, cause)))
+                .recordStats()
+                .build();
+    }
+
+    @Bean
+    public Cache<String, List<ListenerApplicationSummaryResponseDTO>> listenerApplicationListCache() {
+        return Caffeine.newBuilder()
+                .expireAfterWrite(cacheExpiry, TimeUnit.MINUTES)
+                .maximumSize(50)
+                .removalListener((key, value, cause) ->
+                        logger.info(String.format("Key %s was removed (%s)", key, cause)))
+                .recordStats()
+                .build();
+    }
+    @Bean
+    public Cache<Integer, ListenerDetailsResponseDTO> listenerDetailsCache() {
+        return Caffeine.newBuilder()
+                .expireAfterAccess(cacheExpiry, TimeUnit.MINUTES)
+                .maximumSize(100)
                 .removalListener((key, value, cause) ->
                         logger.info(String.format("Key %s was removed (%s)", key, cause)))
                 .recordStats()

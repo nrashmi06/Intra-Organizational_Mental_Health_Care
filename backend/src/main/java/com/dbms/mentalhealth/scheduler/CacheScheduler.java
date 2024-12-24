@@ -12,18 +12,20 @@ public class CacheScheduler {
     private final CacheableSessionServiceImpl cacheableSessionServiceImpl;
     private final CacheableSessionFeedbackServiceImpl cacheableSessionFeedbackServiceImpl;
     private final CacheableSessionReportServiceImpl cacheableSessionReportServiceImpl;
+    private final CacheableListenerApplicationServiceImpl cacheableListenerApplicationServiceImpl;
 
-    public CacheScheduler(CacheableBlogServiceImpl cacheableBlogService, CacheableAdminServiceImpl cacheableAdminServiceImpl, CacheableSessionServiceImpl cacheableSessionServiceImpl, CacheableSessionFeedbackServiceImpl cacheableSessionFeedbackServiceImpl, CacheableSessionReportServiceImpl cacheableSessionReportServiceImpl) {
+    public CacheScheduler(CacheableBlogServiceImpl cacheableBlogService, CacheableAdminServiceImpl cacheableAdminServiceImpl, CacheableSessionServiceImpl cacheableSessionServiceImpl, CacheableSessionFeedbackServiceImpl cacheableSessionFeedbackServiceImpl, CacheableSessionReportServiceImpl cacheableSessionReportServiceImpl, CacheableListenerApplicationServiceImpl cacheableListenerApplicationServiceImpl) {
         this.cacheableBlogServiceImpl = cacheableBlogService;
         this.cacheableAdminServiceImpl = cacheableAdminServiceImpl;
         this.cacheableSessionServiceImpl = cacheableSessionServiceImpl;
         this.cacheableSessionFeedbackServiceImpl = cacheableSessionFeedbackServiceImpl;
         this.cacheableSessionReportServiceImpl = cacheableSessionReportServiceImpl;
+        this.cacheableListenerApplicationServiceImpl = cacheableListenerApplicationServiceImpl;
     }
 
     @Scheduled(fixedRateString = "${scheduler.user-activity-cleanup-interval}")
     public void clearCache() {
         cacheableSessionServiceImpl.logCacheStats();
-        cacheableSessionReportServiceImpl.logCacheStats();
+        cacheableListenerApplicationServiceImpl.logCacheStats();
     }
 }
