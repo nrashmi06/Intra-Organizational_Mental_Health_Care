@@ -12,6 +12,8 @@ import com.dbms.mentalhealth.dto.adminSettings.response.AdminSettingsResponseDTO
 import com.dbms.mentalhealth.dto.chatMessage.ChatMessageDTO;
 import com.dbms.mentalhealth.dto.session.SessionResponseDTO;
 import com.dbms.mentalhealth.dto.session.SessionSummaryDTO;
+import com.dbms.mentalhealth.dto.sessionFeedback.response.SessionFeedbackResponseDTO;
+import com.dbms.mentalhealth.dto.sessionFeedback.response.SessionFeedbackSummaryResponseDTO;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.slf4j.Logger;
@@ -179,6 +181,38 @@ public class CacheConfig {
         return Caffeine.newBuilder()
                 .expireAfterWrite(cacheExpiry, TimeUnit.MINUTES)
                 .maximumSize(1)
+                .removalListener((key, value, cause) ->
+                        logger.info(String.format("Key %s was removed (%s)", key, cause)))
+                .recordStats()
+                .build();
+    }
+
+    @Bean
+    public Cache<Integer, SessionFeedbackResponseDTO> sessionFeedbackCache() {
+        return Caffeine.newBuilder()
+                .expireAfterAccess(cacheExpiry, TimeUnit.MINUTES)
+                .maximumSize(100)
+                .removalListener((key, value, cause) ->
+                        logger.info(String.format("Key %s was removed (%s)", key, cause)))
+                .recordStats()
+                .build();
+    }
+
+    @Bean
+    public Cache<String, List<SessionFeedbackResponseDTO>> sessionFeedbackListCache() {
+        return Caffeine.newBuilder()
+                .expireAfterWrite(cacheExpiry, TimeUnit.MINUTES)
+                .maximumSize(50)
+                .removalListener((key, value, cause) ->
+                        logger.info(String.format("Key %s was removed (%s)", key, cause)))
+                .recordStats()
+                .build();
+    }
+    @Bean
+    public Cache<String, SessionFeedbackSummaryResponseDTO> sessionFeedbackSummaryCache() {
+        return Caffeine.newBuilder()
+                .expireAfterWrite(cacheExpiry, TimeUnit.MINUTES)
+                .maximumSize(2)
                 .removalListener((key, value, cause) ->
                         logger.info(String.format("Key %s was removed (%s)", key, cause)))
                 .recordStats()
