@@ -4,6 +4,7 @@ import com.dbms.mentalhealth.dto.listenerApplication.request.ListenerApplication
 import com.dbms.mentalhealth.dto.listenerApplication.response.ListenerApplicationResponseDTO;
 import com.dbms.mentalhealth.dto.listenerApplication.response.ListenerApplicationSummaryResponseDTO;
 import com.dbms.mentalhealth.dto.Listener.response.ListenerDetailsResponseDTO;
+import com.dbms.mentalhealth.exception.listener.ListenerApplicationNotFoundException;
 import com.dbms.mentalhealth.service.ListenerApplicationService;
 import com.dbms.mentalhealth.service.impl.ListenerApplicationServiceImpl;
 import com.github.benmanes.caffeine.cache.Cache;
@@ -46,6 +47,11 @@ public class CacheableListenerApplicationServiceImpl implements ListenerApplicat
     @Override
     @Transactional(readOnly = true)
     public ListenerApplicationResponseDTO getApplicationById(Integer applicationId) {
+        if (applicationId == null) {
+            logger.warn("Null application ID received");
+            throw new ListenerApplicationNotFoundException("Listener Application ID cannot be null");
+        }
+
         logger.info("Cache lookup for listener application ID: {}", applicationId);
         ListenerApplicationResponseDTO cachedApplication = listenerApplicationCache.getIfPresent(applicationId);
 
@@ -63,7 +69,6 @@ public class CacheableListenerApplicationServiceImpl implements ListenerApplicat
         }
         return response;
     }
-
     @Override
     @Transactional(readOnly = true)
     public List<ListenerApplicationSummaryResponseDTO> getAllApplications() {
