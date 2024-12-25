@@ -5,7 +5,9 @@ import { Button } from "@/components/ui/button";
 import Avatar from "../ui/avatar";
 import { clearUser } from "@/store/authSlice";
 import { useRouter } from "next/router";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { logout } from "@/service/user/Logout";
+import { RootState } from "@/store";
 
 type NavbarProps = {
   children?: React.ReactNode;
@@ -14,14 +16,16 @@ type NavbarProps = {
 export default function Navbar({ children }: NavbarProps) {
   const router = useRouter();
   const dispatch = useDispatch();
+  const token = useSelector((state: RootState) => state.auth.accessToken);
 
   const handleLogout = async () => {
     try {
-      // First, navigate to signin page
+      dispatch(clearUser());
+      await logout(token);
       await router.push("/signin");
       
       // Only clear the user state after navigation is complete
-      dispatch(clearUser());
+      
     } catch (error) {
       console.error("Navigation failed:", error);
     }

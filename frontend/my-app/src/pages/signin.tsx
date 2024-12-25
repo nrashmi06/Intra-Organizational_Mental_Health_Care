@@ -100,14 +100,15 @@ export default function SignIn() {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
                   >
-                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    {showPassword ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
                   </button>
                 </div>
               </div>
+              
 
               <Button 
                 type="submit" 
-                className="w-full bg-black text-white hover:bg-black/90" 
+                className="w-full bg-softGreen text-white hover:bg-black/90" 
                 disabled={loading}
               >
                 {loading ? "Signing In..." : "Sign In"}
