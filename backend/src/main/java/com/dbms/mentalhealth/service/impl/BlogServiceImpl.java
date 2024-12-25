@@ -21,7 +21,6 @@ import com.dbms.mentalhealth.service.EmailService;
 import com.dbms.mentalhealth.service.ImageStorageService;
 import com.dbms.mentalhealth.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.context.annotation.Primary;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -288,5 +287,11 @@ public class BlogServiceImpl implements BlogService {
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
         String jwt = jwtUtils.getJwtFromHeader(request);
         return jwtUtils.getUserIdFromJwtToken(jwt);
+    }
+    @Transactional
+    public void incrementViewCountByAmount(Integer blogId, Integer amount) {
+        Blog blog = blogRepository.findById(blogId).orElseThrow(() -> new BlogNotFoundException("Blog not found"));
+        blog.setViewCount(blog.getViewCount() + amount);
+        blogRepository.save(blog);
     }
 }

@@ -31,6 +31,7 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Configuration
 @EnableCaching
@@ -61,7 +62,27 @@ public class CacheConfig {
                 .recordStats()
                 .build();
     }
+    @Bean
+    public Cache<Integer, AtomicLong> viewCountCache() {
+        return Caffeine.newBuilder()
+                .expireAfterWrite(cacheExpiry, TimeUnit.MINUTES)
+                .maximumSize(10000)
+                .removalListener((key, value, cause) ->
+                        logger.info(String.format("Key %s was removed (%s)", key, cause)))
+                .recordStats()
+                .build();
+    }
 
+    @Bean
+    public Cache<String, Boolean> recentViewCache() {
+        return Caffeine.newBuilder()
+                .expireAfterWrite(1, TimeUnit.MINUTES) // Adjust the duration as needed
+                .maximumSize(10000)
+                .removalListener((key, value, cause) ->
+                        logger.info(String.format("Key %s was removed (%s)", key, cause)))
+                .recordStats()
+                .build();
+    }
     @Bean
     public Cache<Integer, AdminProfileResponseDTO> adminCache() {
         return Caffeine.newBuilder()

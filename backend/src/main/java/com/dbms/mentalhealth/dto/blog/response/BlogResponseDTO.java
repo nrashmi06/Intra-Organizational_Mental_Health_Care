@@ -1,6 +1,7 @@
+// BlogResponseDTO.java
 package com.dbms.mentalhealth.dto.blog.response;
 
-
+import com.dbms.mentalhealth.enums.BlogApprovalStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -23,4 +24,5 @@ public class BlogResponseDTO {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private boolean likedByCurrentUser;
+    private BlogApprovalStatus blogApprovalStatus; // Add this field
 }

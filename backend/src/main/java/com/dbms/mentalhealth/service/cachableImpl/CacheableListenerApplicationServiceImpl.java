@@ -5,6 +5,9 @@ import com.dbms.mentalhealth.dto.listenerApplication.response.ListenerApplicatio
 import com.dbms.mentalhealth.dto.listenerApplication.response.ListenerApplicationSummaryResponseDTO;
 import com.dbms.mentalhealth.dto.Listener.response.ListenerDetailsResponseDTO;
 import com.dbms.mentalhealth.exception.listener.ListenerApplicationNotFoundException;
+import com.dbms.mentalhealth.model.ListenerApplication;
+import com.dbms.mentalhealth.repository.ListenerApplicationRepository;
+import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.service.ListenerApplicationService;
 import com.dbms.mentalhealth.service.impl.ListenerApplicationServiceImpl;
 import com.github.benmanes.caffeine.cache.Cache;
@@ -24,15 +27,19 @@ public class CacheableListenerApplicationServiceImpl implements ListenerApplicat
     private final Cache<String, List<ListenerApplicationSummaryResponseDTO>> listenerApplicationListCache;
     private final Cache<String, ListenerDetailsResponseDTO> listenerDetailsCache;
     private static final Logger logger = LoggerFactory.getLogger(CacheableListenerApplicationServiceImpl.class);
+    private final JwtUtils jwtUtils;
+    private final ListenerApplicationRepository listenerApplicationRepository;
 
     public CacheableListenerApplicationServiceImpl(ListenerApplicationServiceImpl listenerApplicationServiceImpl,
                                                    Cache<String, ListenerApplicationResponseDTO> listenerApplicationCache,
                                                    Cache<String, List<ListenerApplicationSummaryResponseDTO>> listenerApplicationListCache,
-                                                   Cache<String, ListenerDetailsResponseDTO> listenerDetailsCache) {
+                                                   Cache<String, ListenerDetailsResponseDTO> listenerDetailsCache, JwtUtils jwtUtils, ListenerApplicationRepository listenerApplicationRepository) {
         this.listenerApplicationServiceImpl = listenerApplicationServiceImpl;
         this.listenerApplicationCache = listenerApplicationCache;
         this.listenerApplicationListCache = listenerApplicationListCache;
         this.listenerDetailsCache = listenerDetailsCache;
+        this.jwtUtils = jwtUtils;
+        this.listenerApplicationRepository = listenerApplicationRepository;
     }
 
     private String generateApplicationKey(Integer id) {
@@ -60,11 +67,25 @@ public class CacheableListenerApplicationServiceImpl implements ListenerApplicat
     @Override
     @Transactional(readOnly = true)
     public ListenerApplicationResponseDTO getApplicationById(Integer applicationId) {
+        Integer userId = jwtUtils.getUserIdFromContext();
+        String role = jwtUtils.getRoleFromContext();
+
+        ListenerApplication listenerApplication;
         if (applicationId == null) {
-            throw new ListenerApplicationNotFoundException("Application ID cannot be null");
+            listenerApplication = listenerApplicationRepository.findByUser_UserId(userId);
+            if (listenerApplication == null) {
+                throw new ListenerApplicationNotFoundException("Listener Application not found for User ID: " + userId);
+            }
+            if (!listenerApplication.getUser().getUserId().equals(userId) && !"ROLE_ADMIN".equals(role)) {
+                throw new ListenerApplicationNotFoundException(
+                        "Access denied for Listener Application ID: " + listenerApplication.getApplicationId());
+            }
+            applicationId = listenerApplication.getApplicationId();
         }
+
         String key = generateApplicationKey(applicationId);
-        return listenerApplicationCache.get(key, k -> listenerApplicationServiceImpl.getApplicationById(applicationId));
+        Integer finalApplicationId = applicationId;
+        return listenerApplicationCache.get(key, k -> listenerApplicationServiceImpl.getApplicationById(finalApplicationId));
     }
 
     @Override

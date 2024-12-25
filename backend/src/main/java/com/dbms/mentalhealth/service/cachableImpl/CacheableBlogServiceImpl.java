@@ -3,10 +3,14 @@ package com.dbms.mentalhealth.service.cachableImpl;
 import com.dbms.mentalhealth.dto.blog.request.BlogRequestDTO;
 import com.dbms.mentalhealth.dto.blog.response.BlogResponseDTO;
 import com.dbms.mentalhealth.dto.blog.response.BlogSummaryDTO;
+import com.dbms.mentalhealth.exception.blog.BlogNotFoundException;
+import com.dbms.mentalhealth.mapper.BlogMapper;
+import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.service.BlogService;
 import com.dbms.mentalhealth.service.impl.BlogServiceImpl;
 import com.github.benmanes.caffeine.cache.Cache;
 import org.springframework.context.annotation.Primary;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -15,6 +19,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Service
 @Primary
@@ -23,18 +29,37 @@ public class CacheableBlogServiceImpl implements BlogService {
     private final BlogServiceImpl blogServiceImpl;
     private final Cache<Integer, BlogResponseDTO> blogCache;
     private final Cache<String, List<BlogSummaryDTO>> blogListCache;
+    private final Cache<Integer, AtomicLong> viewCountCache;
+    private final Cache<String, Boolean> recentViewCache; // Add this cache
     private static final Logger logger = LoggerFactory.getLogger(CacheableBlogServiceImpl.class);
+    private final JwtUtils jwtUtils;
 
-    public CacheableBlogServiceImpl(BlogServiceImpl blogServiceImpl, Cache<Integer, BlogResponseDTO> blogCache, Cache<String, List<BlogSummaryDTO>> blogListCache) {
+    public CacheableBlogServiceImpl(BlogServiceImpl blogServiceImpl,
+                                    Cache<Integer, BlogResponseDTO> blogCache,
+                                    Cache<String, List<BlogSummaryDTO>> blogListCache,
+                                    Cache<Integer, AtomicLong> viewCountCache,
+                                    Cache<String, Boolean> recentViewCache, JwtUtils jwtUtils) { // Add this parameter
         this.blogServiceImpl = blogServiceImpl;
         this.blogCache = blogCache;
         this.blogListCache = blogListCache;
-        logger.info("CacheableBlogServiceImpl initialized with cache stats enabled");
+        this.viewCountCache = viewCountCache;
+        this.recentViewCache = recentViewCache; // Initialize this cache
+        logger.info("CacheableBlogServiceImpl initialized with view count tracking");
+        this.jwtUtils = jwtUtils;
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public Optional<BlogResponseDTO> getBlogById(Integer blogId) {
+        Integer userId = jwtUtils.getUserIdFromContext(); // Method to get the current user ID
+        String recentViewKey = "user_" + userId + "_blog_" + blogId;
+
+        if (recentViewCache.getIfPresent(recentViewKey) == null) {
+            recentViewCache.put(recentViewKey, true);
+            AtomicLong viewCountDelta = viewCountCache.get(blogId, k -> new AtomicLong(0));
+            viewCountDelta.incrementAndGet();
+        }
+
         logger.info("Cache lookup for blog ID: {}", blogId);
         BlogResponseDTO cachedBlog = blogCache.getIfPresent(blogId);
 
@@ -47,11 +72,30 @@ public class CacheableBlogServiceImpl implements BlogService {
         Optional<BlogResponseDTO> response = blogServiceImpl.getBlogById(blogId);
 
         if (response.isPresent()) {
-            logger.debug("Caching blog with ID: {}", blogId);
-            blogCache.put(blogId, response.get());
+            BlogResponseDTO blog = response.get();
+            blogCache.put(blogId, blog);
+            return Optional.of(blog);
         }
 
         return response;
+    }
+
+
+    @Scheduled(fixedRate = 300000) // Every 5 minutes
+    public void flushPendingViewCounts() {
+        viewCountCache.asMap().forEach((blogId, delta) -> {
+            long pendingCount = delta.get();
+            if (pendingCount > 0) {
+                try {
+                    blogServiceImpl.incrementViewCountByAmount(blogId, (int) pendingCount);
+                    viewCountCache.invalidate(blogId);
+                    Optional<BlogResponseDTO> updatedBlog = blogServiceImpl.getBlogById(blogId);
+                    updatedBlog.ifPresent(blog -> blogCache.put(blogId, blog));
+                } catch (Exception e) {
+                    logger.error("Failed to flush pending view counts for blog ID: {}", blogId, e);
+                }
+            }
+        });
     }
 
     @Override
@@ -117,12 +161,18 @@ public class CacheableBlogServiceImpl implements BlogService {
     @Override
     @Transactional
     public BlogResponseDTO createBlog(BlogRequestDTO blogRequestDTO, MultipartFile image) throws Exception {
-        logger.info("Creating new blog - invalidating all caches");
+        logger.info("Creating new blog - invalidating relevant caches");
         BlogResponseDTO response = blogServiceImpl.createBlog(blogRequestDTO, image);
-        blogCache.invalidateAll();
-        blogListCache.invalidateAll();
-        logger.info("All caches invalidated after blog creation");
-        return response;
+
+        AtomicLong viewCountDelta = viewCountCache.get(response.getPostId(), k -> new AtomicLong(0));
+        long newDelta = viewCountDelta.get();
+
+        BlogResponseDTO adjustedResponse = BlogMapper.toResponseDTOWithAdjustedViewCount(response, newDelta);
+        blogCache.put(response.getPostId(), adjustedResponse);
+
+        invalidateUserAndStatusCaches(response.getUserId(), "pending");
+        logger.info("Relevant caches invalidated after blog creation");
+        return adjustedResponse;
     }
 
     @Override
@@ -130,20 +180,27 @@ public class CacheableBlogServiceImpl implements BlogService {
     public BlogResponseDTO updateBlog(Integer blogId, BlogRequestDTO blogRequestDTO, MultipartFile image) throws Exception {
         logger.info("Updating blog ID: {} - updating caches", blogId);
         BlogResponseDTO response = blogServiceImpl.updateBlog(blogId, blogRequestDTO, image);
-        blogCache.put(blogId, response);
-        blogListCache.invalidateAll();
-        logger.info("Blog cache updated and list cache invalidated for blog ID: {}", blogId);
-        return response;
+
+        AtomicLong viewCountDelta = viewCountCache.get(blogId, k -> new AtomicLong(0));
+        long newDelta = viewCountDelta.get();
+
+        BlogResponseDTO adjustedResponse = BlogMapper.toResponseDTOWithAdjustedViewCount(response, newDelta);
+        blogCache.put(blogId, adjustedResponse);
+
+        invalidateUserAndStatusCaches(response.getUserId(), "pending");
+        logger.info("Blog cache updated and relevant list caches invalidated for blog ID: {}", blogId);
+        return adjustedResponse;
     }
 
     @Override
     @Transactional
     public void deleteBlog(Integer blogId) throws Exception {
         logger.info("Deleting blog ID: {} - removing from caches", blogId);
+        BlogResponseDTO blog = blogServiceImpl.getBlogById(blogId).orElseThrow(() -> new BlogNotFoundException("Blog not found"));
         blogServiceImpl.deleteBlog(blogId);
         blogCache.invalidate(blogId);
-        blogListCache.invalidateAll();
-        logger.info("Blog removed from cache and list cache invalidated for blog ID: {}", blogId);
+        invalidateUserAndStatusCaches(blog.getUserId(), blog.getBlogApprovalStatus().toString());
+        logger.info("Blog removed from cache and relevant list caches invalidated for blog ID: {}", blogId);
     }
 
     @Override
@@ -152,11 +209,16 @@ public class CacheableBlogServiceImpl implements BlogService {
 
         BlogResponseDTO response = blogServiceImpl.updateBlogApprovalStatus(blogId, isApproved);
 
-        blogCache.put(blogId, response);
-        blogListCache.invalidateAll();
-        logger.info("Updated blog cache and invalidated list cache after approval status change for blog ID: {}", blogId);
+        AtomicLong viewCountDelta = viewCountCache.get(blogId, k -> new AtomicLong(0));
+        long newDelta = viewCountDelta.get();
 
-        return response;
+        BlogResponseDTO adjustedResponse = BlogMapper.toResponseDTOWithAdjustedViewCount(response, newDelta);
+        blogCache.put(blogId, adjustedResponse);
+
+        invalidateUserAndStatusCaches(response.getUserId(), response.getBlogApprovalStatus().toString());
+        logger.info("Updated blog cache and relevant list caches invalidated after approval status change for blog ID: {}", blogId);
+
+        return adjustedResponse;
     }
 
     @Override
@@ -165,11 +227,15 @@ public class CacheableBlogServiceImpl implements BlogService {
 
         BlogResponseDTO response = blogServiceImpl.likeBlog(blogId);
 
-        blogCache.put(blogId, response);
-        blogListCache.invalidateAll();
-        logger.info("Updated blog cache and invalidated list cache after like for blog ID: {}", blogId);
+        AtomicLong viewCountDelta = viewCountCache.get(blogId, k -> new AtomicLong(0));
+        long newDelta = viewCountDelta.get();
 
-        return response;
+        BlogResponseDTO adjustedResponse = BlogMapper.toResponseDTOWithAdjustedViewCount(response, newDelta);
+        blogCache.put(blogId, adjustedResponse);
+
+        invalidateUserAndStatusCaches(response.getUserId(), response.getBlogApprovalStatus().toString());
+        logger.info("Updated blog cache and relevant list caches invalidated after like for blog ID: {}", blogId);
+        return adjustedResponse;
     }
 
     @Override
@@ -178,11 +244,23 @@ public class CacheableBlogServiceImpl implements BlogService {
 
         BlogResponseDTO response = blogServiceImpl.unlikeBlog(blogId);
 
-        blogCache.put(blogId, response);
-        blogListCache.invalidateAll();
-        logger.info("Updated blog cache and invalidated list cache after unlike for blog ID: {}", blogId);
+        AtomicLong viewCountDelta = viewCountCache.get(blogId, k -> new AtomicLong(0));
+        long newDelta = viewCountDelta.get();
 
-        return response;
+        BlogResponseDTO adjustedResponse = BlogMapper.toResponseDTOWithAdjustedViewCount(response, newDelta);
+        blogCache.put(blogId, adjustedResponse);
+
+        invalidateUserAndStatusCaches(response.getUserId(), response.getBlogApprovalStatus().toString());
+        logger.info("Updated blog cache and relevant list caches invalidated after unlike for blog ID: {}", blogId);
+
+        return adjustedResponse;
+    }
+
+    private void invalidateUserAndStatusCaches(Integer userId, String status) {
+        String userCacheKey = "user_" + userId;
+        String statusCacheKey = "status_" + status.toLowerCase();
+        blogListCache.invalidate(userCacheKey);
+        blogListCache.invalidate(statusCacheKey);
     }
 
     public void logCacheStats() {

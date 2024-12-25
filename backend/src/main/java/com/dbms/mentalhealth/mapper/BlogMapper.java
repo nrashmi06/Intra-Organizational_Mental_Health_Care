@@ -1,3 +1,4 @@
+// BlogMapper.java
 package com.dbms.mentalhealth.mapper;
 
 import com.dbms.mentalhealth.dto.blog.request.BlogRequestDTO;
@@ -17,7 +18,7 @@ public class BlogMapper {
         return blog;
     }
 
-    public static BlogResponseDTO toResponseDTO(Blog blog,boolean likedByCurrentUser) {
+    public static BlogResponseDTO toResponseDTO(Blog blog, boolean likedByCurrentUser) {
         // Map Blog entity to BlogResponseDTO
         return new BlogResponseDTO(
                 blog.getId(),
@@ -31,9 +32,11 @@ public class BlogMapper {
                 blog.getLikeCount(),
                 blog.getCreatedAt(),
                 blog.getUpdatedAt(),
-                likedByCurrentUser
+                likedByCurrentUser,
+                blog.getBlogApprovalStatus() // Add this mapping
         );
     }
+
     public static BlogSummaryDTO toSummaryDTO(Blog blog, boolean likedByCurrentUser) {
         BlogSummaryDTO summaryDTO = new BlogSummaryDTO();
         summaryDTO.setId(blog.getId());
@@ -43,5 +46,23 @@ public class BlogMapper {
         summaryDTO.setImageUrl(blog.getImageUrl());
         summaryDTO.setLikedByCurrentUser(likedByCurrentUser);
         return summaryDTO;
+    }
+
+    public static BlogResponseDTO toResponseDTOWithAdjustedViewCount(BlogResponseDTO blog, long viewCountDelta) {
+        return new BlogResponseDTO(
+                blog.getPostId(),
+                blog.getTitle(),
+                blog.getContent(),
+                blog.getUserId(),
+                blog.getImageUrl(),
+                blog.getSummary(),
+                blog.getPublishDate(),
+                (int) (blog.getViewCount() + viewCountDelta),
+                blog.getLikeCount(),
+                blog.getCreatedAt(),
+                blog.getUpdatedAt(),
+                blog.isLikedByCurrentUser(),
+                blog.getBlogApprovalStatus()
+        );
     }
 }
