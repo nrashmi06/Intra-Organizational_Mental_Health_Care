@@ -232,7 +232,7 @@ export default function Navbar() {
                   style={{ zIndex: 1000 }}
                 >
                   <Link
-                    href="/listenerApplication"
+                    href="/listener-application"
                     className="block px-4 py-2 text-sm hover:bg-gray-100"
                   >
                     Listener Application

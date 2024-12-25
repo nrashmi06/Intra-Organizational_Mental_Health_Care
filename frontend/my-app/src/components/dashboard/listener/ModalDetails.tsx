@@ -49,17 +49,6 @@ const DetailsModal: React.FC<DetailsProps> = ({
     fetchData();
   }, [token, userId]);
 
-  if (isLoading) {
-    return <div className="text-center p-4">Loading...</div>;
-  }
-
-  if (error) {
-    return <div className="text-red-500 text-center p-4">{error}</div>;
-  }
-
-  if (!listener) {
-    return <div className="text-center p-4">No details available.</div>;
-  }
   const handleAction = async (listenerId: string, statusFilter: string) => {
     const action = statusFilter === "ACTIVE" ? "suspend" : "unsuspend";
     try {
@@ -75,7 +64,7 @@ const DetailsModal: React.FC<DetailsProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-opacity-50 backdrop-blur-sm">
       <div className="relative w-full max-w-2xl bg-white rounded-lg shadow-lg">
         <button
           onClick={handleClose}
@@ -84,113 +73,130 @@ const DetailsModal: React.FC<DetailsProps> = ({
           <X className="w-6 h-6" />
         </button>
 
-        <div className="p-6 space-y-4">
+        {/* Header - Always visible */}
+        <div className="p-6 pb-0">
           <h2 className="text-xl font-semibold text-center border-b pb-4">
             Listener Details
           </h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex items-center p-4 rounded-lg border">
-              <Mail className="mr-2 text-blue-500" />
-              <div>
-                <p className="text-sm font-medium text-gray-500">Email</p>
-                <p className="text-sm">{listener.userEmail}</p>
-              </div>
+        </div>
+
+        {/* Content area with conditional rendering */}
+        <div className="min-h-[400px] p-6 pt-4">
+          {isLoading ? (
+            <div className="flex justify-center items-center h-[400px]">
+              <div className="loader"></div>
             </div>
-            <div className="flex items-center p-4 rounded-lg border">
-              <Calendar className="mr-2 text-green-500" />
-              <div>
-                <p className="text-sm font-medium text-gray-500">Joined At</p>
+          ) : error ? (
+            <div className="flex items-center justify-center h-[400px] text-red-500 text-center">
+              {error}
+            </div>
+          ) : !listener ? (
+            <div className="flex items-center justify-center h-[400px] text-center">
+              No details available.
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex items-center p-4 rounded-lg border">
+                <Mail className="mr-2 text-blue-500" />
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Email</p>
+                  <p className="text-sm">{listener.userEmail}</p>
+                </div>
+              </div>
+              <div className="flex items-center p-4 rounded-lg border">
+                <Calendar className="mr-2 text-green-500" />
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Joined At</p>
+                  <p className="text-sm">
+                    {new Date(listener.joinedAt).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                    })}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center p-4 rounded-lg border">
+                <User className="mr-2 text-indigo-500" />
+                <div>
+                  <p className="text-sm font-medium text-gray-500">
+                    Max Daily Sessions
+                  </p>
+                  <p className="text-sm">{listener.maxDailySessions}</p>
+                </div>
+              </div>
+              <div className="flex items-center p-4 rounded-lg border">
+                <CheckCircle className="mr-2 text-purple-500" />
+                <div>
+                  <p className="text-sm font-medium text-gray-500">
+                    Total Sessions
+                  </p>
+                  <p className="text-sm">{listener.totalSessions}</p>
+                </div>
+              </div>
+              <div className="flex items-center p-4 rounded-lg border">
+                <User className="mr-2 text-red-500" />
+                <div>
+                  <p className="text-sm font-medium text-gray-500">
+                    Messages Sent
+                  </p>
+                  <p className="text-sm">
+                    {listener.totalMessagesSent !== null
+                      ? listener.totalMessagesSent
+                      : "N/A"}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center p-4 rounded-lg border">
+                <User className="mr-2 text-orange-500" />
+                <div>
+                  <p className="text-sm font-medium text-gray-500">
+                    Feedback Count
+                  </p>
+                  <p className="text-sm">{listener.feedbackCount}</p>
+                </div>
+              </div>
+              <div className="flex items-center p-4 rounded-lg border">
+                <Star className="mr-2 text-yellow-500" />
+                <div>
+                  <p className="text-sm font-medium text-gray-500">
+                    Average Rating
+                  </p>
+                  <p className="text-sm">{listener.averageRating.toFixed(1)}</p>
+                </div>
+              </div>
+              <div className="flex items-center p-4 rounded-lg border">
+                <Shield className="mr-2 text-teal-500" />
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Approved By</p>
+                  <p className="text-sm">{listener.approvedBy}</p>
+                </div>
+              </div>
+              <div className="p-4 rounded-lg border">
+                <p className="text-sm font-medium text-gray-500">
+                  Can Approve Blogs
+                </p>
                 <p className="text-sm">
-                  {new Date(listener.joinedAt).toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "short",
-                    day: "numeric",
-                  })}
+                  {listener.canApproveBlogs ? "Yes" : "No"}
                 </p>
               </div>
+              {statusFilter && (
+                <div className="col-span-2 p-4 flex justify-end">
+                  <Button
+                    variant="outline"
+                    className={`${
+                      statusFilter === "ACTIVE"
+                        ? "text-red-500 bg-red-100 hover:bg-red-200"
+                        : "text-green-500 bg-green-100 hover:bg-green-200"
+                    }`}
+                    onClick={() => handleAction(listener.listenerId, statusFilter)}
+                  >
+                    {statusFilter === "ACTIVE" ? "Suspend" : "Activate"} Listener
+                  </Button>
+                </div>
+              )}
             </div>
-            <div className="flex items-center p-4 rounded-lg border">
-              <User className="mr-2 text-indigo-500" />
-              <div>
-                <p className="text-sm font-medium text-gray-500">
-                  Max Daily Sessions
-                </p>
-                <p className="text-sm">{listener.maxDailySessions}</p>
-              </div>
-            </div>
-            <div className="flex items-center p-4 rounded-lg border">
-              <CheckCircle className="mr-2 text-purple-500" />
-              <div>
-                <p className="text-sm font-medium text-gray-500">
-                  Total Sessions
-                </p>
-                <p className="text-sm">{listener.totalSessions}</p>
-              </div>
-            </div>
-            <div className="flex items-center p-4 rounded-lg border">
-              <User className="mr-2 text-red-500" />
-              <div>
-                <p className="text-sm font-medium text-gray-500">
-                  Messages Sent
-                </p>
-                <p className="text-sm">
-                  {listener.totalMessagesSent !== null
-                    ? listener.totalMessagesSent
-                    : "N/A"}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center p-4 rounded-lg border">
-              <User className="mr-2 text-orange-500" />
-              <div>
-                <p className="text-sm font-medium text-gray-500">
-                  Feedback Count
-                </p>
-                <p className="text-sm">{listener.feedbackCount}</p>
-              </div>
-            </div>
-            <div className="flex items-center p-4 rounded-lg border">
-              <Star className="mr-2 text-yellow-500" />
-              <div>
-                <p className="text-sm font-medium text-gray-500">
-                  Average Rating
-                </p>
-                <p className="text-sm">{listener.averageRating.toFixed(1)}</p>
-              </div>
-            </div>
-            <div className="flex items-center p-4 rounded-lg border">
-              <Shield className="mr-2 text-teal-500" />
-              <div>
-                <p className="text-sm font-medium text-gray-500">Approved By</p>
-                <p className="text-sm">{listener.approvedBy}</p>
-              </div>
-            </div>
-            <div className="p-4 rounded-lg border">
-              <p className="text-sm font-medium text-gray-500">
-                Can Approve Blogs
-              </p>
-              <p className="text-sm">
-                {listener.canApproveBlogs ? "Yes" : "No"}
-              </p>
-            </div>
-            {statusFilter && (
-              <div className="p-4 flex justify-end">
-                <Button
-                  variant="outline"
-                  className={`${
-                    statusFilter === "ACTIVE"
-                      ? "text-red-500 bg-red-100"
-                      : "text-green-500 bg-green-100"
-                  }`}
-                  onClick={() =>
-                    handleAction(listener.listenerId, statusFilter)
-                  }
-                >
-                  {statusFilter === "ACTIVE" ? "Suspend" : "Activate"} Listener
-                </Button>
-              </div>
-            )}
-          </div>
+          )}
         </div>
       </div>
     </div>
