@@ -26,7 +26,7 @@ export default function MyApp({ Component, pageProps }: AppPropsWithLayout) {
   const getLayout = Component.getLayout ?? ((page) => page);
 
   // Check if current route is a dashboard route
-  const isDashboardRoute = router.pathname.startsWith("/dashboard");
+  const isDashboardRoute = router.pathname.includes("/dashboard");
 
   useEffect(() => {
     const handleStart = (url: string) => {

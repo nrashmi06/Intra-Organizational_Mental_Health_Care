@@ -1,14 +1,5 @@
-"use client";
 import { useCallback, useEffect, useState } from "react";
-import { Badge, CheckCircle2, Search } from "lucide-react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { CheckCircle2, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -18,10 +9,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Card, CardContent } from "@/components/ui/card";
 import { GetByApproval } from "@/service/listener/getByStatus";
 import { fetchApplication } from "@/service/listener/fetchApplication";
-import { RootState } from "@/store";
 import { useSelector } from "react-redux";
+import { RootState } from "@/store";
 import ListenerDetailsForAdmin from "@/components/dashboard/listener/ModalApplication";
 import { ListenerApplication } from "@/lib/types";
 
@@ -33,30 +25,35 @@ export function ListenerApplicationsTable() {
   const accessToken = useSelector((state: RootState) => state.auth.accessToken);
   const [applicationModal, setApplicationModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const itemsPerPage = 5;
-
   const [selectedApplication, setSelectedApplication] =
     useState<ListenerApplication | null>(null);
+  const itemsPerPage = 6; // Increased for better grid layout
+  const [loading, setLoading] = useState(true);
+  const fetchListenersByStatus = useCallback(
+    async (status: "PENDING" | "APPROVED" | "REJECTED") => {
+      try {
+        setLoading(true);
+        const response = await GetByApproval(accessToken, status);
+        setApplications(response?.data);
+        setStatusFilter(status);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching listeners:", error);
+      }
+    },
+    [accessToken]
+  );
 
-    const fetchListenersByStatus = useCallback(
-      async (status: "PENDING" | "APPROVED" | "REJECTED") => {
-        try {
-          const response = await GetByApproval(accessToken, status);
-          setApplications(response?.data);
-          setStatusFilter(status);
-        } catch (error) {
-          console.error("Error fetching listeners:", error);
-        }
-      },
-      [accessToken]
-    );
-    
-    useEffect(() => {
-      fetchListenersByStatus("PENDING");
-    }, [fetchListenersByStatus]);
-    
+  useEffect(() => {
+    fetchListenersByStatus("PENDING");
+  }, [fetchListenersByStatus]);
 
-  const fetchApplicationDetails = async (applicationId: string) => {
+  const handleFilterChange = (status: string) => {
+    setStatusFilter(status);
+    fetchListenersByStatus(status as "PENDING" | "APPROVED" | "REJECTED");
+  };
+
+  const handleApplicationModal = async (applicationId: string) => {
     try {
       const applicationData = await fetchApplication(
         accessToken,
@@ -65,23 +62,8 @@ export function ListenerApplicationsTable() {
       setSelectedApplication(applicationData);
       setApplicationModal(true);
     } catch (err) {
-      console.log("Failed to fetch application details.");
       console.error("Error fetching application details:", err);
     }
-  };
-
-  const handleFilterChange = (status: string) => {
-    setStatusFilter(status);
-    fetchListenersByStatus(status as "PENDING" | "APPROVED" | "REJECTED");
-  };
-
-  const handleModalClose = () => {
-    setApplicationModal(false);
-    setSelectedApplication(null);
-  };
-
-  const handleApplicationModal = async (applicationId: string) => {
-    await fetchApplicationDetails(applicationId);
   };
 
   const filteredApplications = applications.filter((application) => {
@@ -102,13 +84,23 @@ export function ListenerApplicationsTable() {
     currentPage * itemsPerPage
   );
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "APPROVED":
+        return "bg-green-100 text-green-800";
+      case "REJECTED":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-yellow-100 text-yellow-800";
+    }
+  };
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex items-center gap-4">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            id="search"
             placeholder="Search applications..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -127,101 +119,75 @@ export function ListenerApplicationsTable() {
         </Select>
       </div>
 
-      <div className="bg-white rounded-lg shadow overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="">Application ID</TableHead>
-              <TableHead className="">Full Name</TableHead>
-              <TableHead className="">Semester</TableHead>
-              <TableHead className="">Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody className="bg-white divide-y divide-gray-200">
-            {paginatedApplications.length > 0 ? (
-              paginatedApplications.map((request) => (
-                <TableRow
-                  key={request.applicationId}
-                  className="hover:bg-gray-50"
-                >
-                  <TableCell className="whitespace-nowrap">
-                    <p className="text-gray-900">{request.applicationId}</p>
-                  </TableCell>
-                  <TableCell className="whitespace-nowrap">
-                    <p className="text-gray-900">{request.fullName}</p>
-                  </TableCell>
-                  <TableCell className="whitespace-nowrap">
-                    <p className="text-gray-900">{request.semester}</p>
-                  </TableCell>
-                  <TableCell className="whitespace-nowrap">
-                    <span className="text-sm text-gray-900 flex items-center gap-1">
-                      <Badge
-                        color={
-                          request.applicationStatus === "APPROVED"
-                            ? "green"
-                            : request.applicationStatus === "REJECTED"
-                            ? "red"
-                            : "yellow"
-                        }
-                      />
-                      {request.applicationStatus.charAt(0).toUpperCase() +
-                        request.applicationStatus.slice(1).toLowerCase()}
-                    </span>
-                  </TableCell>
-                  <TableCell className="whitespace-nowrap">
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="link"
-                        onClick={() =>
-                          handleApplicationModal(request.applicationId)
-                        }
-                        className="text-purple-700 hover:text-purple-900"
-                      >
-                        {statusFilter === "PENDING" ? "Review" : "View"}
-                      </Button>
+      {loading ? (
+        <div className="flex justify-center items-center min-h-auto">
+          <div className="loader"></div>
+        </div>
+      ) : paginatedApplications.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {paginatedApplications.map((application) => (
+            <Card
+              key={application.applicationId}
+              className="overflow-hidden hover:shadow-lg transition-shadow duration-200"
+            >
+              <CardContent className="p-6">
+                <div className="space-y-4">
+                  <div className="flex justify-between items-start">
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-gray-500">
+                        Application ID
+                      </p>
+                      <p className="font-semibold">
+                        {application.applicationId}
+                      </p>
                     </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={5}
-                  className="whitespace-nowrap text-center text-sm text-gray-500"
-                >
-                  No applications found
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                        application.applicationStatus
+                      )}`}
+                    >
+                      {application.applicationStatus.charAt(0).toUpperCase() +
+                        application.applicationStatus.slice(1).toLowerCase()}
+                    </span>
+                  </div>
 
-      {/* Modal */}
-      {applicationModal && selectedApplication && (
-        <ListenerDetailsForAdmin
-          data={selectedApplication}
-          handleClose={handleModalClose}
-          action={statusFilter}
-          setSuccessMessage={setSuccessMessage}
-        />
-      )}
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-gray-500">
+                      Full Name
+                    </p>
+                    <p className="font-semibold">{application.fullName}</p>
+                  </div>
 
-      {successMessage && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/20 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4 transform transition-all scale-in-center">
-            <div className="flex flex-col items-center text-center space-y-4">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-                <CheckCircle2 className="w-10 h-10 text-green-600" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900">Success!</h3>
-              <p className="text-gray-600">{successMessage}</p>
-            </div>
-          </div>
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-gray-500">
+                      Semester
+                    </p>
+                    <p className="font-semibold">{application.semester}</p>
+                  </div>
+
+                  <Button
+                    onClick={() =>
+                      handleApplicationModal(application.applicationId)
+                    }
+                    className="w-full"
+                    variant="outline"
+                  >
+                    {statusFilter === "PENDING"
+                      ? "Review Application"
+                      : "View Details"}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-12 bg-white rounded-lg">
+          <p className="text-gray-500">No applications found</p>
         </div>
       )}
 
+      {/* Pagination */}
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
           Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
@@ -247,6 +213,34 @@ export function ListenerApplicationsTable() {
           </Button>
         </div>
       </div>
+
+      {/* Modal */}
+      {applicationModal && selectedApplication && (
+        <ListenerDetailsForAdmin
+          data={selectedApplication}
+          handleClose={() => {
+            setApplicationModal(false);
+            setSelectedApplication(null);
+          }}
+          action={statusFilter}
+          setSuccessMessage={setSuccessMessage}
+        />
+      )}
+
+      {/* Success Message */}
+      {successMessage && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/20 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4 transform transition-all scale-in-center">
+            <div className="flex flex-col items-center text-center space-y-4">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                <CheckCircle2 className="w-10 h-10 text-green-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900">Success!</h3>
+              <p className="text-gray-600">{successMessage}</p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
