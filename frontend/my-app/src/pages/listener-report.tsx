@@ -15,7 +15,7 @@ export default function Component() {
   const [attentionLevel, setAttentionLevel] = useState(2);
   const [sessionSummary, setSessionSummary] = useState("");
   const [showPopup, setShowPopup] = useState(false);
-
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
   const sessionId = useSelector((state: RootState) => state.chat.sessionId); // Replace with the actual selector
   const accessToken = useSelector((state: RootState) => state.auth.accessToken); // Replace with the actual selector
@@ -26,20 +26,25 @@ export default function Component() {
       return;
     }
 
+    setIsSubmitting(true);
+
     try {
-      await submitFeedback(Number(sessionId), sessionSummary, attentionLevel, accessToken);
+      await submitFeedback(
+        Number(sessionId),
+        sessionSummary,
+        attentionLevel,
+        accessToken
+      );
       console.log("Listener report submitted successfully.");
-
-      // Show the popup message
       setShowPopup(true);
-
-      // Redirect to the homepage after 2 seconds
       setTimeout(() => {
         setShowPopup(false);
         router.push("/");
       }, 2000);
     } catch (error) {
       console.error("Failed to submit listener report:", error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -47,21 +52,40 @@ export default function Component() {
     <div>
       <Navbar />
       <div className="min-h-screen w-full bg-gradient-to-br from-purple-400 via-violet-400 to-blue-400 p-4 flex flex-col items-center">
-        {/* Popup message */}
         {showPopup && (
-          <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center z-50">
-            <div className="bg-white p-6 rounded-lg shadow-lg text-center">
-              <p className="text-lg font-semibold text-green-500">Listener Report Submitted!</p>
-              <p className="text-gray-600">Thank you for your submission. Redirecting...</p>
+          <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex justify-center items-center z-50">
+            <div className="bg-white p-8 rounded-2xl shadow-xl text-center max-w-md w-full mx-4 transform transition-all animate-in fade-in duration-300">
+              <div className="w-16 h-16 bg-green-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+                <svg
+                  className="w-8 h-8 text-green-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-2xl font-bold text-gray-800 mb-2">
+                Report Submitted!
+              </h3>
+              <p className="text-gray-600 mb-6">
+                Thank you for filling the report. We&apos;re redirecting you
+                shortly...
+              </p>
             </div>
           </div>
         )}
-
-        {/* Main Card */}
         <Card className="w-full max-w-2xl bg-white/95 backdrop-blur-sm">
           <CardHeader className="text-center space-y-2">
             <CardTitle>Listener Report</CardTitle>
-            <p className="text-xl text-muted-foreground">Please Fill Case History</p>
+            <p className="text-xl text-muted-foreground">
+              Please Fill Case History
+            </p>
           </CardHeader>
           <CardContent className="space-y-8">
             {/* Attention Requirement Rating */}
@@ -84,8 +108,6 @@ export default function Component() {
                 </div>
               </div>
             </div>
-
-            {/* Session Summary */}
             <Textarea
               id="session-summary"
               placeholder="Summarize the session"
@@ -93,15 +115,14 @@ export default function Component() {
               value={sessionSummary}
               onChange={(e) => setSessionSummary(e.target.value)}
             />
-
-            {/* Submit Button */}
             <div className="flex justify-center">
               <Button
                 type="submit"
                 className="px-8 py-2 rounded-full bg-black hover:bg-black/90"
                 onClick={handleSubmit}
+                disabled={isSubmitting}
               >
-                Submit
+                {isSubmitting ? "Submitting..." : "Submit"}
               </Button>
             </div>
           </CardContent>
