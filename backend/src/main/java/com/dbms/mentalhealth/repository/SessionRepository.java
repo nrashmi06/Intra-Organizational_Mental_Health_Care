@@ -13,4 +13,5 @@ public interface SessionRepository extends JpaRepository<Session, Integer> {
     List<Session> findByUser_UserId(Integer userId);
     List<Session> findBySessionStatus(SessionStatus sessionStatus);
     List<Session> findByListener_ListenerId(Integer listenerId);
+    long countBySessionStatus(SessionStatus status);
 }
