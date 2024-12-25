@@ -137,7 +137,7 @@ public class CacheConfig {
     }
 
     @Bean
-    public Cache<Integer, AppointmentResponseDTO> appointmentCache() {
+    public Cache<String, AppointmentResponseDTO> appointmentCache() {
         return Caffeine.newBuilder()
                 .expireAfterWrite(cacheExpiry, TimeUnit.MINUTES)
                 .maximumSize(100)
@@ -148,7 +148,7 @@ public class CacheConfig {
     }
 
     @Bean
-    public Cache<Integer, List<AppointmentSummaryResponseDTO>> appointmentListCache() {
+    public Cache<String, List<AppointmentSummaryResponseDTO>> appointmentListCache() {
         return Caffeine.newBuilder()
                 .expireAfterWrite(cacheExpiry, TimeUnit.MINUTES)
                 .maximumSize(100)

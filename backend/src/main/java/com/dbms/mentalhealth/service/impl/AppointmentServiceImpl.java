@@ -19,9 +19,10 @@ import com.dbms.mentalhealth.repository.AdminRepository;
 import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.service.AppointmentService;
 import com.dbms.mentalhealth.enums.AppointmentStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -31,13 +32,15 @@ import java.util.stream.Collectors;
 @Service
 public class AppointmentServiceImpl implements AppointmentService {
 
+    private static final Logger logger = LoggerFactory.getLogger(AppointmentServiceImpl.class);
+
     private final AppointmentRepository appointmentRepository;
     private final TimeSlotRepository timeSlotRepository;
     private final UserRepository userRepository;
     private final AdminRepository adminRepository;
     public final JwtUtils jwtUtils;
 
-    public AppointmentServiceImpl(AppointmentRepository appointmentRepository,JwtUtils jwtUtils , TimeSlotRepository timeSlotRepository, UserRepository userRepository, AdminRepository adminRepository) {
+    public AppointmentServiceImpl(AppointmentRepository appointmentRepository, JwtUtils jwtUtils, TimeSlotRepository timeSlotRepository, UserRepository userRepository, AdminRepository adminRepository) {
         this.appointmentRepository = appointmentRepository;
         this.timeSlotRepository = timeSlotRepository;
         this.userRepository = userRepository;
@@ -48,6 +51,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Override
     @Transactional
     public AppointmentResponseDTO createAppointment(AppointmentRequestDTO appointmentRequestDTO) {
+        logger.info("Creating appointment for user with ID: {}", jwtUtils.getUserIdFromContext());
         Integer userId = jwtUtils.getUserIdFromContext();
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
@@ -58,6 +62,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         boolean hasUnapprovedAppointment = appointmentRepository.existsByUserAndStatusNot(user, AppointmentStatus.CANCELLED) && appointmentRepository.existsByUserAndStatusNot(user, AppointmentStatus.CONFIRMED);
         if (hasUnapprovedAppointment) {
+            logger.warn("User with ID: {} has an unapproved or uncancelled appointment", userId);
             throw new IllegalStateException("You have already submitted an appointment that is not approved or cancelled. Please cancel it or wait for approval.");
         }
 
@@ -68,20 +73,22 @@ public class AppointmentServiceImpl implements AppointmentService {
         timeSlotRepository.save(timeSlot);
         appointment.setTimeSlot(timeSlot);
         Appointment savedAppointment = appointmentRepository.save(appointment);
+        logger.info("Appointment created with ID: {}", savedAppointment.getAppointmentId());
         return AppointmentMapper.toDTO(savedAppointment);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<AppointmentSummaryResponseDTO> getAppointmentsByUser(Integer userId) {
-        Integer currentUserId = jwtUtils.getUserIdFromContext(); // Assuming user ID is stored in the authentication name
+        Integer currentUserId = jwtUtils.getUserIdFromContext();
         boolean isAdmin = jwtUtils.isAdminFromContext();
+        logger.info("Fetching appointments for user ID: {}", userId != null ? userId : currentUserId);
 
         if (userId != null && !isAdmin && !currentUserId.equals(userId)) {
+            logger.warn("User with ID: {} attempted to view appointments of another user", currentUserId);
             throw new IllegalStateException("You can only view your own appointments.");
         }
-        //basically if any id is not passed in req param it means this method is called by user itself
-        //if id is passed in req param then it means this method is called by admin
+
         List<Appointment> appointments = appointmentRepository.findByUser_UserId(isAdmin ? userId : currentUserId);
         return appointments.stream()
                 .map(AppointmentMapper::toSummaryDTO)
@@ -94,7 +101,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         Integer adminUserId;
         List<Appointment> appointments;
         if (userId == null && adminId == null) {
-            adminUserId = jwtUtils.getUserIdFromContext(); // Get the current admin's ID from the JWT token
+            adminUserId = jwtUtils.getUserIdFromContext();
             adminId = adminRepository.findByUser_UserId(adminUserId)
                     .orElseThrow(() -> new AdminNotFoundException("Admin not found"))
                     .getAdminId();
@@ -107,32 +114,32 @@ public class AppointmentServiceImpl implements AppointmentService {
                     .getAdminId();
             appointments = appointmentRepository.findByAdmin_AdminId(adminId);
         }
+        logger.info("Fetched appointments for admin ID: {}", adminId);
         return appointments.stream()
                 .map(AppointmentMapper::toSummaryDTO)
                 .toList();
     }
 
-
-    // In AppointmentServiceImpl.java
     @Override
     @Transactional(readOnly = true)
     public AppointmentResponseDTO getAppointmentById(Integer appointmentId) {
-        Integer currentUserId = jwtUtils.getUserIdFromContext(); // Assuming user ID is stored in the authentication name
+        Integer currentUserId = jwtUtils.getUserIdFromContext();
         boolean isAdmin = jwtUtils.isAdminFromContext();
+        logger.info("Fetching appointment with ID: {}", appointmentId);
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new AppointmentNotFoundException("Appointment not found"));
 
         if (!isAdmin && !currentUserId.equals(appointment.getUser().getUserId())) {
+            logger.warn("User with ID: {} attempted to view appointment of another user", currentUserId);
             throw new IllegalStateException("You can only view your own appointments.");
         }
-        //this ensures that user can only view his own appointments
-        //but admin can view any appointment
         return AppointmentMapper.toDTO(appointment);
     }
 
     @Override
     @Transactional
     public void updateAppointmentStatus(Integer appointmentId, String status, String cancellationReason) {
+        logger.info("Updating status of appointment ID: {} to {}", appointmentId, status);
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new AppointmentNotFoundException("Appointment not found"));
 
@@ -140,6 +147,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         try {
             newStatus = AppointmentStatus.valueOf(status.toUpperCase());
         } catch (IllegalArgumentException e) {
+            logger.error("Invalid appointment status: {}", status);
             throw new IllegalStateException("Invalid appointment status.");
         }
         TimeSlot timeSlot = appointment.getTimeSlot();
@@ -158,16 +166,19 @@ public class AppointmentServiceImpl implements AppointmentService {
             appointment.setCancellationReason(null);
         }
         appointmentRepository.save(appointment);
+        logger.info("Updated status of appointment ID: {} to {}", appointmentId, status);
     }
 
     @Override
     @Transactional
     public void cancelAppointment(Integer appointmentId, String cancellationReason) {
+        logger.info("Cancelling appointment with ID: {}", appointmentId);
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new AppointmentNotFoundException("Appointment not found"));
 
         Integer currentUserId = jwtUtils.getUserIdFromContext();
         if (!currentUserId.equals(appointment.getUser().getUserId())) {
+            logger.warn("User with ID: {} attempted to cancel appointment of another user", currentUserId);
             throw new IllegalStateException("You can only cancel your own appointments.");
         }
 
@@ -179,11 +190,13 @@ public class AppointmentServiceImpl implements AppointmentService {
         timeSlotRepository.save(timeSlot);
 
         appointmentRepository.save(appointment);
+        logger.info("Cancelled appointment with ID: {}", appointmentId);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<AppointmentSummaryResponseDTO> getAppointmentsByDateRange(LocalDate startDate, LocalDate endDate) {
+        logger.info("Fetching appointments between dates: {} and {}", startDate, endDate);
         List<Appointment> appointments = appointmentRepository.findByTimeSlot_DateBetween(startDate, endDate);
         return appointments.stream()
                 .map(AppointmentMapper::toSummaryDTO)
@@ -201,46 +214,44 @@ public class AppointmentServiceImpl implements AppointmentService {
         LocalTime now = LocalTime.now();
         LocalDate nextDate = today.plusDays(1);
 
+        logger.info("Fetching upcoming appointments for admin ID: {}", admin.getAdminId());
         List<Appointment> appointments = appointmentRepository.findByAdminAndTimeSlot_DateAndTimeSlot_StartTimeAfterOrTimeSlot_DateAfter(admin, today, now, nextDate);
         return appointments.stream()
                 .map(AppointmentMapper::toSummaryDTO)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<AppointmentSummaryResponseDTO> getAppointmentsByAdminStatus(String status) {
         try {
-            // Check if the status is valid
             if (status == null || status.isEmpty()) {
+                logger.warn("Status cannot be null or empty");
                 throw new IllegalArgumentException("Status cannot be null or empty");
             }
 
-            // Convert the status to the AppointmentStatus enum
             AppointmentStatus appointmentStatus;
             try {
                 appointmentStatus = AppointmentStatus.valueOf(status.toUpperCase());
             } catch (IllegalArgumentException e) {
+                logger.error("Invalid status: {}", status);
                 throw new IllegalArgumentException("Invalid status: " + status, e);
             }
 
-            // Get the current admin's ID from the JWT token
             Integer adminUserId = jwtUtils.getUserIdFromContext();
             Admin admin = adminRepository.findByUser_UserId(adminUserId)
                     .orElseThrow(() -> new AdminNotFoundException("Admin not found"));
 
-            // Fetch appointments by status for the current admin
+            logger.info("Fetching appointments for admin ID: {} with status: {}", admin.getAdminId(), status);
             List<Appointment> appointments = appointmentRepository.findByAdminAndStatus(admin, appointmentStatus);
 
-            // Map appointments to DTOs
             return appointments.stream()
                     .map(AppointmentMapper::toSummaryDTO)
                     .toList();
         } catch (IllegalArgumentException e) {
-            // Handle invalid status
             throw new IllegalArgumentException("Invalid status: " + status, e);
         } catch (Exception e) {
-            // Handle other exceptions
+            logger.error("An error occurred while fetching appointments by status", e);
             throw new RuntimeException("An error occurred while fetching appointments by status", e);
         }
     }
