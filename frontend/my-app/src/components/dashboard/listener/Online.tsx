@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dropdown";
 import router from "next/router";
 import UserIcon from "@/components/ui/userIcon";
+import InlineLoader from "@/components/ui/inlineLoader";
 
 export function OnlineListenersTable() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -28,8 +29,11 @@ export function OnlineListenersTable() {
   const token = useSelector((state: RootState) => state.auth.accessToken);
   const [detailsModal, setDetailsModal] = useState(false);
   const [applicationModal, setApplicationModal] = useState(false);
-  const [application, setApplication] = useState<ListenerApplication | null>(null);
+  const [application, setApplication] = useState<ListenerApplication | null>(
+    null
+  );
   const [selectedListener, setSelectedListener] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const handleModalClose = () => {
     setApplicationModal(false);
@@ -51,10 +55,15 @@ export function OnlineListenersTable() {
     if (eventSource) {
       eventSource.close();
     }
+    setLoading(true); // Start loader here
+
     const newEventSource = getActiveListeners(token, (data) => {
       setListeners(data);
+      setLoading(false); // Stop loader after receiving data
     });
+
     setEventSource(newEventSource);
+
     return () => {
       newEventSource.close();
     };
@@ -62,7 +71,10 @@ export function OnlineListenersTable() {
 
   const fetchApplicationData = async (userId: string) => {
     try {
-      const fetchedApplication = await getApplicationByListenerUserId(userId, token);
+      const fetchedApplication = await getApplicationByListenerUserId(
+        userId,
+        token
+      );
       setApplication(fetchedApplication);
       setApplicationModal(true);
     } catch (error) {
@@ -72,8 +84,13 @@ export function OnlineListenersTable() {
 
   const filteredListeners = listeners.filter(
     (listener) =>
-      listener.anonymousName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      listener.userId.toString().toLowerCase().includes(searchQuery.toLowerCase())
+      listener.anonymousName
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
+      listener.userId
+        .toString()
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase())
   );
 
   const paginatedListeners = filteredListeners.slice(
@@ -102,67 +119,83 @@ export function OnlineListenersTable() {
         </div>
       </div>
 
-      {/* Listeners Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6">
-        {paginatedListeners.length === 0 ? (
-          <div className="col-span-full text-center py-12 bg-gray-50 rounded-lg border border-dashed">
-            <p className="text-gray-500">No online listeners found</p>
-          </div>
-        ) : (
-          paginatedListeners.map((listener) => (
-            <div
-              key={listener.userId}
-              className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200"
-            >
-              <div className="p-6">
-                <div className="flex items-start justify-between gap-3">
-                  {/* Listener Icon */}
-                  <div className="flex-shrink-0">
-                    <UserIcon role="listener" />
-                  </div>
-
-                  {/* Listener Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-medium text-gray-900 truncate">
-                        {listener.anonymousName}
-                      </h3>
-                      <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0" />
+      {loading && <InlineLoader />}
+      {!loading && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6">
+          {paginatedListeners.length === 0 ? (
+            <div className="col-span-full text-center py-12 bg-gray-50 rounded-lg border border-dashed">
+              <p className="text-gray-500">No online listeners found</p>
+            </div>
+          ) : (
+            paginatedListeners.map((listener) => (
+              <div
+                key={listener.userId}
+                className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200"
+              >
+                <div className="p-6">
+                  <div className="flex items-start justify-between gap-3">
+                    {/* Listener Icon */}
+                    <div className="flex-shrink-0">
+                      <UserIcon role="listener" />
                     </div>
-                    <p className="text-sm text-gray-500 mb-1">
-                      ID: {listener.userId}
-                    </p>
-                  </div>
 
-                  {/* Actions Menu */}
-                  <div className="flex-shrink-0">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-48">
-                        <DropdownMenuItem onClick={() => handleDetailsModal(listener.userId)}>
-                          View Details
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => router.push(`/dashboard/listener/sessions/${listener.userId}`)}
-                        >
-                          View Sessions
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleApplicationModal(listener.userId)}>
-                          View Application
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    {/* Listener Info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-medium text-gray-900 truncate">
+                          {listener.anonymousName}
+                        </h3>
+                        <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0" />
+                      </div>
+                      <p className="text-sm text-gray-500 mb-1">
+                        ID: {listener.userId}
+                      </p>
+                    </div>
+
+                    {/* Actions Menu */}
+                    <div className="flex-shrink-0">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                          >
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48">
+                          <DropdownMenuItem
+                            onClick={() => handleDetailsModal(listener.userId)}
+                          >
+                            View Details
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() =>
+                              router.push(
+                                `/dashboard/listener/sessions/${listener.userId}`
+                              )
+                            }
+                          >
+                            View Sessions
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() =>
+                              handleApplicationModal(listener.userId)
+                            }
+                          >
+                            View Application
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))
-        )}
-      </div>
+            ))
+          )}
+        </div>
+      )}
 
       {/* Pagination */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4">
@@ -201,10 +234,7 @@ export function OnlineListenersTable() {
         />
       )}
       {applicationModal && application && (
-        <ApplicationModal
-          data={application}
-          handleClose={handleModalClose}
-        />
+        <ApplicationModal data={application} handleClose={handleModalClose} />
       )}
     </div>
   );

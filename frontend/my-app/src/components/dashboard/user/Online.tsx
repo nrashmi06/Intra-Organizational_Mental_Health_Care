@@ -15,6 +15,7 @@ import { UserSummary } from "@/lib/types";
 import { getActiveUserByRoleName } from "@/service/SSE/getActiveUserByRoleName";
 import UserIcon from "@/components/ui/userIcon";
 import router from "next/router";
+import InlineLoader from "@/components/ui/inlineLoader";
 
 export function OnlineUsersTable() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -78,65 +79,65 @@ export function OnlineUsersTable() {
         </div>
       </div>
 
-      {/* Main Content Section */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 relative">
-        {loading ? (
-          <div className="absolute inset-0 flex justify-center items-center bg-white bg-opacity-75 z-10">
-            <div className="loader"></div>
-          </div>
-        ) : paginatedUsers.length === 0 ? (
-          <div className="col-span-full text-center p-8 border rounded-lg">
-            No users found.
-          </div>
-        ) : (
-          paginatedUsers.map((user) => (
-            <div
-              key={user.userId}
-              className="bg-card border rounded-lg p-4 space-y-4"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <UserIcon role={"user"} />
-                  <div>
-                    <p className="font-medium">{user.anonymousName}</p>
-                    <p className="text-sm text-muted-foreground">
-                      ID: {user.userId}
-                    </p>
-                  </div>
-                </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem
-                      onClick={() => handleDetailsModal(user.userId)}
-                    >
-                      Details
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() =>
-                        router.push(`/dashboard/user/sessions/${user.userId}`)
-                      }
-                    >
-                      Sessions
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() =>
-                        router.push(`/dashboard/user/appointments/${user.userId}`)
-                      }
-                    >
-                      Appointments
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
+      {loading && <InlineLoader />}
+      {!loading && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 relative">
+          {paginatedUsers.length === 0 ? (
+            <div className="col-span-full text-center p-8 border rounded-lg">
+              No users found.
             </div>
-          ))
-        )}
-      </div>
+          ) : (
+            paginatedUsers.map((user) => (
+              <div
+                key={user.userId}
+                className="bg-card border rounded-lg p-4 space-y-4"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <UserIcon role={"user"} />
+                    <div>
+                      <p className="font-medium">{user.anonymousName}</p>
+                      <p className="text-sm text-muted-foreground">
+                        ID: {user.userId}
+                      </p>
+                    </div>
+                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        onClick={() => handleDetailsModal(user.userId)}
+                      >
+                        Details
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() =>
+                          router.push(`/dashboard/user/sessions/${user.userId}`)
+                        }
+                      >
+                        Sessions
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() =>
+                          router.push(
+                            `/dashboard/user/appointments/${user.userId}`
+                          )
+                        }
+                      >
+                        Appointments
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      )}
 
       {/* Pagination Controls */}
       <div className="flex items-center justify-between">

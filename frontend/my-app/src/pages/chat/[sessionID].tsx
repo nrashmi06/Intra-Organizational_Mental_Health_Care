@@ -1,28 +1,27 @@
-'use client'
+"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Home, MoreVertical, Send } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Home, MoreVertical, Send } from "lucide-react";
 import { endSession } from "@/service/session/endSession";
+import { motion, AnimatePresence } from "framer-motion";
 const BASE_API = `${process.env.NEXT_PUBLIC_WEBSOCKET_URL}`;
 
 const ChatPage = () => {
   const router = useRouter();
   const [websocket, setWebSocket] = useState<WebSocket | null>(null);
   const [messages, setMessages] = useState<string[]>([]);
-  const [messageInput, setMessageInput] = useState<string>('');
-  const [connectionStatus, setConnectionStatus] = useState('Disconnected');
-
+  const [messageInput, setMessageInput] = useState<string>("");
+  const [connectionStatus, setConnectionStatus] = useState("Disconnected");
   const accessToken = useSelector((state: RootState) => state.auth.accessToken);
   const username = useSelector((state: RootState) => state.auth.anonymousName);
   const sessionId = useSelector((state: RootState) => state.chat.sessionId);
   const role = useSelector((state: RootState) => state.auth.role);
-
 
   useEffect(() => {
     if (sessionId && accessToken) {
@@ -40,7 +39,7 @@ const ChatPage = () => {
 
       ws.onmessage = (event) => {
         const incomingMessage = event.data;
-        if (incomingMessage === 'SESSION_END') {
+        if (incomingMessage === "SESSION_END") {
           handleSessionEnd();
         } else {
           setMessages((prevMessages) => [...prevMessages, incomingMessage]);
@@ -67,11 +66,12 @@ const ChatPage = () => {
     }
   }, [sessionId, accessToken, username]);
 
-  const handleSendMessage = () => {
+  const handleSendMessage = (e?: React.FormEvent) => {
+    e?.preventDefault();
     if (websocket && messageInput.trim() !== "") {
       websocket.send(messageInput);
       setMessages((prevMessages) => [...prevMessages, `You: ${messageInput}`]);
-      setMessageInput('');
+      setMessageInput("");
     }
   };
 
@@ -81,10 +81,9 @@ const ChatPage = () => {
 
   const handleEndSession = async () => {
     if (websocket) {
-      websocket.send('SESSION_END'); // Notify the other party that the session is ending
+      websocket.send("SESSION_END"); // Notify the other party that the session is ending
       websocket.close(); // Close WebSocket
     }
-
 
     try {
       if (sessionId && accessToken) {
@@ -102,31 +101,50 @@ const ChatPage = () => {
 
   const handleSessionEnd = () => {
     // Check role and redirect accordingly
-    if (role !== 'LISTENER') {
+    if (role !== "LISTENER") {
       // Redirect to feedback page for users
-      router.push('/feedback');
+      router.push("/feedback");
     } else {
       // Redirect to listener report page for listeners
-      router.push('/listener-report');
+      router.push("/listener-report");
     }
   };
 
   return (
-    <div className="bg-purple-500">
-      <div className="flex flex-col h-screen max-w-2xl mx-auto bg-gray-100">
-        <Card className="rounded-none border-0 bg-white shadow-md">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50">
+      {/* Background Pattern */}
+      <div
+        className="absolute inset-0 z-0 opacity-5"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+        }}
+      />
+
+      <div className="relative flex flex-col h-screen bg-white/80 backdrop-blur-sm">
+        {/* Header */}
+        <Card className="rounded-none border-0 bg-white/90 shadow-md z-10">
           <div className="flex items-center justify-between p-4 border-b">
             <div className="flex items-center gap-4">
               <Button variant="outline" size="sm">
                 <Home className="w-5 h-5" />
               </Button>
               <div className="flex items-center gap-2">
-                <div className="w-6 h-6 bg-green-500 rounded-full"></div>
-                <span className="font-semibold">Listener</span>
+                <div className="relative">
+                  <div className="w-10 h-10 bg-green-500 rounded-full"></div>
+                  <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-400 rounded-full border-2 border-white"></div>
+                </div>
+                <div className="flex flex-col">
+                  <span className="font-semibold">Listener</span>
+                  <span className="text-xs text-green-600">Online</span>
+                </div>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="default" className="rounded-full" onClick={handleEndSession}>
+              <Button
+                variant="outline"
+                className="rounded-full transition-all hover:bg-red-600"
+                onClick={handleEndSession}
+              >
                 End Session
               </Button>
               <Button variant="outline" size="sm">
@@ -136,45 +154,64 @@ const ChatPage = () => {
           </div>
         </Card>
 
+        {/* Messages */}
         <div className="flex-1 overflow-auto p-4 space-y-4">
-          {messages.map((msg, index) => {
-            const isCurrentUser = msg.startsWith('You:');
-            return (
-              <div
-                key={index}
-                className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'} gap-2`}
-              >
-                {!isCurrentUser && <div className="w-8 h-8 bg-green-500 rounded-full"></div>}
-                <div
-                  className={`max-w-[80%] p-4 rounded-2xl text-sm ${
-                    isCurrentUser ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-900'
-                  }`}
+          <AnimatePresence>
+            {messages.map((msg, index) => {
+              const isCurrentUser = msg.startsWith("You:");
+              return (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, x: isCurrentUser ? 20 : -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className={`flex ${
+                    isCurrentUser ? "justify-end" : "justify-start"
+                  } gap-2`}
                 >
-                  <p>{msg.replace('You: ', '')}</p>
-                </div>
-              </div>
-            );
-          })}
+                  {!isCurrentUser && (
+                    <div className="w-8 h-8 bg-green-500 rounded-full flex-shrink-0" />
+                  )}
+                  <motion.div
+                    initial={{ scale: 0.9 }}
+                    animate={{ scale: 1 }}
+                    className={`max-w-[80%] p-4 rounded-2xl text-sm ${
+                      isCurrentUser
+                        ? "bg-blue-500 text-white rounded-br-none"
+                        : "bg-gray-200 text-gray-900 rounded-bl-none"
+                    }`}
+                  >
+                    <p>{msg.replace("You: ", "")}</p>
+                  </motion.div>
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
         </div>
 
-        <Card className="rounded-none border-0 p-4 bg-white shadow-md">
-          <div className="flex items-center gap-2">
+        {/* Message Input */}
+        <Card className="rounded-none border-0 p-4 bg-purple-300 shadow-md z-10">
+          <form
+            onSubmit={handleSendMessage}
+            className="flex items-center gap-2 w-full max-w-screen-2xl mx-auto px-4"
+          >
             <Input
               id="messageInput"
-              placeholder="Send message"
-              className="flex-1 bg-gray-100 border-0"
+              placeholder="Type your message..."
+              className="flex-1 bg-gray-100 border-0 rounded-full px-6 focus-visible:ring-2 focus-visible:ring-blue-500"
               value={messageInput}
               onChange={handleInputChange}
-    
-            />            
+              autoComplete="off"
+            />
             <Button
-              size="md"
-              className="rounded-full"
-              onClick={handleSendMessage}
+              type="submit"
+              size="icon"
+              className="rounded-full w-12 h-12 bg-blue-500 hover:bg-blue-600 transition-colors flex-shrink-0"
             >
-              <Send className="w-4 h-4" />
+              <Send className="w-5 h-5" />
             </Button>
-          </div>
+          </form>
         </Card>
       </div>
     </div>

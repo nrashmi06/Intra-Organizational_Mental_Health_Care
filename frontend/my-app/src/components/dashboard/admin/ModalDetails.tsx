@@ -14,6 +14,7 @@ import { RootState } from "@/store";
 import { fetchAdminProfile } from "@/service/adminProfile/GetAdminProfile";
 import { AdminDetails } from "@/lib/types";
 import Image from "next/image";
+import InlineLoader from "@/components/ui/inlineLoader";
 
 interface DetailsProps {
   userId: string;
@@ -67,9 +68,7 @@ const ModalDetails: React.FC<DetailsProps> = ({ userId, handleClose }) => {
           </h2>
 
           {isLoading ? (
-            <div className="flex justify-center items-center min-h-64">
-              <div className="loader"></div>
-            </div>
+            <InlineLoader height="h-72"/>
           ) : error ? (
             <div className="text-red-500 text-center p-4">{error}</div>
           ) : !adminDetails ? (

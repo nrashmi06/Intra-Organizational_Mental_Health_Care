@@ -10,6 +10,7 @@ import ModalDetails from "./ModalDetails";
 import { Admin } from "@/lib/types";
 import UserIcon from "@/components/ui/userIcon";
 import "@/styles/global.css";
+import InlineLoader from "@/components/ui/inlineLoader";
 
 export function OnlineAdminsTable() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -32,10 +33,11 @@ export function OnlineAdminsTable() {
       token,
       (data) => {
         setAdmins(data);
+        setLoading(false);
       }
     );
     setEventSource(newEventSource);
-    setLoading(false);
+
     return () => {
       newEventSource?.close();
     };
@@ -73,62 +75,63 @@ export function OnlineAdminsTable() {
           />
         </div>
       </div>
-      {loading ? (
-        <div className="flex justify-center items-center min-h-auto">
-          <div className="loader"></div>
-        </div>
-      ) : paginatedAdmins.length === 0 ? (
-        <div className="text-center py-8 text-muted-foreground">
-          No admins found.
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {paginatedAdmins.map((admin) => (
-            <Card
-              key={admin.userId}
-              className="overflow-hidden hover:shadow-lg transition-shadow duration-200 bg-white"
-            >
-              <CardContent className="p-6">
-                <div className="flex flex-col space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <UserIcon role={"admin"} />
-                      <div>
-                        <p className="font-medium text-gray-900">
-                          {admin.anonymousName}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          ID: {admin.userId}
-                        </p>
+      {loading && <InlineLoader />}
+      {!loading && (
+        <>
+          {paginatedAdmins.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              No admins found.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {paginatedAdmins.map((admin) => (
+                <Card
+                  key={admin.userId}
+                  className="overflow-hidden hover:shadow-lg transition-shadow duration-200 bg-white"
+                >
+                  <CardContent className="p-6">
+                    <div className="flex flex-col space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <UserIcon role={"admin"} />
+                          <div>
+                            <p className="font-medium text-gray-900">
+                              {admin.anonymousName}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              ID: {admin.userId}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col space-y-2">
+                        <Button
+                          variant="outline"
+                          className="w-full flex items-center justify-center space-x-2"
+                          onClick={() => handleDetailsModal(admin.userId)}
+                        >
+                          <User2 className="h-4 w-4" />
+                          <span>View Details</span>
+                        </Button>
+
+                        <Button
+                          variant="outline"
+                          className="w-full flex items-center justify-center space-x-2"
+                          href={`/dashboard/admin/appointments/${admin.userId}?req=onlineAdmins`}
+                        >
+                          <Calendar className="h-4 w-4" />
+                          <span>Appointments</span>
+                          <ExternalLink className="h-4 w-4 ml-1" />
+                        </Button>
                       </div>
                     </div>
-                  </div>
-
-                  <div className="flex flex-col space-y-2">
-                    <Button
-                      variant="outline"
-                      className="w-full flex items-center justify-center space-x-2"
-                      onClick={() => handleDetailsModal(admin.userId)}
-                    >
-                      <User2 className="h-4 w-4" />
-                      <span>View Details</span>
-                    </Button>
-
-                    <Button
-                      variant="outline"
-                      className="w-full flex items-center justify-center space-x-2"
-                      href={`/dashboard/admin/appointments/${admin.userId}?req=onlineAdmins`}
-                    >
-                      <Calendar className="h-4 w-4" />
-                      <span>Appointments</span>
-                      <ExternalLink className="h-4 w-4 ml-1" />
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </>
       )}
 
       <div className="flex items-center justify-between">

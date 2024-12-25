@@ -9,6 +9,7 @@ import { RootState } from "@/store";
 import { AdminSummary } from "@/lib/types";
 import { fetchAdmins } from "@/service/adminProfile/getAllAdmin";
 import UserIcon from "@/components/ui/userIcon";
+import InlineLoader from "@/components/ui/inlineLoader";
 
 export function RegisteredAdminsTable() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -62,63 +63,65 @@ export function RegisteredAdminsTable() {
         </div>
       </div>
 
-      {/* Grid Layout */}
-      {loading ? (
-        <div className="flex justify-center items-center min-h-auto">
-          <div className="loader"></div>
-        </div>
-      ) : paginatedAdmins.length === 0 ? (
-        <div className="text-center py-8 text-muted-foreground">
-          No admins found.
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {paginatedAdmins.map((admin) => (
-            <Card
-              key={admin.adminId}
-              className="hover:shadow-lg transition-shadow"
-            >
-              <CardContent className="p-6 space-y-4">
-                <div className="flex items-center space-x-4">
-                  <UserIcon role={"admin"} />
-                  <div>
-                    <h3 className="font-semibold text-lg">{admin.fullName}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      ID: {admin.adminId}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Contact
-                  </p>
-                  <p className="text-sm">{admin.contactNumber}</p>
-                </div>
-
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Notes
-                  </p>
-                  <div
-                    className="text-sm text-gray-700 line-clamp-3"
-                    dangerouslySetInnerHTML={{ __html: admin.adminNotes }}
-                  />
-                </div>
-              </CardContent>
-
-              <CardFooter className="bg-gray-50 px-6 py-4">
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  href={`/dashboard/admin/appointments/${admin.adminId}?req=registeredAdmins`}
+      {loading && <InlineLoader />}
+      {!loading && (
+        <>
+          {paginatedAdmins.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              No admins found.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {paginatedAdmins.map((admin) => (
+                <Card
+                  key={admin.adminId}
+                  className="hover:shadow-lg transition-shadow"
                 >
-                  View Appointments
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
+                  <CardContent className="p-6 space-y-4">
+                    <div className="flex items-center space-x-4">
+                      <UserIcon role={"admin"} />
+                      <div>
+                        <h3 className="font-semibold text-lg">
+                          {admin.fullName}
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          ID: {admin.adminId}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-muted-foreground">
+                        Contact
+                      </p>
+                      <p className="text-sm">{admin.contactNumber}</p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-muted-foreground">
+                        Notes
+                      </p>
+                      <div
+                        className="text-sm text-gray-700 line-clamp-3"
+                        dangerouslySetInnerHTML={{ __html: admin.adminNotes }}
+                      />
+                    </div>
+                  </CardContent>
+
+                  <CardFooter className="bg-gray-50 px-6 py-4">
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      href={`/dashboard/admin/appointments/${admin.adminId}?req=registeredAdmins`}
+                    >
+                      View Appointments
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          )}
+        </>
       )}
 
       {/* Pagination */}

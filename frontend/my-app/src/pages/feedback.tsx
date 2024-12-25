@@ -1,15 +1,11 @@
-// page.tsx
-
-"use client"
-
 import { useState } from "react";
-import { Star } from 'lucide-react';
+import { Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { useRouter } from 'next/navigation';
-import Navbar from "@/components/navbar/Navbar2";  // Import your Navbar component
+import { useRouter } from "next/navigation";
+import Navbar from "@/components/navbar/Navbar2"; // Import your Navbar component
 import "@/styles/globals.css";
-import submitFeedback from "@/service/feedback/sendFeedback";  // Import the submitFeedback API function
+import submitFeedback from "@/service/feedback/sendFeedback"; // Import the submitFeedback API function
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 
@@ -18,7 +14,8 @@ export default function Component() {
   const [hoveredRating, setHoveredRating] = useState<number>(0);
   const [comment, setComment] = useState("");
   const [showPopup, setShowPopup] = useState(false);
-  
+  const [isSubmitting, setIsSubmitting] = useState(false); // New state variable
+
   const router = useRouter();
   const auth = useSelector((state: RootState) => state.auth.accessToken); // Replace with your actual selector
   console.log(auth);
@@ -27,8 +24,9 @@ export default function Component() {
   console.log(sessionId);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();   
-    
+    e.preventDefault();
+    setIsSubmitting(true); // Disable the button
+
     try {
       if (auth && sessionId) {
         await submitFeedback(auth, sessionId, rating, comment);
@@ -36,27 +34,48 @@ export default function Component() {
       } else {
         console.error("Auth token or session ID is missing");
       }
-      
+
       // Redirect to the homepage after 2 seconds
       setTimeout(() => {
-        router.push("/");  // Redirect to homepage
+        router.push("/"); // Redirect to homepage
       }, 2000);
     } catch (error) {
       console.error("Error submitting feedback:", error);
+    } finally {
+      setIsSubmitting(false); // Enable the button again if needed
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-purple-400 via-blue-400 to-purple-400">
       {/* Navbar */}
       <Navbar />
 
-      {/* Popup message */}
       {showPopup && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg text-center">
-            <p className="text-lg font-semibold text-green-500">Feedback Submitted!</p>
-            <p className="text-gray-600">Thank you for your feedback. Redirecting...</p>
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex justify-center items-center z-50">
+          <div className="bg-white p-8 rounded-2xl shadow-xl text-center max-w-md w-full mx-4 transform transition-all animate-in fade-in duration-300">
+            <div className="w-16 h-16 bg-green-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+              <svg
+                className="w-8 h-8 text-green-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+            </div>
+            <h3 className="text-2xl font-bold text-gray-800 mb-2">
+              Feedback Submitted!
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Thank you for your valuable feedback. We&apos;re redirecting you
+              shortly...
+            </p>
           </div>
         </div>
       )}
@@ -70,8 +89,11 @@ export default function Component() {
                 How would you like to rate your experience today ?
               </p>
             </div>
-
-            <div className="flex justify-center gap-2" role="group" aria-label="Rating stars">
+            <div
+              className="flex justify-center gap-2"
+              role="group"
+              aria-label="Rating stars"
+            >
               {[1, 2, 3, 4, 5].map((star) => (
                 <button
                   key={star}
@@ -107,8 +129,9 @@ export default function Component() {
               <Button
                 type="submit"
                 className="bg-black text-white hover:bg-gray-800 px-8 py-2 rounded-full text-lg"
+                disabled={isSubmitting} // Disable the button if submitting
               >
-                Submit
+                {isSubmitting ? "Submitting..." : "Submit"}
               </Button>
             </div>
           </form>
