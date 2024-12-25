@@ -27,42 +27,73 @@ const ChatPage = () => {
     if (sessionId && accessToken) {
       // Construct WebSocket URL
       const socketUrl = `${BASE_API}/mental-health/chat/${sessionId}/${username}?token=${accessToken}`;
+      console.log("Attempting WebSocket connection...");
+      console.log("Constructed WebSocket URL:", socketUrl);
 
-      // Create WebSocket connection
-      const ws = new WebSocket(socketUrl);
+      try {
+        // Create WebSocket connection
+        const ws = new WebSocket(socketUrl);
+        console.log("WebSocket instance created.");
 
-      ws.onopen = () => {
-        setConnectionStatus("Connected");
-        console.log("WebSocket connected : ", connectionStatus);
-        console.log("WebSocket connected");
-      };
+        ws.onopen = () => {
+          setConnectionStatus("Connected");
+          console.log("[WebSocket] Connection opened:", socketUrl);
+          console.log(
+            "[WebSocket] Current connection status:",
+            connectionStatus
+          );
+        };
 
-      ws.onmessage = (event) => {
-        const incomingMessage = event.data;
-        if (incomingMessage === "SESSION_END") {
-          handleSessionEnd();
-        } else {
-          setMessages((prevMessages) => [...prevMessages, incomingMessage]);
-        }
-      };
+        ws.onmessage = (event) => {
+          console.log("[WebSocket] Message received:", event.data);
+          const incomingMessage = event.data;
+          if (incomingMessage === "SESSION_END") {
+            console.log("[WebSocket] SESSION_END message received.");
+            handleSessionEnd();
+          } else {
+            setMessages((prevMessages) => [...prevMessages, incomingMessage]);
+            console.log("[WebSocket] Updated messages:", messages);
+          }
+        };
 
-      ws.onerror = () => {
-        setConnectionStatus("Error");
-        console.error("WebSocket error");
-      };
+        ws.onerror = (error) => {
+          setConnectionStatus("Error");
+          console.error("[WebSocket] Error encountered:", error);
+        };
 
-      ws.onclose = () => {
-        setConnectionStatus("Disconnected");
-        console.log("WebSocket disconnected");
-      };
+        ws.onclose = (event) => {
+          setConnectionStatus("Disconnected");
+          console.log("[WebSocket] Connection closed.");
+          console.log("[WebSocket] Close event:", event);
+          if (!event.wasClean) {
+            console.warn(
+              "[WebSocket] Connection closed unexpectedly. Code:",
+              event.code,
+              "Reason:",
+              event.reason
+            );
+          }
+        };
 
-      setWebSocket(ws);
+        setWebSocket(ws);
+        console.log("WebSocket state after creation:", ws.readyState);
 
-      return () => {
-        if (ws) {
-          ws.close();
-        }
-      };
+        // Cleanup function
+        return () => {
+          console.log("[WebSocket] Cleanup triggered.");
+          if (ws) {
+            console.log("[WebSocket] Closing WebSocket connection...");
+            ws.close();
+          }
+        };
+      } catch (err) {
+        console.error("[WebSocket] Error during connection setup:", err);
+      }
+    } else {
+      console.warn(
+        "[WebSocket] sessionId or accessToken missing. Skipping connection setup.",
+        { sessionId, accessToken, username }
+      );
     }
   }, [sessionId, accessToken, username]);
 
