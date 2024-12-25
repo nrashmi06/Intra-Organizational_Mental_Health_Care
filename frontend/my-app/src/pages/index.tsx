@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import Navbar from "@/components/navbar/Navbar2"
 import { useRouter } from "next/router"
+import Footer from "@/components/footer/Footer"
 
 
 
@@ -65,7 +66,7 @@ export default function Home() {
               Navigating Life&apos;s Challenges Through Collective Resilience and Mental Wellness
             </p>
             <div className="flex gap-4 justify-center">
-              <Button size="lg" variant="outline" className=" text-white hover:bg-gray-100"
+              <Button size="lg" variant="outline" className="text-white border-white hover:bg-white/20"
               onClick={() => router.push('/signin')}>
                 Get Started
               </Button>
@@ -90,7 +91,7 @@ export default function Home() {
             {services.map((service, index) => (
               <Card key={index} className="group hover:shadow-lg transition-all">
                 <CardContent className="p-6 text-center space-y-4">
-                  <div className="w-12 h-12 mx-auto rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-black group-hover:text-white transition-colors">
+                  <div className="w-12 h-12 mx-auto rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-[hsla(127,30%,24%,1)] group-hover:text-white transition-colors">
                     {service.icon}
                   </div>
                   <h3 className="text-xl font-semibold">{service.title}</h3>
@@ -121,7 +122,7 @@ export default function Home() {
             </div>
             <div className="relative  h-80 w-100 ">
               <Image
-                src="/Motivation1.webp"
+                src="/images/index2.avif"
                 alt="Wellness champion"
                 fill
                 className="object-cover rounded-2xl"
@@ -130,6 +131,7 @@ export default function Home() {
           </div>
         </div>
       </section>
+      <Footer/>
     </div>
   )
 }

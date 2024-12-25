@@ -13,6 +13,7 @@ export default {
           light: '#a78bfa',
           DEFAULT: '#8b5cf6',
           dark: '#7c3aed',
+          softGreen: 'rgba(64,175,105,0.92)', 
         },
         gradient: {
           from: '#8b5cf6',

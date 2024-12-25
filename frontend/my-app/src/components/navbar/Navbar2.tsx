@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/router";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store"; // Import RootState to access Redux state
-import { clearUser } from "@/store/authSlice"; // Import the clearUser action
+import { clearUser } from "@/store/authSlice"; 
 
 export default function Navbar() {
   const router = useRouter();
@@ -27,13 +27,8 @@ export default function Navbar() {
 
   return (
     <header className="border-b z-50 relative">
-      <div
-        style={{
-          background:
-            "linear-gradient(90deg, rgba(179,91,189,1) 0%, rgba(198,91,236,1) 0%, rgba(175,89,189,1) 18%, rgba(22,22,193,1) 41%, rgba(0,212,255,1) 95%)",
-        }}
-      >
-        <div className="mx-auto px-4 py-4 flex items-center justify-between">
+      <div className="header">
+        <div className="mx-auto px-4 py-4 flex items-center justify-between w-full h-16">
           {/* Logo Section */}
           <div className="flex items-center gap-2">
             <Image
@@ -140,7 +135,7 @@ export default function Navbar() {
                     </Link>
                     <Link
                       href="/signup"
-                      className="bg-black text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-800 transition-colors"
+                      className="bg-black text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-800 transition-colors important"
                     >
                       Register
                     </Link>
@@ -184,7 +179,7 @@ export default function Navbar() {
             left: "0",
             right: "0",
             top: "100%",
-            backgroundColor: "rgba(0,0,0,0.5)",
+            backgroundColor: "rgba(0,0,0,1)",
             paddingTop: "10px",
             paddingBottom: "10px",
             transition: "all 0.3s ease",

@@ -24,14 +24,9 @@ export default function Navbar() {
   };
 
   return (
-    <header className="border-b relative">
-      <div
-        style={{
-          background:
-            "linear-gradient(90deg, rgba(179,91,189,1) 0%, rgba(198,91,236,1) 0%, rgba(175,89,189,1) 18%, rgba(22,22,193,1) 41%, rgba(0,212,255,1) 95%)",
-        }}
-      >
-        <div className="mx-auto px-4 py-4 flex items-center justify-between">
+    <header className="border-b z-50 relative">
+      <div className="header">
+        <div className="mx-auto px-4 py-4 flex items-center justify-between w-full h-16">
           {/* Logo Section */}
           <div className="flex items-center gap-2">
             <Image
@@ -74,25 +69,27 @@ export default function Navbar() {
                 Helpline
               </Link>
 
-              {/* Services Dropdown */}
+              {/* Click-based Dropdown for Services */}
               <div className="relative">
                 <button
                   onClick={toggleServicesDropdown}
                   className={`text-sm font-medium text-white ${
-                    router.pathname.includes("/services") ? "underline" : ""
+                    router.pathname === "/services" ? "underline" : ""
                   }`}
                 >
                   Services
                 </button>
                 {isServicesDropdownOpen && (
-                  <div className="absolute left-0 w-48 mt-2 bg-white text-black rounded-md shadow-lg">
+                  <div
+                    className="absolute left-0 w-48 mt-2 bg-white text-black rounded-md shadow-lg"
+                    style={{ zIndex: 1000 }}
+                  >
                     <Link
                       href="/listener-application"
                       className="block px-4 py-2 text-sm hover:bg-gray-100"
                     >
                       Listener Application
                     </Link>
-
                     <Link
                       href="/appointment"
                       className="block px-4 py-2 text-sm hover:bg-gray-100"
@@ -104,6 +101,12 @@ export default function Navbar() {
                       className="block px-4 py-2 text-sm hover:bg-gray-100"
                     >
                       Match a Listener
+                    </Link>
+                    <Link
+                      href="/download"
+                      className="block px-4 py-2 text-sm hover:bg-gray-100"
+                    >
+                      Download My Data
                     </Link>
                   </div>
                 )}
@@ -118,16 +121,9 @@ export default function Navbar() {
                 About
               </Link>
 
-              {/* User Authentication Links */}
+              {/* Sign-in and Register links */}
               <div className="flex flex-row items-center gap-4">
-                {user.accessToken ? (
-                  <button
-                    onClick={handleLogout}
-                    className="text-sm font-medium text-white bg-black px-4 py-2 rounded-full hover:bg-gray-800 transition-colors"
-                  >
-                    Logout
-                  </button>
-                ) : (
+                {!user.accessToken ? (
                   <>
                     <Link
                       href="/signin"
@@ -137,11 +133,18 @@ export default function Navbar() {
                     </Link>
                     <Link
                       href="/signup"
-                      className="bg-black text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-800 transition-colors"
+                      className="bg-black text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-800 transition-colors important"
                     >
                       Register
                     </Link>
                   </>
+                ) : (
+                  <button
+                    onClick={handleLogout}
+                    className="text-sm font-medium text-white bg-black px-4 py-2 rounded-full hover:bg-gray-800 transition-colors"
+                  >
+                    Logout
+                  </button>
                 )}
               </div>
             </nav>
@@ -174,7 +177,7 @@ export default function Navbar() {
             left: "0",
             right: "0",
             top: "100%",
-            backgroundColor: "rgba(0,0,0,0.5)",
+            backgroundColor: "rgba(0,0,0,1)",
             paddingTop: "10px",
             paddingBottom: "10px",
             transition: "all 0.3s ease",
@@ -205,74 +208,93 @@ export default function Navbar() {
             >
               Helpline
             </Link>
-            <Link
-              href="/about"
-              className={`text-sm font-medium text-white ${
-                router.pathname === "/about" ? "underline" : ""
-              }`}
-            >
-              About
-            </Link>
-            {user.accessToken ? (
+
+            {/* Mobile Dropdown for Services */}
+            <div className="relative">
               <button
-                onClick={handleLogout}
-                className="text-sm font-medium text-white bg-black px-4 py-2 rounded-full hover:bg-gray-800 transition-colors"
+                onClick={toggleServicesDropdown}
+                className={`text-sm font-medium text-white ${
+                  router.pathname === "/services" ? "underline" : ""
+                }`}
               >
-                Logout
+                Services
               </button>
-            ) : (
-              <>
-                <Link href="/signin" className="text-sm font-medium text-white">
-                  Sign-in
-                </Link>
-                <Link
-                  href="/signup"
-                  className="bg-black text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-800 transition-colors"
+              {isServicesDropdownOpen && (
+                <div
+                  className="absolute left-0 w-48 mt-2 bg-white text-black rounded-md shadow-lg"
+                  style={{ zIndex: 1000 }}
                 >
-                  Register
-                </Link>
-              </>
-            )}
+                  <Link
+                    href="/listener-application"
+                    className="block px-4 py-2 text-sm hover:bg-gray-100"
+                  >
+                    Listener Application
+                  </Link>
+                  <Link
+                    href="/appointment"
+                    className="block px-4 py-2 text-sm hover:bg-gray-100"
+                  >
+                    Appointment
+                  </Link>
+                  <Link
+                    href="/match-a-listener"
+                    className="block px-4 py-2 text-sm hover:bg-gray-100"
+                  >
+                    Match a Listener
+                  </Link>
+                </div>
+              )}
+            </div>
+
+            {/* Sign-in and Register links */}
+            <div className="flex flex-col items-center gap-4">
+              {!user.accessToken ? (
+                <>
+                  <Link
+                    href="/sign-in"
+                    className="text-sm font-medium text-white"
+                  >
+                    Sign-in
+                  </Link>
+                  <Link
+                    href="/register"
+                    className="bg-black text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-800 transition-colors"
+                  >
+                    Register
+                  </Link>
+                </>
+              ) : (
+                <button
+                  onClick={handleLogout}
+                  className="text-sm font-medium text-white bg-black px-4 py-2 rounded-full hover:bg-gray-800 transition-colors"
+                >
+                  Logout
+                </button>
+              )}
+            </div>
           </nav>
         </div>
       </div>
-
       {/* SVG Gradient Shape Below the Navbar */}
       <div className="relative bottom-0 w-full left-0 z-10">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
-          <defs>
-            <linearGradient
-              id="header-gradient"
-              x1="0%"
-              y1="0%"
-              x2="100%"
-              y2="0%"
-            >
-              <stop
-                offset="0%"
-                style={{ stopColor: "rgb(179,91,189)", stopOpacity: 1 }}
-              />
-              <stop
-                offset="18%"
-                style={{ stopColor: "rgb(175,89,189)", stopOpacity: 1 }}
-              />
-              <stop
-                offset="41%"
-                style={{ stopColor: "rgb(22,22,193)", stopOpacity: 1 }}
-              />
-              <stop
-                offset="95%"
-                style={{ stopColor: "rgb(0,212,255)", stopOpacity: 1 }}
-              />
-            </linearGradient>
-          </defs>
-          <path
-            fill="url(#header-gradient)"
-            fillOpacity="0.9"
-            d="M0,224L60,197.3C120,171,240,117,360,90.7C480,64,600,64,720,106.7C840,149,960,235,1080,261.3C1200,288,1320,256,1380,240L1440,224L1440,0L1380,0C1320,0,1200,0,1080,0C960,0,840,0,720,0C600,0,480,0,360,0C240,0,120,0,60,0L0,0Z"
-          ></path>
-        </svg>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" className="w-full h-full">
+  <>
+    <linearGradient id="header-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style={{ stopColor: "rgba(228,232,46,1)" }} />
+      <stop offset="26%" style={{ stopColor: "rgba(82,180,30,0.8708551483420593)" }} />
+      <stop offset="47%" style={{ stopColor: "rgba(64,175,105,0.9197207678883071)" }} />
+      <stop offset="83%" style={{ stopColor: "rgb(36, 121, 104)" }} />
+    </linearGradient>
+  </>
+  <path
+    fill="url(#header-gradient)"
+    style={{ mixBlendMode: "soft-light", opacity: 0.7 }}
+    d="M0,224L60,197.3C120,171,240,117,360,90.7C480,64,600,64,720,106.7C840,149,960,235,1080,261.3C1200,288,1320,256,1380,240L1440,224L1440,0L1380,0C1320,0,1200,0,1080,0C960,0,840,0,720,0C600,0,480,0,360,0C240,0,120,0,60,0L0,0Z"
+  />
+</svg>
+
       </div>
     </header>
+
   );
 }
