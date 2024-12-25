@@ -1,32 +1,42 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/store";
-import { X } from "lucide-react"; // Import close icon
-import { clearNotifications } from "@/store/notificationSlice"; // Action to clear notifications
-import { replyNotification } from "@/service/session/replyNotification"; // Assuming API utility exists
+import { X, MessageCircle } from "lucide-react"; // Import icons
+import { clearNotifications } from "@/store/notificationSlice";
+import { replyNotification } from "@/service/session/replyNotification";
 import { useRouter } from "next/router";
-import { setSessionId} from "@/store/chatSlice"; // Assuming actions exist
+import { setSessionId } from "@/store/chatSlice";
+import "@/styles/global.css";
 
 const NotificationPopup: React.FC = () => {
   const dispatch = useDispatch();
   const router = useRouter();
-
-  // Fetch notifications, role, access token, and userId from Redux
-  const notifications = useSelector((state: RootState) => state.notification.notifications);
+  const notifications = useSelector(
+    (state: RootState) => state.notification.notifications
+  );
   const role = useSelector((state: RootState) => state.auth.role);
   const accessToken = useSelector((state: RootState) => state.auth.accessToken);
+  const [showOkButton, setShowOkButton] = useState<{ [key: string]: boolean }>(
+    {}
+  );
 
-  // State to manage OK button visibility for each notification
-  const [showOkButton, setShowOkButton] = useState<{ [key: string]: boolean }>({});
+  useEffect(() => {
+    if (notifications.length > 0) {
+      const audio = new Audio("/pop.mp3"); 
+      audio.play().catch((err) => console.error("Failed to play sound:", err));
+    }
+  }, [notifications]);
 
-  // Close the notification popup
   const handleClose = () => {
     dispatch(clearNotifications());
-    setShowOkButton({}); // Reset the state when closing
+    setShowOkButton({});
   };
 
-  // Handle accept or reject actions
-  const handleAction = async (action: "accept" | "reject", senderId: string, message: string) => {
+  const handleAction = async (
+    action: "accept" | "reject",
+    senderId: string,
+    message: string
+  ) => {
     try {
       if (!accessToken || !senderId) {
         console.error("Authorization token or senderId is missing.");
@@ -37,19 +47,13 @@ const NotificationPopup: React.FC = () => {
       const response = await replyNotification(senderId, action, accessToken);
       console.log(`Session ${action} response:`, response);
 
-      // Extract session ID from the message (assuming the format is "Session ID: <id>")
       const sessionIdMatch = message.match(/Session ID:(\d+)/);
       if (sessionIdMatch && sessionIdMatch[1]) {
         const sessionID = sessionIdMatch[1];
         console.log(`Extracted Session ID: ${sessionID}`);
 
-        // Store session ID in Redux
         dispatch(setSessionId(sessionID));
-
-        // Redirect to the chat page
         router.push(`/chat/${sessionID}`);
-
-        // After action is taken, show OK button for this notification
         setShowOkButton((prevState) => ({
           ...prevState,
           [senderId]: true,
@@ -60,14 +64,8 @@ const NotificationPopup: React.FC = () => {
     }
   };
 
-  // Handle OK button action for "Session Ended" notifications
   const handleOk = (senderId: string, message: string) => {
-    // Check if the message indicates session end
     if (message.includes("Session with ID")) {
-      // Clear session ID from Redux store
-      
-      
-      // Redirect to the appropriate page
       if (role === "LISTENER") {
         router.push("/listener-report");
       } else {
@@ -75,7 +73,6 @@ const NotificationPopup: React.FC = () => {
       }
     }
 
-    // Reset OK button visibility for this notification
     setShowOkButton((prevState) => ({
       ...prevState,
       [senderId]: false,
@@ -84,7 +81,6 @@ const NotificationPopup: React.FC = () => {
     dispatch(clearNotifications());
   };
 
-  // Handle Join Session action for both users and listeners
   const handleJoinSession = (message: string) => {
     const sessionIdMatch = message.match(/Session ID:(\d+)/);
     if (sessionIdMatch && sessionIdMatch[1]) {
@@ -95,84 +91,114 @@ const NotificationPopup: React.FC = () => {
     }
   };
 
-  if (notifications.length === 0) return null; // Don't render if no notifications
+  const getNotificationContent = (message: string) => {
+    if (message.includes("rejected")) {
+      return {
+        title: "Session Request Rejected",
+        details: "",
+      };
+    } else if (message.includes("accepted")) {
+      return {
+        title: "Session Request Accepted",
+        details:
+          "",
+      };
+    }
+    else if (message.includes("ended")){
+      return {
+        title: "Session Ended",
+        details: "",
+      };
+    }
+    return {
+      title: "A user is requesting a session with you!",
+      details: "They have sent the message:",
+    };
+  };
+
+  if (notifications.length === 0) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-[9999]">
-      <div className="relative bg-blue-500 text-white p-6 rounded-lg shadow-lg text-center max-w-md w-full">
-        {/* Close button */}
-        <button
-          onClick={handleClose}
-          className="absolute top-2 right-2 text-white hover:text-gray-300"
-          aria-label="Close"
-        >
-          <X size={20} />
-        </button>
+    <div className="fixed bottom-5 right-5 flex items-end justify-end z-[9999]">
+      <div
+        className="relative bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 p-6 rounded-lg shadow-lg w-80 
+        backdrop-blur-sm border border-gray-300 space-y-4 animate-slide-in-up"
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-purple-700">Notification</h3>
+          <button
+            onClick={handleClose}
+            className="text-gray-500 hover:text-gray-700"
+            aria-label="Close"
+          >
+            <X size={20} />
+          </button>
+        </div>
 
-        {/* Render notifications */}
+        {/* Notifications */}
         {notifications.map((notification, index) => {
           const { message, senderId } = notification;
+          const { title, details } = getNotificationContent(message);
           const isOkVisible = showOkButton[senderId];
-
-          // Check if session ID is in the message, and only show the "Join Session" button
           const sessionIdMatch = message.match(/Session ID:(\d+)/);
           const isSessionEnded = message.includes("Session with ID");
 
           return (
-            <div key={index} className="mb-4">
-              <p>{message}</p>
+            <div key={index} className="space-y-4">
+              <p className="text-base font-semibold">{title}</p>
+              <div className="text-sm text-gray-700 mt-2">
+                <p>{details}</p>
+                <div className="mt-2 flex items-start space-x-2">
+                  <MessageCircle className="text-gray-600" size={20} />
+                  <p className="italic">{message}</p>
+                </div>
+              </div>
 
-              {/* Show Join Session button if session ID is found */}
-              {sessionIdMatch && !isSessionEnded && (
-                <div className="mt-4">
+              {/* Action buttons */}
+              <div className="mt-4 space-y-2">
+                {sessionIdMatch && !isSessionEnded && (
                   <button
                     onClick={() => handleJoinSession(message)}
-                    className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded"
+                    className="w-full bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg font-medium"
                   >
                     Join Session
                   </button>
-                </div>
-              )}
+                )}
 
-              {/* Listener buttons: Accept/Reject if session ID is not found and not ended */}
-              {!sessionIdMatch && !isSessionEnded && role === "LISTENER" && !isOkVisible && (
-                <div className="flex justify-center space-x-4 mt-4">
-                  <button
-                    onClick={() => handleAction("accept", senderId, message)}
-                    className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded"
-                  >
-                    Accept
-                  </button>
-                  <button
-                    onClick={() => handleAction("reject", senderId, message)}
-                    className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded"
-                  >
-                    Reject
-                  </button>
-                </div>
-              )}
+                {!sessionIdMatch &&
+                  !isSessionEnded &&
+                  role === "LISTENER" &&
+                  !isOkVisible && (
+                    <div className="flex justify-between space-x-2">
+                      <button
+                        onClick={() =>
+                          handleAction("accept", senderId, message)
+                        }
+                        className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg font-medium"
+                      >
+                        Accept
+                      </button>
+                      <button
+                        onClick={() =>
+                          handleAction("reject", senderId, message)
+                        }
+                        className="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg font-medium"
+                      >
+                        Reject
+                      </button>
+                    </div>
+                  )}
 
-              {/* OK button for Listener after taking action or when session ends */}
-              {role === "LISTENER" && (isOkVisible || isSessionEnded) && (
-                <div className="mt-4">
+                {(isOkVisible || isSessionEnded) && (
                   <button
                     onClick={() => handleOk(senderId, message)}
-                    className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
+                    className="w-full bg-gray-500 hover:bg-gray-600 text-white py-2 rounded-lg font-medium"
                   >
                     OK
                   </button>
-                </div>
-              )}
-
-              {/* OK button for other roles (users) */}
-              {role !== "LISTENER" && !isSessionEnded && (
-                <button
-                  onClick={() => handleOk(senderId, message)}
-                  className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded mt-4"
-                >
-                  OK
-                </button>
-              )}
+                )}
+              </div>
             </div>
           );
         })}
