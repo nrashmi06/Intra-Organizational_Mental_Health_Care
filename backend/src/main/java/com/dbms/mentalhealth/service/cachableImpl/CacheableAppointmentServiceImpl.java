@@ -20,23 +20,41 @@ import java.util.Objects;
 @Primary
 public class CacheableAppointmentServiceImpl implements AppointmentService {
 
+    private static final String CACHE_VERSION = "v1";
     private final AppointmentServiceImpl appointmentServiceImpl;
-    private final Cache<Integer, AppointmentResponseDTO> appointmentCache;
-    private final Cache<Integer, List<AppointmentSummaryResponseDTO>> appointmentListCache;
+    private final Cache<String, AppointmentResponseDTO> appointmentCache;
+    private final Cache<String, List<AppointmentSummaryResponseDTO>> appointmentListCache;
     private static final Logger logger = LoggerFactory.getLogger(CacheableAppointmentServiceImpl.class);
 
-    public CacheableAppointmentServiceImpl(AppointmentServiceImpl appointmentServiceImpl, Cache<Integer, AppointmentResponseDTO> appointmentCache, Cache<Integer, List<AppointmentSummaryResponseDTO>> appointmentListCache) {
+    public CacheableAppointmentServiceImpl(AppointmentServiceImpl appointmentServiceImpl, Cache<String, AppointmentResponseDTO> appointmentCache, Cache<String, List<AppointmentSummaryResponseDTO>> appointmentListCache) {
         this.appointmentServiceImpl = appointmentServiceImpl;
         this.appointmentCache = appointmentCache;
         this.appointmentListCache = appointmentListCache;
         logger.info("CacheableAppointmentServiceImpl initialized with cache stats enabled");
     }
 
+    // Cache key generators
+    private String generateAppointmentCacheKey(Integer appointmentId) {
+        return String.format("%s:appointment:%d", CACHE_VERSION, appointmentId);
+    }
+
+    private String generateAppointmentListCacheKey(String type, Integer id) {
+        return String.format("%s:appointments:%s:%d", CACHE_VERSION, type, id);
+    }
+
+    private String generateStatusListCacheKey(String status) {
+        return String.format("%s:appointments:status:%s", CACHE_VERSION, status.toLowerCase());
+    }
+
+    private String generateDateRangeCacheKey(LocalDate startDate, LocalDate endDate) {
+        return String.format("%s:appointments:date-range:%s:%s", CACHE_VERSION, startDate, endDate);
+    }
+
     @Override
     @Transactional
     public AppointmentResponseDTO createAppointment(AppointmentRequestDTO appointmentRequestDTO) {
         AppointmentResponseDTO response = appointmentServiceImpl.createAppointment(appointmentRequestDTO);
-        appointmentCache.put(response.getAppointmentId(), response);
+        appointmentCache.put(generateAppointmentCacheKey(response.getAppointmentId()), response);
         appointmentListCache.invalidateAll(); // Invalidate list cache to ensure consistency
         logger.info("Added new appointment to cache and invalidated list cache after appointment creation");
         return response;
@@ -45,9 +63,10 @@ public class CacheableAppointmentServiceImpl implements AppointmentService {
     @Override
     @Transactional(readOnly = true)
     public List<AppointmentSummaryResponseDTO> getAppointmentsByUser(Integer userId) {
+        String cacheKey = generateAppointmentListCacheKey("user", userId);
         logger.info("Cache lookup for appointments by user ID: {}", userId);
-        List<AppointmentSummaryResponseDTO> cachedAppointments = appointmentListCache.getIfPresent(userId);
 
+        List<AppointmentSummaryResponseDTO> cachedAppointments = appointmentListCache.getIfPresent(cacheKey);
         if (cachedAppointments != null) {
             logger.debug("Cache HIT - Returning cached appointments for user ID: {}", userId);
             return cachedAppointments;
@@ -55,7 +74,7 @@ public class CacheableAppointmentServiceImpl implements AppointmentService {
 
         logger.info("Cache MISS - Fetching appointments from database for user ID: {}", userId);
         List<AppointmentSummaryResponseDTO> response = appointmentServiceImpl.getAppointmentsByUser(userId);
-        appointmentListCache.put(userId, response);
+        appointmentListCache.put(cacheKey, response);
         logger.debug("Cached appointments for user ID: {}", userId);
 
         return response;
@@ -67,7 +86,7 @@ public class CacheableAppointmentServiceImpl implements AppointmentService {
         int cacheKey = Objects.hash(userId, adminId);
         logger.info("Cache lookup for appointments by admin with key: {}", cacheKey);
 
-        List<AppointmentSummaryResponseDTO> cachedAppointments = appointmentListCache.getIfPresent(cacheKey);
+        List<AppointmentSummaryResponseDTO> cachedAppointments = appointmentListCache.getIfPresent(String.valueOf(cacheKey));
         if (cachedAppointments != null) {
             logger.debug("Cache HIT - Returning cached appointments for key: {}", cacheKey);
             return cachedAppointments;
@@ -75,7 +94,7 @@ public class CacheableAppointmentServiceImpl implements AppointmentService {
 
         logger.info("Cache MISS - Fetching appointments from database for key: {}", cacheKey);
         List<AppointmentSummaryResponseDTO> response = appointmentServiceImpl.getAppointmentsByAdmin(userId, adminId);
-        appointmentListCache.put(cacheKey, response);
+        appointmentListCache.put(String.valueOf(cacheKey), response);
         logger.debug("Cached appointments for key: {}", cacheKey);
 
         return response;
@@ -84,9 +103,10 @@ public class CacheableAppointmentServiceImpl implements AppointmentService {
     @Override
     @Transactional(readOnly = true)
     public AppointmentResponseDTO getAppointmentById(Integer appointmentId) {
+        String cacheKey = generateAppointmentCacheKey(appointmentId);
         logger.info("Cache lookup for appointment ID: {}", appointmentId);
-        AppointmentResponseDTO cachedAppointment = appointmentCache.getIfPresent(appointmentId);
 
+        AppointmentResponseDTO cachedAppointment = appointmentCache.getIfPresent(cacheKey);
         if (cachedAppointment != null) {
             logger.debug("Cache HIT - Returning cached appointment for ID: {}", appointmentId);
             return cachedAppointment;
@@ -94,7 +114,7 @@ public class CacheableAppointmentServiceImpl implements AppointmentService {
 
         logger.info("Cache MISS - Fetching appointment from database for ID: {}", appointmentId);
         AppointmentResponseDTO response = appointmentServiceImpl.getAppointmentById(appointmentId);
-        appointmentCache.put(appointmentId, response);
+        appointmentCache.put(cacheKey, response);
         logger.debug("Cached appointment for ID: {}", appointmentId);
 
         return response;
@@ -104,7 +124,7 @@ public class CacheableAppointmentServiceImpl implements AppointmentService {
     @Transactional
     public void updateAppointmentStatus(Integer appointmentId, String status, String cancellationReason) {
         appointmentServiceImpl.updateAppointmentStatus(appointmentId, status, cancellationReason);
-        appointmentCache.invalidate(appointmentId);
+        appointmentCache.invalidate(generateAppointmentCacheKey(appointmentId));
         appointmentListCache.invalidateAll();
         logger.info("Invalidated cache for appointment ID: {} and all appointment lists after status update", appointmentId);
     }
@@ -113,7 +133,7 @@ public class CacheableAppointmentServiceImpl implements AppointmentService {
     @Transactional
     public void cancelAppointment(Integer appointmentId, String cancellationReason) {
         appointmentServiceImpl.cancelAppointment(appointmentId, cancellationReason);
-        appointmentCache.invalidate(appointmentId);
+        appointmentCache.invalidate(generateAppointmentCacheKey(appointmentId));
         appointmentListCache.invalidateAll();
         logger.info("Invalidated cache for appointment ID: {} and all appointment lists after cancellation", appointmentId);
     }
@@ -121,7 +141,7 @@ public class CacheableAppointmentServiceImpl implements AppointmentService {
     @Override
     @Transactional(readOnly = true)
     public List<AppointmentSummaryResponseDTO> getAppointmentsByDateRange(LocalDate startDate, LocalDate endDate) {
-        int cacheKey = Objects.hash(startDate, endDate);
+        String cacheKey = generateDateRangeCacheKey(startDate, endDate);
         logger.info("Cache lookup for appointments by date range with key: {}", cacheKey);
 
         List<AppointmentSummaryResponseDTO> cachedAppointments = appointmentListCache.getIfPresent(cacheKey);
@@ -141,7 +161,7 @@ public class CacheableAppointmentServiceImpl implements AppointmentService {
     @Override
     @Transactional(readOnly = true)
     public List<AppointmentSummaryResponseDTO> getUpcomingAppointmentsForAdmin() {
-        int cacheKey = "upcoming_admin".hashCode();
+        String cacheKey = CACHE_VERSION + ":appointments:upcoming_admin";
         logger.info("Cache lookup for upcoming appointments for admin with key: {}", cacheKey);
 
         List<AppointmentSummaryResponseDTO> cachedAppointments = appointmentListCache.getIfPresent(cacheKey);
@@ -161,7 +181,7 @@ public class CacheableAppointmentServiceImpl implements AppointmentService {
     @Override
     @Transactional(readOnly = true)
     public List<AppointmentSummaryResponseDTO> getAppointmentsByAdminStatus(String status) {
-        int cacheKey = status.hashCode();
+        String cacheKey = generateStatusListCacheKey(status);
         logger.info("Cache lookup for appointments by admin status with key: {}", cacheKey);
 
         List<AppointmentSummaryResponseDTO> cachedAppointments = appointmentListCache.getIfPresent(cacheKey);
@@ -176,5 +196,35 @@ public class CacheableAppointmentServiceImpl implements AppointmentService {
         logger.debug("Cached appointments for status: {}", status);
 
         return response;
+    }
+
+    // Cache invalidation methods
+    private void invalidateAppointmentCaches(Integer appointmentId) {
+        appointmentCache.invalidate(generateAppointmentCacheKey(appointmentId));
+    }
+
+    private void invalidateUserRelatedCaches(Integer userId) {
+        appointmentListCache.invalidate(generateAppointmentListCacheKey("user", userId));
+    }
+
+    private void invalidateAdminRelatedCaches(Integer adminId) {
+        appointmentListCache.invalidate(generateAppointmentListCacheKey("admin", adminId));
+    }
+
+    private void invalidateStatusBasedCaches() {
+        appointmentListCache.asMap().keySet().stream()
+                .filter(key -> key.contains(":appointments:status:"))
+                .forEach(appointmentListCache::invalidate);
+    }
+
+    private void invalidateDateRangeCaches() {
+        appointmentListCache.asMap().keySet().stream()
+                .filter(key -> key.contains(":appointments:date-range:"))
+                .forEach(appointmentListCache::invalidate);
+    }
+
+    public void logCacheStats() {
+        logger.info("Appointment Cache Stats: {}", appointmentCache.stats());
+        logger.info("Appointment List Cache Stats: {}", appointmentListCache.stats());
     }
 }

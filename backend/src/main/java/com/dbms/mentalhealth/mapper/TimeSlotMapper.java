@@ -40,7 +40,7 @@ public class TimeSlotMapper {
                 timeSlot.setStartTime(timeSlotDTO.getStartTime());
                 timeSlot.setEndTime(timeSlotDTO.getEndTime());
                 timeSlot.setIsAvailable(true); // by default
-                timeSlot.setAdmins(List.of(currentAdmin));
+                timeSlot.setAdmin(currentAdmin);
                 timeSlots.add(timeSlot);
             }
         }

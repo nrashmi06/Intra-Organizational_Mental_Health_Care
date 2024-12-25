@@ -2,126 +2,208 @@ package com.dbms.mentalhealth.service.impl;
 
 import com.dbms.mentalhealth.dto.TimeSlot.request.TimeSlotCreateRequestDTO;
 import com.dbms.mentalhealth.dto.TimeSlot.response.TimeSlotResponseDTO;
-import com.dbms.mentalhealth.exception.timeslot.DuplicateTimeSlotException;
+import com.dbms.mentalhealth.exception.admin.AdminNotFoundException;
+import com.dbms.mentalhealth.exception.appointment.InvalidRequestException;
 import com.dbms.mentalhealth.exception.timeslot.InvalidTimeSlotException;
+import com.dbms.mentalhealth.exception.timeslot.TimeSlotNotFoundException;
 import com.dbms.mentalhealth.mapper.TimeSlotMapper;
+import com.dbms.mentalhealth.model.Admin;
 import com.dbms.mentalhealth.model.TimeSlot;
+import com.dbms.mentalhealth.repository.AdminRepository;
 import com.dbms.mentalhealth.repository.TimeSlotRepository;
 import com.dbms.mentalhealth.service.TimeSlotService;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
+@Transactional
 public class TimeSlotServiceImpl implements TimeSlotService {
+    private static final Logger logger = LoggerFactory.getLogger(TimeSlotServiceImpl.class);
 
     private final TimeSlotRepository timeSlotRepository;
     private final TimeSlotMapper timeSlotMapper;
+    private final AdminRepository adminRepository;
 
     @Autowired
-    public TimeSlotServiceImpl(TimeSlotRepository timeSlotRepository, TimeSlotMapper timeSlotMapper) {
+    public TimeSlotServiceImpl(TimeSlotRepository timeSlotRepository, TimeSlotMapper timeSlotMapper,
+                               AdminRepository adminRepository) {
         this.timeSlotRepository = timeSlotRepository;
         this.timeSlotMapper = timeSlotMapper;
+        this.adminRepository = adminRepository;
+    }
+
+    private Admin getAdmin(String idType, Integer id) {
+        logger.debug("Fetching admin with {}: {}", idType, id);
+        Admin admin;
+        if ("userId".equalsIgnoreCase(idType)) {
+            admin = adminRepository.findAdminByUser_UserId(id)
+                    .orElseThrow(() -> new AdminNotFoundException("Admin not found for user ID: " + id));
+        } else if ("adminId".equalsIgnoreCase(idType)) {
+            admin = adminRepository.findById(id)
+                    .orElseThrow(() -> new AdminNotFoundException("Admin not found with ID: " + id));
+        } else {
+            throw new InvalidRequestException("Invalid ID type: " + idType);
+        }
+        logger.debug("Admin found: {}", admin);
+        return admin;
+    }
+
+    private void validateTimeSlot(TimeSlot timeSlot) {
+        logger.debug("Validating time slot: {}", timeSlot);
+        if (timeSlot.getStartTime().isAfter(timeSlot.getEndTime())) {
+            throw new InvalidTimeSlotException("Start time must be before end time");
+        }
+    }
+
+    private void checkForConflicts(TimeSlot timeSlot, Integer adminId, Integer excludeTimeSlotId) {
+        logger.debug("Checking for conflicts for time slot: {}", timeSlot);
+        List<TimeSlot> existingSlots = timeSlotRepository.findByDateAndAdmin_AdminId(timeSlot.getDate(), adminId);
+
+        for (TimeSlot existingSlot : existingSlots) {
+            if (excludeTimeSlotId != null && existingSlot.getTimeSlotId().equals(excludeTimeSlotId)) {
+                continue; // Skip the time slot being updated
+            }
+
+            boolean isOverlapping = timeSlot.getStartTime().isBefore(existingSlot.getEndTime()) &&
+                    timeSlot.getEndTime().isAfter(existingSlot.getStartTime());
+
+            if (isOverlapping) {
+                throw new InvalidTimeSlotException("Overlapping time slot found on date " + timeSlot.getDate() +
+                        " with start time " + existingSlot.getStartTime() + " and end time " + existingSlot.getEndTime());
+            }
+        }
+    }
+
+    private void checkForBatchConflicts(List<TimeSlot> timeSlots, Integer adminId) {
+        logger.debug("Checking for batch conflicts for time slots: {}", timeSlots);
+        for (TimeSlot timeSlot : timeSlots) {
+            validateTimeSlot(timeSlot);
+            checkForConflicts(timeSlot, adminId, null);
+        }
     }
 
     @Override
-    @Transactional
-    public List<TimeSlotResponseDTO> createTimeSlots(Integer adminId, LocalDate startDate, LocalDate endDate, TimeSlotCreateRequestDTO timeSlotCreateRequestDTO) {
-        List<TimeSlot> timeSlots = timeSlotMapper.toTimeSlots(adminId, startDate, endDate, timeSlotCreateRequestDTO);
+    public List<TimeSlotResponseDTO> createTimeSlots(String idType, Integer id, LocalDate startDate,
+                                                     LocalDate endDate, TimeSlotCreateRequestDTO request) {
+        logger.info("Creating time slots for admin with {}: {}, from {} to {}", idType, id, startDate, endDate);
+        Admin admin = getAdmin(idType, id);
 
-        // Check for duplicate and overlapping time slots within the provided list
-        for (int i = 0; i < timeSlots.size(); i++) {
-            TimeSlot timeSlot = timeSlots.get(i);
+        if (startDate.isAfter(endDate)) {
+            throw new InvalidTimeSlotException("Start date must be before or equal to end date");
+        }
 
-            // Check for overlapping time slots within the provided list
-            for (int j = i + 1; j < timeSlots.size(); j++) {
-                TimeSlot otherTimeSlot = timeSlots.get(j);
-                if (timeSlot.getDate().equals(otherTimeSlot.getDate()) &&
-                        timeSlot.getStartTime().isBefore(otherTimeSlot.getEndTime()) &&
-                        otherTimeSlot.getStartTime().isBefore(timeSlot.getEndTime())) {
-                    throw new InvalidTimeSlotException("Overlapping time slots found within the provided list for date " + timeSlot.getDate());
-                }
-            }
+        List<TimeSlot> timeSlots = timeSlotMapper.toTimeSlots(admin.getAdminId(), startDate, endDate, request);
+        checkForBatchConflicts(timeSlots, admin.getAdminId());
 
-            // Check for duplicate and overlapping time slots in the database for the same admin
-            boolean exists = timeSlotRepository.existsByDateAndStartTimeAndEndTimeAndAdmins_AdminId(
-                    timeSlot.getDate(), timeSlot.getStartTime(), timeSlot.getEndTime(), adminId);
-            if (exists) {
-                throw new DuplicateTimeSlotException("Duplicate time slot found for date " + timeSlot.getDate() + " and time " + timeSlot.getStartTime() + " - " + timeSlot.getEndTime());
-            }
+        List<TimeSlot> savedSlots = new ArrayList<>();
+        for (TimeSlot timeSlot : timeSlots) {
+            Optional<TimeSlot> existingSlot = timeSlotRepository.findByDateAndStartTimeAndEndTimeAndAdmin_AdminId(
+                    timeSlot.getDate(), timeSlot.getStartTime(), timeSlot.getEndTime(), admin.getAdminId());
 
-            boolean overlaps = timeSlotRepository.existsByDateAndAdmins_AdminIdAndStartTimeLessThanAndEndTimeGreaterThan(
-                    timeSlot.getDate(), adminId, timeSlot.getEndTime(), timeSlot.getStartTime());
-            if (overlaps) {
-                throw new InvalidTimeSlotException("Overlapping time slot found for date " + timeSlot.getDate() + " and time " + timeSlot.getStartTime() + " - " + timeSlot.getEndTime());
+            if (existingSlot.isPresent()) {
+                TimeSlot existing = existingSlot.get();
+                existing.setStartTime(timeSlot.getStartTime());
+                existing.setEndTime(timeSlot.getEndTime());
+                existing.setIsAvailable(timeSlot.getIsAvailable());
+                savedSlots.add(timeSlotRepository.save(existing));
+            } else {
+                savedSlots.add(timeSlotRepository.save(timeSlot));
             }
         }
 
-        List<TimeSlot> savedTimeSlots = timeSlotRepository.saveAll(timeSlots);
-        return savedTimeSlots.stream().map(timeSlotMapper::toTimeSlotResponseDTO).toList();
+        List<TimeSlotResponseDTO> response = savedSlots.stream()
+                .map(timeSlotMapper::toTimeSlotResponseDTO)
+                .toList();
+        logger.info("Created time slots: {}", response);
+        return response;
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<TimeSlotResponseDTO> getTimeSlotsByDateRangeAndAvailability(Integer adminId, LocalDate startDate, LocalDate endDate, Boolean isAvailable) {
-        List<TimeSlot> timeSlots;
-        if (isAvailable == null) {
-            timeSlots = timeSlotRepository.findByDateBetweenAndAdmins_AdminId(startDate, endDate, adminId);
-        } else {
-            timeSlots = timeSlotRepository.findByDateBetweenAndAdmins_AdminIdAndIsAvailable(startDate, endDate, adminId, isAvailable);
-        }
-        return timeSlots.stream().map(timeSlotMapper::toTimeSlotResponseDTO).toList();
+    public List<TimeSlotResponseDTO> getTimeSlotsByDateRangeAndAvailability(String idType, Integer id,
+                                                                            LocalDate startDate, LocalDate endDate,
+                                                                            Boolean isAvailable) {
+        logger.info("Fetching time slots for admin with {}: {}, from {} to {}, availability: {}", idType, id, startDate, endDate, isAvailable);
+        Admin admin = getAdmin(idType, id);
+        List<TimeSlot> timeSlots = isAvailable == null ?
+                timeSlotRepository.findByDateBetweenAndAdmin_AdminId(startDate, endDate, admin.getAdminId()) :
+                timeSlotRepository.findByDateBetweenAndAdmin_AdminIdAndIsAvailable(startDate, endDate,
+                        admin.getAdminId(), isAvailable);
+
+        List<TimeSlotResponseDTO> response = timeSlots.stream()
+                .map(timeSlotMapper::toTimeSlotResponseDTO)
+                .toList();
+        logger.info("Fetched time slots: {}", response);
+        return response;
     }
 
     @Override
-    @Transactional
-    public void deleteTimeSlotsInDateRangeAndAvailability(Integer adminId, LocalDate startDate, LocalDate endDate, Boolean isAvailable) {
-        List<TimeSlot> timeSlots;
-        if (isAvailable == null) {
-            timeSlots = timeSlotRepository.findByDateBetweenAndAdmins_AdminId(startDate, endDate, adminId);
-        } else {
-            timeSlots = timeSlotRepository.findByDateBetweenAndAdmins_AdminIdAndIsAvailable(startDate, endDate, adminId, isAvailable);
-        }
-        timeSlotRepository.deleteAll(timeSlots);
-    }
-
-    @Override
-    @Transactional
-    public TimeSlotResponseDTO updateTimeSlot(Integer adminId, Integer timeSlotId, TimeSlotCreateRequestDTO.TimeSlotDTO timeSlotDTO) {
+    public TimeSlotResponseDTO updateTimeSlot(String idType, Integer id, Integer timeSlotId,
+                                              TimeSlotCreateRequestDTO.TimeSlotDTO timeSlotDTO) {
+        logger.info("Updating time slot with ID: {} for admin with {}: {}", timeSlotId, idType, id);
+        Admin admin = getAdmin(idType, id);
         TimeSlot timeSlot = timeSlotRepository.findById(timeSlotId)
-                .orElseThrow(() -> new IllegalArgumentException("Time slot not found"));
+                .orElseThrow(() -> new TimeSlotNotFoundException("Time slot not found: " + timeSlotId));
 
-        if (timeSlot.getAdmins().stream().noneMatch(admin -> admin.getAdminId().equals(adminId))) {
-            throw new IllegalArgumentException("Admin ID mismatch");
+        if (!timeSlot.getAdmin().getAdminId().equals(admin.getAdminId())) {
+            throw new InvalidRequestException("Admin does not have access to this time slot");
         }
 
         timeSlot.setStartTime(timeSlotDTO.getStartTime());
         timeSlot.setEndTime(timeSlotDTO.getEndTime());
+        validateTimeSlot(timeSlot);
+        checkForConflicts(timeSlot, admin.getAdminId(), timeSlotId);
 
-        // Check for overlapping time slots on the same date in the database
-        boolean overlaps = timeSlotRepository.existsByDateAndAdmins_AdminIdAndStartTimeLessThanAndEndTimeGreaterThanAndTimeSlotIdNot(
-                timeSlot.getDate(), adminId, timeSlot.getEndTime(), timeSlot.getStartTime(), timeSlotId);
-        if (overlaps) {
-            throw new IllegalArgumentException("Overlapping time slot found for date " + timeSlot.getDate() + " and time " + timeSlot.getStartTime() + " - " + timeSlot.getEndTime());
-        }
-
-        TimeSlot updatedTimeSlot = timeSlotRepository.save(timeSlot);
-        return timeSlotMapper.toTimeSlotResponseDTO(updatedTimeSlot);
+        TimeSlotResponseDTO response = timeSlotMapper.toTimeSlotResponseDTO(timeSlotRepository.save(timeSlot));
+        logger.info("Updated time slot: {}", response);
+        return response;
     }
 
     @Override
-    @Transactional
-    public void deleteTimeSlot(Integer adminId, Integer timeSlotId) {
+    public void deleteTimeSlot(String idType, Integer id, Integer timeSlotId) {
+        logger.info("Deleting time slot with ID: {} for admin with {}: {}", timeSlotId, idType, id);
+        Admin admin = getAdmin(idType, id);
         TimeSlot timeSlot = timeSlotRepository.findById(timeSlotId)
-                .orElseThrow(() -> new IllegalArgumentException("Time slot not found"));
+                .orElseThrow(() -> new TimeSlotNotFoundException("Time slot not found: " + timeSlotId));
 
-        if (timeSlot.getAdmins().stream().noneMatch(admin -> admin.getAdminId().equals(adminId))) {
-            throw new IllegalArgumentException("Admin ID mismatch");
+        if (!timeSlot.getAdmin().getAdminId().equals(admin.getAdminId())) {
+            throw new InvalidRequestException("Admin does not have access to this time slot");
         }
 
         timeSlotRepository.delete(timeSlot);
+        logger.info("Deleted time slot with ID: {}", timeSlotId);
+    }
+
+    @Override
+    public void deleteTimeSlotsInDateRangeAndAvailability(String idType, Integer id, LocalDate startDate,
+                                                          LocalDate endDate, Boolean isAvailable) {
+        logger.info("Deleting time slots for admin with {}: {}, from {} to {}, availability: {}", idType, id, startDate, endDate, isAvailable);
+        Admin admin = getAdmin(idType, id);
+        List<TimeSlot> timeSlots = isAvailable == null ?
+                timeSlotRepository.findByDateBetweenAndAdmin_AdminId(startDate, endDate, admin.getAdminId()) :
+                timeSlotRepository.findByDateBetweenAndAdmin_AdminIdAndIsAvailable(startDate, endDate,
+                        admin.getAdminId(), isAvailable);
+
+        timeSlotRepository.deleteAll(timeSlots);
+        logger.info("Deleted time slots for admin with {}: {}, from {} to {}, availability: {}", idType, id, startDate, endDate, isAvailable);
+    }
+
+    @Transactional(readOnly = true)
+    public List<TimeSlotResponseDTO> getAllTimeSlots() {
+        logger.info("Fetching all time slots");
+        List<TimeSlot> timeSlots = timeSlotRepository.findAll();
+        List<TimeSlotResponseDTO> response = timeSlots.stream()
+                .map(timeSlotMapper::toTimeSlotResponseDTO)
+                .toList();
+        logger.info("Fetched all time slots: {}", response);
+        return response;
     }
 }

@@ -18,6 +18,7 @@ import java.util.List;
 @Primary
 public class CacheableSessionFeedbackServiceImpl implements SessionFeedbackService {
 
+    private static final String CACHE_VERSION = "v1";
     private final SessionFeedbackServiceImpl sessionFeedbackServiceImpl;
     private final Cache<Integer, SessionFeedbackResponseDTO> sessionFeedbackCache;
     private final Cache<String, List<SessionFeedbackResponseDTO>> sessionFeedbackListCache;
@@ -30,6 +31,15 @@ public class CacheableSessionFeedbackServiceImpl implements SessionFeedbackServi
         this.sessionFeedbackListCache = sessionFeedbackListCache;
         this.sessionFeedbackSummaryCache = sessionFeedbackSummaryCache;
         logger.info("CacheableSessionFeedbackServiceImpl initialized with cache stats enabled");
+    }
+
+    // Cache key generators
+    private String generateSessionFeedbackListCacheKey(String type, Integer id) {
+        return String.format("%s:session_feedback:%s:%d", CACHE_VERSION, type, id);
+    }
+
+    private String generateSessionFeedbackSummaryCacheKey() {
+        return String.format("%s:session_feedback:summary", CACHE_VERSION);
     }
 
     @Override
@@ -46,80 +56,47 @@ public class CacheableSessionFeedbackServiceImpl implements SessionFeedbackServi
     @Override
     @Transactional(readOnly = true)
     public List<SessionFeedbackResponseDTO> getFeedbackBySessionId(Integer sessionId) {
-        String cacheKey = "session_feedback_" + sessionId;
+        String cacheKey = generateSessionFeedbackListCacheKey("session", sessionId);
         logger.info("Cache lookup for session feedback with key: {}", cacheKey);
 
-        List<SessionFeedbackResponseDTO> cachedFeedback = sessionFeedbackListCache.getIfPresent(cacheKey);
-        if (cachedFeedback != null) {
-            logger.debug("Cache HIT - Returning cached feedback for session ID: {}", sessionId);
-            return cachedFeedback;
-        }
-
-        logger.info("Cache MISS - Fetching feedback from database for session ID: {}", sessionId);
-        List<SessionFeedbackResponseDTO> response = sessionFeedbackServiceImpl.getFeedbackBySessionId(sessionId);
-        sessionFeedbackListCache.put(cacheKey, response);
-        logger.debug("Cached feedback for session ID: {}", sessionId);
-
-        return response;
+        return sessionFeedbackListCache.get(cacheKey, k -> {
+            logger.debug("Cache MISS - Fetching feedback from database for session ID: {}", sessionId);
+            return sessionFeedbackServiceImpl.getFeedbackBySessionId(sessionId);
+        });
     }
 
     @Override
     @Transactional(readOnly = true)
     public SessionFeedbackResponseDTO getFeedbackById(Integer feedbackId) {
         logger.info("Cache lookup for feedback ID: {}", feedbackId);
-        SessionFeedbackResponseDTO cachedFeedback = sessionFeedbackCache.getIfPresent(feedbackId);
-
-        if (cachedFeedback != null) {
-            logger.debug("Cache HIT - Returning cached feedback for ID: {}", feedbackId);
-            return cachedFeedback;
-        }
-
-        logger.info("Cache MISS - Fetching feedback from database for ID: {}", feedbackId);
-        SessionFeedbackResponseDTO response = sessionFeedbackServiceImpl.getFeedbackById(feedbackId);
-        sessionFeedbackCache.put(feedbackId, response);
-        logger.debug("Cached feedback for ID: {}", feedbackId);
-
-        return response;
+        return sessionFeedbackCache.get(feedbackId, k -> {
+            logger.debug("Cache MISS - Fetching feedback from database for ID: {}", feedbackId);
+            return sessionFeedbackServiceImpl.getFeedbackById(feedbackId);
+        });
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<SessionFeedbackResponseDTO> getAllListenerFeedback(Integer listenerId) {
-        String cacheKey = "listener_feedback_" + listenerId;
+        String cacheKey = generateSessionFeedbackListCacheKey("listener", listenerId);
         logger.info("Cache lookup for listener feedback with key: {}", cacheKey);
 
-        List<SessionFeedbackResponseDTO> cachedFeedback = sessionFeedbackListCache.getIfPresent(cacheKey);
-        if (cachedFeedback != null) {
-            logger.debug("Cache HIT - Returning cached feedback for listener ID: {}", listenerId);
-            return cachedFeedback;
-        }
-
-        logger.info("Cache MISS - Fetching feedback from database for listener ID: {}", listenerId);
-        List<SessionFeedbackResponseDTO> response = sessionFeedbackServiceImpl.getAllListenerFeedback(listenerId);
-        sessionFeedbackListCache.put(cacheKey, response);
-        logger.debug("Cached feedback for listener ID: {}", listenerId);
-
-        return response;
+        return sessionFeedbackListCache.get(cacheKey, k -> {
+            logger.debug("Cache MISS - Fetching feedback from database for listener ID: {}", listenerId);
+            return sessionFeedbackServiceImpl.getAllListenerFeedback(listenerId);
+        });
     }
 
     @Override
     @Transactional(readOnly = true)
     public SessionFeedbackSummaryResponseDTO getFeedbackSummary() {
-        String cacheKey = "feedback_summary";
+        String cacheKey = generateSessionFeedbackSummaryCacheKey();
         logger.info("Cache lookup for feedback summary with key: {}", cacheKey);
 
-        SessionFeedbackSummaryResponseDTO cachedSummary = sessionFeedbackSummaryCache.getIfPresent(cacheKey);
-        if (cachedSummary != null) {
-            logger.debug("Cache HIT - Returning cached feedback summary");
-            return cachedSummary;
-        }
-
-        logger.info("Cache MISS - Fetching feedback summary from database");
-        SessionFeedbackSummaryResponseDTO response = sessionFeedbackServiceImpl.getFeedbackSummary();
-        sessionFeedbackSummaryCache.put(cacheKey, response);
-        logger.debug("Cached feedback summary");
-
-        return response;
+        return sessionFeedbackSummaryCache.get(cacheKey, k -> {
+            logger.debug("Cache MISS - Fetching feedback summary from database");
+            return sessionFeedbackServiceImpl.getFeedbackSummary();
+        });
     }
 
     public void logCacheStats() {

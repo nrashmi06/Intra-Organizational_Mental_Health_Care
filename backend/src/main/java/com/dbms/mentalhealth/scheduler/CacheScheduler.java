@@ -14,8 +14,9 @@ public class CacheScheduler {
     private final CacheableSessionReportServiceImpl cacheableSessionReportServiceImpl;
     private final CacheableListenerApplicationServiceImpl cacheableListenerApplicationServiceImpl;
     private final CacheableListenerServiceImpl cacheableListenerServiceImpl;
+    private final CacheableTimeSlotServiceImpl cacheableTimeSlotServiceImpl;
 
-    public CacheScheduler(CacheableBlogServiceImpl cacheableBlogService, CacheableAdminServiceImpl cacheableAdminServiceImpl, CacheableSessionServiceImpl cacheableSessionServiceImpl, CacheableSessionFeedbackServiceImpl cacheableSessionFeedbackServiceImpl, CacheableSessionReportServiceImpl cacheableSessionReportServiceImpl, CacheableListenerApplicationServiceImpl cacheableListenerApplicationServiceImpl, CacheableListenerServiceImpl cacheableListenerServiceImpl) {
+    public CacheScheduler(CacheableBlogServiceImpl cacheableBlogService, CacheableAdminServiceImpl cacheableAdminServiceImpl, CacheableSessionServiceImpl cacheableSessionServiceImpl, CacheableSessionFeedbackServiceImpl cacheableSessionFeedbackServiceImpl, CacheableSessionReportServiceImpl cacheableSessionReportServiceImpl, CacheableListenerApplicationServiceImpl cacheableListenerApplicationServiceImpl, CacheableListenerServiceImpl cacheableListenerServiceImpl, CacheableTimeSlotServiceImpl cacheableTimeSlotServiceImpl) {
         this.cacheableBlogServiceImpl = cacheableBlogService;
         this.cacheableAdminServiceImpl = cacheableAdminServiceImpl;
         this.cacheableSessionServiceImpl = cacheableSessionServiceImpl;
@@ -23,6 +24,7 @@ public class CacheScheduler {
         this.cacheableSessionReportServiceImpl = cacheableSessionReportServiceImpl;
         this.cacheableListenerApplicationServiceImpl = cacheableListenerApplicationServiceImpl;
         this.cacheableListenerServiceImpl = cacheableListenerServiceImpl;
+        this.cacheableTimeSlotServiceImpl = cacheableTimeSlotServiceImpl;
     }
 
     @Scheduled(fixedRateString = "${scheduler.user-activity-cleanup-interval}")
@@ -30,5 +32,10 @@ public class CacheScheduler {
         cacheableSessionServiceImpl.logCacheStats();
         cacheableListenerApplicationServiceImpl.logCacheStats();
         cacheableListenerServiceImpl.logCacheStats();
+        cacheableSessionFeedbackServiceImpl.logCacheStats();
+        cacheableSessionReportServiceImpl.logCacheStats();
+        cacheableBlogServiceImpl.logCacheStats();
+        cacheableAdminServiceImpl.logCacheStats();
+        cacheableTimeSlotServiceImpl.logCacheStats();
     }
 }

@@ -24,7 +24,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.util.Map;
 
@@ -51,7 +50,6 @@ public class AuthController {
         return ResponseEntity.ok(userDTO);
     }
 
-
     @PostMapping(UserUrlMapping.USER_LOGIN)
     public ResponseEntity<?> authenticateUser(@RequestBody UserLoginRequestDTO loginRequest, HttpServletResponse response) {
         try {
@@ -61,21 +59,16 @@ public class AuthController {
             String refreshToken = (String) loginResponse.get("refreshToken");
             UserLoginResponseDTO responseDTO = (UserLoginResponseDTO) loginResponse.get("user");
 
-
-            // Determine if the secure attribute should be set to true
             boolean isSecure = !baseUrl.contains("localhost");
 
-            // Corrected cookie configuration
             Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
             refreshTokenCookie.setHttpOnly(true);
-            refreshTokenCookie.setSecure(isSecure); // Set to 'true' if BASE_URL is not localhost
-            refreshTokenCookie.setPath("/mental-health/api/v1/users"); // Set to root path '/' for application-wide availability
-            refreshTokenCookie.setMaxAge(24 * 60 * 60); // 1 day expiration
-            refreshTokenCookie.setDomain("localhost"); // Optional: Ensure cookie is scoped to localhost for dev
+            refreshTokenCookie.setSecure(isSecure);
+            refreshTokenCookie.setPath("/mental-health/api/v1/users");
+            refreshTokenCookie.setMaxAge(24 * 60 * 60);
+            refreshTokenCookie.setDomain("localhost");
 
-            // Add SameSite attribute for cross-origin requests (if needed)
             response.addHeader("Set-Cookie", "refreshToken=" + refreshToken + "; HttpOnly; Secure=" + isSecure + "; Path=/; Max-Age=86400; SameSite=None");
-
             response.addCookie(refreshTokenCookie);
 
             return ResponseEntity.ok()
@@ -87,8 +80,6 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
-
-
 
     @PostMapping(UserUrlMapping.USER_LOGOUT)
     public ResponseEntity<String> logoutUser(@CookieValue("refreshToken") String refreshToken) {
@@ -138,28 +129,22 @@ public class AuthController {
                 throw new MissingRequestCookieException("Required cookie 'refreshToken' is not present");
             }
 
-            // Renew the token
             Map<String, Object> renewResponse = refreshTokenService.renewToken(refreshToken);
 
             String newAccessToken = (String) renewResponse.get("accessToken");
             UserLoginResponseDTO responseDTO = (UserLoginResponseDTO) renewResponse.get("user");
 
-            // Create a new refresh token cookie
             Cookie refreshTokenCookie = new Cookie("refreshToken", renewResponse.get("refreshToken").toString());
             boolean isSecure = !baseUrl.contains("localhost");
-            refreshTokenCookie.setHttpOnly(true);   // Make sure it's not accessible via JavaScript
-            refreshTokenCookie.setSecure(isSecure);     // Set to 'true' in production with HTTPS
+            refreshTokenCookie.setHttpOnly(true);
+            refreshTokenCookie.setSecure(isSecure);
             refreshTokenCookie.setPath("/mental-health/api/v1/users");
-            refreshTokenCookie.setMaxAge(24 * 60 * 60); // 1 day expiration
+            refreshTokenCookie.setMaxAge(24 * 60 * 60);
 
-            // Add SameSite attribute for cross-origin requests
             response.addHeader("Set-Cookie", "refreshToken=" + renewResponse.get("refreshToken").toString()
-                    + "; HttpOnly; Secure=false; Path=/; Max-Age=86400; SameSite=None");
-
-            // Add the cookie to the response
+                    + "; HttpOnly; Secure=" + isSecure + "; Path=/; Max-Age=86400; SameSite=None");
             response.addCookie(refreshTokenCookie);
 
-            // Return the new access token in the Authorization header
             return ResponseEntity.ok()
                     .header("Authorization", "Bearer " + newAccessToken)
                     .body(responseDTO);
@@ -171,7 +156,4 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred");
         }
     }
-
-
-
 }

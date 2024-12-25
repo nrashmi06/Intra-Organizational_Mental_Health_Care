@@ -206,23 +206,21 @@ public class SessionServiceImpl implements SessionService {
 
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public String getAverageSessionDuration() {
-        List<Session> sessions = sessionRepository.findAll();
-        if (sessions.isEmpty()) {
+        long count = sessionRepository.countBySessionStatus(SessionStatus.COMPLETED);
+        if (count == 0) {
             return "0m 0s";
         }
 
-        long totalDurationInSeconds = sessions.stream()
-                .mapToLong(session -> Duration.between(session.getSessionStart(),session.getSessionEnd()).getSeconds())
+        long totalSeconds = sessionRepository.findBySessionStatus(SessionStatus.COMPLETED).stream()
+                .mapToLong(session -> Duration.between(session.getSessionStart(), session.getSessionEnd()).getSeconds())
                 .sum();
 
-        long averageDurationInSeconds = totalDurationInSeconds / sessions.size();
-        long minutes = averageDurationInSeconds / 60;
-        long seconds = averageDurationInSeconds % 60;
-
-        return String.format("%dm %ds", minutes, seconds);
+        long avgSeconds = totalSeconds / count;
+        return String.format("%dm %ds", avgSeconds / 60, avgSeconds % 60);
     }
+
 
     @Override
     @Transactional(readOnly = true)
