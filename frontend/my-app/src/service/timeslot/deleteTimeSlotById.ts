@@ -12,7 +12,7 @@ const handleDeleteTimeSlot = async (
     }
 
     // Construct the API URL using the mapper
-    const url = TIME_SLOT_API_ENDPOINTS.DELETE_TIME_SLOT_BY_ID(userID, timeSlotId);
+    const url = `${TIME_SLOT_API_ENDPOINTS.DELETE_TIME_SLOT_BY_ID(userID, timeSlotId)}?idType=userId`;
 
     // Send DELETE request
     const response = await fetch(url, {

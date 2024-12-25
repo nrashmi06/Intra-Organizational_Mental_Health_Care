@@ -20,9 +20,9 @@ export default function Navbar() {
     setIsServicesDropdownOpen(!isServicesDropdownOpen);
 
   const handleLogout = () => {
+    router.push("/signin");
     logout(user.accessToken);
     dispatch(clearUser());
-    router.push("/signin");
   };
 
   return (
