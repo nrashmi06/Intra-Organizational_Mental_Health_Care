@@ -5,7 +5,7 @@ export const confirmTimeSlots = async (accessToken: string,userID : string | nul
   if (!userID) {
     throw new Error('userID cannot be null');
   }
-  const url = `${TIME_SLOT_API_ENDPOINTS.CREATE_TIME_SLOTS_IN_DATE_RANGE(userID)}?startDate=${startDate}&endDate=${endDate}`;
+  const url = `${TIME_SLOT_API_ENDPOINTS.CREATE_TIME_SLOTS_IN_DATE_RANGE(userID)}?startDate=${startDate}&endDate=${endDate}&idType=userId`;
 
   const requestBody = { 
 

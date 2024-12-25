@@ -25,6 +25,7 @@ import fetchTimeSlots from '@/service/timeslot/fetchTimeSlotsTrue';
 export default function BookAppointment() {
   const [showTooltip, setShowTooltip] = useState(false);
   const [admins, setAdmins] = useState<{ adminId: string; fullName: string }[]>([]);
+  const [selectedAdminId, setSelectedAdminId] = useState<string | null>(null);
   const [availableSlots, setAvailableSlots] = useState<Slot[]>([]);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [availableTimes, setAvailableTimes] = useState<Time[]>([]);
@@ -76,33 +77,31 @@ export default function BookAppointment() {
   // Fetch available slots
   useEffect(() => {
     const fetchSlots = async () => {
-      if (admins.length === 0 || !token) return; // Avoid fetching if no admins or token
-
-      const adminId = admins[0]?.adminId; // Take the first admin's ID
+      if (!selectedAdminId || !token) return; // Ensure a valid admin ID and token
+      console.log('Fetching time slots for admin:', selectedAdminId);
+  
       const startDate = new Date().toISOString().split('T')[0];
       const oneMonthLater = new Date();
       oneMonthLater.setMonth(oneMonthLater.getMonth() + 1);
       const endDate = oneMonthLater.toISOString().split('T')[0];
       const isAvailable = true;
-
+  
       try {
-        const timeSlots = await fetchTimeSlots(adminId, startDate, endDate, isAvailable, token);
+        const timeSlots = await fetchTimeSlots(selectedAdminId, startDate, endDate, isAvailable, token);
         setAvailableSlots(timeSlots);
       } catch (error) {
         if (axios.isAxiosError(error)) {
           console.error('Error fetching time slots:', error.response?.data || error.message);
+        } else if (error instanceof Error) {
+          console.error('Error fetching time slots:', error.message);
         } else {
-          if (error instanceof Error) {
-            console.error('Error fetching time slots:', error.message);
-          } else {
-            console.error('Error fetching time slots:', error);
-          }
+          console.error('Error fetching time slots:', error);
         }
       }
     };
-
+  
     fetchSlots();
-  }, [admins, token]);
+  }, [selectedAdminId, token]); // Trigger when selectedAdminId or token changes
 
   // Get unique dates from available slots
   const uniqueDates = [...new Set(availableSlots.map((slot: Slot) => slot.date))];
@@ -181,24 +180,27 @@ const handleSubmit = (event: React.FormEvent) => {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-sm font-medium text-gray-700">Select Admin</Label>
-                <Select
-                  value={formData.adminId}
-                  onValueChange={(value) => handleInputChange('adminId', value)}
-                >
-                  <SelectTrigger className="h-12 text-lg rounded-xl border-gray-200 bg-white">
-                    <SelectValue placeholder="Choose an admin" />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-96 overflow-y-auto">
-                    <ScrollArea className="h-full">
-                      {admins.map((admin) => (
-                        <SelectItem key={admin.adminId} value={admin.adminId.toString()}>
-                          {admin.fullName}
-                        </SelectItem>
-                      ))}
-                    </ScrollArea>
-                  </SelectContent>
-                </Select>
+              <Label className="text-sm font-medium text-gray-700">Select Admin</Label>
+              <Select
+                value={formData.adminId?.toString() || ""}
+                onValueChange={(value) => {
+                  setSelectedAdminId(value);
+                  handleInputChange("adminId", value);
+                }}
+              >
+                <SelectTrigger className="h-12 text-lg rounded-xl border-gray-200 bg-white">
+                  <SelectValue placeholder="Choose an admin" />
+                </SelectTrigger>
+                <SelectContent className="max-h-96 overflow-y-auto">
+                  <ScrollArea className="h-full">
+                    {admins.map((admin) => (
+                      <SelectItem key={admin.adminId} value={admin.adminId.toString()}>
+                        {admin.fullName}
+                      </SelectItem>
+                    ))}
+                  </ScrollArea>
+                </SelectContent>
+              </Select>
               </div>
 
               <div className="space-y-2">

@@ -9,13 +9,15 @@ export const fetchTimeSlots = async (
   endDate: string
 ) => {
   try {
+
+    const idType = "userId";
     // Validate userID
     if (!userID) {
       throw new Error("User ID is required to fetch time slots.");
     }
 
     // Construct the URL using the mapper
-    const url = `${TIME_SLOT_API_ENDPOINTS.GET_TIME_SLOTS_BY_ADMIN_IN_DATE_RANGE(userID)}?startDate=${startDate}&endDate=${endDate}`;
+    const url = `${TIME_SLOT_API_ENDPOINTS.GET_TIME_SLOTS_BY_ADMIN_IN_DATE_RANGE(userID)}?startDate=${startDate}&endDate=${endDate}&idType=${idType}`;
 
     // Sending the GET request
     const response = await axios.get(url, {

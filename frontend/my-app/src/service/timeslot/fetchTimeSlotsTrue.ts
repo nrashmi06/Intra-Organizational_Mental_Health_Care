@@ -17,6 +17,7 @@ const fetchTimeSlots = async (
         startDate,
         endDate,
         isAvailable,
+        idType: "adminId",
       },
       headers: {
         Authorization: `Bearer ${token}`,
