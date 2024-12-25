@@ -20,9 +20,9 @@ export default function Navbar({ children }: NavbarProps) {
 
   const handleLogout = async () => {
     try {
-      dispatch(clearUser());
-      await logout(token);
       await router.push("/signin");
+      await logout(token);
+      dispatch(clearUser());
       
       // Only clear the user state after navigation is complete
       
