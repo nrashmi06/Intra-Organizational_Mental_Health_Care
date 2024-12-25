@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -54,9 +55,9 @@ public class TimeSlotServiceImpl implements TimeSlotService {
 
     private void checkOverlap(TimeSlot timeSlot, Integer adminId, Integer excludeTimeSlotId) {
         boolean overlaps = excludeTimeSlotId == null ?
-                timeSlotRepository.existsByDateAndAdmins_AdminIdAndStartTimeLessThanAndEndTimeGreaterThan(
+                timeSlotRepository.existsByDateAndAdmin_AdminIdAndStartTimeLessThanAndEndTimeGreaterThan(
                         timeSlot.getDate(), adminId, timeSlot.getEndTime(), timeSlot.getStartTime()) :
-                timeSlotRepository.existsByDateAndAdmins_AdminIdAndStartTimeLessThanAndEndTimeGreaterThanAndTimeSlotIdNot(
+                timeSlotRepository.existsByDateAndAdmin_AdminIdAndStartTimeLessThanAndEndTimeGreaterThanAndTimeSlotIdNot(
                         timeSlot.getDate(), adminId, timeSlot.getEndTime(), timeSlot.getStartTime(), excludeTimeSlotId);
 
         if (overlaps) {
@@ -78,7 +79,7 @@ public class TimeSlotServiceImpl implements TimeSlotService {
             validateTimeSlot(timeSlot);
             checkOverlap(timeSlot, admin.getAdminId(), null);
 
-            boolean exists = timeSlotRepository.existsByDateAndStartTimeAndEndTimeAndAdmins_AdminId(
+            boolean exists = timeSlotRepository.existsByDateAndStartTimeAndEndTimeAndAdmin_AdminId(
                     timeSlot.getDate(), timeSlot.getStartTime(), timeSlot.getEndTime(), admin.getAdminId());
             if (exists) {
                 throw new DuplicateTimeSlotException("Duplicate time slot found for date " + timeSlot.getDate());
@@ -97,8 +98,8 @@ public class TimeSlotServiceImpl implements TimeSlotService {
                                                                             Boolean isAvailable) {
         Admin admin = getAdmin(idType, id);
         List<TimeSlot> timeSlots = isAvailable == null ?
-                timeSlotRepository.findByDateBetweenAndAdmins_AdminId(startDate, endDate, admin.getAdminId()) :
-                timeSlotRepository.findByDateBetweenAndAdmins_AdminIdAndIsAvailable(startDate, endDate,
+                timeSlotRepository.findByDateBetweenAndAdmin_AdminId(startDate, endDate, admin.getAdminId()) :
+                timeSlotRepository.findByDateBetweenAndAdmin_AdminIdAndIsAvailable(startDate, endDate,
                         admin.getAdminId(), isAvailable);
 
         return timeSlots.stream()
@@ -113,7 +114,7 @@ public class TimeSlotServiceImpl implements TimeSlotService {
         TimeSlot timeSlot = timeSlotRepository.findById(timeSlotId)
                 .orElseThrow(() -> new TimeSlotNotFoundException("Time slot not found: " + timeSlotId));
 
-        if (timeSlot.getAdmins().stream().noneMatch(a -> a.getAdminId().equals(admin.getAdminId()))) {
+        if (!timeSlot.getAdmin().getAdminId().equals(admin.getAdminId())) {
             throw new InvalidRequestException("Admin does not have access to this time slot");
         }
 
@@ -131,7 +132,7 @@ public class TimeSlotServiceImpl implements TimeSlotService {
         TimeSlot timeSlot = timeSlotRepository.findById(timeSlotId)
                 .orElseThrow(() -> new TimeSlotNotFoundException("Time slot not found: " + timeSlotId));
 
-        if (timeSlot.getAdmins().stream().noneMatch(a -> a.getAdminId().equals(admin.getAdminId()))) {
+        if (!timeSlot.getAdmin().getAdminId().equals(admin.getAdminId())) {
             throw new InvalidRequestException("Admin does not have access to this time slot");
         }
 
@@ -143,10 +144,18 @@ public class TimeSlotServiceImpl implements TimeSlotService {
                                                           LocalDate endDate, Boolean isAvailable) {
         Admin admin = getAdmin(idType, id);
         List<TimeSlot> timeSlots = isAvailable == null ?
-                timeSlotRepository.findByDateBetweenAndAdmins_AdminId(startDate, endDate, admin.getAdminId()) :
-                timeSlotRepository.findByDateBetweenAndAdmins_AdminIdAndIsAvailable(startDate, endDate,
+                timeSlotRepository.findByDateBetweenAndAdmin_AdminId(startDate, endDate, admin.getAdminId()) :
+                timeSlotRepository.findByDateBetweenAndAdmin_AdminIdAndIsAvailable(startDate, endDate,
                         admin.getAdminId(), isAvailable);
 
         timeSlotRepository.deleteAll(timeSlots);
+    }
+
+    @Transactional(readOnly = true)
+    public List<TimeSlotResponseDTO> getAllTimeSlots() {
+        List<TimeSlot> timeSlots = timeSlotRepository.findAll();
+        return timeSlots.stream()
+                .map(timeSlotMapper::toTimeSlotResponseDTO)
+                .toList();
     }
 }

@@ -12,4 +12,5 @@ public interface TimeSlotService {
     void deleteTimeSlotsInDateRangeAndAvailability(String IdType, Integer id, LocalDate startDate, LocalDate endDate, Boolean isAvailable);
     TimeSlotResponseDTO updateTimeSlot(String IdType, Integer id, Integer timeSlotId, TimeSlotCreateRequestDTO.TimeSlotDTO timeSlotDTO);
     void deleteTimeSlot(String IdType, Integer id, Integer timeSlotId);
+
 }

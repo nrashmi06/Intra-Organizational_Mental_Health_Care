@@ -5,6 +5,7 @@ import com.dbms.mentalhealth.dto.TimeSlot.response.TimeSlotResponseDTO;
 import com.dbms.mentalhealth.service.TimeSlotService;
 import com.dbms.mentalhealth.service.impl.TimeSlotServiceImpl;
 import com.github.benmanes.caffeine.cache.Cache;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
@@ -40,6 +41,16 @@ public class CacheableTimeSlotServiceImpl implements TimeSlotService {
         return String.format(INDIVIDUAL_CACHE_KEY_FORMAT, timeSlotId);
     }
 
+    private void invalidateCache(String idType, Integer id) {
+        String prefix = String.format("timeslots:%s:%d", idType.toLowerCase(), id);
+        timeSlotCache.asMap().keySet().stream()
+                .filter(key -> key.startsWith(prefix))
+                .forEach(key -> {
+                    timeSlotCache.invalidate(key);
+                    log.debug("Invalidated cache: {}", key);
+                });
+    }
+
     @Override
     @Transactional(readOnly = true)
     public List<TimeSlotResponseDTO> getTimeSlotsByDateRangeAndAvailability(
@@ -53,11 +64,20 @@ public class CacheableTimeSlotServiceImpl implements TimeSlotService {
 
     @Override
     @Transactional
-    public List<TimeSlotResponseDTO> createTimeSlots(String idType, Integer id, LocalDate startDate,
-                                                     LocalDate endDate, TimeSlotCreateRequestDTO request) {
+    public synchronized List<TimeSlotResponseDTO> createTimeSlots(String idType, Integer id, LocalDate startDate, LocalDate endDate, TimeSlotCreateRequestDTO request) {
         List<TimeSlotResponseDTO> response = timeSlotServiceImpl.createTimeSlots(idType, id, startDate, endDate, request);
         invalidateCache(idType, id);
         return response;
+    }
+
+    @PostConstruct
+    public void warmupCache() {
+        List<TimeSlotResponseDTO> timeSlots = timeSlotServiceImpl.getAllTimeSlots();
+        timeSlots.forEach(timeSlot -> {
+            String cacheKey = generateIndividualCacheKey(timeSlot.getTimeSlotId());
+            individualTimeSlotCache.put(cacheKey, timeSlot);
+        });
+        log.info("Cache warmup completed");
     }
 
     @Override
@@ -84,16 +104,6 @@ public class CacheableTimeSlotServiceImpl implements TimeSlotService {
                                                           LocalDate startDate, LocalDate endDate, Boolean isAvailable) {
         timeSlotServiceImpl.deleteTimeSlotsInDateRangeAndAvailability(idType, id, startDate, endDate, isAvailable);
         invalidateCache(idType, id);
-    }
-
-    private void invalidateCache(String idType, Integer id) {
-        String prefix = String.format("timeslots:%s:%d", idType.toLowerCase(), id);
-        timeSlotCache.asMap().keySet().stream()
-                .filter(key -> key.startsWith(prefix))
-                .forEach(key -> {
-                    timeSlotCache.invalidate(key);
-                    log.debug("Invalidated cache: {}", key);
-                });
     }
 
     public void logCacheStats() {

@@ -1,6 +1,7 @@
 package com.dbms.mentalhealth.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -21,28 +22,28 @@ public class TimeSlot {
     @Column(name = "time_slot_id")
     private Integer timeSlotId;
 
-    @ManyToMany
-    @JoinTable(
-            name = "admin_time_slot",
-            joinColumns = @JoinColumn(name = "time_slot_id"),
-            inverseJoinColumns = @JoinColumn(name = "admin_id")
-    )
-    private List<Admin> admins;  // The admin managing this time slot
+    @ManyToOne
+    @JoinColumn(name = "admin_id", nullable = false)
+    private Admin admin;
 
     @Column(name = "date", nullable = false)
-    private LocalDate date;  // Date for the time slot
+    @NotNull(message = "Date is required")
+    private LocalDate date;
 
     @Column(name = "start_time", nullable = false)
-    private LocalTime startTime;  // Slot's start time
+    @NotNull(message = "Start time is required")
+    private LocalTime startTime;
 
     @Column(name = "end_time", nullable = false)
-    private LocalTime endTime;  // Slot's end time
+    @NotNull(message = "End time is required")
+    private LocalTime endTime;
 
     @Column(name = "is_available", nullable = false)
-    private Boolean isAvailable = true;  // Marks if the slot is available for booking
+    @NotNull(message = "Availability status is required")
+    private Boolean isAvailable;
 
     @OneToMany(mappedBy = "timeSlot", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Appointment> appointments; // Appointment linked to this slot (optional)
+    private List<Appointment> appointments;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
