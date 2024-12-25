@@ -19,7 +19,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Service
@@ -27,32 +26,36 @@ import java.util.concurrent.atomic.AtomicLong;
 public class CacheableBlogServiceImpl implements BlogService {
 
     private final BlogServiceImpl blogServiceImpl;
-    private final Cache<Integer, BlogResponseDTO> blogCache;
+    private final Cache<String, BlogResponseDTO> blogCache;
     private final Cache<String, List<BlogSummaryDTO>> blogListCache;
     private final Cache<Integer, AtomicLong> viewCountCache;
-    private final Cache<String, Boolean> recentViewCache; // Add this cache
+    private final Cache<String, Boolean> recentViewCache;
     private static final Logger logger = LoggerFactory.getLogger(CacheableBlogServiceImpl.class);
     private final JwtUtils jwtUtils;
 
     public CacheableBlogServiceImpl(BlogServiceImpl blogServiceImpl,
-                                    Cache<Integer, BlogResponseDTO> blogCache,
+                                    Cache<String, BlogResponseDTO> blogCache,
                                     Cache<String, List<BlogSummaryDTO>> blogListCache,
                                     Cache<Integer, AtomicLong> viewCountCache,
-                                    Cache<String, Boolean> recentViewCache, JwtUtils jwtUtils) { // Add this parameter
+                                    Cache<String, Boolean> recentViewCache, JwtUtils jwtUtils) {
         this.blogServiceImpl = blogServiceImpl;
         this.blogCache = blogCache;
         this.blogListCache = blogListCache;
         this.viewCountCache = viewCountCache;
-        this.recentViewCache = recentViewCache; // Initialize this cache
-        logger.info("CacheableBlogServiceImpl initialized with view count tracking");
+        this.recentViewCache = recentViewCache;
         this.jwtUtils = jwtUtils;
+        logger.info("CacheableBlogServiceImpl initialized with view count tracking");
+    }
+
+    private String generateBlogCacheKey(Integer blogId, Integer authorId, Integer viewerId) {
+        return String.format("blog:%d:author:%d:viewer:%d", blogId, authorId, viewerId);
     }
 
     @Override
     @Transactional
     public Optional<BlogResponseDTO> getBlogById(Integer blogId) {
-        Integer userId = jwtUtils.getUserIdFromContext(); // Method to get the current user ID
-        String recentViewKey = "user_" + userId + "_blog_" + blogId;
+        Integer currentUserId = jwtUtils.getUserIdFromContext();
+        String recentViewKey = "user_" + currentUserId + "_blog_" + blogId;
 
         if (recentViewCache.getIfPresent(recentViewKey) == null) {
             recentViewCache.put(recentViewKey, true);
@@ -60,26 +63,17 @@ public class CacheableBlogServiceImpl implements BlogService {
             viewCountDelta.incrementAndGet();
         }
 
-        logger.info("Cache lookup for blog ID: {}", blogId);
-        BlogResponseDTO cachedBlog = blogCache.getIfPresent(blogId);
-
-        if (cachedBlog != null) {
-            logger.debug("Cache HIT - Returning cached blog for ID: {}", blogId);
-            return Optional.of(cachedBlog);
-        }
-
-        logger.info("Cache MISS - Fetching blog from database for ID: {}", blogId);
         Optional<BlogResponseDTO> response = blogServiceImpl.getBlogById(blogId);
-
         if (response.isPresent()) {
             BlogResponseDTO blog = response.get();
-            blogCache.put(blogId, blog);
-            return Optional.of(blog);
+            String cacheKey = generateBlogCacheKey(blogId, blog.getUserId(), currentUserId);
+
+            BlogResponseDTO cachedBlog = blogCache.get(cacheKey, k -> blog);
+            return Optional.of(cachedBlog);
         }
 
         return response;
     }
-
 
     @Scheduled(fixedRate = 300000) // Every 5 minutes
     public void flushPendingViewCounts() {
@@ -90,7 +84,11 @@ public class CacheableBlogServiceImpl implements BlogService {
                     blogServiceImpl.incrementViewCountByAmount(blogId, (int) pendingCount);
                     viewCountCache.invalidate(blogId);
                     Optional<BlogResponseDTO> updatedBlog = blogServiceImpl.getBlogById(blogId);
-                    updatedBlog.ifPresent(blog -> blogCache.put(blogId, blog));
+                    updatedBlog.ifPresent(blog -> {
+                        Integer userId = blog.getUserId();
+                        String cacheKey = generateBlogCacheKey(blogId, userId, userId);
+                        blogCache.put(cacheKey, blog);
+                    });
                 } catch (Exception e) {
                     logger.error("Failed to flush pending view counts for blog ID: {}", blogId, e);
                 }
@@ -168,7 +166,8 @@ public class CacheableBlogServiceImpl implements BlogService {
         long newDelta = viewCountDelta.get();
 
         BlogResponseDTO adjustedResponse = BlogMapper.toResponseDTOWithAdjustedViewCount(response, newDelta);
-        blogCache.put(response.getPostId(), adjustedResponse);
+        String cacheKey = generateBlogCacheKey(response.getPostId(), response.getUserId(), response.getUserId());
+        blogCache.put(cacheKey, adjustedResponse);
 
         invalidateUserAndStatusCaches(response.getUserId(), "pending");
         logger.info("Relevant caches invalidated after blog creation");
@@ -185,7 +184,8 @@ public class CacheableBlogServiceImpl implements BlogService {
         long newDelta = viewCountDelta.get();
 
         BlogResponseDTO adjustedResponse = BlogMapper.toResponseDTOWithAdjustedViewCount(response, newDelta);
-        blogCache.put(blogId, adjustedResponse);
+        String cacheKey = generateBlogCacheKey(blogId, response.getUserId(), response.getUserId());
+        blogCache.put(cacheKey, adjustedResponse);
 
         invalidateUserAndStatusCaches(response.getUserId(), "pending");
         logger.info("Blog cache updated and relevant list caches invalidated for blog ID: {}", blogId);
@@ -198,7 +198,8 @@ public class CacheableBlogServiceImpl implements BlogService {
         logger.info("Deleting blog ID: {} - removing from caches", blogId);
         BlogResponseDTO blog = blogServiceImpl.getBlogById(blogId).orElseThrow(() -> new BlogNotFoundException("Blog not found"));
         blogServiceImpl.deleteBlog(blogId);
-        blogCache.invalidate(blogId);
+        String cacheKey = generateBlogCacheKey(blogId, blog.getUserId(), blog.getUserId());
+        blogCache.invalidate(cacheKey);
         invalidateUserAndStatusCaches(blog.getUserId(), blog.getBlogApprovalStatus().toString());
         logger.info("Blog removed from cache and relevant list caches invalidated for blog ID: {}", blogId);
     }
@@ -213,7 +214,8 @@ public class CacheableBlogServiceImpl implements BlogService {
         long newDelta = viewCountDelta.get();
 
         BlogResponseDTO adjustedResponse = BlogMapper.toResponseDTOWithAdjustedViewCount(response, newDelta);
-        blogCache.put(blogId, adjustedResponse);
+        String cacheKey = generateBlogCacheKey(blogId, response.getUserId(), response.getUserId());
+        blogCache.put(cacheKey, adjustedResponse);
 
         invalidateUserAndStatusCaches(response.getUserId(), response.getBlogApprovalStatus().toString());
         logger.info("Updated blog cache and relevant list caches invalidated after approval status change for blog ID: {}", blogId);
@@ -224,35 +226,44 @@ public class CacheableBlogServiceImpl implements BlogService {
     @Override
     public BlogResponseDTO likeBlog(Integer blogId) {
         logger.info("Processing like for blog ID: {}", blogId);
+        Integer currentUserId = jwtUtils.getUserIdFromContext();
 
         BlogResponseDTO response = blogServiceImpl.likeBlog(blogId);
 
-        AtomicLong viewCountDelta = viewCountCache.get(blogId, k -> new AtomicLong(0));
-        long newDelta = viewCountDelta.get();
+        // Invalidate cache for all users viewing this blog
+        blogCache.asMap().keySet().stream()
+                .filter(key -> key.startsWith("blog:" + blogId))
+                .forEach(blogCache::invalidate);
 
-        BlogResponseDTO adjustedResponse = BlogMapper.toResponseDTOWithAdjustedViewCount(response, newDelta);
-        blogCache.put(blogId, adjustedResponse);
+        // Update cache for current user
+        String cacheKey = generateBlogCacheKey(blogId, response.getUserId(), currentUserId);
+        AtomicLong viewCountDelta = viewCountCache.get(blogId, k -> new AtomicLong(0));
+        BlogResponseDTO adjustedResponse = BlogMapper.toResponseDTOWithAdjustedViewCount(response, viewCountDelta.get());
+        blogCache.put(cacheKey, adjustedResponse);
 
         invalidateUserAndStatusCaches(response.getUserId(), response.getBlogApprovalStatus().toString());
-        logger.info("Updated blog cache and relevant list caches invalidated after like for blog ID: {}", blogId);
         return adjustedResponse;
     }
 
     @Override
     public BlogResponseDTO unlikeBlog(Integer blogId) {
         logger.info("Processing unlike for blog ID: {}", blogId);
+        Integer currentUserId = jwtUtils.getUserIdFromContext();
 
         BlogResponseDTO response = blogServiceImpl.unlikeBlog(blogId);
 
-        AtomicLong viewCountDelta = viewCountCache.get(blogId, k -> new AtomicLong(0));
-        long newDelta = viewCountDelta.get();
+        // Invalidate cache for all users viewing this blog
+        blogCache.asMap().keySet().stream()
+                .filter(key -> key.startsWith("blog:" + blogId))
+                .forEach(blogCache::invalidate);
 
-        BlogResponseDTO adjustedResponse = BlogMapper.toResponseDTOWithAdjustedViewCount(response, newDelta);
-        blogCache.put(blogId, adjustedResponse);
+        // Update cache for current user
+        String cacheKey = generateBlogCacheKey(blogId, response.getUserId(), currentUserId);
+        AtomicLong viewCountDelta = viewCountCache.get(blogId, k -> new AtomicLong(0));
+        BlogResponseDTO adjustedResponse = BlogMapper.toResponseDTOWithAdjustedViewCount(response, viewCountDelta.get());
+        blogCache.put(cacheKey, adjustedResponse);
 
         invalidateUserAndStatusCaches(response.getUserId(), response.getBlogApprovalStatus().toString());
-        logger.info("Updated blog cache and relevant list caches invalidated after unlike for blog ID: {}", blogId);
-
         return adjustedResponse;
     }
 

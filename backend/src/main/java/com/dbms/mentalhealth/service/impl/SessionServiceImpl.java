@@ -207,7 +207,7 @@ public class SessionServiceImpl implements SessionService {
 
     @Override
     @Transactional
-    public String getAverageSessionDuration() {
+    public String   getAverageSessionDuration() {
         List<Session> sessions = sessionRepository.findAll();
         if (sessions.isEmpty()) {
             return "0m 0s";

@@ -42,7 +42,7 @@ public class CacheConfig {
     private Long cacheExpiry;
 
     @Bean
-    public Cache<Integer, BlogResponseDTO> blogCache() {
+    public Cache<String, BlogResponseDTO> blogCache() {
         return Caffeine.newBuilder()
                 .expireAfterAccess(cacheExpiry, TimeUnit.MINUTES)
                 .maximumSize(100)
@@ -76,7 +76,7 @@ public class CacheConfig {
     @Bean
     public Cache<String, Boolean> recentViewCache() {
         return Caffeine.newBuilder()
-                .expireAfterWrite(1, TimeUnit.MINUTES) // Adjust the duration as needed
+                .expireAfterWrite(10, TimeUnit.MINUTES)
                 .maximumSize(10000)
                 .removalListener((key, value, cause) ->
                         logger.info(String.format("Key %s was removed (%s)", key, cause)))
