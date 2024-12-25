@@ -17,7 +17,7 @@ const handleUpdateTimeSlot = async (
     console.log("end", endTime);
     
     // Construct the API URL with the appropriate userID and timeSlotId
-    const url = `${TIME_SLOT_API_ENDPOINTS.UPDATE_TIME_SLOTS_BY_ID(userID, timeSlotId)}`;
+    const url = `${TIME_SLOT_API_ENDPOINTS.UPDATE_TIME_SLOTS_BY_ID(userID, timeSlotId)}?idType=userId`;
     
     // Send PUT request to update the time slot
     const response = await fetch(url, {

@@ -6,6 +6,7 @@ import { Star, X, MessageCircle, Calendar, Shield } from "lucide-react";
 import { initiateSession } from "@/service/session/initiateSession";
 import { ListenerDetails } from "@/lib/types";
 import "@/styles/global.css";
+import InlineLoader from "../ui/inlineLoader";
 interface ListenerModalProps {
   closeModal: () => void;
   userId: string;
@@ -237,9 +238,7 @@ const ListenerModal: React.FC<ListenerModalProps> = ({
             </div>
           </div>
         ) : (
-          <div className="flex items-center justify-center h-40">
-            <div className="loader" />
-          </div>
+          <InlineLoader height="h-72"/>
         )}
 
         <button

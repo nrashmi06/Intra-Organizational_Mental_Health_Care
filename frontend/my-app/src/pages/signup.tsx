@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -16,13 +16,13 @@ export default function SignIn() {
   const router = useRouter();
 
   // State to store form values
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [anonymousName, setAnonymousName] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [anonymousName, setAnonymousName] = useState("");
   const [loading, setLoading] = useState(false); // For button loading state
   const [isSubmitted, setIsSubmitted] = useState(false); // To manage the popup visibility
-  const [successMessage, setSuccessMessage] = useState(''); // To store success message
-  const [errorMessage, setErrorMessage] = useState(''); // To store error messages
+  const [successMessage, setSuccessMessage] = useState(""); // To store success message
+  const [errorMessage, setErrorMessage] = useState(""); // To store error messages
 
   // Handle the form submission
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -32,7 +32,14 @@ export default function SignIn() {
       alert("Please fill in all fields.");
       return;
     }
-
+    if (
+      !email.match(
+        /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+      )
+    ) {
+      alert("Please enter a valid email address.");
+      return;
+    }
     setLoading(true);
 
     try {
@@ -45,20 +52,26 @@ export default function SignIn() {
       console.log("Email verification initiated:", verificationResponse);
 
       // Show success popup
-      setSuccessMessage("A verification email has been sent to your email address. Please verify it before logging in.");
+      setSuccessMessage(
+        "A verification email has been sent to your email address. Please verify it before logging in."
+      );
       setIsSubmitted(true);
 
       setTimeout(() => {
         setIsSubmitted(false);
         router.push("/signin"); // Redirect to the login page
       }, 5000); // Redirect after 5 seconds
-
     } catch (error: unknown) {
       if (error instanceof Error) {
-        console.error("Error during registration or email verification:", error);
+        console.error(
+          "Error during registration or email verification:",
+          error
+        );
         setErrorMessage(error.message || "Something went wrong.");
       } else {
-        console.error("Unknown error during registration or email verification");
+        console.error(
+          "Unknown error during registration or email verification"
+        );
         setErrorMessage("An unexpected error occurred.");
       }
     } finally {
@@ -146,7 +159,11 @@ export default function SignIn() {
 
               <Button
                 type="submit"
-                className={`w-full mt-4 ${loading ? "bg-gray-400" : "bg-black text-white hover:bg-black/90"}`}
+                className={`w-full mt-4 ${
+                  loading
+                    ? "bg-gray-400"
+                    : "bg-black text-white hover:bg-black/90"
+                }`}
                 disabled={loading}
               >
                 {loading ? "Verifying..." : "Sign Up"}
@@ -160,9 +177,14 @@ export default function SignIn() {
       {isSubmitted && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-10">
           <div className="bg-white p-6 rounded-lg shadow-lg text-center">
-            <h3 className="text-lg font-semibold text-green-600">Check Your Email!</h3>
+            <h3 className="text-lg font-semibold text-green-600">
+              Check Your Email!
+            </h3>
             <p className="text-sm text-gray-600">{successMessage}</p>
-            <Button onClick={() => setIsSubmitted(false)} className="mt-4 bg-black text-white hover:bg-black/90">
+            <Button
+              onClick={() => setIsSubmitted(false)}
+              className="mt-4 bg-black text-white hover:bg-black/90"
+            >
               OK
             </Button>
           </div>
@@ -175,7 +197,10 @@ export default function SignIn() {
           <div className="bg-white p-6 rounded-lg shadow-lg text-center">
             <h3 className="text-lg font-semibold text-red-600">Error</h3>
             <p className="text-sm text-gray-600">{errorMessage}</p>
-            <Button onClick={() => setErrorMessage('')} className="mt-4 bg-black text-white hover:bg-black/90">
+            <Button
+              onClick={() => setErrorMessage("")}
+              className="mt-4 bg-black text-white hover:bg-black/90"
+            >
               OK
             </Button>
           </div>

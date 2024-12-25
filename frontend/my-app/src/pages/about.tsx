@@ -13,7 +13,7 @@ export default function Component() {
     <div className="flex flex-col min-h-screen">
       <Navbar />
       {/* Hero Section */}
-      <section className="w-full py-12 md:py-24 lg:py-32" style={{ background: 'linear-gradient(90deg, rgba(224,201,232,1) 0%, rgba(232,204,240,1) 3%, rgba(235,231,231,1) 18%, rgba(202,202,255,1) 41%, rgba(216,247,254,1) 95%)' }}>
+      <section className="w-full py-12 md:py-24 lg:py-32" style={{ background: 'linear-gradient(90deg, rgb(179, 245, 220) 0%, rgb(182, 230, 200) 3%, rgb(231, 234, 235) 18%, rgb(231, 233, 206) 41%, rgb(212, 247, 167) 95%)' }}>
         <div className="container px-4 md:px-6 mx-auto">
           <div className="flex flex-col items-center space-y-4 text-center">
             <div className="space-y-2">
