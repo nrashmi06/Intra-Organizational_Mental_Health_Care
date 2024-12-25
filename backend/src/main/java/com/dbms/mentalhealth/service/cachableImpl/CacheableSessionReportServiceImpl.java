@@ -18,6 +18,7 @@ import java.util.List;
 @Primary
 public class CacheableSessionReportServiceImpl implements SessionReportService {
 
+    private static final String CACHE_VERSION = "v1";
     private final SessionReportServiceImpl sessionReportServiceImpl;
     private final Cache<Integer, SessionReportResponseDTO> sessionReportCache;
     private final Cache<String, List<SessionReportResponseDTO>> sessionReportListCache;
@@ -30,6 +31,15 @@ public class CacheableSessionReportServiceImpl implements SessionReportService {
         this.sessionReportListCache = sessionReportListCache;
         this.sessionReportSummaryCache = sessionReportSummaryCache;
         logger.info("CacheableSessionReportServiceImpl initialized with cache stats enabled");
+    }
+
+    // Cache key generators
+    private String generateSessionReportListCacheKey(String type, Integer id) {
+        return String.format("%s:session_report:%s:%d", CACHE_VERSION, type, id);
+    }
+
+    private String generateSessionReportSummaryCacheKey() {
+        return String.format("%s:session_report:summary", CACHE_VERSION);
     }
 
     @Override
@@ -46,80 +56,47 @@ public class CacheableSessionReportServiceImpl implements SessionReportService {
     @Override
     @Transactional(readOnly = true)
     public List<SessionReportResponseDTO> getReportBySessionId(Integer sessionId) {
-        String cacheKey = "session_report_" + sessionId;
+        String cacheKey = generateSessionReportListCacheKey("session", sessionId);
         logger.info("Cache lookup for session report with key: {}", cacheKey);
 
-        List<SessionReportResponseDTO> cachedReport = sessionReportListCache.getIfPresent(cacheKey);
-        if (cachedReport != null) {
-            logger.debug("Cache HIT - Returning cached report for session ID: {}", sessionId);
-            return cachedReport;
-        }
-
-        logger.info("Cache MISS - Fetching report from database for session ID: {}", sessionId);
-        List<SessionReportResponseDTO> response = sessionReportServiceImpl.getReportBySessionId(sessionId);
-        sessionReportListCache.put(cacheKey, response);
-        logger.debug("Cached report for session ID: {}", sessionId);
-
-        return response;
+        return sessionReportListCache.get(cacheKey, k -> {
+            logger.debug("Cache MISS - Fetching report from database for session ID: {}", sessionId);
+            return sessionReportServiceImpl.getReportBySessionId(sessionId);
+        });
     }
 
     @Override
     @Transactional(readOnly = true)
     public SessionReportResponseDTO getReportById(Integer reportId) {
         logger.info("Cache lookup for report ID: {}", reportId);
-        SessionReportResponseDTO cachedReport = sessionReportCache.getIfPresent(reportId);
-
-        if (cachedReport != null) {
-            logger.debug("Cache HIT - Returning cached report for ID: {}", reportId);
-            return cachedReport;
-        }
-
-        logger.info("Cache MISS - Fetching report from database for ID: {}", reportId);
-        SessionReportResponseDTO response = sessionReportServiceImpl.getReportById(reportId);
-        sessionReportCache.put(reportId, response);
-        logger.debug("Cached report for ID: {}", reportId);
-
-        return response;
+        return sessionReportCache.get(reportId, k -> {
+            logger.debug("Cache MISS - Fetching report from database for ID: {}", reportId);
+            return sessionReportServiceImpl.getReportById(reportId);
+        });
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<SessionReportResponseDTO> getAllUserReports(Integer userId) {
-        String cacheKey = "user_report_" + userId;
+        String cacheKey = generateSessionReportListCacheKey("user", userId);
         logger.info("Cache lookup for user report with key: {}", cacheKey);
 
-        List<SessionReportResponseDTO> cachedReport = sessionReportListCache.getIfPresent(cacheKey);
-        if (cachedReport != null) {
-            logger.debug("Cache HIT - Returning cached report for user ID: {}", userId);
-            return cachedReport;
-        }
-
-        logger.info("Cache MISS - Fetching report from database for user ID: {}", userId);
-        List<SessionReportResponseDTO> response = sessionReportServiceImpl.getAllUserReports(userId);
-        sessionReportListCache.put(cacheKey, response);
-        logger.debug("Cached report for user ID: {}", userId);
-
-        return response;
+        return sessionReportListCache.get(cacheKey, k -> {
+            logger.debug("Cache MISS - Fetching report from database for user ID: {}", userId);
+            return sessionReportServiceImpl.getAllUserReports(userId);
+        });
     }
 
     @Override
     @Transactional(readOnly = true)
     public SessionReportSummaryResponseDTO getReportSummary() {
-        String cacheKey = "report_summary";
+        String cacheKey = generateSessionReportSummaryCacheKey();
         logger.info("Cache lookup for report summary with key: {}", cacheKey);
 
-        SessionReportSummaryResponseDTO cachedSummary = sessionReportSummaryCache.getIfPresent(cacheKey);
-        if (cachedSummary != null) {
-            logger.debug("Cache HIT - Returning cached report summary");
-            return cachedSummary;
-        }
-
-        logger.info("Cache MISS - Fetching report summary from database");
-        SessionReportSummaryResponseDTO response = sessionReportServiceImpl.getReportSummary();
-        sessionReportSummaryCache.put(cacheKey, response);
-        logger.debug("Cached report summary");
-
-        return response;
+        return sessionReportSummaryCache.get(cacheKey, k -> {
+            logger.debug("Cache MISS - Fetching report summary from database");
+            return sessionReportServiceImpl.getReportSummary();
+        });
     }
 
     public void logCacheStats() {
