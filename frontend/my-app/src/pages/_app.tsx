@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/router";
 import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
@@ -22,21 +22,36 @@ type AppPropsWithLayout = AppProps & {
 
 export default function MyApp({ Component, pageProps }: AppPropsWithLayout) {
   const [loading, setLoading] = useState(false);
+  const loadingTimeoutRef = useRef<NodeJS.Timeout>();
+  const showLoaderTimeoutRef = useRef<NodeJS.Timeout>();
   const router = useRouter();
   const getLayout = Component.getLayout ?? ((page) => page);
-
-  // Check if current route is a dashboard route
   const isDashboardRoute = router.pathname.includes("/dashboard");
 
   useEffect(() => {
     const handleStart = (url: string) => {
+      // Clear any existing timeouts
+      if (loadingTimeoutRef.current) clearTimeout(loadingTimeoutRef.current);
+      if (showLoaderTimeoutRef.current) clearTimeout(showLoaderTimeoutRef.current);
+
       // Only show loader if navigating to a different path
       if (url !== router.asPath) {
-        setLoading(true);
+        // Only show loader if loading takes more than 300ms
+        showLoaderTimeoutRef.current = setTimeout(() => {
+          setLoading(true);
+        }, 300);
+
+        // Safety timeout to remove loader after 5 seconds
+        loadingTimeoutRef.current = setTimeout(() => {
+          setLoading(false);
+        }, 5000);
       }
     };
 
     const handleComplete = () => {
+      // Clear all timeouts
+      if (loadingTimeoutRef.current) clearTimeout(loadingTimeoutRef.current);
+      if (showLoaderTimeoutRef.current) clearTimeout(showLoaderTimeoutRef.current);
       setLoading(false);
     };
 
@@ -45,6 +60,8 @@ export default function MyApp({ Component, pageProps }: AppPropsWithLayout) {
     router.events.on("routeChangeError", handleComplete);
 
     return () => {
+      if (loadingTimeoutRef.current) clearTimeout(loadingTimeoutRef.current);
+      if (showLoaderTimeoutRef.current) clearTimeout(showLoaderTimeoutRef.current);
       router.events.off("routeChangeStart", handleStart);
       router.events.off("routeChangeComplete", handleComplete);
       router.events.off("routeChangeError", handleComplete);
@@ -56,19 +73,19 @@ export default function MyApp({ Component, pageProps }: AppPropsWithLayout) {
       <PersistGate loading={null} persistor={persistor}>
         {loading && (
           <div
-            className={
-              isDashboardRoute
-                ? ""
-                : "fixed inset-0 z-50 flex items-center justify-center bg-white/80"
-            }
+            className={`fixed inset-0 z-[9999] flex items-center justify-center transition-opacity duration-200 ${
+              isDashboardRoute ? "bg-transparent" : "bg-white/80 backdrop-blur-sm"
+            }`}
           >
             {isDashboardRoute ? <DashboardLoader /> : <Loading />}
           </div>
         )}
-        <NotificationWrapper>
-          <NotificationPopup />
-          {getLayout(<Component {...pageProps} />)}
-        </NotificationWrapper>
+        <div className={loading ? "pointer-events-none" : ""}>
+          <NotificationWrapper>
+            <NotificationPopup />
+            {getLayout(<Component {...pageProps} />)}
+          </NotificationWrapper>
+        </div>
       </PersistGate>
     </Provider>
   );

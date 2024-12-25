@@ -22,6 +22,7 @@ import Details from "./ModalDetails";
 import { User as UserType } from "@/lib/types";
 import UserIcon from "@/components/ui/userIcon";
 import router from "next/router";
+import InlineLoader from "@/components/ui/inlineLoader";
 
 export function RegisteredUsersTable() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -72,37 +73,34 @@ export function RegisteredUsersTable() {
 
   return (
     <div className="space-y-8">
-      {loading ? (
-        <div className="flex justify-center items-center min-h-32">
-          <div className="loader"></div>
-        </div>
-      ) : (
-        <>
-          <div className="flex flex-col md:flex-row md:items-center gap-4">
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-              <Input
-                placeholder="Search by name or ID..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 h-11 bg-white"
-              />
-            </div>
-            <Select
-              value={statusFilter}
-              onValueChange={(value) =>
-                fetchUsersByProfileStatus(value as "ACTIVE" | "SUSPENDED")
-              }
-            >
-              <SelectTrigger className="w-[160px] h-11 bg-white">
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent className="bg-white">
-                <SelectItem value="ACTIVE">Active</SelectItem>
-                <SelectItem value="SUSPENDED">Suspended</SelectItem>
-              </SelectContent>
-            </Select>
+      <>
+        <div className="flex flex-col md:flex-row md:items-center gap-4">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <Input
+              placeholder="Search by name or ID..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 h-11 bg-white"
+            />
           </div>
+          <Select
+            value={statusFilter}
+            onValueChange={(value) =>
+              fetchUsersByProfileStatus(value as "ACTIVE" | "SUSPENDED")
+            }
+          >
+            <SelectTrigger className="w-[160px] h-11 bg-white">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent className="bg-white">
+              <SelectItem value="ACTIVE">Active</SelectItem>
+              <SelectItem value="SUSPENDED">Suspended</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        {loading && <InlineLoader />}
+        {!loading && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6">
             {paginatedUsers.length === 0 ? (
               <div className="col-span-full text-center py-12 bg-gray-50 rounded-lg border border-dashed">
@@ -191,61 +189,62 @@ export function RegisteredUsersTable() {
               ))
             )}
           </div>
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4">
-            <p className="text-sm text-gray-500">
-              Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
-              {Math.min(currentPage * itemsPerPage, filteredUsers.length)} of{" "}
-              {filteredUsers.length} users
-            </p>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className="h-9"
-              >
-                Previous
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage((p) => p + 1)}
-                disabled={currentPage * itemsPerPage >= filteredUsers.length}
-                className="h-9"
-              >
-                Next
-              </Button>
-            </div>
+        )}
+
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4">
+          <p className="text-sm text-gray-500">
+            Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
+            {Math.min(currentPage * itemsPerPage, filteredUsers.length)} of{" "}
+            {filteredUsers.length} users
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="h-9"
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((p) => p + 1)}
+              disabled={currentPage * itemsPerPage >= filteredUsers.length}
+              className="h-9"
+            >
+              Next
+            </Button>
           </div>
-          {successMessage && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm">
-              <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full mx-4">
-                <div className="flex flex-col items-center text-center space-y-4">
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-                    <CheckCircle2 className="w-10 h-10 text-green-600" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-gray-900">
-                    Success!
-                  </h3>
-                  <p className="text-gray-600">{successMessage}</p>
+        </div>
+        {successMessage && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm">
+            <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full mx-4">
+              <div className="flex flex-col items-center text-center space-y-4">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                  <CheckCircle2 className="w-10 h-10 text-green-600" />
                 </div>
+                <h3 className="text-xl font-semibold text-gray-900">
+                  Success!
+                </h3>
+                <p className="text-gray-600">{successMessage}</p>
               </div>
             </div>
-          )}
-          {detailsModal && selectedUser && (
-            <Details
-              userId={selectedUser}
-              handleClose={() => {
-                setDetailsModal(false);
-                setSelectedUser(null);
-              }}
-              statusFilter={statusFilter}
-              setSuccessMessage={setSuccessMessage}
-            />
-          )}
-        </>
-      )}
+          </div>
+        )}
+        {detailsModal && selectedUser && (
+          <Details
+            userId={selectedUser}
+            handleClose={() => {
+              setDetailsModal(false);
+              setSelectedUser(null);
+            }}
+            statusFilter={statusFilter}
+            setSuccessMessage={setSuccessMessage}
+          />
+        )}
+      </>
     </div>
   );
 }

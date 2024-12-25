@@ -13,6 +13,7 @@ import BlogApprovalTable from "@/components/dashboard/home/BlogApprovalTable";
 import UserCountGrid from "@/components/dashboard/home/LiveCount";
 import { BlogApproval } from "@/lib/types";
 import "@/styles/global.css";
+import InlineLoader from "@/components/ui/inlineLoader";
 
 const DashboardPage = () => {
   const [blogs, setBlogs] = useState<BlogApproval[]>([]);
@@ -125,9 +126,7 @@ const DashboardPage = () => {
             </div>
           </div>
           {loading ? (
-            <div className="flex justify-center items-center min-h-[200px]">
-              <div className="loader"></div>
-            </div>
+            <InlineLoader />
           ) : (
             <BlogApprovalTable blogs={blogs} statusFilter={statusFilter} />
           )}

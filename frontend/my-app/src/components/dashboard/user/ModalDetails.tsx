@@ -7,6 +7,7 @@ import { changeStatus } from "@/service/user/ChangeStatus";
 import router from "next/router";
 import { Button } from "@/components/ui/button";
 import { UserDetails } from "@/lib/types";
+import InlineLoader from "@/components/ui/inlineLoader";
 
 interface DetailsProps {
   userId: string;
@@ -73,11 +74,9 @@ const ModalDetails: React.FC<DetailsProps> = ({
         </div>
 
         {/* Content area with conditional rendering */}
-        <div className="min-h-[400px] p-6 pt-4">
+        <div className="min-h-96 p-6 pt-4">
           {isLoading ? (
-            <div className="flex justify-center items-center h-[400px]">
-              <div className="loader"></div>
-            </div>
+            <InlineLoader height="h-80"/>
           ) : error ? (
             <div className="flex items-center justify-center h-[400px] text-red-500 text-center">
               {error}

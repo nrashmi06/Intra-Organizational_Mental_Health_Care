@@ -16,6 +16,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import ListenerDetailsForAdmin from "@/components/dashboard/listener/ModalApplication";
 import { ListenerApplication } from "@/lib/types";
+import InlineLoader from "@/components/ui/inlineLoader";
 
 export function ListenerApplicationsTable() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -120,9 +121,7 @@ export function ListenerApplicationsTable() {
       </div>
 
       {loading ? (
-        <div className="flex justify-center items-center min-h-auto">
-          <div className="loader"></div>
-        </div>
+        <InlineLoader/>
       ) : paginatedApplications.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {paginatedApplications.map((application) => (
