@@ -10,6 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronizationAdapter;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -41,6 +43,15 @@ public class CacheableTimeSlotServiceImpl implements TimeSlotService {
         return String.format(INDIVIDUAL_CACHE_KEY_FORMAT, timeSlotId);
     }
 
+    private void invalidateCacheAfterCommit(String idType, Integer id) {
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronizationAdapter() {
+            @Override
+            public void afterCommit() {
+                invalidateCache(idType, id);
+            }
+        });
+    }
+
     private void invalidateCache(String idType, Integer id) {
         String prefix = String.format("timeslots:%s:%d", idType.toLowerCase(), id);
         timeSlotCache.asMap().keySet().stream()
@@ -66,7 +77,7 @@ public class CacheableTimeSlotServiceImpl implements TimeSlotService {
     @Transactional
     public synchronized List<TimeSlotResponseDTO> createTimeSlots(String idType, Integer id, LocalDate startDate, LocalDate endDate, TimeSlotCreateRequestDTO request) {
         List<TimeSlotResponseDTO> response = timeSlotServiceImpl.createTimeSlots(idType, id, startDate, endDate, request);
-        invalidateCache(idType, id);
+        invalidateCacheAfterCommit(idType, id);
         return response;
     }
 
@@ -85,7 +96,7 @@ public class CacheableTimeSlotServiceImpl implements TimeSlotService {
     public TimeSlotResponseDTO updateTimeSlot(String idType, Integer id, Integer timeSlotId,
                                               TimeSlotCreateRequestDTO.TimeSlotDTO timeSlotDTO) {
         TimeSlotResponseDTO response = timeSlotServiceImpl.updateTimeSlot(idType, id, timeSlotId, timeSlotDTO);
-        invalidateCache(idType, id);
+        invalidateCacheAfterCommit(idType, id);
         individualTimeSlotCache.put(generateIndividualCacheKey(timeSlotId), response);
         return response;
     }
@@ -94,7 +105,7 @@ public class CacheableTimeSlotServiceImpl implements TimeSlotService {
     @Transactional
     public void deleteTimeSlot(String idType, Integer id, Integer timeSlotId) {
         timeSlotServiceImpl.deleteTimeSlot(idType, id, timeSlotId);
-        invalidateCache(idType, id);
+        invalidateCacheAfterCommit(idType, id);
         individualTimeSlotCache.invalidate(generateIndividualCacheKey(timeSlotId));
     }
 
@@ -103,7 +114,7 @@ public class CacheableTimeSlotServiceImpl implements TimeSlotService {
     public void deleteTimeSlotsInDateRangeAndAvailability(String idType, Integer id,
                                                           LocalDate startDate, LocalDate endDate, Boolean isAvailable) {
         timeSlotServiceImpl.deleteTimeSlotsInDateRangeAndAvailability(idType, id, startDate, endDate, isAvailable);
-        invalidateCache(idType, id);
+        invalidateCacheAfterCommit(idType, id);
     }
 
     public void logCacheStats() {
