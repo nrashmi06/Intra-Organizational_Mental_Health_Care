@@ -4,6 +4,7 @@ import com.dbms.mentalhealth.exception.admin.AdminNotFoundException;
 import com.dbms.mentalhealth.exception.adminSettings.AdminSettingsNotFoundException;
 import com.dbms.mentalhealth.exception.adminSettings.InvalidAdminSettingsException;
 import com.dbms.mentalhealth.exception.appointment.AppointmentNotFoundException;
+import com.dbms.mentalhealth.exception.appointment.InvalidRequestException;
 import com.dbms.mentalhealth.exception.blog.BlogNotFoundException;
 import com.dbms.mentalhealth.exception.blog.InvalidBlogActionException;
 import com.dbms.mentalhealth.exception.emergency.EmergencyHelplineNotFoundException;
@@ -46,7 +47,10 @@ public class CustomExceptionHandler {
         return new ResponseEntity<>("An error occurred", ex.getStatusCode());
     }
 
-
+    @ExceptionHandler(InvalidRequestException.class)
+    public ResponseEntity<String> handleInvalidRequestException(InvalidRequestException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    }
     @ExceptionHandler(IncorrectResultSizeDataAccessException.class)
     public ResponseEntity<Object> handleIncorrectResultSizeDataAccessException(IncorrectResultSizeDataAccessException ex, WebRequest request) {
         return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);

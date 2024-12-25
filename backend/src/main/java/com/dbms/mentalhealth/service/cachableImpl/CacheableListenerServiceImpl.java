@@ -16,89 +16,73 @@ import java.util.List;
 @Service
 @Primary
 public class CacheableListenerServiceImpl implements ListenerService {
-
     private final ListenerServiceImpl listenerServiceImpl;
     private final Cache<String, ListenerDetailsResponseDTO> listenerDetailsCache;
     private final Cache<String, List<UserActivityDTO>> listenerListCache;
     private static final Logger logger = LoggerFactory.getLogger(CacheableListenerServiceImpl.class);
 
-    public CacheableListenerServiceImpl(ListenerServiceImpl listenerServiceImpl, Cache<String, ListenerDetailsResponseDTO> listenerDetailsCache, Cache<String, List<UserActivityDTO>> listenerListCache) {
+    public CacheableListenerServiceImpl(ListenerServiceImpl listenerServiceImpl,
+                                        Cache<String, ListenerDetailsResponseDTO> listenerDetailsCache,
+                                        Cache<String, List<UserActivityDTO>> listenerListCache) {
         this.listenerServiceImpl = listenerServiceImpl;
         this.listenerDetailsCache = listenerDetailsCache;
         this.listenerListCache = listenerListCache;
-        logger.info("CacheableListenerServiceImpl initialized with cache stats enabled");
+        logger.info("CacheableListenerServiceImpl initialized");
     }
 
-    private String generateCacheKey(String type, Integer id) {
-        return type + "_" + id;
+    private String generateListenerKey(String type, Integer id) {
+        return String.format("listener:%s:%d", type.toLowerCase(), id);
+    }
+
+    private String generateListKey(String type) {
+        return String.format("listeners:%s", type.toLowerCase());
     }
 
     @Override
     @Transactional(readOnly = true)
     public ListenerDetailsResponseDTO getListenerDetails(String type, Integer id) {
-        String cacheKey = generateCacheKey(type, id);
-        logger.info("Cache lookup for listener details with key: {}", cacheKey);
-        ListenerDetailsResponseDTO cachedDetails = listenerDetailsCache.getIfPresent(cacheKey);
-
-        if (cachedDetails != null) {
-            logger.debug("Cache HIT - Returning cached listener details for key: {}", cacheKey);
-            return cachedDetails;
-        }
-
-        logger.info("Cache MISS - Fetching listener details from database for key: {}", cacheKey);
-        ListenerDetailsResponseDTO response = listenerServiceImpl.getListenerDetails(type, id);
-        listenerDetailsCache.put(cacheKey, response);
-        logger.debug("Cached listener details for key: {}", cacheKey);
-
-        return response;
+        String cacheKey = generateListenerKey(type, id);
+        return listenerDetailsCache.get(cacheKey, k -> {
+            logger.info("Cache miss for key: {}", k);
+            return listenerServiceImpl.getListenerDetails(type, id);
+        });
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<UserActivityDTO> getAllListeners(String type) {
-        String cacheKey = "all_listeners_" + type.toLowerCase();
-        logger.info("Cache lookup for all listeners with key: {}", cacheKey);
-
-        List<UserActivityDTO> cachedListeners = listenerListCache.getIfPresent(cacheKey);
-        if (cachedListeners != null) {
-            logger.debug("Cache HIT - Returning cached listeners for key: {}", cacheKey);
-            return cachedListeners;
-        }
-
-        logger.info("Cache MISS - Fetching listeners from database for key: {}", cacheKey);
-        List<UserActivityDTO> response = listenerServiceImpl.getAllListeners(type);
-        listenerListCache.put(cacheKey, response);
-        logger.debug("Cached listeners for key: {}", cacheKey);
-
-        return response;
+        String cacheKey = generateListKey(type);
+        return listenerListCache.get(cacheKey, k -> {
+            logger.info("Cache miss for key: {}", k);
+            return listenerServiceImpl.getAllListeners(type);
+        });
     }
 
     @Override
     @Transactional
     public String suspendOrUnsuspendListener(Integer listenerId, String action) {
-        logger.info("Suspending or unsuspending listener ID: {} with action: {}", listenerId, action);
         String response = listenerServiceImpl.suspendOrUnsuspendListener(listenerId, action);
-
-        // Invalidate both possible cache keys
-        listenerDetailsCache.invalidate(generateCacheKey("listenerId", listenerId));
-        listenerDetailsCache.invalidate(generateCacheKey("userId", listenerId));
-        listenerListCache.invalidateAll();
-
-        logger.info("Listener details cache invalidated and list cache invalidated for listener ID: {}", listenerId);
+        invalidateListenerCaches(listenerId);
         return response;
+    }
+
+    private void invalidateListenerCaches(Integer listenerId) {
+        listenerDetailsCache.invalidate(generateListenerKey("listenerId", listenerId));
+        listenerDetailsCache.invalidate(generateListenerKey("userId", listenerId));
+        listenerListCache.invalidateAll();
+        logger.info("Invalidated caches for listener: {}", listenerId);
     }
 
     @Override
     @Transactional
     public void incrementMessageCount(String username) {
-        logger.info("Incrementing message count for username: {}", username);
         listenerServiceImpl.incrementMessageCount(username);
-        logger.info("Message count incremented for username: {}", username);
+        listenerListCache.invalidateAll();
+        logger.info("Invalidated list cache after message count update for: {}", username);
     }
 
     public void logCacheStats() {
-        logger.info("Current Cache Statistics:");
-        logger.info("Listener Details Cache - Size: {}", listenerDetailsCache.stats());
-        logger.info("Listener List Cache - Size: {}", listenerListCache.stats());
+        logger.info("Listener Details Cache Stats: {}", listenerDetailsCache.stats());
+        logger.info("Listener List Cache Stats: {}", listenerListCache.stats());
     }
 }

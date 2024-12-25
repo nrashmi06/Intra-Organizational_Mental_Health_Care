@@ -19,28 +19,41 @@ import java.util.List;
 @Service
 @Primary
 public class CacheableListenerApplicationServiceImpl implements ListenerApplicationService {
-
     private final ListenerApplicationServiceImpl listenerApplicationServiceImpl;
-    private final Cache<Integer, ListenerApplicationResponseDTO> listenerApplicationCache;
+    private final Cache<String, ListenerApplicationResponseDTO> listenerApplicationCache;
     private final Cache<String, List<ListenerApplicationSummaryResponseDTO>> listenerApplicationListCache;
     private final Cache<String, ListenerDetailsResponseDTO> listenerDetailsCache;
     private static final Logger logger = LoggerFactory.getLogger(CacheableListenerApplicationServiceImpl.class);
 
-    public CacheableListenerApplicationServiceImpl(ListenerApplicationServiceImpl listenerApplicationServiceImpl, Cache<Integer, ListenerApplicationResponseDTO> listenerApplicationCache, Cache<String, List<ListenerApplicationSummaryResponseDTO>> listenerApplicationListCache, Cache<String, ListenerDetailsResponseDTO> listenerDetailsCache) {
+    public CacheableListenerApplicationServiceImpl(ListenerApplicationServiceImpl listenerApplicationServiceImpl,
+                                                   Cache<String, ListenerApplicationResponseDTO> listenerApplicationCache,
+                                                   Cache<String, List<ListenerApplicationSummaryResponseDTO>> listenerApplicationListCache,
+                                                   Cache<String, ListenerDetailsResponseDTO> listenerDetailsCache) {
         this.listenerApplicationServiceImpl = listenerApplicationServiceImpl;
         this.listenerApplicationCache = listenerApplicationCache;
         this.listenerApplicationListCache = listenerApplicationListCache;
         this.listenerDetailsCache = listenerDetailsCache;
-        logger.info("CacheableListenerApplicationServiceImpl initialized with cache stats enabled");
+    }
+
+    private String generateApplicationKey(Integer id) {
+        return String.format("application:%d", id);
+    }
+
+    private String generateUserApplicationKey(Integer userId) {
+        return String.format("user-application:%d", userId);
+    }
+
+    private String generateListKey(String type) {
+        return String.format("applications:%s", type.toLowerCase());
     }
 
     @Override
     @Transactional
-    public ListenerApplicationResponseDTO submitApplication(ListenerApplicationRequestDTO applicationRequestDTO, MultipartFile certificate) throws Exception {
-        ListenerApplicationResponseDTO response = listenerApplicationServiceImpl.submitApplication(applicationRequestDTO, certificate);
-        listenerApplicationCache.put(response.getApplicationId(), response);
-        listenerApplicationListCache.invalidateAll();
-        logger.info("Cached new listener application and invalidated list cache after application submission");
+    public ListenerApplicationResponseDTO submitApplication(ListenerApplicationRequestDTO dto, MultipartFile certificate) throws Exception {
+        ListenerApplicationResponseDTO response = listenerApplicationServiceImpl.submitApplication(dto, certificate);
+        String key = generateApplicationKey(response.getApplicationId());
+        listenerApplicationCache.put(key, response);
+        invalidateListCaches();
         return response;
     }
 
@@ -48,120 +61,72 @@ public class CacheableListenerApplicationServiceImpl implements ListenerApplicat
     @Transactional(readOnly = true)
     public ListenerApplicationResponseDTO getApplicationById(Integer applicationId) {
         if (applicationId == null) {
-            logger.warn("Null application ID received");
-            throw new ListenerApplicationNotFoundException("Listener Application ID cannot be null");
+            throw new ListenerApplicationNotFoundException("Application ID cannot be null");
         }
-
-        logger.info("Cache lookup for listener application ID: {}", applicationId);
-        ListenerApplicationResponseDTO cachedApplication = listenerApplicationCache.getIfPresent(applicationId);
-
-        if (cachedApplication != null) {
-            logger.debug("Cache HIT - Returning cached listener application for ID: {}", applicationId);
-            return cachedApplication;
-        }
-
-        logger.info("Cache MISS - Fetching listener application from database for ID: {}", applicationId);
-        ListenerApplicationResponseDTO response = listenerApplicationServiceImpl.getApplicationById(applicationId);
-
-        if (response != null) {
-            listenerApplicationCache.put(applicationId, response);
-            logger.debug("Cached listener application for ID: {}", applicationId);
-        }
-        return response;
+        String key = generateApplicationKey(applicationId);
+        return listenerApplicationCache.get(key, k -> listenerApplicationServiceImpl.getApplicationById(applicationId));
     }
+
     @Override
     @Transactional(readOnly = true)
     public List<ListenerApplicationSummaryResponseDTO> getAllApplications() {
-        String cacheKey = "all_applications";
-        logger.info("Cache lookup for all listener applications with key: {}", cacheKey);
-
-        List<ListenerApplicationSummaryResponseDTO> cachedApplications = listenerApplicationListCache.getIfPresent(cacheKey);
-        if (cachedApplications != null) {
-            logger.debug("Cache HIT - Returning cached listener applications");
-            return cachedApplications;
-        }
-
-        logger.info("Cache MISS - Fetching listener applications from database");
-        List<ListenerApplicationSummaryResponseDTO> response = listenerApplicationServiceImpl.getAllApplications();
-        listenerApplicationListCache.put(cacheKey, response);
-        logger.debug("Cached all listener applications");
-
-        return response;
+        return listenerApplicationListCache.get("all", k -> listenerApplicationServiceImpl.getAllApplications());
     }
 
     @Override
     @Transactional
     public void deleteApplication(Integer applicationId) {
-        logger.info("Deleting listener application ID: {} - removing from caches", applicationId);
         listenerApplicationServiceImpl.deleteApplication(applicationId);
-        listenerApplicationCache.invalidate(applicationId);
-        listenerApplicationListCache.invalidateAll();
-        logger.info("Listener application removed from cache and list cache invalidated for application ID: {}", applicationId);
+        invalidateApplicationCaches(applicationId);
     }
 
     @Override
     @Transactional
-    public ListenerApplicationResponseDTO updateApplication(Integer applicationId, ListenerApplicationRequestDTO applicationRequestDTO, MultipartFile certificate) throws Exception {
-        logger.info("Updating listener application ID: {} - updating caches", applicationId);
-        ListenerApplicationResponseDTO response = listenerApplicationServiceImpl.updateApplication(applicationId, applicationRequestDTO, certificate);
-        listenerApplicationCache.put(applicationId, response);
-        listenerApplicationListCache.invalidateAll();
-        logger.info("Listener application cache updated and list cache invalidated for application ID: {}", applicationId);
+    public ListenerApplicationResponseDTO updateApplication(Integer applicationId, ListenerApplicationRequestDTO dto, MultipartFile certificate) throws Exception {
+        ListenerApplicationResponseDTO response = listenerApplicationServiceImpl.updateApplication(applicationId, dto, certificate);
+        String key = generateApplicationKey(applicationId);
+        listenerApplicationCache.put(key, response);
+        invalidateListCaches();
         return response;
     }
 
     @Override
     @Transactional
     public ListenerDetailsResponseDTO updateApplicationStatus(Integer applicationId, String status) {
-        logger.info("Updating application status for listener application ID: {} to {}", applicationId, status);
         ListenerDetailsResponseDTO response = listenerApplicationServiceImpl.updateApplicationStatus(applicationId, status);
-        listenerDetailsCache.put(String.valueOf(applicationId), response);
-        listenerApplicationListCache.invalidateAll();
-        logger.info("Listener details cache updated and list cache invalidated after status update for application ID: {}", applicationId);
+        invalidateApplicationCaches(applicationId);
+        if (response != null) {
+            String detailsKey = String.format("listener-details:%d", response.getListenerId());
+            listenerDetailsCache.put(detailsKey, response);
+        }
         return response;
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<ListenerApplicationSummaryResponseDTO> getApplicationByApprovalStatus(String status) {
-        String cacheKey = "status_" + status.toLowerCase();
-        logger.info("Cache lookup for approval status with key: {}", cacheKey);
-
-        List<ListenerApplicationSummaryResponseDTO> cachedApplications = listenerApplicationListCache.getIfPresent(cacheKey);
-        if (cachedApplications != null) {
-            logger.debug("Cache HIT - Returning cached applications for status: {}", status);
-            return cachedApplications;
-        }
-
-        logger.info("Cache MISS - Fetching applications from database for status: {}", status);
-        List<ListenerApplicationSummaryResponseDTO> response = listenerApplicationServiceImpl.getApplicationByApprovalStatus(status);
-        listenerApplicationListCache.put(cacheKey, response);
-        logger.debug("Cached applications for status: {}", status);
-
-        return response;
+        String key = generateListKey(status);
+        return listenerApplicationListCache.get(key, k -> listenerApplicationServiceImpl.getApplicationByApprovalStatus(status));
     }
 
     @Override
     @Transactional(readOnly = true)
     public ListenerApplicationResponseDTO getApplicationsByUserId(Integer userId) {
-        logger.info("Cache lookup for listener applications by user ID: {}", userId);
-        ListenerApplicationResponseDTO cachedApplication = listenerApplicationCache.getIfPresent(userId);
+        String key = generateUserApplicationKey(userId);
+        return listenerApplicationCache.get(key, k -> listenerApplicationServiceImpl.getApplicationsByUserId(userId));
+    }
 
-        if (cachedApplication != null) {
-            logger.debug("Cache HIT - Returning cached listener application for user ID: {}", userId);
-            return cachedApplication;
-        }
+    private void invalidateApplicationCaches(Integer applicationId) {
+        listenerApplicationCache.invalidate(generateApplicationKey(applicationId));
+        invalidateListCaches();
+    }
 
-        logger.info("Cache MISS - Fetching listener application from database for user ID: {}", userId);
-        ListenerApplicationResponseDTO response = listenerApplicationServiceImpl.getApplicationsByUserId(userId);
-        listenerApplicationCache.put(userId, response);
-        return response;
+    private void invalidateListCaches() {
+        listenerApplicationListCache.invalidateAll();
     }
 
     public void logCacheStats() {
-        logger.info("Current Cache Statistics:");
-        logger.info("Listener Application Cache - Size: {}", listenerApplicationCache.stats());
-        logger.info("Listener Application List Cache - Size: {}", listenerApplicationListCache.stats());
-        logger.info("Listener Details Cache - Size: {}", listenerDetailsCache.stats());
+        logger.info("Listener Application Cache Stats: {}", listenerApplicationCache.stats());
+        logger.info("Listener Application List Cache Stats: {}", listenerApplicationListCache.stats());
     }
 }

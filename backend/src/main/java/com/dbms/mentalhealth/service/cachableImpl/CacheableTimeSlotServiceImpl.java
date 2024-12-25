@@ -5,81 +5,99 @@ import com.dbms.mentalhealth.dto.TimeSlot.response.TimeSlotResponseDTO;
 import com.dbms.mentalhealth.service.TimeSlotService;
 import com.dbms.mentalhealth.service.impl.TimeSlotServiceImpl;
 import com.github.benmanes.caffeine.cache.Cache;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Objects;
 
 @Service
 @Primary
+@Slf4j
 public class CacheableTimeSlotServiceImpl implements TimeSlotService {
-
     private final TimeSlotServiceImpl timeSlotServiceImpl;
-    private final Cache<Integer, List<TimeSlotResponseDTO>> timeSlotCache;
-    private static final Logger logger = LoggerFactory.getLogger(CacheableTimeSlotServiceImpl.class);
+    private final Cache<String, List<TimeSlotResponseDTO>> timeSlotCache;
+    private final Cache<String, TimeSlotResponseDTO> individualTimeSlotCache;
+    private static final String CACHE_KEY_FORMAT = "timeslots:%s:%d:%s:%s:%s";
+    private static final String INDIVIDUAL_CACHE_KEY_FORMAT = "timeslot:%d";
 
-    public CacheableTimeSlotServiceImpl(TimeSlotServiceImpl timeSlotServiceImpl, Cache<Integer, List<TimeSlotResponseDTO>> timeSlotCache) {
+    public CacheableTimeSlotServiceImpl(TimeSlotServiceImpl timeSlotServiceImpl,
+                                        Cache<String, List<TimeSlotResponseDTO>> timeSlotCache,
+                                        Cache<String, TimeSlotResponseDTO> individualTimeSlotCache) {
         this.timeSlotServiceImpl = timeSlotServiceImpl;
         this.timeSlotCache = timeSlotCache;
-        logger.info("CacheableTimeSlotServiceImpl initialized with cache stats enabled");
+        this.individualTimeSlotCache = individualTimeSlotCache;
+        log.info("CacheableTimeSlotServiceImpl initialized");
     }
 
-    @Override
-    @Transactional
-    public List<TimeSlotResponseDTO> createTimeSlots(Integer adminId, LocalDate startDate, LocalDate endDate, TimeSlotCreateRequestDTO timeSlotCreateRequestDTO) {
-        List<TimeSlotResponseDTO> response = timeSlotServiceImpl.createTimeSlots(adminId, startDate, endDate, timeSlotCreateRequestDTO);
-        timeSlotCache.invalidate(adminId);
-        logger.info("Invalidated cache for admin ID: {} after creating time slots", adminId);
-        return response;
+    private String generateCacheKey(String idType, Integer id, LocalDate startDate, LocalDate endDate, Boolean isAvailable) {
+        return String.format(CACHE_KEY_FORMAT, idType.toLowerCase(), id, startDate, endDate, isAvailable != null ? isAvailable : "all");
+    }
+
+    private String generateIndividualCacheKey(Integer timeSlotId) {
+        return String.format(INDIVIDUAL_CACHE_KEY_FORMAT, timeSlotId);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<TimeSlotResponseDTO> getTimeSlotsByDateRangeAndAvailability(Integer adminId, LocalDate startDate, LocalDate endDate, Boolean isAvailable) {
-        int cacheKey = Objects.hash(adminId, startDate, endDate, isAvailable);
-        logger.info("Cache lookup for time slots with key: {}", cacheKey);
+    public List<TimeSlotResponseDTO> getTimeSlotsByDateRangeAndAvailability(
+            String idType, Integer id, LocalDate startDate, LocalDate endDate, Boolean isAvailable) {
+        String cacheKey = generateCacheKey(idType, id, startDate, endDate, isAvailable);
+        return timeSlotCache.get(cacheKey, k -> {
+            log.debug("Cache miss for key: {}", k);
+            return timeSlotServiceImpl.getTimeSlotsByDateRangeAndAvailability(idType, id, startDate, endDate, isAvailable);
+        });
+    }
 
-        List<TimeSlotResponseDTO> cachedTimeSlots = timeSlotCache.getIfPresent(cacheKey);
-        if (cachedTimeSlots != null) {
-            logger.debug("Cache HIT - Returning cached time slots for key: {}", cacheKey);
-            return cachedTimeSlots;
-        }
-
-        logger.info("Cache MISS - Fetching time slots from database for key: {}", cacheKey);
-        List<TimeSlotResponseDTO> response = timeSlotServiceImpl.getTimeSlotsByDateRangeAndAvailability(adminId, startDate, endDate, isAvailable);
-        timeSlotCache.put(cacheKey, response);
-        logger.debug("Cached time slots for key: {}", cacheKey);
-
+    @Override
+    @Transactional
+    public List<TimeSlotResponseDTO> createTimeSlots(String idType, Integer id, LocalDate startDate,
+                                                     LocalDate endDate, TimeSlotCreateRequestDTO request) {
+        List<TimeSlotResponseDTO> response = timeSlotServiceImpl.createTimeSlots(idType, id, startDate, endDate, request);
+        invalidateCache(idType, id);
         return response;
     }
 
     @Override
     @Transactional
-    public void deleteTimeSlotsInDateRangeAndAvailability(Integer adminId, LocalDate startDate, LocalDate endDate, Boolean isAvailable) {
-        timeSlotServiceImpl.deleteTimeSlotsInDateRangeAndAvailability(adminId, startDate, endDate, isAvailable);
-        timeSlotCache.invalidate(adminId);
-        logger.info("Invalidated cache for admin ID: {} after deleting time slots", adminId);
-    }
-
-    @Override
-    @Transactional
-    public TimeSlotResponseDTO updateTimeSlot(Integer adminId, Integer timeSlotId, TimeSlotCreateRequestDTO.TimeSlotDTO timeSlotDTO) {
-        TimeSlotResponseDTO response = timeSlotServiceImpl.updateTimeSlot(adminId, timeSlotId, timeSlotDTO);
-        timeSlotCache.invalidate(adminId);
-        logger.info("Invalidated cache for admin ID: {} after updating time slot ID: {}", adminId, timeSlotId);
+    public TimeSlotResponseDTO updateTimeSlot(String idType, Integer id, Integer timeSlotId,
+                                              TimeSlotCreateRequestDTO.TimeSlotDTO timeSlotDTO) {
+        TimeSlotResponseDTO response = timeSlotServiceImpl.updateTimeSlot(idType, id, timeSlotId, timeSlotDTO);
+        invalidateCache(idType, id);
+        individualTimeSlotCache.put(generateIndividualCacheKey(timeSlotId), response);
         return response;
     }
 
     @Override
     @Transactional
-    public void deleteTimeSlot(Integer adminId, Integer timeSlotId) {
-        timeSlotServiceImpl.deleteTimeSlot(adminId, timeSlotId);
-        timeSlotCache.invalidate(adminId);
-        logger.info("Invalidated cache for admin ID: {} after deleting time slot ID: {}", adminId, timeSlotId);
+    public void deleteTimeSlot(String idType, Integer id, Integer timeSlotId) {
+        timeSlotServiceImpl.deleteTimeSlot(idType, id, timeSlotId);
+        invalidateCache(idType, id);
+        individualTimeSlotCache.invalidate(generateIndividualCacheKey(timeSlotId));
+    }
+
+    @Override
+    @Transactional
+    public void deleteTimeSlotsInDateRangeAndAvailability(String idType, Integer id,
+                                                          LocalDate startDate, LocalDate endDate, Boolean isAvailable) {
+        timeSlotServiceImpl.deleteTimeSlotsInDateRangeAndAvailability(idType, id, startDate, endDate, isAvailable);
+        invalidateCache(idType, id);
+    }
+
+    private void invalidateCache(String idType, Integer id) {
+        String prefix = String.format("timeslots:%s:%d", idType.toLowerCase(), id);
+        timeSlotCache.asMap().keySet().stream()
+                .filter(key -> key.startsWith(prefix))
+                .forEach(key -> {
+                    timeSlotCache.invalidate(key);
+                    log.debug("Invalidated cache: {}", key);
+                });
+    }
+
+    public void logCacheStats() {
+        log.info("TimeSlot Cache Stats: {}", timeSlotCache.stats());
+        log.info("Individual TimeSlot Cache Stats: {}", individualTimeSlotCache.stats());
     }
 }
