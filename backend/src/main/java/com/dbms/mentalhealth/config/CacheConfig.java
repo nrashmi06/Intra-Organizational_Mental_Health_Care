@@ -181,7 +181,7 @@ public class CacheConfig {
     }
 
     @Bean
-    public Cache<Integer, SessionResponseDTO> sessionCache() {
+    public Cache<String, SessionResponseDTO> sessionCache() {
         return Caffeine.newBuilder()
                 .expireAfterAccess(cacheExpiry, TimeUnit.MINUTES)
                 .maximumSize(100)
@@ -190,16 +190,7 @@ public class CacheConfig {
                 .recordStats()
                 .build();
     }
-    @Bean
-    public Cache<Integer, List<ChatMessageDTO>> chatMessageCache() {
-        return Caffeine.newBuilder()
-                .expireAfterWrite(cacheExpiry, TimeUnit.MINUTES)
-                .maximumSize(100)
-                .removalListener((key, value, cause) ->
-                        logger.info(String.format("Key %s was removed (%s)", key, cause)))
-                .recordStats()
-                .build();
-    }
+
     @Bean
     public Cache<String, List<SessionSummaryDTO>> sessionListCache() {
         return Caffeine.newBuilder()
@@ -211,9 +202,19 @@ public class CacheConfig {
                 .build();
     }
 
+    @Bean
+    public Cache<String, List<ChatMessageDTO>> chatMessageCache() {
+        return Caffeine.newBuilder()
+                .expireAfterWrite(cacheExpiry, TimeUnit.MINUTES)
+                .maximumSize(100)
+                .removalListener((key, value, cause) ->
+                        logger.info(String.format("Key %s was removed (%s)", key, cause)))
+                .recordStats()
+                .build();
+    }
 
     @Bean
-    public Cache<String, String> averageSessionDurationCache() {
+    public Cache<String, String> metricsCache() {
         return Caffeine.newBuilder()
                 .expireAfterWrite(cacheExpiry, TimeUnit.MINUTES)
                 .maximumSize(10)
