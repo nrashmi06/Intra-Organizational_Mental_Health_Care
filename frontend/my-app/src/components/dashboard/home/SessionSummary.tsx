@@ -69,7 +69,7 @@ export default function ListenerSummary() {
           ].map((item) => (
             <div key={item.rating} className="flex items-center text-sm">
               <span className="w-4">{item.rating}</span>
-              <div className="w-full h-2 mx-2 bg-muted rounded-full overflow-hidden">
+              <div className="w-full h-2 mx-2 bg-muted rounded-full overflow-hidden ">
                 <div
                   className="h-full bg-primary"
                   style={{

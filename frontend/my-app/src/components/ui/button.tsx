@@ -28,8 +28,8 @@ const Button: React.FC<ButtonProps> = ({
       className={clsx(
         'px-4 py-2 rounded-lg focus:outline-none transition-all duration-200',
         {
-          'bg-green-500 text-white hover:bg-black-600': variant === 'default',
-          'border border-blavk-500 text-blue-500 hover:bg-black-100': variant === 'outline',
+          'bg-teal-900 text-white hover:bg-black-600': variant === 'default',
+          'border border-blak-500 text-teal-700 hover:bg-black-100': variant === 'outline',
           'text-green-500 hover:underline': variant === 'link',
           'text-sm': size === 'sm',
           'text-lg': size === 'lg',

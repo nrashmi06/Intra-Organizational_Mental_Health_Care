@@ -110,12 +110,12 @@ export default function AdminProfile() {
   }, [userID, token]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 relative">
-      <div className="absolute inset-0 bg-gradient-to-br from-indigo-100/20 via-purple-100/20 to-pink-100/20 opacity-50 pointer-events-none"></div>
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-teal-50 to-yellow-50 relative">
+      <div className="absolute inset-0 bg-gradient-to-br from-green-100/20 via-teal-100/20 to-yellow-100/20 opacity-50 pointer-events-none"></div>
       <main className="container mx-auto px-4 py-12 relative z-10">
         {isCreating || isEditing ? (
-          <div className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-purple-100/50 overflow-hidden max-w-2xl mx-auto">
-            <div className="bg-gradient-to-r from-purple-600 to-blue-500 p-6 flex items-center justify-between">
+          <div className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-teal-100/50 overflow-hidden max-w-2xl mx-auto">
+            <div className="bg-gradient-to-r from-teal-700 to-teal-500 p-6 flex items-center justify-between">
               <h2 className="text-3xl font-bold text-white">
                 {isCreating ? "Create Your Profile" : "Edit Your Profile"}
               </h2>
@@ -161,7 +161,7 @@ export default function AdminProfile() {
                 />
               </div>
               <div>
-                <label className="block text-purple-700 font-semibold mb-2">About You</label>
+                <label className="block text-teal-700 font-semibold mb-2">About You</label>
 
                 <ReactQuill
                   value={profile?.adminNotes || ""}
@@ -171,25 +171,25 @@ export default function AdminProfile() {
                 />
               </div>
               <div className="space-y-2">
-                <label className="block text-purple-700 font-semibold mb-2">Profile Picture</label>
+                <label className="block text-teal-700 font-semibold mb-2">Profile Picture</label>
                 <Input
                   type="file"
                   accept="image/*"
                   onChange={handleFileChange}
-                  className="file:bg-purple-100 file:text-purple-700 file:border-0 file:px-4 file:py-2 file:rounded-lg hover:file:bg-purple-200"
+                  className="file:bg-teal-600 file:text-white file:border-0 file:px-4 file:py-2 file:rounded-lg hover:file:bg-teal-700"
                 />
               </div>
               <div className="flex justify-end space-x-4 pt-4">
                 <Button 
                   variant="outline" 
                   onClick={handleCancel}
-                  className="px-6 py-3"
+                  className="px-6 py-3 text-teal-700 border-teal-700 hover:bg-teal-700 hover:text-white"
                 >
                   Cancel
                 </Button>
                 <Button 
                   onClick={handleSave}
-                  className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600"
+                  className="px-6 py-3 bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-700 hover:to-teal-600"
                 >
                   Save Profile
                 </Button>
@@ -197,7 +197,7 @@ export default function AdminProfile() {
             </div>
           </div>
         ) : profile ? (
-          <div className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-purple-100/50 overflow-hidden max-w-4xl mx-auto">
+          <div className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-teal-100/50 overflow-hidden max-w-4xl mx-auto">
             <div className="p-8 space-y-6">
               <div className="flex items-center space-x-6 mb-6">
                 {profile.profilePictureUrl && (
@@ -206,44 +206,44 @@ export default function AdminProfile() {
                     alt="Profile Picture"
                     width={150}
                     height={150}
-                    className="rounded-full border-4 border-purple-200 shadow-lg object-cover"
+                    className="rounded-full border-4 border-teal-600 shadow-lg object-cover"
                   />
                 )}
                 <div>
-                  <h2 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-500 mb-2">
+                  <h2 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-lime-500 mb-2">
                     {profile.fullName}
                   </h2>
                   <p className="text-gray-600 text-lg flex items-center">
-                    <Book className="mr-2 text-purple-500" />
+                    <Book className="mr-2 text-teal-700" />
                     {profile.qualifications}
                   </p>
                 </div>
               </div>
 
               <div className="grid md:grid-cols-2 gap-4">
-                <div className="bg-purple-50 p-4 rounded-xl shadow-md">
-                  <div className="flex items-center text-purple-600 mb-2">
+                <div className="bg-teal-50 p-4 rounded-xl shadow-md">
+                  <div className="flex items-center text-teal-600 mb-2">
                     <Phone className="mr-3" />
                     <span className="font-semibold">Contact Number</span>
                   </div>
-                  <p className="text-gray-700">{profile.contactNumber}</p>
+                  <p className="text-gray-900">{profile.contactNumber}</p>
                 </div>
-                <div className="bg-blue-50 p-4 rounded-xl shadow-md">
-                  <div className="flex items-center text-blue-600 mb-2">
+                <div className="bg-lime-50 p-4 rounded-xl shadow-md">
+                  <div className="flex items-center text-lime-600 mb-2">
                     <Mail className="mr-3" />
                     <span className="font-semibold">Email Address</span>
                   </div>
-                  <p className="text-gray-700">{profile.email}</p>
+                  <p className="text-gray-900">{profile.email}</p>
                 </div>
               </div>
 
-              <div className="bg-indigo-50 p-4 rounded-xl shadow-md">
-                <div className="flex items-center text-indigo-600 mb-2">
+              <div className="bg-green-50 p-4 rounded-xl shadow-md">
+                <div className="flex items-center text-lime-600 mb-2">
                   <Book className="mr-3" />
                   <span className="font-semibold">About Me</span>
                 </div>
                 <div
-                  className="text-gray-700"
+                  className="text-gray-900"
                   dangerouslySetInnerHTML={{ __html: profile.adminNotes }}
                 />
               </div>
@@ -251,7 +251,7 @@ export default function AdminProfile() {
               <div className="flex justify-end mt-6">
                 <Button 
                   onClick={() => setIsEditing(true)}
-                  className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600 flex items-center"
+                  className="px-6 py-3 bg-gradient-to-r from-teal-600 to-lime-500 hover:from-teal-700 hover:to-lime-600 flex items-center"
                 >
                   <Pencil className="mr-2" /> Edit Profile
                 </Button>
@@ -266,10 +266,10 @@ export default function AdminProfile() {
 
 const Field = ({ label, ...props }: { label: string; [key: string]: any }) => (
   <div>
-    <label className="block text-purple-700 font-semibold mb-2">{label}</label>
+    <label className="block text-teal-700 font-semibold mb-2">{label}</label>
     <Input 
       {...props} 
-      className="focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+      className="focus:ring-2 focus:ring-lime-500 focus:border-transparent"
     />
   </div>
 );
