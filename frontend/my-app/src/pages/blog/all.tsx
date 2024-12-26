@@ -16,6 +16,7 @@ import { useRouter } from "next/router";
 import { fetchBlogs } from "@/service/blog/FetchByStatus"; // Import the fetchBlogs function
 import { RootState } from "@/store";
 import { useSelector } from "react-redux";
+import InlineLoader from "@/components/ui/inlineLoader";
 
 export default function AllBlogsPage() {
   const router = useRouter();
@@ -136,9 +137,7 @@ export default function AllBlogsPage() {
       </div>
 
       {loading ? (
-        <div className="flex justify-center items-center min-h-screen">
-          <div className="loader"></div>
-        </div>
+        <InlineLoader/>
       ) : error ? (
         <div className="text-center py-8 text-red-500">{error}</div>
       ) : (

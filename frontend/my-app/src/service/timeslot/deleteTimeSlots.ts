@@ -12,7 +12,7 @@ const deleteTimeSlots = async (
     }
 
     // Construct the URL using the mapper
-    const url = `${TIME_SLOT_API_ENDPOINTS.DELETE_TIME_SLOTS_IN_DATE_RANGE(userID)}?startDate=${startDate}&endDate=${endDate}&isAvailable=true`;
+    const url = `${TIME_SLOT_API_ENDPOINTS.DELETE_TIME_SLOTS_IN_DATE_RANGE(userID)}?startDate=${startDate}&endDate=${endDate}&isAvailable=true&idType=userId`;
 
     // Send the DELETE request
     const response = await fetch(url, {

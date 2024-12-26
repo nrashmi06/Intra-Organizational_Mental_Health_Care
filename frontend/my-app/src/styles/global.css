@@ -21,3 +21,18 @@
     transform: rotate(1turn);
   }
 }
+
+@keyframes slide-in-up {
+  0% {
+    transform: translateY(50%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in-up {
+  animation: slide-in-up 0.5s ease-in-out;
+}

@@ -111,6 +111,9 @@ export default function VerifyAndDownload() {
 
   // Reset messages after a delay
   useEffect(() => {
+    if (!accesstoken) {
+      router.push("/signin");
+    }
     let timer: NodeJS.Timeout;
     if (errorMessage || successMessage) {
       timer = setTimeout(() => {
@@ -184,7 +187,9 @@ export default function VerifyAndDownload() {
                 <Button
                   className="w-full mt-4 bg-black text-white hover:bg-black/90 disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={handleSubmitOtp}
-                  disabled={otp.some((digit) => digit === "") || isSubmittingOtp}
+                  disabled={
+                    otp.some((digit) => digit === "") || isSubmittingOtp
+                  }
                 >
                   {isSubmittingOtp ? "Submitting..." : "Submit OTP"}
                 </Button>
@@ -196,7 +201,9 @@ export default function VerifyAndDownload() {
               <p className="text-red-500 text-center mt-4">{errorMessage}</p>
             )}
             {successMessage && (
-              <p className="text-green-500 text-center mt-4">{successMessage}</p>
+              <p className="text-green-500 text-center mt-4">
+                {successMessage}
+              </p>
             )}
           </div>
         </div>

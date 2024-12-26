@@ -1,14 +1,5 @@
-"use client";
-import { useEffect, useState, useRef, useCallback } from "react";
-import { CheckCircle2, MoreHorizontal, Search } from "lucide-react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { useEffect, useState, useCallback } from "react";
+import { CheckCircle2, MoreVertical, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -18,253 +9,242 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown";
 import { getUsersByProfileStatus } from "@/service/user/getUsersByProfileStatus";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import Details from "./ModalDetails";
-import { User } from "@/lib/types";
+import { User as UserType } from "@/lib/types";
+import UserIcon from "@/components/ui/userIcon";
+import router from "next/router";
+import InlineLoader from "@/components/ui/inlineLoader";
 
 export function RegisteredUsersTable() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<UserType[]>([]);
   const [statusFilter, setStatusFilter] = useState<string>("ACTIVE");
   const [currentPage, setCurrentPage] = useState(1);
-  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const itemsPerPage = 5;
+  const itemsPerPage = 12;
   const accessToken = useSelector((state: RootState) => state.auth.accessToken);
   const [detailsModal, setDetailsModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  
-  const fetchUsersByProfileStatus = useCallback(async (status: "ACTIVE" | "SUSPENDED") => {
-    try {
-      const response = await getUsersByProfileStatus(accessToken, status);
-      setUsers(response);
-      console.log(response);
-      setStatusFilter(status);
-    } catch (error) {
-      console.error("Error fetching users by profile status:", error);
-    }
-  }, [accessToken]);
-  
+  const [loading, setLoading] = useState(false);
+
+  const fetchUsersByProfileStatus = useCallback(
+    async (status: "ACTIVE" | "SUSPENDED") => {
+      try {
+        setLoading(true);
+        const response = await getUsersByProfileStatus(accessToken, status);
+        setUsers(response);
+        setLoading(false);
+        setStatusFilter(status);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      }
+    },
+    [accessToken]
+  );
+
   useEffect(() => {
     fetchUsersByProfileStatus("ACTIVE");
-  }, [fetchUsersByProfileStatus]); 
-  
-
-  const toggleDropdown = (userId: string) => {
-    setActiveDropdown((prev) => (prev === userId ? null : userId));
-  };
-
-  const handleModalClose = () => {
-    setDetailsModal(false);
-    setSelectedUser(null);
-  };
+  }, [fetchUsersByProfileStatus]);
 
   const handleDetailsModal = (userId: string) => {
     setSelectedUser(userId);
     setDetailsModal(true);
-    setActiveDropdown(null);
   };
 
-  const handleFilterChange = (status: string) => {
-    setStatusFilter(status);
-    fetchUsersByProfileStatus(status as "ACTIVE" | "SUSPENDED");
-  };
-
-  const filteredUsers = users.filter((user) => {
-    const matchesSearch =
+  const filteredUsers = users.filter(
+    (user) =>
       user.anonymousName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.id.toString().toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesSearch;
-  });
+      user.id.toString().includes(searchQuery)
+  );
 
   const paginatedUsers = filteredUsers.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setActiveDropdown(null);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [dropdownRef]);
-
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            id="search-users"
-            placeholder="Search users..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-8"
-          />
+    <div className="space-y-8">
+      <>
+        <div className="flex flex-col md:flex-row md:items-center gap-4">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <Input
+              placeholder="Search by name or ID..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 h-11 bg-white"
+            />
+          </div>
+          <Select
+            value={statusFilter}
+            onValueChange={(value) =>
+              fetchUsersByProfileStatus(value as "ACTIVE" | "SUSPENDED")
+            }
+          >
+            <SelectTrigger className="w-[160px] h-11 bg-white">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent className="bg-white">
+              <SelectItem value="ACTIVE">Active</SelectItem>
+              <SelectItem value="SUSPENDED">Suspended</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-        <Select value={statusFilter} onValueChange={handleFilterChange}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by status" />
-          </SelectTrigger>
-          <SelectContent className="bg-white">
-            <SelectItem value="ACTIVE">Active</SelectItem>
-            <SelectItem value="SUSPENDED">Suspended</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>User ID</TableHead>
-              <TableHead>Anonymous Name</TableHead>
-              <TableHead>Email Id</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
+        {loading && <InlineLoader />}
+        {!loading && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6">
             {paginatedUsers.length === 0 ? (
-              <TableRow>
-              <TableCell colSpan={5} className="text-center">
-                No {statusFilter.toLowerCase()} users found.
-              </TableCell>
-              </TableRow>
+              <div className="col-span-full text-center py-12 bg-gray-50 rounded-lg border border-dashed">
+                <p className="text-gray-500">
+                  No {statusFilter.toLowerCase()} users found
+                </p>
+              </div>
             ) : (
               paginatedUsers.map((user) => (
-              <TableRow key={user.id}>
-                <TableCell>{user.id}</TableCell>
-                <TableCell>
-                {user.anonymousName}
-                {user.active && (
-                  <span className="relative inline-block align-top ml-1">
-                  <span className="absolute top-[-0.5em] right-[-0.5em] inline-block w-2 h-2 bg-green-500 rounded-full"></span>
-                  </span>
-                )}
-                </TableCell>
-
-                <TableCell>{user.email}</TableCell>
-
-                <TableCell>
                 <div
-                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
-                  ${
-                  statusFilter === "ACTIVE"
-                    ? "bg-green-100 text-green-800"
-                    : "bg-red-100 text-red-800"
-                  }`}
+                  key={user.id}
+                  className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200"
                 >
-                  {statusFilter}
+                  <div className="p-6">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-shrink-0">
+                        <UserIcon role="user" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="font-medium text-gray-900 truncate">
+                            {user.anonymousName}
+                          </h3>
+                          {user.active && (
+                            <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0" />
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-500 mb-1">
+                          ID: {user.id}
+                        </p>
+                        <p
+                          className="text-xs text-gray-500 truncate"
+                          title={user.email}
+                        >
+                          {user.email}
+                        </p>
+                      </div>
+                      <div className="flex-shrink-0">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                            >
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-48">
+                            <DropdownMenuItem
+                              className={`${
+                                statusFilter === "ACTIVE"
+                                  ? "text-red-600"
+                                  : "text-green-600"
+                              } font-medium`}
+                              onClick={() => handleDetailsModal(user.id)}
+                            >
+                              {statusFilter === "ACTIVE"
+                                ? "Suspend User"
+                                : "Activate User"}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() =>
+                                router.push(
+                                  `/dashboard/user/sessions/${user.id}`
+                                )
+                              }
+                            >
+                              View Sessions
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() =>
+                                router.push(
+                                  `/dashboard/user/appointments/${user.id}`
+                                )
+                              }
+                            >
+                              View Appointments
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                </TableCell>
-                <TableCell className="text-right relative">
-                <Button
-                  variant="link"
-                  onClick={() => toggleDropdown(user.id)}
-                >
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-                </TableCell>
-                {detailsModal && selectedUser === user.id && (
-                <Details
-                  userId={user.id}
-                  handleClose={handleModalClose}
-                  statusFilter={statusFilter}
-                  setSuccessMessage={setSuccessMessage}
-                />
-                )}
-                {activeDropdown === user.id && (
-                <div
-                  ref={dropdownRef}
-                  className="fixed right-16 top-[319px] w-44 bg-white border rounded-md shadow-lg z-50"
-                >
-                  <ul className="flex flex-col justify-center items-start">
-                  <Button
-                    variant="link"
-                    className={`${
-                    statusFilter === "ACTIVE"
-                      ? "text-red-500"
-                      : "text-green-500"
-                    }`}
-                    onClick={() => handleDetailsModal(user.id)}
-                  >
-                    {statusFilter === "ACTIVE" ? "Suspend" : "Activate"}
-                  </Button>
-                  <Button
-                    variant="link"
-                    className="text-purple-500"
-                    href={`/dashboard/user/sessions/${user.id}`}
-                  >
-                    Sessions
-                  </Button>
-                  <Button
-                    variant="link"
-                    className="text-purple-500"
-                    href={`/dashboard/user/appointments/${user.id}`}
-                  >
-                    Appointments
-                  </Button>
-                  </ul>
-                </div>
-                )}
-              </TableRow>
               ))
             )}
-          </TableBody>
-        </Table>
-      </div>
-      {successMessage && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/20 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4 transform transition-all scale-in-center">
-            <div className="flex flex-col items-center text-center space-y-4">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-                <CheckCircle2 className="w-10 h-10 text-green-600" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900">Success!</h3>
-              <p className="text-gray-600">{successMessage}</p>
-            </div>
+          </div>
+        )}
+
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4">
+          <p className="text-sm text-gray-500">
+            Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
+            {Math.min(currentPage * itemsPerPage, filteredUsers.length)} of{" "}
+            {filteredUsers.length} users
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="h-9"
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((p) => p + 1)}
+              disabled={currentPage * itemsPerPage >= filteredUsers.length}
+              className="h-9"
+            >
+              Next
+            </Button>
           </div>
         </div>
-      )}
-
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
-          {Math.min(currentPage * itemsPerPage, filteredUsers.length)} of{" "}
-          {filteredUsers.length} entries
-        </p>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-            disabled={currentPage === 1}
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setCurrentPage((p) => p + 1)}
-            disabled={currentPage * itemsPerPage >= filteredUsers.length}
-          >
-            Next
-          </Button>
-        </div>
-      </div>
+        {successMessage && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm">
+            <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full mx-4">
+              <div className="flex flex-col items-center text-center space-y-4">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                  <CheckCircle2 className="w-10 h-10 text-green-600" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900">
+                  Success!
+                </h3>
+                <p className="text-gray-600">{successMessage}</p>
+              </div>
+            </div>
+          </div>
+        )}
+        {detailsModal && selectedUser && (
+          <Details
+            userId={selectedUser}
+            handleClose={() => {
+              setDetailsModal(false);
+              setSelectedUser(null);
+            }}
+            statusFilter={statusFilter}
+            setSuccessMessage={setSuccessMessage}
+          />
+        )}
+      </>
     </div>
   );
 }

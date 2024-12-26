@@ -38,7 +38,7 @@ export default function Component() {
   }, [token]); // Rerun useEffect when token changes
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-600 via-blue-500 to-purple-600">
+    <div className="min-h-screen bg-white">
       {role === 'ADMIN' ? <Navbar2 /> : <Navbar1 />}
       <main className="container mx-auto px-4 mb-4">
         <div className="flex justify-between items-center mx-auto px-4">
