@@ -1,6 +1,7 @@
 package com.dbms.mentalhealth.config;
 
 import com.dbms.mentalhealth.security.CustomAccessDeniedHandler;
+import com.dbms.mentalhealth.security.RateLimitingFilter;
 import com.dbms.mentalhealth.security.SseAuthenticationFilter;
 import com.dbms.mentalhealth.security.WebSocketAuthenticationFilter;
 import com.dbms.mentalhealth.security.jwt.AuthEntryPointJwt;
@@ -41,6 +42,7 @@ public class SecurityConfig {
     private final SseAuthenticationFilter sseAuthenticationFilter;
     private final String allowedOrigins;
     private final WebSocketAuthenticationFilter webSocketAuthenticationFilter;
+    private final RateLimitingFilter rateLimitingFilter;
 
     public SecurityConfig(
             AuthEntryPointJwt unauthorizedHandler,
@@ -48,7 +50,8 @@ public class SecurityConfig {
             CustomAccessDeniedHandler accessDeniedHandler,
             SseAuthenticationFilter sseAuthenticationFilter,
             @Value("${allowed.origins}") String allowedOrigins,
-            WebSocketAuthenticationFilter webSocketAuthenticationFilter
+            WebSocketAuthenticationFilter webSocketAuthenticationFilter,
+            RateLimitingFilter rateLimitingFilter
     ) {
         this.unauthorizedHandler = unauthorizedHandler;
         this.authTokenFilter = authTokenFilter;
@@ -56,6 +59,7 @@ public class SecurityConfig {
         this.sseAuthenticationFilter = sseAuthenticationFilter;
         this.allowedOrigins = allowedOrigins;
         this.webSocketAuthenticationFilter = webSocketAuthenticationFilter;
+        this.rateLimitingFilter = rateLimitingFilter;
     }
 
     @Bean
@@ -87,6 +91,7 @@ public class SecurityConfig {
                         })
                 )
                 .csrf(AbstractHttpConfigurer::disable)
+                .addFilterBefore(rateLimitingFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(sseAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(webSocketAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)

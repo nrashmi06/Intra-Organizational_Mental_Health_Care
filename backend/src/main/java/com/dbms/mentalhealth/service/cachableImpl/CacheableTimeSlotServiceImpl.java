@@ -17,7 +17,6 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Service
-@Primary
 @Slf4j
 public class CacheableTimeSlotServiceImpl implements TimeSlotService {
     private final TimeSlotServiceImpl timeSlotServiceImpl;
@@ -52,7 +51,7 @@ public class CacheableTimeSlotServiceImpl implements TimeSlotService {
         });
     }
 
-    private void invalidateCache(String idType, Integer id) {
+    void invalidateCache(String idType, Integer id) {
         String prefix = String.format("timeslots:%s:%d", idType.toLowerCase(), id);
         timeSlotCache.asMap().keySet().stream()
                 .filter(key -> key.startsWith(prefix))

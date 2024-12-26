@@ -13,6 +13,7 @@ import com.dbms.mentalhealth.repository.AdminRepository;
 import com.dbms.mentalhealth.repository.TimeSlotRepository;
 import com.dbms.mentalhealth.service.TimeSlotService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
@@ -25,6 +26,8 @@ import java.util.Optional;
 
 @Service
 @Transactional
+@Primary
+
 public class TimeSlotServiceImpl implements TimeSlotService {
     private static final Logger logger = LoggerFactory.getLogger(TimeSlotServiceImpl.class);
 

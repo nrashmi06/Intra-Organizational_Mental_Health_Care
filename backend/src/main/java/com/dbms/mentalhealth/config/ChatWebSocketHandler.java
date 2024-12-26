@@ -49,11 +49,13 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
         Map<String, WebSocketSession> sessionsForId = chatSessions.computeIfAbsent(sessionId, k -> new ConcurrentHashMap<>());
         if (sessionsForId.size() >= 2) {
+            log.warn("Session {} is full. Closing connection for user: {}", sessionId, username);
             session.close(CloseStatus.NOT_ACCEPTABLE.withReason("Session is full"));
             return;
         }
 
         sessionsForId.put(username, session);
+        log.info("User {} added to session {}", username, sessionId);
         broadcastMessage(sessionId, createSystemMessage(username + " has joined the chat"), null);
     }
 
@@ -70,7 +72,6 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
                 return;
             }
 
-            // Validate sessionId and username
             if (sessionId == null || username == null) {
                 log.error("Invalid session parameters: sessionId={}, username={}", sessionId, username);
                 return;
@@ -84,9 +85,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
                 return;
             }
 
-            // Find session and user with null checks
-            Session foundSession = sessionRepository.findById(parsedSessionId)
-                    .orElse(null);
+            Session foundSession = sessionRepository.findById(parsedSessionId).orElse(null);
             User sender = userRepository.findByAnonymousName(username);
 
             if (foundSession == null) {
@@ -99,7 +98,6 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
                 return;
             }
 
-            // Create and save chat message
             ChatMessage chatMessage = new ChatMessage();
             chatMessage.setSession(foundSession);
             chatMessage.setSender(sender);
@@ -107,16 +105,15 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             chatMessage.setSentAt(LocalDateTime.now());
 
             chatMessageService.saveMessage(chatMessage);
+            log.info("Saved chat message from {} in session {}", username, sessionId);
 
             listenerService.incrementMessageCount(username);
+            log.info("Incremented message count for user: {}", username);
 
-            // Broadcast the message
             broadcastMessage(sessionId, username + ": " + message.getPayload(), username);
 
         } catch (Exception e) {
             log.error("Error processing WebSocket message", e);
-            // Optionally, you might want to send an error response back to the client
-            // sendErrorToClient(session, "Failed to process message");
         }
     }
 
@@ -132,6 +129,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
             if (sessionsForId.isEmpty()) {
                 chatSessions.remove(sessionId);
+                log.info("Session {} removed from chatSessions", sessionId);
             } else {
                 broadcastMessage(sessionId, createSystemMessage(username + " has left the chat"), null);
             }
@@ -157,10 +155,11 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
                     synchronized (wsSession) {
                         try {
                             wsSession.sendMessage(new TextMessage(message));
+                            log.info("Broadcasted message to user {} in session {}: {}", username, sessionId, message);
                         } catch (IOException e) {
-                            log.error("Error broadcasting message", e);
+                            log.error("Error broadcasting message to user {} in session {}", username, sessionId, e);
                         } catch (IllegalStateException e) {
-                            log.error("WebSocket session in invalid state for sending message", e);
+                            log.error("WebSocket session in invalid state for sending message to user {} in session {}", username, sessionId, e);
                         }
                     }
                 }
@@ -175,8 +174,9 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
                 if (wsSession.isOpen()) {
                     try {
                         wsSession.close(CloseStatus.NORMAL);
+                        log.info("Closed WebSocket session for user {} in session {}", username, sessionId);
                     } catch (IOException e) {
-                        log.error("Error closing WebSocket session", e);
+                        log.error("Error closing WebSocket session for user {} in session {}", username, sessionId, e);
                     }
                 }
             });

@@ -13,16 +13,20 @@ import com.dbms.mentalhealth.repository.*;
 import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.service.NotificationService;
 import com.dbms.mentalhealth.service.SessionService;
+import com.dbms.mentalhealth.service.UserActivityService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.benmanes.caffeine.cache.Cache;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -36,6 +40,10 @@ public class SessionServiceImpl implements SessionService {
     private final SessionRepository sessionRepository;
     private final NotificationRepository notificationRepository;
     private final ChatMessageRepository chatMessageRepository;
+    private final Cache<Integer, Session> ongoingSessionsCache;
+    private final UserActivityService userActivityService;
+    private final Cache<Integer, Integer> currentlyInSessionCache;
+    private static SessionServiceImpl instance;
 
     @Autowired
     public SessionServiceImpl(NotificationService notificationService,
@@ -43,7 +51,11 @@ public class SessionServiceImpl implements SessionService {
                               UserRepository userRepository,
                               ListenerRepository listenerRepository,
                               SessionRepository sessionRepository,
-                              NotificationRepository notificationRepository, ChatMessageRepository chatMessageRepository) {
+                              NotificationRepository notificationRepository,
+                              ChatMessageRepository chatMessageRepository,
+                              Cache<Integer, Session> ongoingSessionsCache,
+                              Cache<Integer, Integer> currentlyInSessionCache,
+                              @Lazy UserActivityService userActivityService) {
         this.notificationService = notificationService;
         this.jwtUtils = jwtUtils;
         this.userRepository = userRepository;
@@ -51,7 +63,12 @@ public class SessionServiceImpl implements SessionService {
         this.sessionRepository = sessionRepository;
         this.notificationRepository = notificationRepository;
         this.chatMessageRepository = chatMessageRepository;
+        this.ongoingSessionsCache = ongoingSessionsCache;
+        this.currentlyInSessionCache = currentlyInSessionCache;
+        this.userActivityService = userActivityService;
+        instance = this;
     }
+
 
 
     @Override
@@ -59,9 +76,13 @@ public class SessionServiceImpl implements SessionService {
     public String initiateSession(Integer listenerId, String message) throws JsonProcessingException {
         User sender = userRepository.findById(jwtUtils.getUserIdFromContext())
                 .orElseThrow(() -> new UserNotFoundException("Sender not found"));
+
         User receiver = userRepository.findById(listenerId)
                 .orElseThrow(() -> new ListenerNotFoundException("Receiver not found"));
 
+        if(isUserInSessionStatic(receiver.getUserId())) {
+            throw new IllegalStateException("Listener is already in a session");
+        }
         // Create a notification
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode messageJson = objectMapper.readTree(message);
@@ -94,6 +115,13 @@ public class SessionServiceImpl implements SessionService {
             session.setSessionStart(LocalDateTime.now());
             sessionRepository.save(session);
 
+            ongoingSessionsCache.put(session.getSessionId(), session);
+            currentlyInSessionCache.put(user.getUserId(), listener.getUser().getUserId());
+            currentlyInSessionCache.put(listener.getUser().getUserId(), user.getUserId());
+
+            // Broadcast session details
+            broadcastFullSessionCache();
+
             // Prepare session notifications
             String userMessage = "Your session request has been accepted by listener " +
                     listener.getUser().getAnonymousName() +
@@ -122,7 +150,6 @@ public class SessionServiceImpl implements SessionService {
             return "Invalid action";
         }
     }
-
 
     private void sendSseNotification(User receiver, User listener, String message) {
         Notification notification = new Notification();
@@ -178,6 +205,14 @@ public class SessionServiceImpl implements SessionService {
         session.setSessionEnd(LocalDateTime.now());
         sessionRepository.save(session);
 
+        // Invalidate caches
+        ongoingSessionsCache.invalidate(sessionId);
+        currentlyInSessionCache.invalidate(session.getUser().getUserId());
+        currentlyInSessionCache.invalidate(session.getListener().getUser().getUserId());
+
+        // Broadcast session details
+        broadcastFullSessionCache();
+
         // Notify users about session end
         String message = "Session with ID " + sessionId + " has ended.";
         sendSseNotification(session.getUser(), session.getListener().getUser(), message);
@@ -185,6 +220,15 @@ public class SessionServiceImpl implements SessionService {
 
         log.info("Session ended - Session ID: {}", sessionId);
         return "Session ended successfully";
+    }
+    @Override
+    public List<SessionSummaryDTO> broadcastFullSessionCache() {
+        List<SessionSummaryDTO> cachedSessions = new ArrayList<>();
+        ongoingSessionsCache.asMap().values().forEach(session -> {
+            cachedSessions.add(SessionMapper.toSessionSummaryDTO(session));
+        });
+        userActivityService.broadcastSessionDetails(cachedSessions);
+        return cachedSessions;
     }
 
     @Override
@@ -231,5 +275,14 @@ public class SessionServiceImpl implements SessionService {
         return sessions.stream()
                 .map(SessionMapper::toSessionSummaryDTO)
                 .toList();
+    }
+
+    public static boolean isUserInSessionStatic(Integer userId) {
+        return instance.isUserInSession(userId);
+    }
+
+    @Override
+    public boolean isUserInSession(Integer userId) {
+        return currentlyInSessionCache.asMap().containsKey(userId);
     }
 }

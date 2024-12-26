@@ -53,6 +53,7 @@ public class AppointmentController {
         }
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping(AppointmentUrlMapping.GET_APPOINTMENTS_BY_ADMIN)
     public ResponseEntity<List<AppointmentSummaryResponseDTO>> getAppointmentsByAdmin(
             @RequestParam(value = "userId", required = false) Integer userId,
