@@ -81,7 +81,7 @@ export function OnlineUsersTable() {
 
       {loading && <InlineLoader />}
       {!loading && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6 min-h-screen md:min-h-[350px]">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6 md:min-h-[350px]">
           {paginatedUsers.length === 0 ? (
             <div className="col-span-full text-center py-12 bg-gray-50 rounded-lg border border-dashed">
               <p className="text-gray-500">No users found.</p>

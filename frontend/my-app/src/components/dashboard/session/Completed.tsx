@@ -86,15 +86,7 @@ export const CompletedSessions = () => {
         <p className="font-semibold text-gray-700 text-sm">
           Session #{session.sessionId}
         </p>
-        <span
-          className={`px-2 py-1 rounded-full text-xs font-medium ${
-            statusFilter === "COMPLETED"
-              ? "bg-green-100 text-green-800"
-              : "bg-yellow-100 text-yellow-800"
-          }`}
-        >
-          {statusFilter.toLowerCase()}
-        </span>
+        
       </div>
 
       <div className="flex flex-wrap gap-1.5 mb-2">
@@ -175,7 +167,7 @@ export const CompletedSessions = () => {
               <div className="relative flex-1 min-w-0">
                 <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                 <Input
-                  placeholder="Search sessions..."
+                  placeholder="Search..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-8 h-9 bg-white text-sm w-full"

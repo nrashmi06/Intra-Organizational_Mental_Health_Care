@@ -123,7 +123,7 @@ export function ListenerApplicationsTable() {
       {loading ? (
         <InlineLoader/>
       ) : paginatedApplications.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 min-h-screen md:min-h-[400]">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:min-h-[400]">
           {paginatedApplications.map((application) => (
             <Card
               key={application.applicationId}
