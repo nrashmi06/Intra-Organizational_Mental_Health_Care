@@ -65,10 +65,12 @@ export function RegisteredListenersTable() {
 
   const fetchApplicationData = async (userId: string) => {
     try {
+      setSelectedListener(userId);
       const fetchedApplication = await getApplicationByListenerUserId(
         userId,
         accessToken
       );
+      console.log("FETCHED APPLICATION", fetchedApplication);
       setApplication(fetchedApplication);
       setApplicationModal(true);
     } catch (error) {
@@ -124,7 +126,7 @@ export function RegisteredListenersTable() {
         </div>
         {loading && <InlineLoader height="h-32" />}
         {!loading && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6 md:min-h-[350px]">
             {paginatedListeners.length === 0 ? (
               <div className="col-span-full text-center py-12 bg-gray-50 rounded-lg border border-dashed">
                 <p className="text-gray-500">
@@ -135,7 +137,7 @@ export function RegisteredListenersTable() {
               paginatedListeners.map((listener) => (
                 <div
                   key={listener.userId}
-                  className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200"
+                  className="bg-white rounded-xl h-min shadow-sm hover:shadow-md transition-shadow duration-200"
                 >
                   <div className="p-6">
                     <div className="flex items-start justify-between gap-3">
@@ -252,7 +254,8 @@ export function RegisteredListenersTable() {
 
         {detailsModal && selectedListener && (
           <Details
-            userId={selectedListener}
+            id={selectedListener}
+            type="userId"
             handleClose={() => {
               setDetailsModal(false);
               setSelectedListener(null);

@@ -6,6 +6,7 @@ export const SSE_API_ENDPOINTS = {
   SSE_ONLINE_LISTENERS: `${BASE_API}/onlineListeners`, // Get all online listeners
   SSE_ONLINE_ADMINS: `${BASE_API}/onlineAdmins`, // Get all online admins
   SSE_ONLINE_USERS: `${BASE_API}/onlineUsers`, // Get all online users
+  SSE_ACTIVE_SESSIONS: `${BASE_API}/activeSessions`, // Get all live sessions
   HEARTBEAT: `${BASE_API}/heartbeat`, // Heartbeat endpoint to keep the connection alive
 };
 

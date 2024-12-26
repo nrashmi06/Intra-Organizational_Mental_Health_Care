@@ -14,7 +14,7 @@ export default function Navbar() {
   const [isServicesDropdownOpen, setIsServicesDropdownOpen] = useState(false);
 
   const user = useSelector((state: RootState) => state.auth);
-
+  const role = user.role;
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
   const toggleServicesDropdown = () =>
     setIsServicesDropdownOpen(!isServicesDropdownOpen);
@@ -54,6 +54,16 @@ export default function Navbar() {
               >
                 Home
               </Link>
+              {role === "ADMIN" && (
+                <Link
+                  href="/dashboard"
+                  className={`text-sm font-medium text-white ${
+                    router.pathname === "/dashboard" ? "underline" : ""
+                  }`}
+                >
+                  Dashboard
+                </Link>
+              )}
               <Link
                 href="/blog/all"
                 className={`text-sm font-medium text-white ${
@@ -82,37 +92,33 @@ export default function Navbar() {
                   Services
                 </button>
                 {isServicesDropdownOpen && (
-  <div className="absolute z-50 left-0 w-48 mt-2 bg-white text-black opacity-100 isolate rounded-md shadow-lg">
-
-    <Link
-      href="/listener-application"
-      className="block px-4 py-2 text-sm hover:bg-gray-100"
-    >
-      Listener Application
-    </Link>
-    <Link
-      href="/appointment"
-      className="block px-4 py-2 text-sm hover:bg-gray-100"
-    >
-      Appointment
-    </Link>
-    <Link
-      href="/match-a-listener"
-      className="block px-4 py-2 text-sm hover:bg-gray-100"
-    >
-      Match a Listener
-    </Link>
-    <Link
-      href="/download"
-      className="block px-4 py-2 text-sm hover:bg-gray-100"
-    >
-      Download My Data
-    </Link>
-  </div>
-)}
-
-
-
+                  <div className="absolute z-50 left-0 w-48 mt-2 bg-white text-black opacity-100 isolate rounded-md shadow-lg">
+                    <Link
+                      href="/listener-application"
+                      className="block px-4 py-2 text-sm hover:bg-gray-100"
+                    >
+                      Listener Application
+                    </Link>
+                    <Link
+                      href="/appointment"
+                      className="block px-4 py-2 text-sm hover:bg-gray-100"
+                    >
+                      Appointment
+                    </Link>
+                    <Link
+                      href="/match-a-listener"
+                      className="block px-4 py-2 text-sm hover:bg-gray-100"
+                    >
+                      Match a Listener
+                    </Link>
+                    <Link
+                      href="/download"
+                      className="block px-4 py-2 text-sm hover:bg-gray-100"
+                    >
+                      Download My Data
+                    </Link>
+                  </div>
+                )}
               </div>
 
               <Link
@@ -175,7 +181,9 @@ export default function Navbar() {
 
         {/* Mobile Navigation */}
         <div
-          className={`md:hidden ${isMenuOpen ? "block" : "hidden"} absolute w-full bg-black`}
+          className={`md:hidden ${
+            isMenuOpen ? "block" : "hidden"
+          } absolute w-full bg-black`}
         >
           <nav className="flex flex-col items-center gap-6 px-4">
             <Link
@@ -214,35 +222,33 @@ export default function Navbar() {
                 Services
               </button>
               {isServicesDropdownOpen && (
-  <div className="absolute z-50 left-0 w-48 mt-2 bg-white text-black opacity-100 isolate rounded-md shadow-lg">
-
-    <Link
-      href="/listener-application"
-      className="block px-4 py-2 text-sm hover:bg-gray-100"
-    >
-      Listener Application
-    </Link>
-    <Link
-      href="/appointment"
-      className="block px-4 py-2 text-sm hover:bg-gray-100"
-    >
-      Appointment
-    </Link>
-    <Link
-      href="/match-a-listener"
-      className="block px-4 py-2 text-sm hover:bg-gray-100"
-    >
-      Match a Listener
-    </Link>
-    <Link
-      href="/download"
-      className="block px-4 py-2 text-sm hover:bg-gray-100"
-    >
-      Download My Data
-    </Link>
-  </div>
-)}
-
+                <div className="absolute z-50 left-0 w-48 mt-2 bg-white text-black opacity-100 isolate rounded-md shadow-lg">
+                  <Link
+                    href="/listener-application"
+                    className="block px-4 py-2 text-sm hover:bg-gray-100"
+                  >
+                    Listener Application
+                  </Link>
+                  <Link
+                    href="/appointment"
+                    className="block px-4 py-2 text-sm hover:bg-gray-100"
+                  >
+                    Appointment
+                  </Link>
+                  <Link
+                    href="/match-a-listener"
+                    className="block px-4 py-2 text-sm hover:bg-gray-100"
+                  >
+                    Match a Listener
+                  </Link>
+                  <Link
+                    href="/download"
+                    className="block px-4 py-2 text-sm hover:bg-gray-100"
+                  >
+                    Download My Data
+                  </Link>
+                </div>
+              )}
             </div>
           </nav>
         </div>
@@ -250,11 +256,27 @@ export default function Navbar() {
 
       {/* SVG Gradient Shape Below the Navbar */}
       <div className="relative bottom-0 w-full left-0 z-10">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" className="w-full h-full">
-          <linearGradient id="header-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 1440 320"
+          className="w-full h-full"
+        >
+          <linearGradient
+            id="header-gradient"
+            x1="0%"
+            y1="0%"
+            x2="100%"
+            y2="0%"
+          >
             <stop offset="0%" style={{ stopColor: "rgba(228,232,46,1)" }} />
-            <stop offset="26%" style={{ stopColor: "rgba(82,180,30,0.8708551483420593)" }} />
-            <stop offset="47%" style={{ stopColor: "rgba(64,175,105,0.9197207678883071)" }} />
+            <stop
+              offset="26%"
+              style={{ stopColor: "rgba(82,180,30,0.8708551483420593)" }}
+            />
+            <stop
+              offset="47%"
+              style={{ stopColor: "rgba(64,175,105,0.9197207678883071)" }}
+            />
             <stop offset="83%" style={{ stopColor: "rgb(36, 121, 104)" }} />
           </linearGradient>
           <path

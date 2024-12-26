@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/router";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store"; // Import RootState to access Redux state
-import { clearUser } from "@/store/authSlice"; 
+import { clearUser } from "@/store/authSlice";
 import { logout } from "@/service/user/Logout";
 
 export default function Navbar() {
@@ -14,13 +14,13 @@ export default function Navbar() {
   const [isServicesDropdownOpen, setIsServicesDropdownOpen] = useState(false);
 
   const user = useSelector((state: RootState) => state.auth); // Access user data from Redux state
-
+  const role = user.role;
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
   const toggleServicesDropdown = () =>
     setIsServicesDropdownOpen(!isServicesDropdownOpen);
 
-  const handleLogout = async() => {
+  const handleLogout = async () => {
     dispatch(clearUser()); // Clear user data from Redux state
     await logout(user.accessToken); // Call the logout API
     router.push("/signin"); // Redirect to the sign-in page
@@ -123,6 +123,16 @@ export default function Navbar() {
               >
                 About
               </Link>
+              {role === "ADMIN" && (
+                <Link
+                  href="/dashboard"
+                  className={`text-sm font-medium text-white ${
+                    router.pathname === "/dashboard" ? "underline" : ""
+                  }`}
+                >
+                  Dashboard
+                </Link>
+              )}
 
               {/* Sign-in and Register links */}
               <div className="flex flex-row items-center gap-4">

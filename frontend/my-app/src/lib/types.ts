@@ -34,6 +34,7 @@ export interface AdminSummary {
 export interface Listener {
   userId: string;
   anonymousName: string;
+  inASession?: boolean;
 }
 
 export interface User {
@@ -41,6 +42,7 @@ export interface User {
   anonymousName: string;
   email: string;
   active: boolean;
+  inASession?: boolean;
 }
 
 export interface UserSummary {
@@ -77,8 +79,8 @@ export interface UserDetails {
 
 export interface Session {
   sessionId: string;
-  userId: number;
-  listenerId: number;
+  userId: string;
+  listenerId: string;
   sessionStatus: string;
 }
 

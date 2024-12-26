@@ -69,6 +69,6 @@ export default function WelcomePage() {
           </p>
         </div>
       </main>
-    </div>
-  );
+    </div>
+  );
 }

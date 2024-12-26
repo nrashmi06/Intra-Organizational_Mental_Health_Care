@@ -1,29 +1,31 @@
 "use client";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { OnlineAdminsTable } from "@/components/dashboard/admin/Online";
-import { RegisteredAdminsTable } from "@/components/dashboard/admin/Registered";
+import { LiveSessions } from "@/components/dashboard/session/Live";
+import { CompletedSessions } from "@/components/dashboard/session/Completed";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 
-const AdminPage = () => {
+const SessionsPage = () => {
   return (
     <div className="flex-1 p-2">
       <Tabs defaultValue="online" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="online">Online Admins</TabsTrigger>
-          <TabsTrigger value="registered">All Admin Profiles</TabsTrigger>
+          <TabsTrigger value="online">Live Sessions</TabsTrigger>
+          <TabsTrigger value="registered">Completed Sessions</TabsTrigger>
         </TabsList>
         <TabsContent value="online" className="space-y-4">
-          <OnlineAdminsTable />
+          <LiveSessions />
         </TabsContent>
         <TabsContent value="registered" className="space-y-4">
-          <RegisteredAdminsTable />
+          <CompletedSessions />
         </TabsContent>
       </Tabs>
     </div>
   );
 };
 
-AdminPage.getLayout = (page: any) => <DashboardLayout>{page}</DashboardLayout>;
+SessionsPage.getLayout = (page: any) => (
+  <DashboardLayout>{page}</DashboardLayout>
+);
 
-export default AdminPage;
+export default SessionsPage;

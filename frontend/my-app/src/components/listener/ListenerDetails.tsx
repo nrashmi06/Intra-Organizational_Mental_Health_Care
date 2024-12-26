@@ -1,3 +1,5 @@
+//to display the listener details in the match-a-listener page
+
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
@@ -123,7 +125,7 @@ const ListenerModal: React.FC<ListenerModalProps> = ({
     const fetchListenerDetails = async () => {
       try {
         console.log("Fetching listener details for:", userId);
-        const details = await getListenerDetails(userId, token);
+        const details = await getListenerDetails(userId, token, "userId");
         setDetailedListener(details);
         console.log("Listener details:", details);
       } catch (error) {
