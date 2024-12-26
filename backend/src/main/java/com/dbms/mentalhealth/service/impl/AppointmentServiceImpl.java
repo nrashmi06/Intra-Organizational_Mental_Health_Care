@@ -60,10 +60,11 @@ public class AppointmentServiceImpl implements AppointmentService {
         TimeSlot timeSlot = timeSlotRepository.findById(appointmentRequestDTO.getTimeSlotId())
                 .orElseThrow(() -> new TimeSlotNotFoundException("Time slot not found"));
 
-        boolean hasUnapprovedAppointment = appointmentRepository.existsByUserAndStatusNot(user, AppointmentStatus.CANCELLED) && appointmentRepository.existsByUserAndStatusNot(user, AppointmentStatus.CONFIRMED);
-        if (hasUnapprovedAppointment) {
-            logger.warn("User with ID: {} has an unapproved or uncancelled appointment", userId);
-            throw new IllegalStateException("You have already submitted an appointment that is not approved or cancelled. Please cancel it or wait for approval.");
+
+        boolean hasPendingAppointment = appointmentRepository.existsByUserAndAdminAndStatus(user, admin, AppointmentStatus.REQUESTED);
+        if (hasPendingAppointment) {
+            logger.warn("User with ID: {} has a pending appointment", userId);
+            throw new IllegalStateException("You have a pending appointment. Please wait for it to be processed.");
         }
 
         Appointment appointment = AppointmentMapper.toEntity(appointmentRequestDTO);

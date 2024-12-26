@@ -67,6 +67,7 @@ public class CacheableAppointmentServiceImpl implements AppointmentService {
         AppointmentResponseDTO response = appointmentServiceImpl.createAppointment(appointmentRequestDTO);
         appointmentCache.put(generateCacheKey(APPOINTMENT_PREFIX, response.getAppointmentId()), response);
         invalidateUserAndAdminCaches(userId, appointmentRequestDTO.getAdminId());
+        appointmentListCache.invalidate(generateCacheKey(ADMIN_APPOINTMENTS_PREFIX, null, appointmentRequestDTO.getAdminId())); // Invalidate admin appointments cache
         logger.info("Added new appointment to cache and invalidated relevant caches after appointment creation");
         return response;
     }
