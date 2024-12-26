@@ -100,10 +100,10 @@ const BlogApprovalTable: React.FC<BlogApprovalTableProps> = ({
                     <Badge
                       color={
                         statusFilter === "approved"
-                          ? "green"
+                          ? "teal"
                           : statusFilter === "rejected"
                           ? "red"
-                          : "gray" // Pending status is gray
+                          : "yellow" // Pending status is gray
                       }
                     >
                       {statusFilter === "pending"
@@ -146,7 +146,7 @@ const BlogApprovalTable: React.FC<BlogApprovalTableProps> = ({
                 <TableCell>
                   <p className="text-center">
                     <Link href={`/blog/${blog.id}`}>
-                      <Button className="bg-purple-500">View</Button>
+                      <Button className="bg-teal-900">View</Button>
                     </Link>
                   </p>
                 </TableCell>
