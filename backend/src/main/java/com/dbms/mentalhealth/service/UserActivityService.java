@@ -22,6 +22,7 @@ public interface UserActivityService {
     void sendInitialAdminDetails(SseEmitter emitter);
     void sendInitialListenerDetails(SseEmitter emitter);
     void sendInitialUserDetails(SseEmitter emitter);
+    void sendInitialSessionDetails(SseEmitter emitter);
 
     void broadcastAllUsers();
     void broadcastRoleCounts();

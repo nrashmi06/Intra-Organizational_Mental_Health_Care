@@ -30,6 +30,7 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
@@ -340,6 +341,39 @@ public class CacheConfig {
         return Caffeine.newBuilder()
                 .expireAfterWrite(1, TimeUnit.HOURS)
                 .maximumSize(100)
+                .removalListener((key, value, cause) ->
+                        logger.info(String.format("Key %s was removed (%s)", key, cause)))
+                .recordStats()
+                .build();
+    }
+
+    @Bean
+    public Cache<String, UserActivityDTO> userDetailsCache() {
+        return Caffeine.newBuilder()
+                .expireAfterAccess(cacheExpiry, TimeUnit.MINUTES)
+                .maximumSize(500)
+                .removalListener((key, value, cause) ->
+                        logger.info(String.format("Key %s was removed (%s)", key, cause)))
+                .recordStats()
+                .build();
+    }
+
+    @Bean
+    public Cache<String, List<UserActivityDTO>> roleBasedDetailsCache() {
+        return Caffeine.newBuilder()
+                .expireAfterWrite(cacheExpiry, TimeUnit.MINUTES)
+                .maximumSize(200)
+                .removalListener((key, value, cause) ->
+                        logger.info(String.format("Key %s was removed (%s)", key, cause)))
+                .recordStats()
+                .build();
+    }
+
+    @Bean
+    public Cache<String, LocalDateTime> lastSeenCache() {
+        return Caffeine.newBuilder()
+                .expireAfterWrite(cacheExpiry, TimeUnit.MINUTES)
+                .maximumSize(1000)
                 .removalListener((key, value, cause) ->
                         logger.info(String.format("Key %s was removed (%s)", key, cause)))
                 .recordStats()

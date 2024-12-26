@@ -74,12 +74,16 @@ public class CacheableAppointmentServiceImpl implements AppointmentService {
     @Override
     @Transactional(readOnly = true)
     public List<AppointmentSummaryResponseDTO> getAppointmentsByUser(Integer userId) {
+        if(userId == null){
+            userId = jwtUtils.getUserIdFromContext();
+        }
         String cacheKey = generateCacheKey(USER_APPOINTMENTS_PREFIX, userId);
         logger.info("Cache lookup for appointments by user ID: {}", userId);
+        Integer finalUserId = userId;
         return appointmentListCache.get(cacheKey, k -> {
-            logger.info("Cache MISS - Fetching appointments from database for user ID: {}", userId);
-            List<AppointmentSummaryResponseDTO> response = appointmentServiceImpl.getAppointmentsByUser(userId);
-            logger.debug("Cached appointments for user ID: {}", userId);
+            logger.info("Cache MISS - Fetching appointments from database for user ID: {}", finalUserId);
+            List<AppointmentSummaryResponseDTO> response = appointmentServiceImpl.getAppointmentsByUser(finalUserId);
+            logger.debug("Cached appointments for user ID: {}", finalUserId);
             return response;
         });
     }
