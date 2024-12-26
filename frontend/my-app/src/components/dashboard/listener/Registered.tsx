@@ -65,10 +65,12 @@ export function RegisteredListenersTable() {
 
   const fetchApplicationData = async (userId: string) => {
     try {
+      setSelectedListener(userId);
       const fetchedApplication = await getApplicationByListenerUserId(
         userId,
         accessToken
       );
+      console.log("FETCHED APPLICATION", fetchedApplication);
       setApplication(fetchedApplication);
       setApplicationModal(true);
     } catch (error) {
