@@ -14,6 +14,10 @@ public class UserActivityMapper {
         return new UserActivityDTO(user.getUserId(), user.getAnonymousName(), isInASession);
     }
 
+    public static UserActivityDTO toUserActivityDTO(UserActivityDTO dto) {
+        boolean isInASession = SessionServiceImpl.isUserInSessionStatic(dto.getUserId());
+        return new UserActivityDTO(dto.getUserId(), dto.getAnonymousName(), isInASession);
+    }
     public UserRoleCountDTO toUserRoleCountDTO(Map.Entry<String, Long> entry) {
         return new UserRoleCountDTO(entry.getKey(), entry.getValue().intValue());
     }

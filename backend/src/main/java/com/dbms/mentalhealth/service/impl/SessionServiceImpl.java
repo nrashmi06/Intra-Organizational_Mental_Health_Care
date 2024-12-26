@@ -113,6 +113,7 @@ public class SessionServiceImpl implements SessionService {
 
             ongoingSessionsCache.put(session.getSessionId(), session);
             currentlyInSessionCache.put(user.getUserId(), listener.getUser().getUserId());
+            currentlyInSessionCache.put(listener.getUser().getUserId(), user.getUserId());
 
             // Broadcast session details
             broadcastFullSessionCache();
