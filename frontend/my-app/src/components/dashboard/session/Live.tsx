@@ -1,181 +1,176 @@
 import React, { useEffect, useState } from "react";
-import { Search, MoreVertical } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
-// import ModalDetails from "./ModalDetails";
-import { UserSummary } from "@/lib/types";
-import { getActiveUserByRoleName } from "@/service/SSE/getActiveUserByRoleName";
-import UserIcon from "@/components/ui/userIcon";
-import router from "next/router";
+import { Search, Menu, X } from "lucide-react";
+import SessionDetailView from "@/components/dashboard/SessionDetailView";
+import { Input } from "@/components/ui/input";
+import { Session } from "@/lib/types";
+import { getActiveSessions } from "@/service/SSE/getActiveSessions";
 import InlineLoader from "@/components/ui/inlineLoader";
+import UserDetails from "@/components/dashboard/user/ModalDetails";
+import ListenerDetails from "@/components/dashboard/listener/ModalDetails";
 
-export function LiveSessions() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [users, setUsers] = useState<UserSummary[]>([]);
-  const [eventSource, setEventSource] = useState<EventSource | null>(null);
+export const LiveSessions = () => {
   const token = useSelector((state: RootState) => state.auth.accessToken);
-  const [detailsModal, setDetailsModal] = useState(false);
-  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true); // Added loading state
-  const itemsPerPage = 12;
+  const [sessions, setSessions] = useState<Session[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedSession, setSelectedSession] = useState<Session | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [userModal, setUserModal] = useState(false);
+  const [listenerModal, setListenerModal] = useState(false);
 
   useEffect(() => {
-    if (eventSource) {
-      eventSource.close();
-    }
+    setLoading(true);
+    const newEventSource = getActiveSessions(token, (data) => {
+      setSessions(data);
+      setLoading(false);
+    });
 
-    const newEventSource = getActiveUserByRoleName(
-      "onlineUsers",
-      token,
-      (data) => {
-        setUsers(data);
-        setLoading(false); // Data loaded
-      }
-    );
-    setEventSource(newEventSource);
-    setLoading(true); // Start loading
+    newEventSource.onerror = () => {
+      console.error("Error with EventSource");
+      setLoading(false);
+    };
+
     return () => {
-      newEventSource?.close();
+      newEventSource.close();
     };
   }, [token]);
 
-  const filteredUsers = users.filter(
-    (user) =>
-      user.anonymousName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.userId.toString().includes(searchQuery.toLowerCase())
-  );
-
-  const paginatedUsers = filteredUsers.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
-  const handleDetailsModal = (userId: string) => {
-    setSelectedUserId(userId);
-    setDetailsModal(true);
+  const handleUserModal = (session: Session) => {
+    setSelectedSession(session);
+    setUserModal(true);
   };
 
-  return (
-    <div className="space-y-6">
-      {/* Search Bar */}
-      <div className="flex items-center gap-2">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-          <Input
-            placeholder="Search listeners..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-8"
-          />
-        </div>
-      </div>
+  const handleListenermodal = (session: Session) => {
+    setSelectedSession(session);
+    setListenerModal(true);
+  };
 
-      {loading && <InlineLoader />}
-      {!loading && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 relative">
-          {paginatedUsers.length === 0 ? (
-            <div className="col-span-full text-center p-8 border rounded-lg">
-              No users found.
-            </div>
-          ) : (
-            paginatedUsers.map((user) => (
-              <div
-                key={user.userId}
-                className="bg-card border rounded-lg p-4 space-y-4"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <UserIcon role={"user"} />
-                    <div>
-                      <p className="font-medium">{user.anonymousName}</p>
-                      <p className="text-sm text-muted-foreground">
-                        ID: {user.userId}
-                      </p>
-                    </div>
-                  </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem
-                        onClick={() => handleDetailsModal(user.userId)}
-                      >
-                        Details
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() =>
-                          router.push(`/dashboard/user/sessions/${user.userId}`)
-                        }
-                      >
-                        Sessions
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() =>
-                          router.push(
-                            `/dashboard/user/appointments/${user.userId}`
-                          )
-                        }
-                      >
-                        Appointments
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      )}
+  const filteredSessions = sessions.filter(
+    (session) =>
+      session.sessionId.toString().includes(searchQuery) ||
+      session.listenerId.toString().includes(searchQuery) ||
+      session.userId.toString().includes(searchQuery)
+  );
 
-      {/* Pagination Controls */}
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
-          {Math.min(currentPage * itemsPerPage, filteredUsers.length)} of{" "}
-          {filteredUsers.length} entries
+  const SessionCard = ({ session }: { session: Session }) => (
+    <div className="bg-white shadow-sm rounded-lg p-2 border border-gray-100 hover:shadow-md transition-all duration-200">
+      <div className="flex items-center justify-between mb-2 px-1">
+        <p className="font-semibold text-gray-700 text-sm">
+          Session #{session.sessionId}
         </p>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-            disabled={currentPage === 1}
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setCurrentPage((p) => p + 1)}
-            disabled={currentPage * itemsPerPage >= filteredUsers.length}
-          >
-            Next
-          </Button>
-        </div>
       </div>
 
-      {/* Details Modal */}
-      {/* {detailsModal && selectedUserId && (
-        <ModalDetails
-          userId={selectedUserId}
-          handleClose={() => {
-            setDetailsModal(false);
-            setSelectedUserId(null);
-          }}
-        />
-      )} */}
+      <div className="flex flex-wrap gap-1.5">
+        <button
+          onClick={() => handleListenermodal(session)}
+          className="flex-1 px-2 py-1.5 text-xs font-medium text-gray-600 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors"
+        >
+          View Listener
+        </button>
+        <button
+          onClick={() => handleUserModal(session)}
+          className="flex-1 px-2 py-1.5 text-xs font-medium text-gray-600 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors"
+        >
+          View User
+        </button>
+      </div>
     </div>
   );
-}
+
+  return (
+    <div className="h-[calc(100vh-64px)]">
+      {/* Mobile Menu Toggle */}
+      <div className="lg:hidden fixed top-16 right-4 z-50">
+        <button
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="p-2 bg-white rounded-full shadow-md"
+        >
+          {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+      </div>
+
+      <div className="flex flex-col lg:flex-row h-full">
+        {/* Mobile Menu Overlay */}
+        <div
+          className={`fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity lg:hidden ${
+            isMobileMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+          }`}
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+
+        {/* Sessions List Section */}
+        <div
+          className={`w-full lg:w-1/3 bg-gray-50 border-r border-gray-200 overflow-y-auto 
+                     fixed lg:relative z-40 transition-transform duration-300 ease-in-out
+                     ${
+                       isMobileMenuOpen
+                         ? "translate-x-0"
+                         : "-translate-x-full lg:translate-x-0"
+                     }
+                     h-full`}
+        >
+          <div className="sticky top-0 bg-gray-50 p-3 border-b border-gray-200 z-10">
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1 min-w-0">
+                <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <Input
+                  placeholder="Search sessions..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-8 h-9 bg-white text-sm w-full"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="p-3 space-y-2">
+            {loading ? (
+              <InlineLoader height="h-96"/>
+            ) : filteredSessions.length === 0 ? (
+              <div className="text-gray-500 text-sm flex items-center justify-center p-4 bg-white rounded-lg border border-dashed">
+                No sessions found
+              </div>
+            ) : (
+              filteredSessions.map((session) => (
+                <SessionCard key={session.sessionId} session={session} />
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Session Detail View Section */}
+        <div className="w-full lg:w-2/3 bg-gray-100 min-h-full overflow-y-auto">
+          <SessionDetailView
+            type={null}
+            sessionId={selectedSession?.sessionId || null}
+            token={token}
+          />
+        </div>
+
+        {userModal && selectedSession && (
+          <UserDetails
+            userId={selectedSession.userId}
+            handleClose={() => {
+              setUserModal(false);
+              setSelectedSession(null);
+            }}
+            viewSession={true}
+          />
+        )}
+        {listenerModal && selectedSession && (
+          <ListenerDetails
+            id={selectedSession.listenerId}
+            type="userId"
+            handleClose={() => {
+              setListenerModal(false);
+              setSelectedSession(null);
+            }}
+            viewSession={true}
+          />
+        )}
+      </div>
+    </div>
+  );
+};
