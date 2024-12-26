@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"; // Import React and necessary hooks
+import React, { useEffect, useState } from "react";
 import Head from "next/head";
 import Navbar1 from "@/components/navbar/NavBar";
 import Navbar2 from "@/components/navbar/navbar4";
@@ -13,7 +13,7 @@ import {
 import "@/styles/global.css";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/router";
-import { fetchBlogs } from "@/service/blog/FetchByStatus"; // Import the fetchBlogs function
+import { fetchBlogs } from "@/service/blog/FetchByStatus";
 import { RootState } from "@/store";
 import { useSelector } from "react-redux";
 import InlineLoader from "@/components/ui/inlineLoader";
@@ -49,7 +49,6 @@ export default function AllBlogsPage() {
   const role = useSelector((state: RootState) => state.auth.role);
 
   useEffect(() => {
-    // Fetch blog posts with status "approved" on component mount
     if (token) {
       fetchBlogs("approved", token)
         .then((data) => {
@@ -89,9 +88,9 @@ export default function AllBlogsPage() {
   const currentPosts = sortedPosts.slice(indexOfFirstPost, indexOfLastPost);
 
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
-
+  
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gray-50">
       <Head>
         <title>Blog | Explore All Articles</title>
         <meta
@@ -102,80 +101,100 @@ export default function AllBlogsPage() {
 
       {role === "ADMIN" ? <Navbar2 /> : <Navbar1 />}
 
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-4xl font-bold text-center text-gray-800">
-          All Blogs
-        </h1>
-        <p className="text-lg text-center text-gray-600 mt-4">
-          Explore all blog posts on mental health and more.
-        </p>
-      </div>
-
-      <div className="container mx-auto px-4 py-6 flex items-center justify-between">
-        <div className="flex gap-4">
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={handleSearchChange}
-            placeholder="Search blogs..."
-            className="p-2 border rounded-lg w-64"
-          />
-          <Button
-            onClick={handleSortToggle}
-            className="p-2 border bg-black rounded-lg flex items-center gap-2"
-          >
-            <ArrowUpDown className="w-5 h-5" />
-          </Button>
+      <div className="w-full bg-white py-8 md:py-10 border-b">
+        <div className="container mx-auto px-4 max-w-7xl">
+          <h1 className="text-3xl md:text-4xl font-bold text-center text-gray-800 mb-2">
+            All Blogs
+          </h1>
+          <p className="text-base text-center text-gray-600 max-w-2xl mx-auto">
+            Explore all blog posts on mental health and more.
+          </p>
         </div>
-        <Button
-          className="flex items-center gap-2 p-2 bg-blue-500 text-white rounded-lg"
-          onClick={() => router.push("/blog/create_blog")}
-        >
-          <Plus className="w-5 h-5" />
-          Write
-        </Button>
       </div>
 
-      {loading ? (
-        <InlineLoader/>
-      ) : error ? (
-        <div className="text-center py-8 text-red-500">{error}</div>
-      ) : (
-        <div className="container mx-auto px-4 py-12">
-          <div className="grid md:grid-cols-3 gap-8">
-            {currentPosts.map((post) => (
-              <BlogCard post={post} key={post.id} />
-            ))}
+      {/* Search and Controls Section */}
+      <div className="w-full bg-white border-b py-4">
+        <div className="container mx-auto px-4 max-w-7xl">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row w-full sm:w-auto gap-4 items-center">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={handleSearchChange}
+                placeholder="Search blogs..."
+                className="p-3 border rounded-lg w-full sm:w-64 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+              <Button
+                onClick={handleSortToggle}
+                className="w-full sm:w-auto p-3 border bg-black rounded-lg flex items-center justify-center gap-2"
+              >
+                <ArrowUpDown className="w-5 h-5" />
+                <span className="sm:hidden">Sort by Date</span>
+              </Button>
+            </div>
+            <Button
+              className="w-full sm:w-auto flex items-center justify-center gap-2 p-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
+              onClick={() => router.push("/blog/create_blog")}
+            >
+              <Plus className="w-5 h-5" />
+              Write
+            </Button>
           </div>
         </div>
-      )}
+      </div>
 
-      <div className="flex justify-center items-center gap-4 py-4">
-        <button
-          onClick={
-            currentPage === 1 ? undefined : () => paginate(currentPage - 1)
-          }
-          className={`p-2 text-black rounded-lg ${
-            currentPage === 1 ? "cursor-not-allowed opacity-50" : ""
-          }`}
-          disabled={currentPage === 1}
-        >
-          <ChevronLeftCircle className="w-6 h-6" />
-        </button>
-        <span className="self-center text-lg">{`Page ${currentPage} of ${totalPages}`}</span>
-        <button
-          onClick={
-            currentPage === totalPages
-              ? undefined
-              : () => paginate(currentPage + 1)
-          }
-          className={`p-2 text-black rounded-lg ${
-            currentPage === totalPages ? "cursor-not-allowed opacity-50" : ""
-          }`}
-          disabled={currentPage === totalPages}
-        >
-          <ChevronRightCircle className="w-6 h-6" />
-        </button>
+      <div className="container mx-auto px-8 max-w-7xl py-6">
+        {loading ? (
+          <div className="flex justify-center items-center min-h-[400px]">
+            <InlineLoader />
+          </div>
+        ) : error ? (
+          <div className="text-center py-8 text-red-500">{error}</div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {currentPosts.map((post) => (
+              <BlogCard 
+                post={{
+                  ...post,
+                  summary: post.summary.length > 150 
+                    ? `${post.summary.substring(0, 150)}...` 
+                    : post.summary
+                }} 
+                key={post.id} 
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="container mx-auto px-4 max-w-7xl">
+        <div className="flex justify-center items-center gap-4 py-6">
+          <button
+            onClick={
+              currentPage === 1 ? undefined : () => paginate(currentPage - 1)
+            }
+            className={`p-2 text-black rounded-lg hover:bg-gray-100 transition-colors ${
+              currentPage === 1 ? "cursor-not-allowed opacity-50" : ""
+            }`}
+            disabled={currentPage === 1}
+          >
+            <ChevronLeftCircle className="w-6 h-6" />
+          </button>
+          <span className="self-center text-lg font-medium">{`Page ${currentPage} of ${totalPages}`}</span>
+          <button
+            onClick={
+              currentPage === totalPages
+                ? undefined
+                : () => paginate(currentPage + 1)
+            }
+            className={`p-2 text-black rounded-lg hover:bg-gray-100 transition-colors ${
+              currentPage === totalPages ? "cursor-not-allowed opacity-50" : ""
+            }`}
+            disabled={currentPage === totalPages}
+          >
+            <ChevronRightCircle className="w-6 h-6" />
+          </button>
+        </div>
       </div>
 
       <Footer />
