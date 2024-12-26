@@ -61,7 +61,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
         </div>
         {/* Close Button for Mobile */}
         <button
-          className="block md:hidden text-white p-2 rounded-md hover:bg-indigo-600"
+          className="block md:hidden text-white p-2 rounded-md hover:bg-teal-800"
           onClick={onClose}
         >
           <X className="w-6 h-6" />
@@ -77,8 +77,8 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
             className={cn(
               "group flex items-center px-3 py-2 text-sm font-medium rounded-md",
               pathname === route.href
-                ? "bg-indigo-700 text-white"
-                : "text-white hover:bg-indigo-600 hover:text-white"
+                ? "bg-teal-900 text-white"
+                : "text-white hover:bg-teal-800 hover:text-white"
             )}
           >
             <route.icon className="mr-3 flex-shrink-0 h-6 w-6 text-white" />
@@ -93,7 +93,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
     <>
       {/* Desktop sidebar */}
       <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0">
-        <div className="flex-1 flex flex-col min-h-0 bg-gradient-to-b from-blue-500 via-purple-500 to-indigo-500 p-4">
+        <div className="flex-1 flex flex-col min-h-0 bg-gradient-to-b from-teal-700 via-light-green-600 via-light-green-700 to-yellow-200 p-4">
           {sidebarContent}
         </div>
       </div>
@@ -101,7 +101,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
       {/* Mobile sidebar */}
       <div
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-[300px] sm:w-[400px] bg-gradient-to-b from-blue-500 via-purple-500 to-indigo-500 transform transition-transform duration-300 ease-in-out",
+          "fixed inset-y-0 left-0 z-50 w-[300px] sm:w-[400px] bg-gradient-to-b from-teal-700 via-light-green-600 via-light-green-700 to-yellow-200 transform transition-transform duration-300 ease-in-out",
           open ? "translate-x-0" : "-translate-x-full"
         )}
       >

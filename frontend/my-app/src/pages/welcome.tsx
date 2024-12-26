@@ -32,7 +32,7 @@ export default function WelcomePage() {
   }, [role, router]); // Add role as a dependency to ensure it reruns when role changes
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-100 to-purple-100">
+    <div className="min-h-screen bg-gradient-to-br from-green-100 to-purple-100">
       {/* Main Content */}
       <main
         className="container mx-auto px-4 flex flex-col-reverse md:flex-row items-center justify-between"
@@ -53,11 +53,11 @@ export default function WelcomePage() {
         {/* Text Section */}
         <div className="w-full md:w-1/2 space-y-4 text-center md:text-left">
           <h1 className="text-4xl md:text-6xl font-bold leading-tight">
-            <span className="bg-gradient-to-r from-pink-500 to-purple-600 text-transparent bg-clip-text">
+            <span className="bg-gradient-to-r from-green-500 to-purple-600 text-transparent bg-clip-text">
               Welcome to
             </span>
             <br />
-            <span className="bg-gradient-to-r from-pink-500 to-purple-600 text-transparent bg-clip-text">
+            <span className="bg-gradient-to-r from-green-500 to-purple-600 text-transparent bg-clip-text">
               SerenitySphere
             </span>
           </h1>

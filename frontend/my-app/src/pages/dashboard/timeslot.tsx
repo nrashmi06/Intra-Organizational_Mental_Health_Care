@@ -140,7 +140,7 @@ const TimeSlotPage = () => {
   return (
     <div className="container mx-auto p-6 space-y-6">
       <Card className="border-none shadow-lg">
-        <CardHeader className="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-t-lg">
+        <CardHeader className="bg-gradient-to-r from-teal-800 to-lime-800  text-white rounded-t-lg">
           <CardTitle>
             <div className='flex justify-center'>
               <Calendar className="w-6 h-6" />
@@ -202,14 +202,14 @@ const TimeSlotPage = () => {
                 type="time"
                 value={newEndTime}
                 onChange={(e) => setNewEndTime(e.target.value)}
-                className="border-2 focus:ring-2 focus:ring-purple-500"
+                className="border-2 focus:ring-2 focus:ring-teal-500"
               />
             </div>
           </div>
 
           <Button
             onClick={handleAddTimeSlot}
-            className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 transition-all"
+            className="w-full bg-gradient-to-r from-teal-800 to-lime-800 hover:from-teal-900 hover:to-lime-900 transition-all"
           >
             Add Time Slot
           </Button>
@@ -241,7 +241,7 @@ const TimeSlotPage = () => {
                 {selectedSlots.map((slot, index) => (
                   <div
                     key={index}
-                    className="p-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg shadow-md hover:shadow-lg transition-all cursor-pointer"
+                    className="p-4 bg-teal-800 text-white rounded-lg shadow-md hover:shadow-lg transition-all cursor-pointer"
                     onClick={() => handleSlotSelection(slot)}
                   >
                     <div>{slot.startTime} - {slot.endTime}</div>
@@ -251,7 +251,7 @@ const TimeSlotPage = () => {
               <div className="flex gap-4 mt-4">
                 <Button
                   onClick={handleConfirmSelectedSlots}
-                  className="w-full bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 transition-all"
+                  className="w-full bg-gradient-to-r from-teal-800 to-green-800 hover:from-teal-900 hover:to-green-900 transition-all"
                 >
                   Confirm Selected Slots
                 </Button>

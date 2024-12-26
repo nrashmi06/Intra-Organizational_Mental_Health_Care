@@ -15,7 +15,7 @@ const ListenerPage = () => {
           <TabsTrigger value="registered">All Listeners</TabsTrigger>
           <TabsTrigger value="applications">Listener Applications</TabsTrigger>
         </TabsList>
-        <TabsContent value="online" className="space-y-4">
+        <TabsContent value="online" className="space-y-4 text-teal-800 dark:text-teal-300">
           <OnlineListenersTable />
         </TabsContent>
         <TabsContent value="registered" className="space-y-4">

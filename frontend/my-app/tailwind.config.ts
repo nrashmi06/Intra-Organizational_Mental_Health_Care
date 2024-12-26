@@ -10,9 +10,9 @@ export default {
     extend: {
       colors: {
         primary: {
-          light: '#a78bfa',
-          DEFAULT: '#8b5cf6',
-          dark: '#7c3aed',
+          light: 'rgba(31, 97, 56, 0.92)',
+          DEFAULT: 'rgba(15, 90, 43, 0.92)',
+          dark: 'rgba(7, 71, 31, 0.92)',
           softGreen: 'rgba(64,175,105,0.92)', 
         },
         gradient: {
