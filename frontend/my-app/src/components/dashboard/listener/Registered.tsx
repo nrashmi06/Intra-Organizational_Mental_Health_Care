@@ -254,7 +254,8 @@ export function RegisteredListenersTable() {
 
         {detailsModal && selectedListener && (
           <Details
-            userId={selectedListener}
+            id={selectedListener}
+            type="userId"
             handleClose={() => {
               setDetailsModal(false);
               setSelectedListener(null);

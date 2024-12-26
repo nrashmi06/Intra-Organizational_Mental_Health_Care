@@ -14,6 +14,7 @@ interface DetailsProps {
   handleClose: () => void;
   statusFilter?: string;
   setSuccessMessage?: (message: string | null) => void;
+  viewSession?: boolean;
 }
 
 const ModalDetails: React.FC<DetailsProps> = ({
@@ -21,6 +22,7 @@ const ModalDetails: React.FC<DetailsProps> = ({
   handleClose,
   statusFilter,
   setSuccessMessage,
+  viewSession
 }) => {
   const [user, setUser] = useState<UserDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -161,6 +163,17 @@ const ModalDetails: React.FC<DetailsProps> = ({
                     onClick={() => handleAction(user.id, statusFilter)}
                   >
                     {statusFilter === "ACTIVE" ? "Suspend" : "Activate"} User
+                  </Button>
+                </div>
+              )}
+              {viewSession && (
+                <div className="p-4 flex justify-end">
+                  <Button
+                    variant="outline"
+                    className="text-blue-500 bg-blue-100"
+                    onClick={() => router.push(`/dashboard/user/sessions/${userId}`)}
+                  >
+                    View Sessions
                   </Button>
                 </div>
               )}

@@ -229,7 +229,8 @@ export function OnlineListenersTable() {
       {/* Modals */}
       {detailsModal && selectedListener && (
         <DetailsModal
-          userId={selectedListener}
+          id={selectedListener}
+          type="userId"
           handleClose={handleModalClose}
         />
       )}
