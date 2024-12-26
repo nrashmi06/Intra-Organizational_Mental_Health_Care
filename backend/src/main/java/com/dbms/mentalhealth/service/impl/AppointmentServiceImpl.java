@@ -154,6 +154,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         if (newStatus == AppointmentStatus.CONFIRMED) {
             appointment.setStatus(AppointmentStatus.CONFIRMED);
             timeSlot.setIsAvailable(false);
+            timeSlotRepository.save(timeSlot);
         } else if (newStatus == AppointmentStatus.CANCELLED) {
             timeSlot.setIsAvailable(true);
             timeSlotRepository.save(timeSlot);

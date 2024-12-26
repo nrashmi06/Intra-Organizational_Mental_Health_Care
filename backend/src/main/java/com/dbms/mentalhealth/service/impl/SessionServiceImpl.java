@@ -76,9 +76,13 @@ public class SessionServiceImpl implements SessionService {
     public String initiateSession(Integer listenerId, String message) throws JsonProcessingException {
         User sender = userRepository.findById(jwtUtils.getUserIdFromContext())
                 .orElseThrow(() -> new UserNotFoundException("Sender not found"));
+
         User receiver = userRepository.findById(listenerId)
                 .orElseThrow(() -> new ListenerNotFoundException("Receiver not found"));
 
+        if(isUserInSessionStatic(receiver.getUserId())) {
+            throw new IllegalStateException("Listener is already in a session");
+        }
         // Create a notification
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode messageJson = objectMapper.readTree(message);
