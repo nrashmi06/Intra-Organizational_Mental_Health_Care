@@ -40,7 +40,7 @@ const BlogPost = () => {
     title: string;
     content: string;
     summary: string;
-  }>({
+  }>( {
     title: "",
     content: "",
     summary: "",
@@ -143,7 +143,7 @@ const BlogPost = () => {
   }
 
   return (
-    <div className="relative min-h-screen md:bg-gray-50">
+    <div className="relative min-h-screen bg-gray-50">
       <Head>
         <title>{article?.title}</title>
       </Head>
@@ -155,7 +155,7 @@ const BlogPost = () => {
 
       {/* Blog content with overlay positioning */}
       <main className="absolute top-[80px] left-0 w-full min-h-screen flex justify-center md:pb-10">
-        <div className="container max-w-3xl w-full md:bg-white shadow-xl md:rounded-2xl overflow-hidden border border-gray-100 transition-all duration-300 hover:shadow-2xl">
+        <div className="container max-w-3xl w-full bg-white shadow-xl md:rounded-2xl overflow-hidden border border-gray-100 transition-all duration-300 hover:shadow-2xl">
           {/* Blog Image with Modern Styling */}
           <div className="relative w-full h-[50vh] z-50 group overflow-hidden">
             {imageLoading && <InlineLoader height="h-full" />}
@@ -207,11 +207,7 @@ const BlogPost = () => {
                 >
                   <Heart
                     className={`w-5 h-5 transition-colors duration-300 
-                      ${
-                        article?.likedByCurrentUser
-                          ? "text-red-500 fill-red-500"
-                          : "text-gray-500 group-hover:text-red-400"
-                      }`}
+                      ${article?.likedByCurrentUser ? "text-red-500 fill-red-500" : "text-gray-500 group-hover:text-red-400"}`}
                     fill={article?.likedByCurrentUser ? "currentColor" : "none"}
                   />
                   <span>{article?.likeCount}</span>
@@ -242,7 +238,10 @@ const BlogPost = () => {
               <h2 className="text-2xl font-semibold text-gray-900 border-l-4 border-blue-500 pl-4 mb-4">
                 Content
               </h2>
-              <p className="leading-relaxed">{article?.content}</p>
+              <div
+                className="leading-relaxed"
+                dangerouslySetInnerHTML={{ __html: article?.content || "" }}
+              />
             </div>
 
             {/* Summary Section */}
