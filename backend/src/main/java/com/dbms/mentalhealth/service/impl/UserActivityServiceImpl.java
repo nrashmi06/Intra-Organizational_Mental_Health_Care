@@ -2,6 +2,7 @@ package com.dbms.mentalhealth.service.impl;
 
 import com.dbms.mentalhealth.dto.UserActivity.UserActivityDTO;
 import com.dbms.mentalhealth.dto.UserActivity.UserRoleCountDTO;
+import com.dbms.mentalhealth.dto.session.SessionSummaryDTO;
 import com.dbms.mentalhealth.enums.Role;
 import com.dbms.mentalhealth.mapper.UserActivityMapper;
 import com.dbms.mentalhealth.model.User;
@@ -29,6 +30,8 @@ public class UserActivityServiceImpl implements UserActivityService {
     private final CopyOnWriteArrayList<SseEmitter> adminEmitters = new CopyOnWriteArrayList<>();
     private final CopyOnWriteArrayList<SseEmitter> listenerEmitters = new CopyOnWriteArrayList<>();
     private final CopyOnWriteArrayList<SseEmitter> userEmitters = new CopyOnWriteArrayList<>();
+    private final CopyOnWriteArrayList<SseEmitter> sessionDetailsEmitters = new CopyOnWriteArrayList<>();
+
     Logger log = org.slf4j.LoggerFactory.getLogger(UserActivityServiceImpl.class);
     private final UserRepository userRepository;
 
@@ -80,6 +83,10 @@ public class UserActivityServiceImpl implements UserActivityService {
     public void addUserEmitter(SseEmitter emitter) {
         addEmitterToList(emitter, userEmitters);
     }
+    @Override
+    public void addSessionDetailsEmitter(SseEmitter emitter) {
+        addEmitterToList(emitter, sessionDetailsEmitters);
+    }
 
     private void addEmitterToList(SseEmitter emitter, CopyOnWriteArrayList<SseEmitter> emitterList) {
         emitterList.add(emitter);
@@ -87,6 +94,8 @@ public class UserActivityServiceImpl implements UserActivityService {
         emitter.onTimeout(() -> emitterList.remove(emitter));
         emitter.onError(e -> emitterList.remove(emitter));
     }
+
+
 
     private void sendInitialData(SseEmitter emitter, String mapKey, CopyOnWriteArrayList<SseEmitter> emitters) {
         try {
@@ -160,7 +169,22 @@ public class UserActivityServiceImpl implements UserActivityService {
         log.info("Role Based Details Map: {}", roleBasedDetailsMap);
         log.info("Last Seen Map: {}", lastSeenMap);
     }
-
+    @Async
+    @Override
+    public void broadcastSessionDetails(SessionSummaryDTO sessionSummaryDTO) {
+        for (SseEmitter emitter : sessionDetailsEmitters) {
+            try {
+                if ("ONGOING".equals(sessionSummaryDTO.getSessionStatus())) {
+                    emitter.send(SseEmitter.event().name("sessionDetails").data(sessionSummaryDTO));
+                } else {
+                    emitter.send(SseEmitter.event().name("sessionDetails").data(""));
+                    sessionDetailsEmitters.remove(emitter);
+                }
+            } catch (IOException e) {
+                sessionDetailsEmitters.remove(emitter);
+            }
+        }
+    }
     private <T> void broadcastData(String mapKey, List<T> data, CopyOnWriteArrayList<SseEmitter> emitterList) {
         logMapContents();
         if (data != null) {

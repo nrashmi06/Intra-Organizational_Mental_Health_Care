@@ -82,6 +82,17 @@ public class UserActivityController {
         }
     }
 
+    @GetMapping(SSEUrlMapping.SSE_ACTIVE_SESSIONS)
+    public SseEmitter streamActiveSessions(@RequestParam("token") String token) {
+        try {
+            SseEmitter emitter = userActivityService.createEmitter();
+            userActivityService.addSessionDetailsEmitter(emitter);
+            return emitter;
+        } catch (Exception e) {
+            throw new EmitterCreationException("Failed to create emitter for active sessions");
+        }
+    }
+
     @GetMapping(SSEUrlMapping.HEARTBEAT)
     public String heartbeat(@RequestParam("token") String token) {
         return "OK";

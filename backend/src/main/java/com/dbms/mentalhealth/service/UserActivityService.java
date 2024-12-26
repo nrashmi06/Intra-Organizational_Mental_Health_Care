@@ -2,6 +2,7 @@ package com.dbms.mentalhealth.service;
 
 import com.dbms.mentalhealth.dto.UserActivity.UserActivityDTO;
 import com.dbms.mentalhealth.dto.UserActivity.UserRoleCountDTO;
+import com.dbms.mentalhealth.dto.session.SessionSummaryDTO;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
@@ -14,6 +15,7 @@ public interface UserActivityService {
     void addAdminEmitter(SseEmitter emitter);
     void addListenerEmitter(SseEmitter emitter);
     void addUserEmitter(SseEmitter emitter);
+    void addSessionDetailsEmitter(SseEmitter emitter);
 
     void sendInitialAllUsers(SseEmitter emitter);
     void sendInitialRoleCounts(SseEmitter emitter);
@@ -26,6 +28,7 @@ public interface UserActivityService {
     void broadcastAdminDetails();
     void broadcastListenerDetails();
     void broadcastUserDetails();
+    void broadcastSessionDetails(SessionSummaryDTO sessionSummaryDTO);
 
     List<UserActivityDTO> getAllOnlineUsers();
     List<UserRoleCountDTO> getOnlineUsersCountByRole();

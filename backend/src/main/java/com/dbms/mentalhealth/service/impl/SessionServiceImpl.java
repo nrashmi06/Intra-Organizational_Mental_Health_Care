@@ -13,9 +13,11 @@ import com.dbms.mentalhealth.repository.*;
 import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.service.NotificationService;
 import com.dbms.mentalhealth.service.SessionService;
+import com.dbms.mentalhealth.service.UserActivityService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.benmanes.caffeine.cache.Cache;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +38,8 @@ public class SessionServiceImpl implements SessionService {
     private final SessionRepository sessionRepository;
     private final NotificationRepository notificationRepository;
     private final ChatMessageRepository chatMessageRepository;
+    private final Cache<Integer, Session> ongoingSessionsCache;
+    private final UserActivityService userActivityService;
 
     @Autowired
     public SessionServiceImpl(NotificationService notificationService,
@@ -43,7 +47,10 @@ public class SessionServiceImpl implements SessionService {
                               UserRepository userRepository,
                               ListenerRepository listenerRepository,
                               SessionRepository sessionRepository,
-                              NotificationRepository notificationRepository, ChatMessageRepository chatMessageRepository) {
+                              NotificationRepository notificationRepository,
+                              ChatMessageRepository chatMessageRepository,
+                              Cache<Integer, Session> ongoingSessionsCache,
+                              UserActivityService userActivityService) {
         this.notificationService = notificationService;
         this.jwtUtils = jwtUtils;
         this.userRepository = userRepository;
@@ -51,6 +58,8 @@ public class SessionServiceImpl implements SessionService {
         this.sessionRepository = sessionRepository;
         this.notificationRepository = notificationRepository;
         this.chatMessageRepository = chatMessageRepository;
+        this.ongoingSessionsCache = ongoingSessionsCache;
+        this.userActivityService = userActivityService;
     }
 
 
@@ -94,6 +103,11 @@ public class SessionServiceImpl implements SessionService {
             session.setSessionStart(LocalDateTime.now());
             sessionRepository.save(session);
 
+            ongoingSessionsCache.put(session.getSessionId(), session);
+
+            // Broadcast session details
+            SessionSummaryDTO sessionSummaryDTO = SessionMapper.toSessionSummaryDTO(session);
+            userActivityService.broadcastSessionDetails(sessionSummaryDTO);
             // Prepare session notifications
             String userMessage = "Your session request has been accepted by listener " +
                     listener.getUser().getAnonymousName() +
@@ -177,6 +191,13 @@ public class SessionServiceImpl implements SessionService {
         session.setSessionStatus(SessionStatus.COMPLETED);
         session.setSessionEnd(LocalDateTime.now());
         sessionRepository.save(session);
+
+        // Invalidate caches
+        ongoingSessionsCache.invalidate(sessionId);
+
+        // Broadcast session details
+        SessionSummaryDTO sessionSummaryDTO = SessionMapper.toSessionSummaryDTO(session);
+        userActivityService.broadcastSessionDetails(sessionSummaryDTO);
 
         // Notify users about session end
         String message = "Session with ID " + sessionId + " has ended.";
