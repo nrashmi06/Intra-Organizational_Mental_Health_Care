@@ -196,33 +196,75 @@ public class CacheableBlogServiceImpl implements BlogService {
     @Transactional
     public void deleteBlog(Integer blogId) throws Exception {
         logger.info("Deleting blog ID: {} - removing from caches", blogId);
-        BlogResponseDTO blog = blogServiceImpl.getBlogById(blogId).orElseThrow(() -> new BlogNotFoundException("Blog not found"));
+
+        // Get blog details before deletion
+        BlogResponseDTO blog = blogServiceImpl.getBlogById(blogId)
+                .orElseThrow(() -> new BlogNotFoundException("Blog not found"));
+        String status = blog.getBlogApprovalStatus().toString().toLowerCase();
+        Integer userId = blog.getUserId();
+
+        // Delete the blog
         blogServiceImpl.deleteBlog(blogId);
-        String cacheKey = generateBlogCacheKey(blogId, blog.getUserId(), blog.getUserId());
-        blogCache.invalidate(cacheKey);
-        invalidateUserAndStatusCaches(blog.getUserId(), blog.getBlogApprovalStatus().toString());
-        logger.info("Blog removed from cache and relevant list caches invalidated for blog ID: {}", blogId);
+
+        // Invalidate all caches related to this blog
+        String statusCacheKey = "status_" + status;
+        String userCacheKey = "user_" + userId;
+
+        // Invalidate individual blog cache for all viewers
+        blogCache.asMap().keySet().stream()
+                .filter(key -> key.startsWith("blog:" + blogId))
+                .forEach(blogCache::invalidate);
+
+        // Invalidate list caches
+        blogListCache.invalidate(statusCacheKey);
+        blogListCache.invalidate(userCacheKey);
+
+        // Invalidate view count cache
+        viewCountCache.invalidate(blogId);
+
+        logger.info("Blog removed from all caches for blog ID: {}", blogId);
     }
 
     @Override
     public BlogResponseDTO updateBlogApprovalStatus(Integer blogId, boolean isApproved) {
         logger.info("Updating approval status for blog ID: {} to {}", blogId, isApproved);
 
-        BlogResponseDTO response = blogServiceImpl.updateBlogApprovalStatus(blogId, isApproved);
+        // Get the blog's current status before update
+        BlogResponseDTO currentBlog = blogServiceImpl.getBlogById(blogId)
+                .orElseThrow(() -> new BlogNotFoundException("Blog not found"));
+        String oldStatus = currentBlog.getBlogApprovalStatus().toString().toLowerCase();
 
+        // Update the status
+        BlogResponseDTO response = blogServiceImpl.updateBlogApprovalStatus(blogId, isApproved);
+        String newStatus = response.getBlogApprovalStatus().toString().toLowerCase();
+
+        // Invalidate caches for both old and new status
+        String oldStatusCacheKey = "status_" + oldStatus;
+        String newStatusCacheKey = "status_" + newStatus;
+        blogListCache.invalidate(oldStatusCacheKey);
+        blogListCache.invalidate(newStatusCacheKey);
+
+        // Update individual blog cache
         AtomicLong viewCountDelta = viewCountCache.get(blogId, k -> new AtomicLong(0));
         long newDelta = viewCountDelta.get();
 
         BlogResponseDTO adjustedResponse = BlogMapper.toResponseDTOWithAdjustedViewCount(response, newDelta);
+
+        // Invalidate cache for all users viewing this blog
+        blogCache.asMap().keySet().stream()
+                .filter(key -> key.startsWith("blog:" + blogId))
+                .forEach(blogCache::invalidate);
+
+        // Update cache with new status
         String cacheKey = generateBlogCacheKey(blogId, response.getUserId(), response.getUserId());
         blogCache.put(cacheKey, adjustedResponse);
 
-        invalidateUserAndStatusCaches(response.getUserId(), response.getBlogApprovalStatus().toString());
+        // Invalidate user's blog list cache
+        invalidateUserAndStatusCaches(response.getUserId(), newStatus);
         logger.info("Updated blog cache and relevant list caches invalidated after approval status change for blog ID: {}", blogId);
 
         return adjustedResponse;
     }
-
     @Override
     public BlogResponseDTO likeBlog(Integer blogId) {
         logger.info("Processing like for blog ID: {}", blogId);

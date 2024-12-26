@@ -25,6 +25,6 @@ public class WebSocketConfig implements WebSocketConfigurer {
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry.addHandler(chatWebSocketHandler, "/chat/{sessionId}/{username}")
                 .addInterceptors(new HttpSessionHandshakeInterceptor())
-                .setAllowedOrigins(allowedOrigins); // Enable CORS
+                .setAllowedOrigins(allowedOrigins);
     }
 }
