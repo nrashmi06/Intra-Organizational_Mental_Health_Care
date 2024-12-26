@@ -10,7 +10,7 @@ import { RootState } from "@/store";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import BlogApprovalTable from "@/components/dashboard/home/BlogApprovalTable";
-import UserCountGrid from "@/components/dashboard/home/LiveCount";
+import UserCountGrid from "@/components/dashboard/home/LiveUserCount";
 import { BlogApproval } from "@/lib/types";
 import "@/styles/global.css";
 import InlineLoader from "@/components/ui/inlineLoader";
