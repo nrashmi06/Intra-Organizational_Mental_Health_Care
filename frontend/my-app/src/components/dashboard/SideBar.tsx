@@ -12,6 +12,7 @@ import {
   Mail,
   X,
   Pin,
+  MessageCircle,
 } from "lucide-react";
 import Image from "next/image";
 
@@ -21,6 +22,7 @@ const routes = [
   { label: "Listener", icon: Headphones, href: "/dashboard/listener" },
   { label: "User", icon: Users, href: "/dashboard/user" },
   { label: "Admin", icon: ShieldCheck, href: "/dashboard/admin" },
+  { label: "Sessions", icon: MessageCircle, href: "/dashboard/sessions" },
   { label : "Timeslot", icon: Calendar, href: "/dashboard/timeslot"}, 
   { label: "Appointments", icon: Pin, href: "/dashboard/appointments" },
   { label: "Helpline", icon: PhoneCall, href: "/dashboard/helpline" },

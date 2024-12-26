@@ -10,14 +10,14 @@ import {
 } from "@/components/ui/dropdown";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
-import ModalDetails from "./ModalDetails";
+// import ModalDetails from "./ModalDetails";
 import { UserSummary } from "@/lib/types";
 import { getActiveUserByRoleName } from "@/service/SSE/getActiveUserByRoleName";
 import UserIcon from "@/components/ui/userIcon";
 import router from "next/router";
 import InlineLoader from "@/components/ui/inlineLoader";
 
-export function OnlineUsersTable() {
+export function LiveSessions() {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [users, setUsers] = useState<UserSummary[]>([]);
@@ -71,7 +71,7 @@ export function OnlineUsersTable() {
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
           <Input
-            placeholder="Search users..."
+            placeholder="Search listeners..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-8"
@@ -81,7 +81,7 @@ export function OnlineUsersTable() {
 
       {loading && <InlineLoader />}
       {!loading && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 relative min-h-screen md:min-h-[350px]">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 relative">
           {paginatedUsers.length === 0 ? (
             <div className="col-span-full text-center p-8 border rounded-lg">
               No users found.
@@ -167,7 +167,7 @@ export function OnlineUsersTable() {
       </div>
 
       {/* Details Modal */}
-      {detailsModal && selectedUserId && (
+      {/* {detailsModal && selectedUserId && (
         <ModalDetails
           userId={selectedUserId}
           handleClose={() => {
@@ -175,7 +175,7 @@ export function OnlineUsersTable() {
             setSelectedUserId(null);
           }}
         />
-      )}
+      )} */}
     </div>
   );
 }
