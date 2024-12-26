@@ -379,4 +379,15 @@ public class CacheConfig {
                 .recordStats()
                 .build();
     }
+
+    @Bean
+    public Cache<Integer, Integer> currentlyInSessionCache() {
+        return Caffeine.newBuilder()
+                .expireAfterWrite(cacheExpiry, TimeUnit.MINUTES)
+                .maximumSize(1000)
+                .removalListener((key, value, cause) ->
+                        logger.info(String.format("Key %s was removed (%s)", key, cause)))
+                .recordStats()
+                .build();
+    }
 }

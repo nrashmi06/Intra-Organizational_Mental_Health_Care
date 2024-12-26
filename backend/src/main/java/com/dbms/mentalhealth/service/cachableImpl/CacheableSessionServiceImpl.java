@@ -197,6 +197,11 @@ public class CacheableSessionServiceImpl implements SessionService {
         return sessionServiceImpl.broadcastFullSessionCache();
     }
 
+    @Override
+    public boolean isUserInSession(Integer userId) {
+        return sessionServiceImpl.isUserInSession(userId);
+    }
+
     public void logCacheStats() {
         logger.info("Session Cache Stats: {}", sessionCache.stats());
         logger.info("Session List Cache Stats: {}", sessionListCache.stats());

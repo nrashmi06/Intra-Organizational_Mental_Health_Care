@@ -42,6 +42,8 @@ public class SessionServiceImpl implements SessionService {
     private final ChatMessageRepository chatMessageRepository;
     private final Cache<Integer, Session> ongoingSessionsCache;
     private final UserActivityService userActivityService;
+    private final Cache<Integer, Integer> currentlyInSessionCache;
+    private static SessionServiceImpl instance;
 
     @Autowired
     public SessionServiceImpl(NotificationService notificationService,
@@ -52,6 +54,7 @@ public class SessionServiceImpl implements SessionService {
                               NotificationRepository notificationRepository,
                               ChatMessageRepository chatMessageRepository,
                               Cache<Integer, Session> ongoingSessionsCache,
+                              Cache<Integer, Integer> currentlyInSessionCache,
                               @Lazy UserActivityService userActivityService) {
         this.notificationService = notificationService;
         this.jwtUtils = jwtUtils;
@@ -61,8 +64,11 @@ public class SessionServiceImpl implements SessionService {
         this.notificationRepository = notificationRepository;
         this.chatMessageRepository = chatMessageRepository;
         this.ongoingSessionsCache = ongoingSessionsCache;
+        this.currentlyInSessionCache = currentlyInSessionCache;
         this.userActivityService = userActivityService;
+        instance = this;
     }
+
 
 
     @Override
@@ -106,6 +112,7 @@ public class SessionServiceImpl implements SessionService {
             sessionRepository.save(session);
 
             ongoingSessionsCache.put(session.getSessionId(), session);
+            currentlyInSessionCache.put(user.getUserId(), listener.getUser().getUserId());
 
             // Broadcast session details
             broadcastFullSessionCache();
@@ -138,7 +145,6 @@ public class SessionServiceImpl implements SessionService {
             return "Invalid action";
         }
     }
-
 
     private void sendSseNotification(User receiver, User listener, String message) {
         Notification notification = new Notification();
@@ -196,6 +202,8 @@ public class SessionServiceImpl implements SessionService {
 
         // Invalidate caches
         ongoingSessionsCache.invalidate(sessionId);
+        currentlyInSessionCache.invalidate(session.getUser().getUserId());
+        currentlyInSessionCache.invalidate(session.getListener().getUser().getUserId());
 
         // Broadcast session details
         broadcastFullSessionCache();
@@ -208,7 +216,6 @@ public class SessionServiceImpl implements SessionService {
         log.info("Session ended - Session ID: {}", sessionId);
         return "Session ended successfully";
     }
-
     @Override
     public List<SessionSummaryDTO> broadcastFullSessionCache() {
         List<SessionSummaryDTO> cachedSessions = new ArrayList<>();
@@ -263,5 +270,14 @@ public class SessionServiceImpl implements SessionService {
         return sessions.stream()
                 .map(SessionMapper::toSessionSummaryDTO)
                 .toList();
+    }
+
+    public static boolean isUserInSessionStatic(Integer userId) {
+        return instance.isUserInSession(userId);
+    }
+
+    @Override
+    public boolean isUserInSession(Integer userId) {
+        return currentlyInSessionCache.asMap().containsKey(userId);
     }
 }
