@@ -23,8 +23,7 @@ export function RegisteredAdminsTable() {
     try {
       setLoading(true);
       const response = await fetchAdmins(accessToken);
-      const data = await response.json();
-      setAdmins(data);
+      setAdmins(response);
       setLoading(false);
     } catch (error) {
       console.error("Error fetching admins:", error);
@@ -71,11 +70,11 @@ export function RegisteredAdminsTable() {
               No admins found.
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:min-h-[400px]">
               {paginatedAdmins.map((admin) => (
                 <Card
                   key={admin.adminId}
-                  className="hover:shadow-lg transition-shadow"
+                  className="hover:shadow-lg h-min transition-shadow"
                 >
                   <CardContent className="p-6 space-y-4">
                     <div className="flex items-center space-x-4">

@@ -11,12 +11,14 @@ import "@/styles/global.css";
 import Head from "next/head";
 import EditBlogModal from "@/components/blog/EditBlogModal";
 import DeleteBlogByID from "@/service/blog/DeleteBlogByID";
+import InlineLoader from "@/components/ui/inlineLoader";
 
 const BlogPost = () => {
   const router = useRouter();
   const { postId } = router.query;
   const token = useSelector((state: RootState) => state.auth.accessToken); // Redux token
   const ReduxuserId = useSelector((state: RootState) => state.auth.userId); // Redux userId
+  const [imageLoading, setImageLoading] = useState(true);
 
   interface Article {
     id: number;
@@ -38,7 +40,7 @@ const BlogPost = () => {
     title: string;
     content: string;
     summary: string;
-  }>({
+  }>( {
     title: "",
     content: "",
     summary: "",
@@ -61,6 +63,10 @@ const BlogPost = () => {
 
     fetchArticle();
   }, [postId, token]);
+
+  const handleImageLoad = () => {
+    setImageLoading(false);
+  };
 
   const handleLikeToggle = async () => {
     if (!article || !token) return;
@@ -148,14 +154,18 @@ const BlogPost = () => {
       </div>
 
       {/* Blog content with overlay positioning */}
-      <main className="absolute top-[80px] left-0 w-full min-h-screen flex justify-center  pb-10">
-        <div className="container max-w-3xl w-full bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-100 transition-all duration-300 hover:shadow-2xl">
+      <main className="absolute top-[80px] left-0 w-full min-h-screen flex justify-center md:pb-10">
+        <div className="container max-w-3xl w-full bg-white shadow-xl md:rounded-2xl overflow-hidden border border-gray-100 transition-all duration-300 hover:shadow-2xl">
           {/* Blog Image with Modern Styling */}
           <div className="relative w-full h-[50vh] z-50 group overflow-hidden">
+            {imageLoading && <InlineLoader height="h-full" />}
             <img
               src={article?.imageUrl}
               alt={article?.title}
-              className="w-full h-full object-cover transform transition-transform duration-500 group-hover:scale-105"
+              className={`w-full h-full object-cover md:transform md:transition-transform md:duration-500 md:group-hover:scale-105 ${
+                imageLoading ? 'hidden' : ''
+              }`}
+              onLoad={handleImageLoad}
             />
             <div className="absolute inset-0 bg-black opacity-20 group-hover:opacity-10 transition-opacity duration-500"></div>
           </div>
@@ -197,11 +207,7 @@ const BlogPost = () => {
                 >
                   <Heart
                     className={`w-5 h-5 transition-colors duration-300 
-                      ${
-                        article?.likedByCurrentUser
-                          ? "text-red-500 fill-red-500"
-                          : "text-gray-500 group-hover:text-red-400"
-                      }`}
+                      ${article?.likedByCurrentUser ? "text-red-500 fill-red-500" : "text-gray-500 group-hover:text-red-400"}`}
                     fill={article?.likedByCurrentUser ? "currentColor" : "none"}
                   />
                   <span>{article?.likeCount}</span>
@@ -232,7 +238,10 @@ const BlogPost = () => {
               <h2 className="text-2xl font-semibold text-gray-900 border-l-4 border-blue-500 pl-4 mb-4">
                 Content
               </h2>
-              <p className="leading-relaxed">{article?.content}</p>
+              <div
+                className="leading-relaxed"
+                dangerouslySetInnerHTML={{ __html: article?.content || "" }}
+              />
             </div>
 
             {/* Summary Section */}
@@ -248,7 +257,7 @@ const BlogPost = () => {
         </div>
       </main>
 
-      {/* Edit Modal (remains the same) */}
+      {/* Edit Modal */}
       {editMode && (
         <EditBlogModal
           title={editedBlogData.title}

@@ -7,6 +7,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { User, Headphones, ShieldCheck } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "../../ui/card";
+import LiveSessionCount from "./LiveSessionCount";
 
 function UserCountGrid() {
   const [roleCounts, setRoleCounts] = useState(
@@ -42,7 +43,7 @@ function UserCountGrid() {
   }, [token]);
 
   return (
-    <div className="grid gap-4 md:grid-cols-4">
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
       <Card className="bg-green-50">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle>Accounts</CardTitle>
@@ -79,6 +80,7 @@ function UserCountGrid() {
           <div className="text-sm ">Active: {roleCounts["admin"] ?? 0}</div>
         </CardContent>
       </Card>
+      <LiveSessionCount token={token} />
     </div>
   );
 }

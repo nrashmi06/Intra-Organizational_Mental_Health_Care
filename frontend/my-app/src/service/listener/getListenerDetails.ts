@@ -2,10 +2,10 @@
 import axios from "axios";
 import { LISTENER_API_ENDPOINTS } from "@/mapper/listenerProfileMapper";
 
-export const getListenerDetails = async (id: string, token: string) => {
+export const getListenerDetails = async (id: string, token: string, type: string) => {
   try {
     const response = await axios.get(
-      LISTENER_API_ENDPOINTS.GET_LISTENER_BY_ID_OR_TYPE("userId", id),
+      LISTENER_API_ENDPOINTS.GET_LISTENER_BY_ID_OR_TYPE(type, id),
       {
         headers: {
           Authorization: `Bearer ${token}`,

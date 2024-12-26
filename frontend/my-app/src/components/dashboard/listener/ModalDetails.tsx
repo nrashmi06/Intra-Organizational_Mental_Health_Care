@@ -18,17 +18,21 @@ import { ListenerDetails } from "@/lib/types";
 import InlineLoader from "@/components/ui/inlineLoader";
 
 interface DetailsProps {
-  userId: string;
+  id: string;
+  type: string;
   handleClose: () => void;
   statusFilter?: string;
   setSuccessMessage?: (message: string | null) => void;
+  viewSession?: boolean;
 }
 
 const DetailsModal: React.FC<DetailsProps> = ({
-  userId,
+  id,
+  type,
   handleClose,
   statusFilter,
   setSuccessMessage,
+  viewSession,
 }) => {
   const [listener, setListener] = useState<ListenerDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -38,7 +42,7 @@ const DetailsModal: React.FC<DetailsProps> = ({
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await getListenerDetails(userId, token);
+        const data = await getListenerDetails(id, token, type);
         setListener(data);
       } catch (error) {
         setError("Error fetching listener details." + error);
@@ -48,7 +52,7 @@ const DetailsModal: React.FC<DetailsProps> = ({
     };
 
     fetchData();
-  }, [token, userId]);
+  }, [token, id]);
 
   const handleAction = async (listenerId: string, statusFilter: string) => {
     const action = statusFilter === "ACTIVE" ? "suspend" : "unsuspend";
@@ -191,6 +195,17 @@ const DetailsModal: React.FC<DetailsProps> = ({
                     onClick={() => handleAction(listener.listenerId, statusFilter)}
                   >
                     {statusFilter === "ACTIVE" ? "Suspend" : "Activate"} Listener
+                  </Button>
+                </div>
+              )}
+              {viewSession && (
+                <div className="p-4 flex justify-end">
+                  <Button
+                    variant="outline"
+                    className="text-blue-500 bg-blue-100"
+                    onClick={() => router.push(`/dashboard/listener/sessions/${id}`)}
+                  >
+                    View Sessions
                   </Button>
                 </div>
               )}

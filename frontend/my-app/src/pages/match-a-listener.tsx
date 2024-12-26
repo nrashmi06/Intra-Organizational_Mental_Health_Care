@@ -38,14 +38,30 @@ const Details = ({
 
   return (
     <div className="max-w-sm bg-white rounded-xl shadow-md overflow-hidden">
-      {/* Header with avatar */}
-      <div className="p-4 flex items-center space-x-3">
-        <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-400 to-pink-500 flex items-center justify-center">
-          <span className="text-white font-medium">{initial}</span>
+      {/* Header with avatar and status badge */}
+      <div className="p-4 flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-400 to-pink-500 flex items-center justify-center">
+            <span className="text-white font-medium">{initial}</span>
+          </div>
+          <span className="font-medium text-gray-700">
+            {listener.anonymousName}
+          </span>
         </div>
-        <span className="font-medium text-gray-700">
-          {listener.anonymousName}
-        </span>
+
+        <div
+          className={`
+          px-3 py-1 rounded-full text-xs font-semibold
+          ${
+            listener.inASession
+              ? "bg-orange-100 text-orange-700 ring-1 ring-orange-700/10"
+              : "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-700/10"
+          }
+          animate-pulse-subtle
+        `}
+        >
+          {listener.inASession ? "In Session" : "Available"}
+        </div>
       </div>
 
       {/* Main image */}
@@ -97,7 +113,7 @@ export default function Component() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
-      <Navbar/>
+      <Navbar />
 
       <div className="max-w-7xl mx-auto px-4 py-12">
         <div className="text-center mb-12">
