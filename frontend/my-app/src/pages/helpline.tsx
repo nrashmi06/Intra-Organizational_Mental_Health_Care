@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { Lightbulb } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Navbar1 from "@/components/navbar/NavBar";
-import Navbar2 from "@/components/navbar/navbar4";
 import Footer from "@/components/footer/Footer";
 import { RootState } from '@/store';
 import { useSelector } from 'react-redux';
@@ -39,7 +38,7 @@ export default function Component() {
 
   return (
     <div className="min-h-screen bg-white">
-      {role === 'ADMIN' ? <Navbar2 /> : <Navbar1 />}
+      <Navbar1 />
       <main className="container mx-auto px-4 mb-4">
         <div className="flex justify-between items-center mx-auto px-4">
           <h1 className="text-4xl font-bold text-white py-4">

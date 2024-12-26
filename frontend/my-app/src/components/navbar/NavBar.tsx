@@ -12,7 +12,6 @@ export default function Navbar() {
   const dispatch = useDispatch();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isServicesDropdownOpen, setIsServicesDropdownOpen] = useState(false);
-
   const user = useSelector((state: RootState) => state.auth);
   const role = user.role;
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);

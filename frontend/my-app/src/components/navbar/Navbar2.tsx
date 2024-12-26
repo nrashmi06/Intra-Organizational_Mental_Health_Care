@@ -264,7 +264,7 @@ export default function Navbar() {
               {!user.accessToken ? (
                 <>
                   <Link
-                    href="/sign-in"
+                    href="/signin"
                     className="text-sm font-medium text-white"
                   >
                     Sign-in

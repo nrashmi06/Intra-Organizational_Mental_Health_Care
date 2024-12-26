@@ -199,13 +199,13 @@ export default function AdminProfile() {
         ) : profile ? (
           <div className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-teal-100/50 overflow-hidden max-w-4xl mx-auto">
             <div className="p-8 space-y-6">
-              <div className="flex items-center space-x-6 mb-6">
+              <div className="flex flex-col md:flex-row space-y-6 items-center md:space-x-6 mb-6">
                 {profile.profilePictureUrl && (
                   <Image
                     src={profile.profilePictureUrl}
                     alt="Profile Picture"
-                    width={150}
-                    height={150}
+                    width={250}
+                    height={250}
                     className="rounded-full border-4 border-teal-600 shadow-lg object-cover"
                   />
                 )}
