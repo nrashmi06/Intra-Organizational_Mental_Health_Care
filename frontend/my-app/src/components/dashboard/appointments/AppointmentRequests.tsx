@@ -9,6 +9,7 @@ import { Calendar, Clock, User, Eye, CheckCircle, XCircle } from 'lucide-react';
 import { Appointment } from '@/lib/types';
 import AppointmentDetailView from '@/components/dashboard/AppointmentDetailView';
 import StatusInputComponent from '@/components/dashboard/appointments/MessageRequestBox';
+import updateAppointmentStatus from "@/service/appointment/updateAppointmentStatus";
 
 export function AppointmentRequests() {
   const token = useSelector((state: RootState) => state.auth.accessToken);
@@ -16,7 +17,7 @@ export function AppointmentRequests() {
   const [showPopUp, setShowPopUp] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
-  const [isAcceptOrReject, setIsAcceptOrReject] = useState(false); 
+  const [isReject, setReject] = useState(false); 
   const [status, setStatus] = useState('');
   useEffect(() => {
     handleGetRequestedAppointments();
@@ -35,10 +36,14 @@ export function AppointmentRequests() {
 
   const handleAccept = async (appointment : Appointment) => {
     try {
-      setStatus('CONFIRMED');
-      setIsAcceptOrReject(true); 
+      setReject(false);
       setSelectedAppointment(appointment);
-      setShowPopUp(true);
+      try{
+        await updateAppointmentStatus(token , appointment.appointmentId, 'CONFIRMED', token);
+      }
+      catch (error) {
+        console.error('Error accepting appointment:', error);
+      }
       setRefreshKey((prev) => prev + 1); 
     } catch (error) {
       console.error('Error accepting appointment:', error);
@@ -47,8 +52,8 @@ export function AppointmentRequests() {
   
   const handleReject = async (appointment : Appointment) => {
     try {
-      setStatus('CANCELLED');
-      setIsAcceptOrReject(true); 
+      await setStatus('CANCELLED');
+      await setReject(true); 
       await setSelectedAppointment(appointment);
       setShowPopUp(true);
     } catch (error) {
@@ -59,13 +64,13 @@ export function AppointmentRequests() {
   const handleView = (appointment: Appointment) => {
     setSelectedAppointment(appointment);
     setShowPopUp(true);
-    setIsAcceptOrReject(false); // Reset this when viewing details
+    setReject(false); // Reset this when viewing details
   };
 
   const closePopUp = () => {
     setShowPopUp(false);
     setSelectedAppointment(null);
-    setIsAcceptOrReject(false); // Reset when closing pop-up
+    setReject(false); // Reset when closing pop-up
   };
 
   return (
@@ -158,7 +163,7 @@ export function AppointmentRequests() {
         </div>
       )}
       
-      {showPopUp && selectedAppointment && !isAcceptOrReject && (
+      {showPopUp && selectedAppointment && !isReject && (
   <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center z-50">
     <div className="bg-white p-6 rounded-lg shadow-lg relative w-[80%] max-w-[800px] h-auto max-h-[80vh] overflow-y-auto">
       <Button
@@ -175,7 +180,7 @@ export function AppointmentRequests() {
   </div>
 )}
 
-{showPopUp && selectedAppointment && isAcceptOrReject && (
+{showPopUp && selectedAppointment && isReject && (
   <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center z-50">
     <div className="bg-white p-4 rounded-lg shadow-lg relative w-[80%] sm:w-[60%] md:w-[50%] lg:w-[40%] max-w-lg max-h-[80vh] overflow-hidden">
       <Button
@@ -188,6 +193,7 @@ export function AppointmentRequests() {
         appointmentId={selectedAppointment.appointmentId}
         token={token}
         status={status === 'CONFIRMED' ? 'CONFIRMED' : 'CANCELLED'}
+        closePopUp={closePopUp}
       />
     </div>
   </div>

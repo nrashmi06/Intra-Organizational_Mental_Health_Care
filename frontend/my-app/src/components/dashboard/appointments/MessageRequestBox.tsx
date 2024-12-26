@@ -9,7 +9,14 @@ interface StatusInputComponentProps {
   token: string;
 }
 
-export default function StatusInputComponent({ token, appointmentId , status}: StatusInputComponentProps) {
+interface StatusInputComponentProps {
+  status: string;
+  appointmentId: string;
+  token: string;
+  closePopUp: () => void;
+}
+
+export default function StatusInputComponent({ token, appointmentId, status, closePopUp }: StatusInputComponentProps) {
   const [comment, setComment] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
@@ -19,10 +26,11 @@ export default function StatusInputComponent({ token, appointmentId , status}: S
 
     try {
       await updateAppointmentStatus(token, appointmentId, status, comment);
+      closePopUp();
     } catch (error) {
       console.error("Error submitting feedback:", error);
     } finally {
-      setIsSubmitting(false); // Enable the button after the submit completes
+      setIsSubmitting(false);
     }
   };
 
