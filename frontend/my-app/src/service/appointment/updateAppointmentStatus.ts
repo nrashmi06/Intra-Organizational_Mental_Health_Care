@@ -6,8 +6,8 @@ const updateAppointmentStatus = async ( token:string , appointmentId:string ,  s
         const response = await axios.put(
           `${APPOINTMENT_API_ENDPOINTS.UPDATE_APPOINTMENT_STATUS(appointmentId)}`,
           {
-            status : status,
-            cancellationReason : cancellationReason
+            cancellationReason : cancellationReason,
+            status : status
           },
           {    
             headers: {

@@ -8,7 +8,6 @@ import Badge from '@/components/ui/badge';
 import { Calendar, Clock, User, Eye, CheckCircle, XCircle } from 'lucide-react';
 import { Appointment } from '@/lib/types';
 import AppointmentDetailView from '@/components/dashboard/AppointmentDetailView';
-import updateAppointmentStatus from '@/service/appointment/updateAppointmentStatus';
 import StatusInputComponent from '@/components/dashboard/appointments/MessageRequestBox';
 
 export function AppointmentRequests() {
@@ -17,8 +16,8 @@ export function AppointmentRequests() {
   const [showPopUp, setShowPopUp] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
-  const [isAcceptOrReject, setIsAcceptOrReject] = useState(false); // To track if the action is accept/reject
-
+  const [isAcceptOrReject, setIsAcceptOrReject] = useState(false); 
+  const [status, setStatus] = useState('');
   useEffect(() => {
     handleGetRequestedAppointments();
   }, [token, refreshKey]);
@@ -34,25 +33,29 @@ export function AppointmentRequests() {
     }
   };
 
-  const handleAccept = async (appointmentId: string) => {
+  const handleAccept = async (appointment : Appointment) => {
     try {
-      await updateAppointmentStatus(token, appointmentId, 'APPROVED');
-      setIsAcceptOrReject(true); // Set to true when accept/reject is clicked
-      setRefreshKey((prev) => prev + 1); // Refresh appointments
+      setStatus('CONFIRMED');
+      setIsAcceptOrReject(true); 
+      setSelectedAppointment(appointment);
+      setShowPopUp(true);
+      setRefreshKey((prev) => prev + 1); 
     } catch (error) {
       console.error('Error accepting appointment:', error);
     }
   };
-
-  const handleReject = async (appointmentId: string) => {
+  
+  const handleReject = async (appointment : Appointment) => {
     try {
-      setIsAcceptOrReject(true); // Set to true when accept/reject is clicked
-      setRefreshKey((prev) => prev + 1); // Refresh appointments
+      setStatus('CANCELLED');
+      setIsAcceptOrReject(true); 
+      await setSelectedAppointment(appointment);
+      setShowPopUp(true);
     } catch (error) {
       console.error('Error rejecting appointment:', error);
     }
   };
-
+  
   const handleView = (appointment: Appointment) => {
     setSelectedAppointment(appointment);
     setShowPopUp(true);
@@ -129,7 +132,7 @@ export function AppointmentRequests() {
                   <div className="flex gap-2 w-full">
                     <Button 
                       className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold shadow hover:shadow-lg transition-all duration-300 inline-flex items-center justify-center h-9"
-                      onClick={() => handleAccept(appointment.appointmentId)}
+                      onClick={() => handleAccept(appointment)}
                     >
                       <div className="flex items-center">
                         <CheckCircle className="w-4 h-4 mr-1.5" strokeWidth={2} />
@@ -140,7 +143,7 @@ export function AppointmentRequests() {
                     <Button 
                       variant='outline'
                       className="flex-1 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold shadow hover:shadow-lg transition-all duration-300 inline-flex items-center justify-center h-9"
-                      onClick={() => handleReject(appointment.appointmentId)}
+                      onClick={() => handleReject(appointment)}
                     >
                       <div className="flex items-center">
                         <XCircle className="w-4 h-4 mr-1.5" strokeWidth={2} />
@@ -172,24 +175,25 @@ export function AppointmentRequests() {
   </div>
 )}
 
-{showPopUp && selectedAppointment && !isAcceptOrReject && (
+{showPopUp && selectedAppointment && isAcceptOrReject && (
   <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center z-50">
-    <div className="bg-white p-6 rounded-lg shadow-lg relative w-[90%] max-w-[1025px] h-auto max-h-[90vh] overflow-y-auto">
+    <div className="bg-white p-4 rounded-lg shadow-lg relative w-[80%] sm:w-[60%] md:w-[50%] lg:w-[40%] max-w-lg max-h-[80vh] overflow-hidden">
       <Button
         className="absolute top-2 right-2 text-gray-700 hover:text-gray-900"
         onClick={closePopUp}
       >
         <XCircle className="w-6 h-6" />
       </Button>
-      <div className="w-full h-full overflow-y-auto">
-        <AppointmentDetailView 
-          appointmentId={selectedAppointment.appointmentId} 
-          token={token} 
-        />
-      </div>
+      <StatusInputComponent
+        appointmentId={selectedAppointment.appointmentId}
+        token={token}
+        status={status === 'CONFIRMED' ? 'CONFIRMED' : 'CANCELLED'}
+      />
     </div>
   </div>
 )}
+
+
 
 
     </div>
