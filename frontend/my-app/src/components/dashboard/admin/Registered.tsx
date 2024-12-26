@@ -23,8 +23,7 @@ export function RegisteredAdminsTable() {
     try {
       setLoading(true);
       const response = await fetchAdmins(accessToken);
-      const data = await response.json();
-      setAdmins(data);
+      setAdmins(response);
       setLoading(false);
     } catch (error) {
       console.error("Error fetching admins:", error);
