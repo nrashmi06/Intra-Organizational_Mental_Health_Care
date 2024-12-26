@@ -143,7 +143,7 @@ const BlogPost = () => {
   }
 
   return (
-    <div className="relative min-h-screen bg-gray-50">
+    <div className="relative min-h-screen md:bg-gray-50">
       <Head>
         <title>{article?.title}</title>
       </Head>
@@ -154,15 +154,15 @@ const BlogPost = () => {
       </div>
 
       {/* Blog content with overlay positioning */}
-      <main className="absolute top-[80px] left-0 w-full min-h-screen flex justify-center pb-10">
-        <div className="container max-w-3xl w-full bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-100 transition-all duration-300 hover:shadow-2xl">
+      <main className="absolute top-[80px] left-0 w-full min-h-screen flex justify-center md:pb-10">
+        <div className="container max-w-3xl w-full md:bg-white shadow-xl md:rounded-2xl overflow-hidden border border-gray-100 transition-all duration-300 hover:shadow-2xl">
           {/* Blog Image with Modern Styling */}
           <div className="relative w-full h-[50vh] z-50 group overflow-hidden">
             {imageLoading && <InlineLoader height="h-full" />}
             <img
               src={article?.imageUrl}
               alt={article?.title}
-              className={`w-full h-full object-cover transform transition-transform duration-500 group-hover:scale-105 ${
+              className={`w-full h-full object-cover md:transform md:transition-transform md:duration-500 md:group-hover:scale-105 ${
                 imageLoading ? 'hidden' : ''
               }`}
               onLoad={handleImageLoad}
