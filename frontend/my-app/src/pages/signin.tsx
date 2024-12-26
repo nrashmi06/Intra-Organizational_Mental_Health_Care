@@ -39,7 +39,7 @@ export default function SignIn() {
     const response = await loginUser(email, password)(dispatch);
     
     if (response.success) {
-      router.push("/welcome");
+      router.push("/");
     } else {
       setError(response.error);
     }
