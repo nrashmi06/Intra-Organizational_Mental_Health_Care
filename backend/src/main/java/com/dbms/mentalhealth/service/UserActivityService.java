@@ -29,7 +29,7 @@ public interface UserActivityService {
     void broadcastAdminDetails();
     void broadcastListenerDetails();
     void broadcastUserDetails();
-    void broadcastSessionDetails(SessionSummaryDTO sessionSummaryDTO);
+    void broadcastSessionDetails(List<SessionSummaryDTO> sessionSummaryDTOs);
 
     List<UserActivityDTO> getAllOnlineUsers();
     List<UserRoleCountDTO> getOnlineUsersCountByRole();

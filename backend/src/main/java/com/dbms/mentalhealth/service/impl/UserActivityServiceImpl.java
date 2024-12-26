@@ -1,4 +1,5 @@
 package com.dbms.mentalhealth.service.impl;
+
 import com.dbms.mentalhealth.dto.UserActivity.UserActivityDTO;
 import com.dbms.mentalhealth.dto.UserActivity.UserRoleCountDTO;
 import com.dbms.mentalhealth.dto.session.SessionSummaryDTO;
@@ -9,6 +10,7 @@ import com.dbms.mentalhealth.repository.UserRepository;
 import com.dbms.mentalhealth.service.UserActivityService;
 import com.github.benmanes.caffeine.cache.Cache;
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -30,7 +32,7 @@ public class UserActivityServiceImpl implements UserActivityService {
     private final CopyOnWriteArrayList<SseEmitter> listenerEmitters = new CopyOnWriteArrayList<>();
     private final CopyOnWriteArrayList<SseEmitter> userEmitters = new CopyOnWriteArrayList<>();
     private final CopyOnWriteArrayList<SseEmitter> sessionDetailsEmitters = new CopyOnWriteArrayList<>();
-
+    private final SessionServiceImpl sessionService;
     Logger log = org.slf4j.LoggerFactory.getLogger(UserActivityServiceImpl.class);
     private final UserRepository userRepository;
     private final Cache<String, UserActivityDTO> userDetailsCache;
@@ -40,11 +42,12 @@ public class UserActivityServiceImpl implements UserActivityService {
     public UserActivityServiceImpl(UserRepository userRepository,
                                    Cache<String, UserActivityDTO> userDetailsCache,
                                    Cache<String, List<UserActivityDTO>> roleBasedDetailsCache,
-                                   Cache<String, LocalDateTime> lastSeenCache) {
+                                   Cache<String, LocalDateTime> lastSeenCache,  SessionServiceImpl sessionService) {
         this.userRepository = userRepository;
         this.userDetailsCache = userDetailsCache;
         this.roleBasedDetailsCache = roleBasedDetailsCache;
         this.lastSeenCache = lastSeenCache;
+        this.sessionService = sessionService;
         initializeCaches();
     }
 
@@ -119,17 +122,25 @@ public class UserActivityServiceImpl implements UserActivityService {
             emitterList.remove(emitter);
         });
     }
+
     @Override
     public void sendInitialSessionDetails(SseEmitter emitter) {
         log.debug("Sending initial session details data");
         try {
-            List<SessionSummaryDTO> cachedData = new ArrayList<>(); // Send empty list if no sessions are present
+
+            List<SessionSummaryDTO> cachedData = sessionService.broadcastFullSessionCache();
+            if (cachedData == null) {
+                log.debug("No cached session data found, sending empty list");
+                cachedData = new ArrayList<>();
+            }
+            log.info("Initial session details data: {}", cachedData);
             emitter.send(SseEmitter.event().name("sessionDetails").data(cachedData));
         } catch (IOException e) {
             log.error("Error sending initial session details data", e);
             sessionDetailsEmitters.remove(emitter);
         }
     }
+
     private void sendInitialData(SseEmitter emitter, String mapKey, CopyOnWriteArrayList<SseEmitter> emitters) {
         try {
             logMapContents();
@@ -213,16 +224,11 @@ public class UserActivityServiceImpl implements UserActivityService {
 
     @Async
     @Override
-    public void broadcastSessionDetails(SessionSummaryDTO sessionSummaryDTO) {
-        log.debug("Broadcasting session details: {}", sessionSummaryDTO);
+    public void broadcastSessionDetails(List<SessionSummaryDTO> sessionSummaryDTOs) {
+        log.debug("Broadcasting session details: {}", sessionSummaryDTOs);
         for (SseEmitter emitter : sessionDetailsEmitters) {
             try {
-                if ("ONGOING".equals(sessionSummaryDTO.getSessionStatus())) {
-                    emitter.send(SseEmitter.event().name("sessionDetails").data(sessionSummaryDTO));
-                } else {
-                    emitter.send(SseEmitter.event().name("sessionDetails").data(new ArrayList<>()));
-                    sessionDetailsEmitters.remove(emitter);
-                }
+                emitter.send(SseEmitter.event().name("sessionDetails").data(sessionSummaryDTOs));
             } catch (IOException e) {
                 log.error("Error broadcasting session details", e);
                 sessionDetailsEmitters.remove(emitter);
@@ -249,6 +255,7 @@ public class UserActivityServiceImpl implements UserActivityService {
     public void broadcastAllUsers() {
         log.debug("Broadcasting all users data");
         broadcastData("allUsers", getAllOnlineUsers(), allUserEmitters);
+        broadcastFullCacheDetails();
     }
 
     @Override
@@ -266,6 +273,7 @@ public class UserActivityServiceImpl implements UserActivityService {
                     roleEmitters.remove(emitter);
                 }
             }
+            broadcastFullCacheDetails();
         } catch (Exception e) {
             log.error("Error broadcasting role counts", e);
         }
@@ -276,6 +284,7 @@ public class UserActivityServiceImpl implements UserActivityService {
     public void broadcastAdminDetails() {
         log.debug("Broadcasting admin details data");
         broadcastData("adminDetails", getOnlineAdmins(), adminEmitters);
+        broadcastFullCacheDetails();
     }
 
     @Override
@@ -283,6 +292,7 @@ public class UserActivityServiceImpl implements UserActivityService {
     public void broadcastListenerDetails() {
         log.debug("Broadcasting listener details data");
         broadcastData("listenerDetails", getOnlineListeners(), listenerEmitters);
+        broadcastFullCacheDetails();
     }
 
     @Override
@@ -290,6 +300,21 @@ public class UserActivityServiceImpl implements UserActivityService {
     public void broadcastUserDetails() {
         log.debug("Broadcasting user details data");
         broadcastData("userDetails", getOnlineUsers(), userEmitters);
+        broadcastFullCacheDetails();
+    }
+
+    private void broadcastFullCacheDetails() {
+        logMapContents();
+        for (SseEmitter emitter : allUserEmitters) {
+            try {
+                emitter.send(SseEmitter.event().name("fullCacheDetails").data(userDetailsCache.asMap()));
+                emitter.send(SseEmitter.event().name("fullCacheDetails").data(roleBasedDetailsCache.asMap()));
+                emitter.send(SseEmitter.event().name("fullCacheDetails").data(lastSeenCache.asMap()));
+            } catch (IOException e) {
+                log.error("Error broadcasting full cache details", e);
+                allUserEmitters.remove(emitter);
+            }
+        }
     }
 
     @Override

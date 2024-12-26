@@ -192,6 +192,11 @@ public class CacheableSessionServiceImpl implements SessionService {
         return jwtUtils.getUserIdFromContext();
     }
 
+    @Override
+    public List<SessionSummaryDTO> broadcastFullSessionCache() {
+        return sessionServiceImpl.broadcastFullSessionCache();
+    }
+
     public void logCacheStats() {
         logger.info("Session Cache Stats: {}", sessionCache.stats());
         logger.info("Session List Cache Stats: {}", sessionListCache.stats());

@@ -19,12 +19,14 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.Cache;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -50,7 +52,7 @@ public class SessionServiceImpl implements SessionService {
                               NotificationRepository notificationRepository,
                               ChatMessageRepository chatMessageRepository,
                               Cache<Integer, Session> ongoingSessionsCache,
-                              UserActivityService userActivityService) {
+                              @Lazy UserActivityService userActivityService) {
         this.notificationService = notificationService;
         this.jwtUtils = jwtUtils;
         this.userRepository = userRepository;
@@ -106,8 +108,8 @@ public class SessionServiceImpl implements SessionService {
             ongoingSessionsCache.put(session.getSessionId(), session);
 
             // Broadcast session details
-            SessionSummaryDTO sessionSummaryDTO = SessionMapper.toSessionSummaryDTO(session);
-            userActivityService.broadcastSessionDetails(sessionSummaryDTO);
+            broadcastFullSessionCache();
+
             // Prepare session notifications
             String userMessage = "Your session request has been accepted by listener " +
                     listener.getUser().getAnonymousName() +
@@ -196,8 +198,7 @@ public class SessionServiceImpl implements SessionService {
         ongoingSessionsCache.invalidate(sessionId);
 
         // Broadcast session details
-        SessionSummaryDTO sessionSummaryDTO = SessionMapper.toSessionSummaryDTO(session);
-        userActivityService.broadcastSessionDetails(sessionSummaryDTO);
+        broadcastFullSessionCache();
 
         // Notify users about session end
         String message = "Session with ID " + sessionId + " has ended.";
@@ -206,6 +207,16 @@ public class SessionServiceImpl implements SessionService {
 
         log.info("Session ended - Session ID: {}", sessionId);
         return "Session ended successfully";
+    }
+
+    @Override
+    public List<SessionSummaryDTO> broadcastFullSessionCache() {
+        List<SessionSummaryDTO> cachedSessions = new ArrayList<>();
+        ongoingSessionsCache.asMap().values().forEach(session -> {
+            cachedSessions.add(SessionMapper.toSessionSummaryDTO(session));
+        });
+        userActivityService.broadcastSessionDetails(cachedSessions);
+        return cachedSessions;
     }
 
     @Override
