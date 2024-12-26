@@ -83,11 +83,11 @@ export function OnlineAdminsTable() {
               No admins found.
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6  min-h-screen md:min-h-[400px]">
               {paginatedAdmins.map((admin) => (
                 <Card
                   key={admin.userId}
-                  className="overflow-hidden hover:shadow-lg transition-shadow duration-200 bg-white"
+                  className="overflow-hidden h-min hover:shadow-lg transition-shadow duration-200 bg-white"
                 >
                   <CardContent className="p-6">
                     <div className="flex flex-col space-y-4">

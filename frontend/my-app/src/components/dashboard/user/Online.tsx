@@ -81,57 +81,77 @@ export function OnlineUsersTable() {
 
       {loading && <InlineLoader />}
       {!loading && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 relative min-h-screen md:min-h-[350px]">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6 min-h-screen md:min-h-[350px]">
           {paginatedUsers.length === 0 ? (
-            <div className="col-span-full text-center p-8 border rounded-lg">
-              No users found.
+            <div className="col-span-full text-center py-12 bg-gray-50 rounded-lg border border-dashed">
+              <p className="text-gray-500">No users found.</p>
             </div>
           ) : (
             paginatedUsers.map((user) => (
               <div
                 key={user.userId}
-                className="bg-card border rounded-lg p-4 space-y-4"
+                className="bg-white rounded-xl shadow-sm h-min hover:shadow-md transition-shadow duration-200"
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <UserIcon role={"user"} />
-                    <div>
-                      <p className="font-medium">{user.anonymousName}</p>
-                      <p className="text-sm text-muted-foreground">
+                <div className="p-6">
+                  <div className="flex items-start justify-between gap-3">
+                    {/* User Icon */}
+                    <div className="flex-shrink-0">
+                      <UserIcon role="user" />
+                    </div>
+
+                    {/* User Info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-medium text-gray-900 truncate">
+                          {user.anonymousName}
+                        </h3>
+                        <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0" />
+                      </div>
+                      <p className="text-sm text-gray-500 mb-1">
                         ID: {user.userId}
                       </p>
                     </div>
+
+                    {/* Actions Menu */}
+                    <div className="flex-shrink-0">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                          >
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48">
+                          <DropdownMenuItem
+                            onClick={() => handleDetailsModal(user.userId)}
+                          >
+                            View Details
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() =>
+                              router.push(
+                                `/dashboard/user/sessions/${user.userId}`
+                              )
+                            }
+                          >
+                            View Sessions
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() =>
+                              router.push(
+                                `/dashboard/user/appointments/${user.userId}`
+                              )
+                            }
+                          >
+                            View Appointments
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem
-                        onClick={() => handleDetailsModal(user.userId)}
-                      >
-                        Details
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() =>
-                          router.push(`/dashboard/user/sessions/${user.userId}`)
-                        }
-                      >
-                        Sessions
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() =>
-                          router.push(
-                            `/dashboard/user/appointments/${user.userId}`
-                          )
-                        }
-                      >
-                        Appointments
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
                 </div>
               </div>
             ))

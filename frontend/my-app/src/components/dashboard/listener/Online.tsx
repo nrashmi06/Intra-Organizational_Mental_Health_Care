@@ -121,7 +121,7 @@ export function OnlineListenersTable() {
 
       {loading && <InlineLoader />}
       {!loading && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6 min-h-screen md:min-h-[350px]">
           {paginatedListeners.length === 0 ? (
             <div className="col-span-full text-center py-12 bg-gray-50 rounded-lg border border-dashed">
               <p className="text-gray-500">No online listeners found</p>
@@ -130,7 +130,7 @@ export function OnlineListenersTable() {
             paginatedListeners.map((listener) => (
               <div
                 key={listener.userId}
-                className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200"
+                className="bg-white h-min rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200"
               >
                 <div className="p-6">
                   <div className="flex items-start justify-between gap-3">

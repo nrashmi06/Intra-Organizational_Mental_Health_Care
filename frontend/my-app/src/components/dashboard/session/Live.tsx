@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
-import { Search, Menu, X } from "lucide-react";
+import { Search, Menu, X, Eye, User } from "lucide-react";
 import SessionDetailView from "@/components/dashboard/SessionDetailView";
 import { Input } from "@/components/ui/input";
 import { Session } from "@/lib/types";
@@ -65,15 +65,17 @@ export const LiveSessions = () => {
       <div className="flex flex-wrap gap-1.5">
         <button
           onClick={() => handleListenermodal(session)}
-          className="flex-1 px-2 py-1.5 text-xs font-medium text-gray-600 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors"
+          className="flex items-center gap-1.5 px-2 py-1.5 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 transition-colors text-xs font-medium flex-1 justify-center"
         >
-          View Listener
+          <Eye size={14} />
+          <span>View Listener</span>
         </button>
         <button
           onClick={() => handleUserModal(session)}
-          className="flex-1 px-2 py-1.5 text-xs font-medium text-gray-600 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors"
+          className="flex items-center gap-1.5 px-2 py-1.5 bg-green-50 text-green-600 rounded-md hover:bg-green-100 transition-colors text-xs font-medium flex-1 justify-center"
         >
-          View User
+          <User size={14} />
+          <span>View User</span>
         </button>
       </div>
     </div>
@@ -127,7 +129,7 @@ export const LiveSessions = () => {
 
           <div className="p-3 space-y-2">
             {loading ? (
-              <InlineLoader height="h-96"/>
+              <InlineLoader height="h-96" />
             ) : filteredSessions.length === 0 ? (
               <div className="text-gray-500 text-sm flex items-center justify-center p-4 bg-white rounded-lg border border-dashed">
                 No sessions found
