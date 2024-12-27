@@ -15,6 +15,7 @@ export function AllAppointments() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState("ALL");
   const token = useSelector((state: RootState) => state.auth.accessToken);
 
@@ -38,16 +39,26 @@ export function AllAppointments() {
     }
   }, [token]);
 
-  const filteredAppointments = appointments.filter(appointment => {
-    const matchesSearch = 
-      appointment.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      appointment.appointmentReason.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      appointment.adminName.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = statusFilter === "ALL" || appointment.status === statusFilter;
-    
-    return matchesSearch && matchesStatus;
-  });
+// Debounce logic
+useEffect(() => {
+  const handler = setTimeout(() => {
+    setDebouncedSearchTerm(searchTerm);
+  }, 1000);
+
+  return () => clearTimeout(handler); 
+}, [searchTerm]);
+
+// Use the unchanged filteredAppointments function with debouncedSearchTerm
+const filteredAppointments = appointments.filter((appointment) => {
+  const matchesSearch =
+    appointment.userName.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+    appointment.appointmentReason.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+    appointment.adminName.toLowerCase().includes(debouncedSearchTerm.toLowerCase());
+  
+  const matchesStatus = statusFilter === "ALL" || appointment.status === statusFilter;
+  
+  return matchesSearch && matchesStatus;
+});
 
   const sortedAppointments = filteredAppointments.sort((a, b) => {
     const dateA = new Date(a.date);
@@ -86,7 +97,7 @@ export function AllAppointments() {
           <div className="relative w-full mb-4">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <Input
-              placeholder="Search appointments..."
+              placeholder="Search appointments by userName, adminName or message..."
               className="pl-10 bg-gray-50 border-gray-200 w-full"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
