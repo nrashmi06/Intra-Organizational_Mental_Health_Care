@@ -137,3 +137,22 @@ export interface ListenerFeedback {
   createdAt: string;
   userId: string;
 }
+
+export interface BlogPost {
+  imageUrl: string;
+  summary: string;
+  id: number;
+  title: string;
+  date: string;
+  likeCount: number;
+  likedByCurrentUser: boolean;
+}
+
+export interface PaginationInfo {
+  pageNumber: number;
+  pageSize: number;
+  totalPages: number;
+  totalElements: number;
+  last: boolean;
+  first: boolean;
+}

@@ -1,91 +1,171 @@
 import React, { useEffect, useState } from "react";
 import Head from "next/head";
+import { useRouter } from "next/router";
+import { useSelector } from "react-redux";
+import { Plus, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import Navbar1 from "@/components/navbar/NavBar";
 import BlogCard from "@/components/blog/BlogCard";
 import Footer from "@/components/footer/Footer";
-import {
-  ChevronRightCircle,
-  ChevronLeftCircle,
-  Plus,
-  ArrowUpDown,
-} from "lucide-react";
-import "@/styles/global.css";
-import { Button } from "@/components/ui/button";
-import { useRouter } from "next/router";
-import { fetchBlogs } from "@/service/blog/FetchByStatus";
-import { RootState } from "@/store";
-import { useSelector } from "react-redux";
 import InlineLoader from "@/components/ui/inlineLoader";
+import fetchRecentBlogs from "@/service/blog/fetchBlogs";
+import { RootState } from "@/store";
+import "@/styles/global.css";
+import getPageNumbers from "@/components/blog/PageNumbers";
+import { BlogPost } from "@/lib/types";
+import { PaginationInfo } from "@/lib/types";
+
+const PAGE_SIZE_OPTIONS = [6, 9, 12, 15];
+const DEFAULT_FILTERS = {
+  pageSize: 6,
+  sortField: "publishDate",
+  sortDirection: "desc",
+  searchQuery: "",
+};
 
 export default function AllBlogsPage() {
   const router = useRouter();
-
-  interface BlogPost {
-    imageUrl: string;
-    summary: string;
-    id: number;
-    title: string;
-    date: string;
-    likeCount: number;
-    likedByCurrentUser: boolean;
-  }
-
-  const [allPosts, setAllPosts] = useState<BlogPost[]>([]);
+  const token = useSelector((state: RootState) => state.auth.accessToken);
+  const [blogs, setBlogs] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [sortByDate, setSortByDate] = useState(false);
+  const [searchQuery, setSearchQuery] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("blogSearchQuery") || DEFAULT_FILTERS.searchQuery;
+    }
+    return DEFAULT_FILTERS.searchQuery;
+  });
+  
+  const [paginationInfo, setPaginationInfo] = useState<PaginationInfo>({
+    pageNumber: 0,
+    pageSize: typeof window !== "undefined" 
+      ? Number(localStorage.getItem("blogPageSize")) || DEFAULT_FILTERS.pageSize 
+      : DEFAULT_FILTERS.pageSize,
+    totalPages: 0,
+    totalElements: 0,
+    last: false,
+    first: true,
+  });
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-  };
+  const [sortConfig, setSortConfig] = useState(() => {
+    if (typeof window !== "undefined") {
+      return {
+        field: localStorage.getItem("blogSortField") || DEFAULT_FILTERS.sortField,
+        direction: localStorage.getItem("blogSortDirection") || DEFAULT_FILTERS.sortDirection,
+      };
+    }
+    return {
+      field: DEFAULT_FILTERS.sortField,
+      direction: DEFAULT_FILTERS.sortDirection,
+    };
+  });
 
-  const handleSortToggle = () => {
-    setSortByDate(!sortByDate);
-  };
-
-  const token = useSelector((state: RootState) => state.auth.accessToken);
   useEffect(() => {
-    if (token) {
-      fetchBlogs("approved", token)
-        .then((data) => {
-          if (Array.isArray(data)) {
-            setAllPosts(data);
-          } else {
-            setError("Failed to load blogs");
-          }
-          setLoading(false);
-        })
-        .catch((err) => {
-          setError("Failed to load blogs" + err);
-          setLoading(false);
-        });
-    } else {
+    if (!token) {
       router.push("/signin");
+      return;
+    }
+    fetchBlogs();
+  }, [paginationInfo.pageNumber, paginationInfo.pageSize, sortConfig, token, searchQuery]);
+
+  useEffect(() => {
+    localStorage.setItem("blogPageSize", paginationInfo.pageSize.toString());
+    localStorage.setItem("blogSortField", sortConfig.field);
+    localStorage.setItem("blogSortDirection", sortConfig.direction);
+    localStorage.setItem("blogSearchQuery", searchQuery);
+  }, [paginationInfo.pageSize, sortConfig, searchQuery]);
+
+  const fetchBlogs = async () => {
+    try {
+      setLoading(true);
+      const response = await fetchRecentBlogs({
+        page: paginationInfo.pageNumber,
+        size: paginationInfo.pageSize,
+        sort: sortConfig.field,
+        direction: sortConfig.direction,
+        token,
+      });
+
+      if (response?.data) {
+        setBlogs(response.data.content);
+        setPaginationInfo((prev) => ({
+          ...prev,
+          totalPages: response.data.totalPages,
+          totalElements: response.data.totalElements,
+          last: response.data.last,
+          first: response.data.first,
+        }));
+      }
+    } catch (err) {
+      setError("Failed to load blogs");
+      console.error(err);
+    } finally {
       setLoading(false);
     }
-  }, []);
+  };
 
-  const filteredPosts = allPosts.filter((post) =>
-    post.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const handlePageSizeChange = (newSize: string) => {
+    setPaginationInfo((prev) => ({
+      ...prev,
+      pageSize: Number(newSize),
+      pageNumber: 0,
+    }));
+  };
 
-  const sortedPosts = sortByDate
-    ? [...filteredPosts].sort(
-        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-      )
-    : filteredPosts;
+  const handleSortChange = (value: string) => {
+    const sortingConfigs = {
+      recent: { field: "publishDate", direction: "desc" },
+      oldest: { field: "publishDate", direction: "asc" },
+      most_liked: { field: "likeCount", direction: "desc" },
+      most_viewed: { field: "viewCount", direction: "desc" },
+    };
+    setSortConfig(sortingConfigs[value as keyof typeof sortingConfigs]);
+    setPaginationInfo((prev) => ({ ...prev, pageNumber: 0 }));
+  };
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const postsPerPage = 9;
-  const totalPages = Math.ceil(sortedPosts.length / postsPerPage);
+  const handlePageClick = (pageNum: number | string) => {
+    if (typeof pageNum === "number") {
+      setPaginationInfo((prev) => ({
+        ...prev,
+        pageNumber: pageNum - 1,
+      }));
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
 
-  const indexOfLastPost = currentPage * postsPerPage;
-  const indexOfFirstPost = indexOfLastPost - postsPerPage;
-  const currentPosts = sortedPosts.slice(indexOfFirstPost, indexOfLastPost);
+  const getCurrentSortValue = () => {
+    const { field, direction } = sortConfig;
+    if (field === "publishDate" && direction === "desc") return "recent";
+    if (field === "publishDate" && direction === "asc") return "oldest";
+    if (field === "likeCount") return "most_liked";
+    if (field === "viewCount") return "most_viewed";
+    return "recent";
+  };
 
-  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
-  
+  const clearFilters = () => {
+    setSearchQuery(DEFAULT_FILTERS.searchQuery);
+    setPaginationInfo(prev => ({
+      ...prev,
+      pageSize: DEFAULT_FILTERS.pageSize,
+      pageNumber: 0,
+    }));
+    setSortConfig({
+      field: DEFAULT_FILTERS.sortField,
+      direction: DEFAULT_FILTERS.sortDirection,
+    });
+    localStorage.removeItem("blogSearchQuery");
+    localStorage.removeItem("blogPageSize");
+    localStorage.removeItem("blogSortField");
+    localStorage.removeItem("blogSortDirection");
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Head>
@@ -96,7 +176,7 @@ export default function AllBlogsPage() {
         />
       </Head>
 
-      <Navbar1/>
+      <Navbar1 />
 
       <div className="w-full bg-white py-8 md:py-10 border-b">
         <div className="container mx-auto px-4 max-w-7xl">
@@ -117,20 +197,54 @@ export default function AllBlogsPage() {
               <input
                 type="text"
                 value={searchQuery}
-                onChange={handleSearchChange}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setPaginationInfo((prev) => ({ ...prev, pageNumber: 0 }));
+                }}
                 placeholder="Search blogs..."
-                className="p-3 border rounded-lg w-full sm:w-64 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="p-3 border rounded-lg w-full sm:w-64 focus:ring-2 focus:ring-green-500 focus:border-green-500"
               />
-              <Button
-                onClick={handleSortToggle}
-                className="w-full sm:w-auto p-3 border bg-black rounded-lg flex items-center justify-center gap-2"
+
+              <Select onValueChange={handleSortChange} value={getCurrentSortValue()}>
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent className="bg-white">
+                  <SelectItem value="recent">Most Recent</SelectItem>
+                  <SelectItem value="oldest">Oldest First</SelectItem>
+                  <SelectItem value="most_liked">Most Liked</SelectItem>
+                  <SelectItem value="most_viewed">Most Viewed</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select
+                onValueChange={handlePageSizeChange}
+                value={paginationInfo.pageSize.toString()}
               >
-                <ArrowUpDown className="w-5 h-5" />
-                <span className="sm:hidden">Sort by Date</span>
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <SelectValue placeholder="Items per page" />
+                </SelectTrigger>
+                <SelectContent className="bg-white">
+                  {PAGE_SIZE_OPTIONS.map((size) => (
+                    <SelectItem key={size} value={size.toString()}>
+                      {size} per page
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Button
+                onClick={clearFilters}
+                variant="outline"
+                className="w-full sm:w-auto flex items-center gap-2"
+              >
+                <X className="w-4 h-4" />
+                Clear Filters
               </Button>
             </div>
+
             <Button
-              className="w-full sm:w-auto flex items-center justify-center gap-2 p-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 p-3 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors"
               onClick={() => router.push("/blog/create_blog")}
             >
               <Plus className="w-5 h-5" />
@@ -140,6 +254,7 @@ export default function AllBlogsPage() {
         </div>
       </div>
 
+      {/* Blog Grid */}
       <div className="container mx-auto px-8 max-w-7xl py-6">
         {loading ? (
           <div className="flex justify-center items-center min-h-[400px]">
@@ -148,49 +263,58 @@ export default function AllBlogsPage() {
         ) : error ? (
           <div className="text-center py-8 text-red-500">{error}</div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {currentPosts.map((post) => (
-              <BlogCard 
-                post={{
-                  ...post,
-                  summary: post.summary.length > 150 
-                    ? `${post.summary.substring(0, 150)}...` 
-                    : post.summary
-                }} 
-                key={post.id} 
-              />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {blogs.map((post) => (
+                <BlogCard
+                  key={post.id}
+                  post={{
+                    ...post,
+                    summary:
+                      post.summary.length > 200
+                        ? `${post.summary.substring(0, 200)}...`
+                        : post.summary,
+                  }}
+                />
+              ))}
+            </div>
+
+            {/* Results Summary */}
+            <div className="text-center text-xs text-gray-600 mt-6">
+              Showing {blogs.length} of {paginationInfo.totalElements} blogs
+            </div>
+          </>
         )}
       </div>
 
+      {/* Pagination Controls */}
       <div className="container mx-auto px-4 max-w-7xl">
-        <div className="flex justify-center items-center gap-4 py-6">
-          <button
-            onClick={
-              currentPage === 1 ? undefined : () => paginate(currentPage - 1)
-            }
-            className={`p-2 text-black rounded-lg hover:bg-gray-100 transition-colors ${
-              currentPage === 1 ? "cursor-not-allowed opacity-50" : ""
-            }`}
-            disabled={currentPage === 1}
-          >
-            <ChevronLeftCircle className="w-6 h-6" />
-          </button>
-          <span className="self-center text-lg font-medium">{`Page ${currentPage} of ${totalPages}`}</span>
-          <button
-            onClick={
-              currentPage === totalPages
-                ? undefined
-                : () => paginate(currentPage + 1)
-            }
-            className={`p-2 text-black rounded-lg hover:bg-gray-100 transition-colors ${
-              currentPage === totalPages ? "cursor-not-allowed opacity-50" : ""
-            }`}
-            disabled={currentPage === totalPages}
-          >
-            <ChevronRightCircle className="w-6 h-6" />
-          </button>
+        <div className="flex justify-center items-center gap-2 py-6">
+          {getPageNumbers(paginationInfo.pageNumber + 1, paginationInfo.totalPages).map((pageNum, index) => (
+            <button
+              key={index}
+              onClick={() => typeof pageNum === 'number' ? handlePageClick(pageNum) : undefined}
+              className={`px-4 py-2 rounded-lg transition-colors ${
+                pageNum === '...' 
+                  ? 'cursor-default'
+                  : pageNum === paginationInfo.pageNumber + 1
+                    ? 'bg-green-500 text-white'
+                    : 'hover:bg-gray-100'
+              } ${
+                typeof pageNum === 'number'
+                  ? 'min-w-[40px] font-medium'
+                  : 'pointer-events-none'
+              }`}
+              disabled={pageNum === '...'}
+            >
+              {pageNum}
+            </button>
+          ))}
+        </div>
+        
+        {/* Results Summary */}
+        <div className="text-center text-gray-600 pb-6">
+          Showing {blogs.length} of {paginationInfo.totalElements} blogs
         </div>
       </div>
 
