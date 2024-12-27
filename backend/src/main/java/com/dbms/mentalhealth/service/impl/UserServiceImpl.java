@@ -361,10 +361,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     @Override
     @Transactional
     public void updateUserActivity(String email) {
-        User user = userRepository.findByEmail(email);
-        if (user != null) {
-            userActivityService.updateLastSeen(email);
-        }
+        userActivityService.updateLastSeen(email);
     }
 
     @Override
@@ -373,7 +370,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         User user = userRepository.findByEmail(email);
         if (user != null) {
             if (isActive) {
-                userActivityService.updateLastSeen(email);
+                userActivityService.updateLastSeenStatus(email);
             }else{
                 userActivityService.markUserInactive(email);
             }

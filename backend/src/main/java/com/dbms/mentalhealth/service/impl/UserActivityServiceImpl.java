@@ -333,36 +333,52 @@ public class UserActivityServiceImpl implements UserActivityService {
         return users != null ? updateSessionStatus(users) : new ArrayList<>();
     }
 
+
+
+    @Async
+    @Override
+    public void updateLastSeenStatus(String email) {
+        User user = userRepository.findByEmail(email);
+        if (user != null) {
+            user.setIsActive(true);
+            user.setLastSeen(LocalDateTime.now());
+            userRepository.save(user);
+            lastSeenCache.put(email, user.getLastSeen());
+
+            UserActivityDTO dto = UserActivityMapper.toUserActivityDTO(user);
+
+            // Update caches
+            userDetailsCache.invalidate(email);
+            roleBasedDetailsCache.asMap().forEach((role, list) -> {
+                List<UserActivityDTO> mutableList = new ArrayList<>(list);
+                mutableList.removeIf(existingUser -> existingUser.getUserId().equals(dto.getUserId()));
+                roleBasedDetailsCache.put(role, mutableList);
+            });
+
+            userDetailsCache.put(email, dto);
+            roleBasedDetailsCache.asMap()
+                    .computeIfAbsent(user.getRole().name(), k -> new CopyOnWriteArrayList<>())
+                    .add(dto);
+
+            broadcastAllUsers();
+            broadcastRoleCounts();
+            broadcastAdminDetails();
+            broadcastListenerDetails();
+            broadcastUserDetails();
+        }
+    }
+
+
     @Async
     @Override
     public void updateLastSeen(String email) {
-        User user = userRepository.findByEmail(email);
-        user.setIsActive(true);
-        user.setLastSeen(LocalDateTime.now());
-        userRepository.save(user);
-        lastSeenCache.put(email, user.getLastSeen());
+        LocalDateTime now = LocalDateTime.now();
+        lastSeenCache.put(email, now);
 
-        UserActivityDTO dto = UserActivityMapper.toUserActivityDTO(user);
-
-        // Update caches
-        userDetailsCache.invalidate(email);
-        roleBasedDetailsCache.asMap().forEach((role, list) -> {
-            List<UserActivityDTO> mutableList = new ArrayList<>(list);
-            mutableList.removeIf(existingUser -> existingUser.getUserId().equals(dto.getUserId()));
-            roleBasedDetailsCache.put(role, mutableList);
-        });
-
-        userDetailsCache.put(email, dto);
-        roleBasedDetailsCache.asMap()
-                .computeIfAbsent(user.getRole().name(), k -> new CopyOnWriteArrayList<>())
-                .add(dto);
-
-        // Broadcast updates
-        broadcastAllUsers();
-        broadcastRoleCounts();
-        broadcastAdminDetails();
-        broadcastListenerDetails();
-        broadcastUserDetails();
+        UserActivityDTO dto = userDetailsCache.getIfPresent(email);
+        if (dto != null) {
+            userDetailsCache.put(email, dto);
+        }
     }
 
     @Override
@@ -388,7 +404,6 @@ public class UserActivityServiceImpl implements UserActivityService {
             roleBasedDetailsCache.asMap().values().forEach(list ->
                     list.removeIf(dto -> dto.getUserId().equals(user.getUserId())));
 
-            // Broadcast updates
             broadcastAllUsers();
             broadcastRoleCounts();
             broadcastAdminDetails();
