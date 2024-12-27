@@ -169,7 +169,7 @@ export function RegisteredUsersTable() {
                                 )
                               }
                             >
-                              View Sessions
+                              Sessions
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() =>
@@ -178,7 +178,16 @@ export function RegisteredUsersTable() {
                                 )
                               }
                             >
-                              View Appointments
+                              Appointments
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() =>
+                                router.push(
+                                  `/dashboard/user/reports/${user.id}`
+                                )
+                              }
+                            >
+                              Reports
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>

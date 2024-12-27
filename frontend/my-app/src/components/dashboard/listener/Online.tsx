@@ -168,7 +168,7 @@ export function OnlineListenersTable() {
                           <DropdownMenuItem
                             onClick={() => handleDetailsModal(listener.userId)}
                           >
-                            View Details
+                            Details
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() =>
@@ -177,14 +177,23 @@ export function OnlineListenersTable() {
                               )
                             }
                           >
-                            View Sessions
+                            Sessions
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() =>
                               handleApplicationModal(listener.userId)
                             }
                           >
-                            View Application
+                            Application
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() =>
+                              router.push(
+                                `/dashboard/listener/feedbacks/${listener.userId}`
+                              )
+                            }
+                          >
+                            Feedbacks
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>

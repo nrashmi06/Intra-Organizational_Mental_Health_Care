@@ -119,3 +119,21 @@ export interface AdminDetails {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface UserReport {
+  reportId: number;
+  sessionId: number;
+  reportContent: string;
+  severityLevel: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ListenerFeedback {
+  feedbackId: number;
+  sessionId: number;
+  rating: number;
+  comments: string;
+  createdAt: string;
+  userId: string;
+}
