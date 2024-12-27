@@ -16,11 +16,13 @@ public interface BlogTrendingScoreRepository extends JpaRepository<BlogTrendingS
         SELECT b.id FROM Blog b
         WHERE b.blogApprovalStatus = 'APPROVED'
         AND (:userId IS NULL OR b.userId = :userId)
+        AND (:title IS NULL OR LOWER(b.title) LIKE CONCAT('%', LOWER(:title), '%'))
     )
        ORDER BY bts.trendingScore DESC
-""")
+    """)
     Page<BlogTrendingScore> findTrendingBlogs(
             @Param("userId") Integer userId,
+            @Param("title") String title,
             Pageable pageable
     );
 }

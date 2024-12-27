@@ -21,7 +21,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -131,7 +130,7 @@ public class BlogController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         if (filterType == null) {
-            filterType = BlogFilterType.RECENT; // default filter
+            filterType = BlogFilterType.RECENT;
         }
         String sortBy = switch (filterType) {
             case RECENT -> "publishDate";
@@ -156,7 +155,8 @@ public class BlogController {
     @GetMapping(BlogUrlMapping.GET_TRENDING_BLOGS)
     public Page<TrendingBlogSummaryDTO> getTrendingBlogs(
             @RequestParam(required = false) Integer userId,
+            @RequestParam(required = false,defaultValue = "") String title,
             Pageable pageable) {
-        return blogService.getTrendingBlogs(userId, pageable);
+        return blogService.getTrendingBlogs(userId, title, pageable);
     }
 }

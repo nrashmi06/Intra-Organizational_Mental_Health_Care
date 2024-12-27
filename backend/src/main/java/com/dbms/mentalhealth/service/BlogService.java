@@ -1,6 +1,7 @@
 package com.dbms.mentalhealth.service;
 
 import com.dbms.mentalhealth.dto.blog.TrendingBlogSummaryDTO;
+import com.dbms.mentalhealth.dto.blog.TrendingScoreDTO;
 import com.dbms.mentalhealth.dto.blog.request.BlogRequestDTO;
 import com.dbms.mentalhealth.dto.blog.response.BlogResponseDTO;
 import com.dbms.mentalhealth.dto.blog.response.BlogSummaryDTO;
@@ -20,7 +21,7 @@ public interface BlogService {
     BlogResponseDTO likeBlog(Integer blogId);
     BlogResponseDTO unlikeBlog(Integer blogId);
     Page<BlogSummaryDTO> getBlogsByApprovalStatus(String status, Pageable pageable);
-    Page<TrendingBlogSummaryDTO> getTrendingBlogs(Integer userId, Pageable pageable);
+    Page<TrendingBlogSummaryDTO> getTrendingBlogs(Integer userId, String title, Pageable pageable);
     void incrementViewCountByAmount(Integer blogId, Integer amount);
     Page<BlogSummaryDTO> filterBlogs(Integer userId, String title,Pageable pageable);
 }

@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 @Data
 @Builder
 public class TrendingScoreDTO {
-    private Integer blogId;
+    private Integer id;
     private double trendingScore;
     private int viewCount;
     private int likeCount;

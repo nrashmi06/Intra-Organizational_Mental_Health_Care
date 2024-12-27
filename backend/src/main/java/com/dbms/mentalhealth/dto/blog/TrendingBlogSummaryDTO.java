@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 @Data
 @Builder
 public class TrendingBlogSummaryDTO {
-    private Integer blogId;
+    private Integer id;
     private String title;
     private String summary;
     private String content;

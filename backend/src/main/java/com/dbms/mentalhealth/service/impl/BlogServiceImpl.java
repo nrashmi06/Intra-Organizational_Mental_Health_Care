@@ -256,10 +256,10 @@ public class BlogServiceImpl implements BlogService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<TrendingBlogSummaryDTO> getTrendingBlogs(Integer userId, Pageable pageable) {
+    public Page<TrendingBlogSummaryDTO> getTrendingBlogs(Integer userId, String title, Pageable pageable) {
         Integer currentUserId = jwtUtils.getUserIdFromContext();
         Pageable unsorted = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.unsorted());
-        Page<BlogTrendingScore> trendingScores = blogTrendingScoreRepository.findTrendingBlogs(userId, unsorted);
+        Page<BlogTrendingScore> trendingScores = blogTrendingScoreRepository.findTrendingBlogs(userId, title, unsorted);
         return trendingScores.map(score -> {
             Blog blog = blogRepository.findById(score.getBlogId())
                     .orElseThrow(() -> new BlogNotFoundException("Blog not found: " + score.getBlogId()));

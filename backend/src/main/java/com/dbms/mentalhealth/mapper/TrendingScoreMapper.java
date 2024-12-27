@@ -9,7 +9,7 @@ public class TrendingScoreMapper {
 
     public static TrendingScoreDTO toDTO(BlogTrendingScore score) {
         return TrendingScoreDTO.builder()
-                .blogId(score.getBlogId())
+                .id(score.getBlogId())
                 .trendingScore(score.getTrendingScore())
                 .viewCount(score.getViewCount())
                 .likeCount(score.getLikeCount())
@@ -19,7 +19,7 @@ public class TrendingScoreMapper {
 
     public static BlogTrendingScore toEntity(TrendingScoreDTO dto) {
         return new BlogTrendingScore(
-                dto.getBlogId(),
+                dto.getId(),
                 dto.getTrendingScore(),
                 dto.getViewCount(),
                 dto.getLikeCount(),
@@ -29,7 +29,7 @@ public class TrendingScoreMapper {
     }
     public static TrendingBlogSummaryDTO toTrendingSummaryDTO(Blog blog, BlogTrendingScore score, boolean likedByCurrentUser) {
         return TrendingBlogSummaryDTO.builder()
-                .blogId(blog.getId())
+                .id(blog.getId())
                 .title(blog.getTitle())
                 .summary(blog.getSummary())
                 .content(blog.getContent())

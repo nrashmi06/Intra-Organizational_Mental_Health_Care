@@ -8,7 +8,7 @@ import org.springframework.data.domain.Pageable;
 public interface BlogTrendingScoreService {
     void updateScores();
     void updateScore(Integer blogId);
-    Page<TrendingScoreDTO> getTrendingBlogs(Integer userId, Pageable pageable);
+    Page<TrendingScoreDTO> getTrendingBlogs(Integer userId, String title, Pageable pageable);
     void handleBlogView(Integer blogId);
     void handleBlogLike(Integer blogId);
 }

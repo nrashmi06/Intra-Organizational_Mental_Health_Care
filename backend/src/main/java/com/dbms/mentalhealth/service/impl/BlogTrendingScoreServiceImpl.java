@@ -95,8 +95,8 @@ public class BlogTrendingScoreServiceImpl implements BlogTrendingScoreService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<TrendingScoreDTO> getTrendingBlogs(Integer userId, Pageable pageable) {
-        return trendingScoreRepository.findTrendingBlogs(userId, pageable)
+    public Page<TrendingScoreDTO> getTrendingBlogs(Integer userId, String title, Pageable pageable) {
+        return trendingScoreRepository.findTrendingBlogs(userId, title, pageable)
                 .map(TrendingScoreMapper::toDTO);
     }
 
