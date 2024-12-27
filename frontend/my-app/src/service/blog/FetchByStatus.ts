@@ -1,6 +1,6 @@
 import { BLOG_API_ENDPOINTS } from '@/mapper/blogMapper';  // Import the endpoint mapper
 
-export async function fetchBlogs(status?: string, token?: string) {
+export async function fetchByStatus(status: string, token: string, page?: number, size?: number) {
   if (!token) {
     throw new Error('No token found');
   }
@@ -10,12 +10,18 @@ export async function fetchBlogs(status?: string, token?: string) {
     'Content-Type': 'application/json',
   };
 
-  const url = status
-    ? `${BLOG_API_ENDPOINTS.GET_BLOGS_BY_APPROVAL_STATUS}?status=${status}`  // Use the mapped URL for status
-    : `${BLOG_API_ENDPOINTS.GET_BLOGS_BY_APPROVAL_STATUS}?status=pending`; // Default to pending status if no status is provided
+  // Construct the URL with optional page and size parameters
+  const url = new URL(BLOG_API_ENDPOINTS.GET_BLOGS_BY_APPROVAL_STATUS);
+  url.searchParams.append('status', status || 'pending');
+  if (page !== undefined) {
+    url.searchParams.append('page', page.toString());
+  }
+  if (size !== undefined) {
+    url.searchParams.append('size', size.toString());
+  }
 
   try {
-    const response = await fetch(url, { method: 'GET', headers });
+    const response = await fetch(url.toString(), { method: 'GET', headers });
 
     // Ensure the response is in the expected format (JSON or plain text)
     const contentType = response.headers.get('Content-Type');
@@ -24,7 +30,7 @@ export async function fetchBlogs(status?: string, token?: string) {
       const data = await response.json();
 
       // Ensure that the response data is an array before returning
-      if (Array.isArray(data)) {
+      if (data) {
         return data;
       } else {
         console.error('Expected an array but got:', data);

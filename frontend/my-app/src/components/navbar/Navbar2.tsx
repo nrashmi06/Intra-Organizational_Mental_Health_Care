@@ -55,6 +55,16 @@ export default function Navbar() {
               >
                 Home
               </Link>
+              {role === "ADMIN" && (
+                <Link
+                  href="/dashboard"
+                  className={`text-sm font-medium text-white ${
+                    router.pathname === "/dashboard" ? "underline" : ""
+                  }`}
+                >
+                  Dashboard
+                </Link>
+              )}
               <Link
                 href="/blog/all"
                 className={`text-sm font-medium text-white ${
@@ -123,16 +133,6 @@ export default function Navbar() {
               >
                 About
               </Link>
-              {role === "ADMIN" && (
-                <Link
-                  href="/dashboard"
-                  className={`text-sm font-medium text-white ${
-                    router.pathname === "/dashboard" ? "underline" : ""
-                  }`}
-                >
-                  Dashboard
-                </Link>
-              )}
 
               {/* Sign-in and Register links */}
               <div className="flex flex-row items-center gap-4">
@@ -264,7 +264,7 @@ export default function Navbar() {
               {!user.accessToken ? (
                 <>
                   <Link
-                    href="/sign-in"
+                    href="/signin"
                     className="text-sm font-medium text-white"
                   >
                     Sign-in

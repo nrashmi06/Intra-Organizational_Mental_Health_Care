@@ -5,13 +5,14 @@ import { updateBlog } from "@/service/blog/UpdateBlog";
 import { RootState } from "@/store";
 import { useSelector } from "react-redux";
 import Navbar1 from "@/components/navbar/NavBar";
-import Navbar2 from "@/components/navbar/navbar4";
 import { Heart, Eye, Pencil, Trash } from "lucide-react";
 import "@/styles/global.css";
 import Head from "next/head";
 import EditBlogModal from "@/components/blog/EditBlogModal";
 import DeleteBlogByID from "@/service/blog/DeleteBlogByID";
 import InlineLoader from "@/components/ui/inlineLoader";
+import BlogsByAuthor from "@/components/blog/BlogsByAuthor";
+import Image from "next/image";
 
 const BlogPost = () => {
   const router = useRouter();
@@ -40,12 +41,11 @@ const BlogPost = () => {
     title: string;
     content: string;
     summary: string;
-  }>( {
+  }>({
     title: "",
     content: "",
     summary: "",
   });
-  const role = useSelector((state: RootState) => state.auth.role);
 
   useEffect(() => {
     if (!postId || !token || isNaN(Number(postId))) return;
@@ -63,10 +63,6 @@ const BlogPost = () => {
 
     fetchArticle();
   }, [postId, token]);
-
-  const handleImageLoad = () => {
-    setImageLoading(false);
-  };
 
   const handleLikeToggle = async () => {
     if (!article || !token) return;
@@ -149,24 +145,27 @@ const BlogPost = () => {
       </Head>
 
       {/* Navbar with absolute positioning */}
-      <div className="relative top-0 left-0 w-full z-40">
-        {role === "ADMIN" ? <Navbar2 /> : <Navbar1 />}
+      <div className="relative top-0 left-0 w-full z-20">
+        <Navbar1 />
       </div>
 
       {/* Blog content with overlay positioning */}
-      <main className="absolute top-[80px] left-0 w-full min-h-screen flex justify-center md:pb-10">
+      <main className="absolute top-[80px] left-0 w-full min-h-screen flex flex-col items-center justify-center md:pb-10">
         <div className="container max-w-3xl w-full bg-white shadow-xl md:rounded-2xl overflow-hidden border border-gray-100 transition-all duration-300 hover:shadow-2xl">
           {/* Blog Image with Modern Styling */}
           <div className="relative w-full h-[50vh] z-50 group overflow-hidden">
             {imageLoading && <InlineLoader height="h-full" />}
-            <img
-              src={article?.imageUrl}
-              alt={article?.title}
-              className={`w-full h-full object-cover md:transform md:transition-transform md:duration-500 md:group-hover:scale-105 ${
-                imageLoading ? 'hidden' : ''
-              }`}
-              onLoad={handleImageLoad}
-            />
+            {article?.imageUrl && (
+              <Image
+                src={article?.imageUrl || "/images/blog/mh1.png"}
+                alt={article?.title || "Article image"}
+                className={`w-full h-full object-cover md:transform md:transition-transform md:duration-500 md:group-hover:scale-105`}
+                onLoadingComplete={() => setImageLoading(false)}
+                width={800}
+                height={600}
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              />
+            )}
             <div className="absolute inset-0 bg-black opacity-20 group-hover:opacity-10 transition-opacity duration-500"></div>
           </div>
 
@@ -207,7 +206,11 @@ const BlogPost = () => {
                 >
                   <Heart
                     className={`w-5 h-5 transition-colors duration-300 
-                      ${article?.likedByCurrentUser ? "text-red-500 fill-red-500" : "text-gray-500 group-hover:text-red-400"}`}
+                      ${
+                        article?.likedByCurrentUser
+                          ? "text-red-500 fill-red-500"
+                          : "text-gray-500 group-hover:text-red-400"
+                      }`}
                     fill={article?.likedByCurrentUser ? "currentColor" : "none"}
                   />
                   <span>{article?.likeCount}</span>
@@ -255,6 +258,15 @@ const BlogPost = () => {
             </div>
           </div>
         </div>
+        {article && postId && (
+          <div>
+            <BlogsByAuthor
+              userId={article.userId.toString()}
+              currentBlogId={postId}
+              token={token}
+            />
+          </div>
+        )}
       </main>
 
       {/* Edit Modal */}

@@ -1,77 +1,89 @@
-
-import Image from "next/image"
-import { Heart, Users, Calendar, Phone } from 'lucide-react'
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import Navbar from "@/components/navbar/Navbar2"
-import { useRouter } from "next/router"
-import Footer from "@/components/footer/Footer"
-
-
+import Image from "next/image";
+import { Heart, Users, Calendar, Phone } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import Navbar from "@/components/navbar/Navbar2";
+import { useRouter } from "next/router";
+import Footer from "@/components/footer/Footer";
+import { RootState } from "@/store";
+import { useSelector } from "react-redux";
 
 const services = [
   {
     icon: <Heart className="w-6 h-6" />,
     title: "Mental Health Support",
-    description: "Professional counseling and therapy sessions."
+    description: "Professional counseling and therapy sessions.",
   },
   {
     icon: <Users className="w-6 h-6" />,
     title: "Listener Support",
-    description: "Connect with listeners about journeys in moderated sessions."
+    description: "Connect with listeners about journeys in moderated sessions.",
   },
   {
     icon: <Calendar className="w-6 h-6" />,
     title: "Scheduled Sessions",
-    description: "Flexible scheduling for one-on-one therapy sessions."
+    description: "Flexible scheduling for one-on-one therapy sessions.",
   },
   {
     icon: <Phone className="w-6 h-6" />,
     title: "24/7 Helpline",
-    description: "Round-the-clock support when you need someone to talk to."
-  }
-]
+    description: "Round-the-clock support when you need someone to talk to.",
+  },
+];
 
 const stats = [
   { value: "5000+", label: "People Helped" },
   { value: "89%", label: "Satisfaction Rate" },
   { value: "24/7", label: "Support Available" },
-  { value: "50+", label: "Expert Counselors" }
-]
-
-
+  { value: "50+", label: "Expert Counselors" },
+];
 
 export default function Home() {
   const router = useRouter();
+  const token = useSelector((state: RootState) => state.auth.accessToken);
+
   return (
     <div className="min-h-screen bg-white">
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-sm border-b border-gray-100">
-      <Navbar />
+        <Navbar />
       </header>
-      
+
       <section className="relative min-h-screen flex items-center pt-20">
-      <div className="absolute h-30 inset-0">
-        <Image
-          src="/images/index2.webp"
-          alt="Hero background"
-          fill
-          className="object-cover brightness-50"
-          priority
-        />
-      </div>
+        <div className="absolute h-30 inset-0">
+          <Image
+            src="/images/index2.webp"
+            alt="Hero background"
+            fill
+            className="object-cover brightness-50"
+            priority
+          />
+        </div>
         <div className="relative container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center space-y-8 text-white">
-            <h1 className="text-6xl md:text-8xl font-serif tracking-tight">Finding Strength Together</h1>
+            <h1 className="text-6xl md:text-8xl font-serif tracking-tight">
+              Finding Strength Together
+            </h1>
             <p className="text-xl max-w-2xl mx-auto">
-              Navigating Life&apos;s Challenges Through Collective Resilience and Mental Wellness
+              Navigating Life&apos;s Challenges Through Collective Resilience
+              and Mental Wellness
             </p>
             <div className="flex gap-4 justify-center">
-              <Button size="lg" variant="outline" className="text-white border-white hover:bg-white/20"
-              onClick={() => router.push('/signin')}>
-                Get Started
-              </Button>
-              <Button size="lg" variant="outline" className="text-white border-white hover:bg-white/20"
-              onClick={() => router.push('/about')}>
+              {!token && (
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="text-white border-white hover:bg-white/20"
+                  onClick={() => router.push("/signin")}
+                >
+                  Get Started
+                </Button>
+              )}
+              <Button
+                size="lg"
+                variant="outline"
+                className="text-white border-white hover:bg-white/20"
+                onClick={() => router.push("/about")}
+              >
                 Learn More
               </Button>
             </div>
@@ -89,7 +101,10 @@ export default function Home() {
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {services.map((service, index) => (
-              <Card key={index} className="group hover:shadow-lg transition-all">
+              <Card
+                key={index}
+                className="group hover:shadow-lg transition-all"
+              >
                 <CardContent className="p-6 text-center space-y-4">
                   <div className="w-12 h-12 mx-auto rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-[hsla(127,30%,24%,1)] group-hover:text-white transition-colors">
                     {service.icon}
@@ -104,12 +119,13 @@ export default function Home() {
       </section>
 
       <section className="py-24 bg-gray-50">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto px-4 xl:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-6">
               <h2 className="text-5xl font-serif">Champions of Wellbeing</h2>
               <p className="text-xl text-gray-600">
-                Our dedicated team of mental health professionals and support specialists are here to guide you on your journey to wellness.
+                Our dedicated team of mental health professionals and support
+                specialists are here to guide you on your journey to wellness.
               </p>
               <div className="grid grid-cols-2 gap-4 mt-8">
                 {stats.map((stat, index) => (
@@ -131,7 +147,7 @@ export default function Home() {
           </div>
         </div>
       </section>
-      <Footer/>
+      <Footer />
     </div>
-  )
+  );
 }
