@@ -43,8 +43,8 @@ public class SessionFeedbackController {
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping(SessionFeedbackUrlMapping.GET_ALL_LISTENER_FEEDBACK)
-    public ResponseEntity<List<SessionFeedbackResponseDTO>> getAllListenerFeedback(@PathVariable Integer listenerId) {
-        List<SessionFeedbackResponseDTO> feedbackList = sessionFeedbackService.getAllListenerFeedback(listenerId);
+    public ResponseEntity<List<SessionFeedbackResponseDTO>> getAllListenerFeedback(@PathVariable Integer id, @RequestParam("type") String type) {
+        List<SessionFeedbackResponseDTO> feedbackList = sessionFeedbackService.getAllListenerFeedback(id, type);
         return ResponseEntity.ok(feedbackList);
     }
 

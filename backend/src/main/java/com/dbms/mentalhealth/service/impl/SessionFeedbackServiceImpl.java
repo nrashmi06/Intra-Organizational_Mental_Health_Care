@@ -80,10 +80,18 @@ public class SessionFeedbackServiceImpl implements SessionFeedbackService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<SessionFeedbackResponseDTO> getAllListenerFeedback(Integer listenerId) {
-        List<SessionFeedback> feedbackList = sessionFeedbackRepository.findByListener_ListenerId(listenerId);
+    public List<SessionFeedbackResponseDTO> getAllListenerFeedback(Integer id, String type) {
+        Listener listener;
+        if (!type.equals("listenerId")) {
+            listener = listenerRepository.findByUser_UserId(id)
+                    .orElseThrow(() -> new ListenerNotFoundException("Listener with email " + type + " not found"));
+        } else {
+            listener = listenerRepository.findById(id)
+                    .orElseThrow(() -> new ListenerNotFoundException("Listener with ID " + id + " not found"));
+        }
+        List<SessionFeedback> feedbackList = sessionFeedbackRepository.findByListener_ListenerId(listener.getListenerId());
         if (feedbackList.isEmpty()) {
-            throw new ListenerNotFoundException("Listener with ID " + listenerId + " not found");
+            throw new ListenerNotFoundException("Listener with ID " + listener.getListenerId() + " not found");
         }
         return feedbackList.stream()
                 .map(sessionFeedbackMapper::toResponseDTO)

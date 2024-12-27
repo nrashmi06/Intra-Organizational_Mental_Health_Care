@@ -10,6 +10,6 @@ public interface SessionFeedbackService {
     SessionFeedbackResponseDTO createFeedback(SessionFeedbackRequestDTO requestDTO);
     List<SessionFeedbackResponseDTO> getFeedbackBySessionId(Integer sessionId);
     SessionFeedbackResponseDTO getFeedbackById(Integer feedbackId);
-    List<SessionFeedbackResponseDTO> getAllListenerFeedback(Integer listenerId);
+    List<SessionFeedbackResponseDTO> getAllListenerFeedback(Integer listenerId,String type);
     SessionFeedbackSummaryResponseDTO getFeedbackSummary();
 }
