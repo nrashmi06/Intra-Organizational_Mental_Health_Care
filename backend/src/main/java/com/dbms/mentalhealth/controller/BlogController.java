@@ -27,6 +27,7 @@ public class BlogController {
         this.blogService = blogService;
     }
 
+    @PreAuthorize("isAuthenticated()")
     @PostMapping(value = BlogUrlMapping.CREATE_BLOG, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<BlogResponseDTO> createBlog(
             @RequestPart("image") MultipartFile image,
@@ -40,6 +41,7 @@ public class BlogController {
         }
     }
 
+    @PreAuthorize("isAuthenticated()")
     @GetMapping(BlogUrlMapping.GET_BLOG_BY_ID)
     public ResponseEntity<BlogResponseDTO> getBlogById(@PathVariable("blogId") Integer blogId) {
         try {
@@ -51,6 +53,7 @@ public class BlogController {
         }
     }
 
+    @PreAuthorize("isAuthenticated()")
     @PutMapping(value = BlogUrlMapping.UPDATE_BLOG, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<BlogResponseDTO> updateBlog(
             @PathVariable("blogId") Integer blogId,
@@ -67,7 +70,7 @@ public class BlogController {
         }
     }
 
-
+    @PreAuthorize("isAuthenticated()")
     @DeleteMapping(BlogUrlMapping.DELETE_BLOG)
     public ResponseEntity<String> deleteBlog(@PathVariable("blogId") Integer blogId) {
         try {
@@ -80,7 +83,7 @@ public class BlogController {
         }
     }
 
-
+    @PreAuthorize("isAuthenticated()")
     @PostMapping(BlogUrlMapping.LIKE_UNLIKE_BLOG)
     public ResponseEntity<BlogResponseDTO> likeOrUnlikeBlog(@PathVariable Integer blogId, @RequestParam("action") String action) {
         try {
@@ -113,18 +116,21 @@ public class BlogController {
         }
     }
 
+    @PreAuthorize("isAuthenticated()")
     @GetMapping(BlogUrlMapping.GET_BLOGS_BY_USER)
     public ResponseEntity<Iterable<BlogSummaryDTO>> getBlogsByUser(@PathVariable Integer userId) {
         Iterable<BlogSummaryDTO> response = blogService.getBlogsByUser(userId);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
+    @PreAuthorize("isAuthenticated()")
     @GetMapping(BlogUrlMapping.SEARCH_BLOGS_BY_PARTIAL_TITLE)
     public ResponseEntity<Iterable<BlogSummaryDTO>> searchBlogsByPartialTitle(@RequestParam("title") String title) {
         Iterable<BlogSummaryDTO> response = blogService.searchBlogsByPartialTitle(title);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
+    @PreAuthorize("isAuthenticated()")
     @GetMapping(BlogUrlMapping.GET_BLOGS_BY_APPROVAL_STATUS)
     public ResponseEntity<List<BlogSummaryDTO>> getBlogsByApprovalStatus(@RequestParam("status") String status) {
         List<BlogSummaryDTO> response = blogService.getBlogsByApprovalStatus(status);

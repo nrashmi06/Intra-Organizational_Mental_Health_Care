@@ -22,12 +22,13 @@ public class EmergencyHelplineController {
         this.emergencyHelplineService = emergencyHelplineService;
     }
 
+    @PreAuthorize("permitAll()")
     @GetMapping(EmergencyHelplineUrlMapping.GET_ALL_EMERGENCY_HELPLINES)
     public List<EmergencyHelplineDTO> getAllEmergencyHelplines() {
         return emergencyHelplineService.getAllEmergencyHelplines();
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PostMapping(EmergencyHelplineUrlMapping.ADD_EMERGENCY_HELPLINE)
     @ResponseStatus(HttpStatus.CREATED)
     public EmergencyHelplineDTO addEmergencyHelpline(@RequestBody EmergencyHelplineDTO emergencyHelplineDTO) {
@@ -38,7 +39,7 @@ public class EmergencyHelplineController {
         }
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PutMapping(EmergencyHelplineUrlMapping.UPDATE_EMERGENCY_HELPLINE)
     public EmergencyHelplineDTO updateEmergencyHelpline(@PathVariable Integer helplineId, @RequestBody EmergencyHelplineDTO emergencyHelplineDTO) {
         try {
@@ -50,7 +51,7 @@ public class EmergencyHelplineController {
         }
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @DeleteMapping(EmergencyHelplineUrlMapping.DELETE_EMERGENCY_HELPLINE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteEmergencyHelpline(@PathVariable Integer helplineId) {

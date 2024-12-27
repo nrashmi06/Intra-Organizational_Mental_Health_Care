@@ -30,6 +30,7 @@ public class AppointmentController {
         this.appointmentRepository = appointmentRepository;
     }
 
+    @PreAuthorize("isAuthenticated()")
     @PostMapping(AppointmentUrlMapping.BOOK_APPOINTMENT)
     public ResponseEntity<?> createAppointment(@RequestBody AppointmentRequestDTO appointmentRequestDTO) {
         if (appointmentRequestDTO.getFullName() == null || appointmentRequestDTO.getFullName().isEmpty() || appointmentRequestDTO.getPhoneNumber() == null || appointmentRequestDTO.getPhoneNumber().isEmpty() || appointmentRequestDTO.getSeverityLevel() == null) {
@@ -43,6 +44,7 @@ public class AppointmentController {
         }
     }
 
+    @PreAuthorize("isAuthenticated()")
     @GetMapping(AppointmentUrlMapping.GET_APPOINTMENTS_BY_USER)
     public ResponseEntity<?> getAppointmentsByUser(@RequestParam(value = "userId", required = false) Integer userId) {
         try {
@@ -53,7 +55,7 @@ public class AppointmentController {
         }
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping(AppointmentUrlMapping.GET_APPOINTMENTS_BY_ADMIN)
     public ResponseEntity<List<AppointmentSummaryResponseDTO>> getAppointmentsByAdmin(
             @RequestParam(value = "userId", required = false) Integer userId,
@@ -66,7 +68,7 @@ public class AppointmentController {
         }
     }
 
-
+    @PreAuthorize("isAuthenticated()")
     @GetMapping(AppointmentUrlMapping.GET_APPOINTMENT_BY_ID)
     public ResponseEntity<?> getAppointmentById(@PathVariable Integer appointmentId) {
         try {
@@ -88,7 +90,7 @@ public class AppointmentController {
         }
     }
 
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("isAuthenticated()")
     @PutMapping(AppointmentUrlMapping.CANCEL_APPOINTMENT)
     public ResponseEntity<?> cancelAppointment(@PathVariable Integer appointmentId, @RequestBody String cancellationReason) {
         try {
@@ -99,7 +101,7 @@ public class AppointmentController {
         }
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping(AppointmentUrlMapping.GET_APPOINTMENTS_BY_DATE_RANGE)
     public ResponseEntity<?> getAppointmentsByDateRange(
             @RequestParam("startDate") LocalDate startDate,
@@ -112,7 +114,7 @@ public class AppointmentController {
         }
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping(AppointmentUrlMapping.GET_CURRENT_ADMIN_UPCOMING_APPOINTMENTS)
     public ResponseEntity<?> getCurrentAdminUpcomingAppointments() {
         try {
@@ -123,7 +125,7 @@ public class AppointmentController {
         }
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping(AppointmentUrlMapping.GET_APPOINTMENTS_BY_ADMIN_STATUS)
     public ResponseEntity<?> getAppointmentsByAdminStatus(@RequestParam("status") String status) {
         try {

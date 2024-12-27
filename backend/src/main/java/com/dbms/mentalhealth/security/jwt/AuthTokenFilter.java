@@ -32,13 +32,11 @@ public class AuthTokenFilter extends OncePerRequestFilter {
 
     private final JwtUtils jwtUtils;
     private final UserService userService;
-    private final RefreshTokenService refreshTokenService;
     private static final Logger logger = LoggerFactory.getLogger(AuthTokenFilter.class);
 
-    public AuthTokenFilter(JwtUtils jwtUtils, @Lazy UserServiceImpl userService, RefreshTokenService refreshTokenService) {
+    public AuthTokenFilter(JwtUtils jwtUtils, @Lazy UserServiceImpl userService) {
         this.jwtUtils = jwtUtils;
         this.userService = userService;
-        this.refreshTokenService = refreshTokenService;
     }
 
     private static final String CONTEXT_PATH = "/mental-health";
@@ -67,57 +65,63 @@ public class AuthTokenFilter extends OncePerRequestFilter {
 
         // Check for excluded URLs first
         if (EXCLUDED_URLS.contains(requestURI) || requestURI.contains(CONTEXT_PATH + "/chat")) {
-            logger.info("Skipping JWT validation for excluded URL: {}", requestURI);
+            logger.debug("Skipping JWT validation for excluded URL: {}", requestURI);
             filterChain.doFilter(request, response);
             return;
         }
 
         try {
             String jwt = parseJwt(request);
-            logger.info("Received JWT token: {}", jwt);
+            logger.debug("Received JWT token: {}", jwt);
 
-            if (jwt != null && jwtUtils.validateJwtToken(jwt)) {
-                String email = jwtUtils.getUserNameFromJwtToken(jwt);
-                String role = jwtUtils.getRoleFromJwtToken(jwt);
+            // Important: Don't throw exception for null JWT, let Spring Security handle it
+            if (jwt != null) {
+                if (jwtUtils.validateJwtToken(jwt)) {
+                    String email = jwtUtils.getUserNameFromJwtToken(jwt);
+                    String role = jwtUtils.getRoleFromJwtToken(jwt);
 
-                UserDetails userDetails = userService.loadUserByUsername(email);
+                    UserDetails userDetails = userService.loadUserByUsername(email);
 
-                // Ensure role consistency
-                if (!userDetails.getAuthorities().contains(new SimpleGrantedAuthority(role))) {
-                    logger.error("Role mismatch for user: {}", email);
-                    request.setAttribute("auth_error_message", "Role mismatch in JWT and user details");
-                    throw new ServletException("Role mismatch in JWT and user details");
+                    // Ensure role consistency
+                    if (!userDetails.getAuthorities().contains(new SimpleGrantedAuthority(role))) {
+                        logger.error("Role mismatch for user: {}", email);
+                        SecurityContextHolder.clearContext();
+                    } else {
+                        // Set authentication context
+                        UsernamePasswordAuthenticationToken authentication =
+                                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+                        // Update user activity
+                        userService.updateUserActivity(email);
+                        logger.debug("User authenticated: {}", email);
+                    }
+                } else {
+                    logger.debug("Invalid JWT token");
+                    SecurityContextHolder.clearContext();
                 }
-
-                // Set authentication context
-                UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-
-                // Update user activity
-                userService.updateUserActivity(email);
-                logger.info("User authenticated: {}", email);
-
-                filterChain.doFilter(request, response);
             } else {
-                request.setAttribute("auth_error_message", "Invalid or missing JWT token");
-                throw new ServletException("Invalid or missing JWT token");
+                logger.debug("No JWT token found in request");
+                SecurityContextHolder.clearContext();
             }
+
+            // Always continue the filter chain
+            filterChain.doFilter(request, response);
+
         } catch (ExpiredJwtException ex) {
             logger.warn("JWT expired: {}", ex.getMessage());
             String email = ex.getClaims().getSubject();
             userService.setUserActiveStatus(email, false);
+            SecurityContextHolder.clearContext();
             request.setAttribute("expired", true);
-            throw new ServletException("JWT token expired");
+            filterChain.doFilter(request, response);
         } catch (Exception e) {
             logger.error("Error processing JWT: {}", e.getMessage());
-            if (!response.isCommitted()) {
-                throw new ServletException(e.getMessage());
-            }
+            SecurityContextHolder.clearContext();
+            filterChain.doFilter(request, response);
         }
     }
-
 
     private String parseJwt(HttpServletRequest request) {
         String headerAuth = request.getHeader("Authorization");
