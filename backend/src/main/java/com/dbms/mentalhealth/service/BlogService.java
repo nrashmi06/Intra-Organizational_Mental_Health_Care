@@ -4,6 +4,7 @@ import com.dbms.mentalhealth.dto.blog.TrendingBlogSummaryDTO;
 import com.dbms.mentalhealth.dto.blog.request.BlogRequestDTO;
 import com.dbms.mentalhealth.dto.blog.response.BlogResponseDTO;
 import com.dbms.mentalhealth.dto.blog.response.BlogSummaryDTO;
+import com.dbms.mentalhealth.enums.BlogFilterType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
@@ -18,12 +19,8 @@ public interface BlogService {
     BlogResponseDTO updateBlogApprovalStatus(Integer blogId, boolean isApproved);
     BlogResponseDTO likeBlog(Integer blogId);
     BlogResponseDTO unlikeBlog(Integer blogId);
-    Page<BlogSummaryDTO> getBlogsByUser(Integer userId, Pageable pageable);
-    Page<BlogSummaryDTO> searchBlogsByPartialTitle(String title, Integer userId, Pageable pageable);
     Page<BlogSummaryDTO> getBlogsByApprovalStatus(String status, Pageable pageable);
-    Page<BlogSummaryDTO> getRecentBlogs(Integer userId, Pageable pageable);
-    Page<BlogSummaryDTO> getMostViewedBlogs(Integer userId, Pageable pageable);
-    Page<BlogSummaryDTO> getMostLikedBlogs(Integer userId, Pageable pageable);
     Page<TrendingBlogSummaryDTO> getTrendingBlogs(Integer userId, Pageable pageable);
     void incrementViewCountByAmount(Integer blogId, Integer amount);
+    Page<BlogSummaryDTO> filterBlogs(Integer userId, String title,Pageable pageable);
 }

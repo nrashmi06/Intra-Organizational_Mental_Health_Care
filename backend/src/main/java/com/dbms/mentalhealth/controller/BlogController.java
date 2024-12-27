@@ -4,6 +4,7 @@ import com.dbms.mentalhealth.dto.blog.TrendingBlogSummaryDTO;
 import com.dbms.mentalhealth.dto.blog.request.BlogRequestDTO;
 import com.dbms.mentalhealth.dto.blog.response.BlogResponseDTO;
 import com.dbms.mentalhealth.dto.blog.response.BlogSummaryDTO;
+import com.dbms.mentalhealth.enums.BlogFilterType;
 import com.dbms.mentalhealth.exception.blog.BlogNotFoundException;
 import com.dbms.mentalhealth.exception.blog.InvalidBlogActionException;
 import com.dbms.mentalhealth.service.BlogService;
@@ -20,7 +21,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -121,107 +121,39 @@ public class BlogController {
         }
     }
 
-    @PreAuthorize("isAuthenticated()")
-    @GetMapping(BlogUrlMapping.GET_BLOGS_BY_USER)
-    public ResponseEntity<Page<BlogSummaryDTO>> getBlogsByUser(
-            @PathVariable Integer userId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "createdAt") String sort,
-            @RequestParam(defaultValue = "desc") String direction) {
 
-        Sort.Direction sortDirection = Sort.Direction.fromString(direction.toUpperCase());
-        Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sort));
-
-        Page<BlogSummaryDTO> blogs = blogService.getBlogsByUser(userId, pageable);
-        return ResponseEntity.ok(blogs);
-    }
-
-    @PreAuthorize("isAuthenticated()")
-    @GetMapping(BlogUrlMapping.SEARCH_BLOGS_BY_PARTIAL_TITLE)
-    public ResponseEntity<Page<BlogSummaryDTO>> searchBlogsByPartialTitle(
-            @RequestParam String title,
+    @GetMapping(BlogUrlMapping.FILTER_BLOGS)
+    public Page<BlogSummaryDTO> filterBlogs(
             @RequestParam(required = false) Integer userId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false, defaultValue = "RECENT") BlogFilterType filterType,
+            Pageable pageable) {
 
-        Pageable pageable = PageRequest.of(page, size);
-        Page<BlogSummaryDTO> blogs = blogService.searchBlogsByPartialTitle(title, userId, pageable);
-        return ResponseEntity.ok(blogs);
+        String sortBy = switch (filterType) {
+            case RECENT -> "publishDate";
+            case MOST_VIEWED -> "viewCount";
+            case MOST_LIKED -> "likeCount";
+            default -> "createdAt";
+        };
+        pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
+                Sort.by(Sort.Direction.DESC, sortBy));
+
+        return blogService.filterBlogs(userId, title, pageable);
     }
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping(BlogUrlMapping.GET_BLOGS_BY_APPROVAL_STATUS)
-    public ResponseEntity<Page<BlogSummaryDTO>> getBlogsByApprovalStatus(
+    public Page<BlogSummaryDTO> getBlogsByApprovalStatus(
             @RequestParam String status,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "createdAt") String sort,
-            @RequestParam(defaultValue = "desc") String direction) {
-
-        Sort.Direction sortDirection = Sort.Direction.fromString(direction.toUpperCase());
-        Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sort));
-        Page<BlogSummaryDTO> blogs = blogService.getBlogsByApprovalStatus(status, pageable);
-        return ResponseEntity.ok(blogs);
-    }
-
-    @PreAuthorize("isAuthenticated()")
-    @GetMapping(BlogUrlMapping.GET_RECENT_BLOGS)
-    public ResponseEntity<Page<BlogSummaryDTO>> getRecentBlogs(
-            @RequestParam(required = false) Integer userId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "publishDate") String sort,
-            @RequestParam(defaultValue = "desc") String direction) {
-
-        Sort.Direction sortDirection = Sort.Direction.fromString(direction.toUpperCase());
-        Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sort));
-        Page<BlogSummaryDTO> blogs = blogService.getRecentBlogs(userId, pageable);
-        return ResponseEntity.ok(blogs);
-    }
-
-    @PreAuthorize("isAuthenticated()")
-    @GetMapping(BlogUrlMapping.GET_MOST_VIEWED_BLOGS)
-    public ResponseEntity<Page<BlogSummaryDTO>> getMostViewedBlogs(
-            @RequestParam(required = false) Integer userId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "viewCount") String sort,
-            @RequestParam(defaultValue = "desc") String direction) {
-
-        Sort.Direction sortDirection = Sort.Direction.fromString(direction.toUpperCase());
-        Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sort));
-        Page<BlogSummaryDTO> blogs = blogService.getMostViewedBlogs(userId, pageable);
-        return ResponseEntity.ok(blogs);
-    }
-
-    @PreAuthorize("isAuthenticated()")
-    @GetMapping(BlogUrlMapping.GET_MOST_LIKED_BLOGS)
-    public ResponseEntity<Page<BlogSummaryDTO>> getMostLikedBlogs(
-            @RequestParam(required = false) Integer userId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "likeCount") String sort,
-            @RequestParam(defaultValue = "desc") String direction) {
-
-        Sort.Direction sortDirection = Sort.Direction.fromString(direction.toUpperCase());
-        Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sort));
-        Page<BlogSummaryDTO> blogs = blogService.getMostLikedBlogs(userId, pageable);
-        return ResponseEntity.ok(blogs);
+            Pageable pageable) {
+        return blogService.getBlogsByApprovalStatus(status, pageable);
     }
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping(BlogUrlMapping.GET_TRENDING_BLOGS)
-    public ResponseEntity<Page<TrendingBlogSummaryDTO>> getTrendingBlogs(
+    public Page<TrendingBlogSummaryDTO> getTrendingBlogs(
             @RequestParam(required = false) Integer userId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "trendScore") String sort,
-            @RequestParam(defaultValue = "desc") String direction) {
-
-        Sort.Direction sortDirection = Sort.Direction.fromString(direction.toUpperCase());
-        Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sort));
-        Page<TrendingBlogSummaryDTO> blogs = blogService.getTrendingBlogs(userId, pageable);
-        return ResponseEntity.ok(blogs);
+            Pageable pageable) {
+        return blogService.getTrendingBlogs(userId, pageable);
     }
 }
