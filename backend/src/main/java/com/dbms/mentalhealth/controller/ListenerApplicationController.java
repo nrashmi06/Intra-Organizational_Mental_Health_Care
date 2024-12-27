@@ -22,6 +22,7 @@ public class ListenerApplicationController {
     @Autowired
     private ListenerApplicationService listenerApplicationService;
 
+    @PreAuthorize("isAuthenticated()")
     @PostMapping(value = ListenerApplicationUrlMapping.SUBMIT_APPLICATION, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ListenerApplicationResponseDTO> submitApplication(
             @RequestPart("application") ListenerApplicationRequestDTO applicationRequestDTO,
@@ -34,6 +35,7 @@ public class ListenerApplicationController {
         }
     }
 
+    @PreAuthorize("isAuthenticated()")
     @GetMapping(ListenerApplicationUrlMapping.GET_APPLICATION_BY_ID)
     public ResponseEntity<ListenerApplicationResponseDTO> getApplicationById(@RequestParam(value = "applicationId",required = false) Integer applicationId) {
         try {
@@ -45,6 +47,7 @@ public class ListenerApplicationController {
     }
 
 
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_LISTENER')")
     @DeleteMapping(ListenerApplicationUrlMapping.DELETE_APPLICATION)
     public ResponseEntity<Void> deleteApplication(@PathVariable("applicationId") Integer applicationId) {
         try {
@@ -55,13 +58,14 @@ public class ListenerApplicationController {
         }
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping(ListenerApplicationUrlMapping.GET_ALL_APPLICATIONS)
     public ResponseEntity<List<ListenerApplicationSummaryResponseDTO>> getAllApplications() {
         List<ListenerApplicationSummaryResponseDTO> responseDTO = listenerApplicationService.getAllApplications();
         return ResponseEntity.ok(responseDTO);
     }
 
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_LISTENER')")
     @PutMapping(value = ListenerApplicationUrlMapping.UPDATE_APPLICATION, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ListenerApplicationResponseDTO> updateApplication(
             @PathVariable("applicationId") Integer applicationId,
@@ -77,7 +81,7 @@ public class ListenerApplicationController {
         }
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PutMapping(ListenerApplicationUrlMapping.UPDATE_APPLICATION_STATUS)
     public ResponseEntity<ListenerDetailsResponseDTO> updateApplicationStatus(
             @PathVariable("applicationId") Integer applicationId,
@@ -90,7 +94,7 @@ public class ListenerApplicationController {
         }
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping(ListenerApplicationUrlMapping.GET_APPLICATION_BY_APPROVAL_STATUS)
     public ResponseEntity<List<ListenerApplicationSummaryResponseDTO>> getApplicationByApprovalStatus(
             @RequestParam("status") String status) {
@@ -98,7 +102,7 @@ public class ListenerApplicationController {
         return ResponseEntity.ok(responseDTO);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_LISTENER')")
     @GetMapping(ListenerApplicationUrlMapping.GET_APPLICATION_BY_LISTENERS_USER_ID)
     public ResponseEntity<ListenerApplicationResponseDTO> getApplicationsByListenersUserId(@PathVariable Integer userId) {
         ListenerApplicationResponseDTO applications = listenerApplicationService.getApplicationsByUserId(userId);

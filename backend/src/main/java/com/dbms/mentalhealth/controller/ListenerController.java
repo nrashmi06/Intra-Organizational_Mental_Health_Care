@@ -20,18 +20,19 @@ public class ListenerController {
         this.listenerService = listenerService;
     }
 
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_LISTENER')")
     @GetMapping(ListenerUrlMapping.LISTENER_BY_ID)
     public ListenerDetailsResponseDTO getListenerDetails(@RequestParam("type") String type, @RequestParam("id") Integer id) {
         return listenerService.getListenerDetails(type, id);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping(ListenerUrlMapping.ALL_LISTENERS)
     public List<UserActivityDTO> getAllListeners(@RequestParam(value ="type",required = false) String type) {
         return listenerService.getAllListeners(type);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PutMapping(ListenerUrlMapping.SUSPEND_OR_UN_SUSPEND_LISTENER)
     public String suspendOrUnSuspendListener(@PathVariable("listenerId") Integer listenerId, @RequestParam("action") String action) {
         return listenerService.suspendOrUnsuspendListener(listenerId, action);

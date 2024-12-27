@@ -39,5 +39,6 @@ public interface UserActivityService {
     void markUserInactive(String email);
     List<String> findExpiredUsers();
     void updateLastSeen(String email);
+    void updateLastSeenStatus(String email);
 
 }

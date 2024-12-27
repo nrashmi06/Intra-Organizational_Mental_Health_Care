@@ -38,7 +38,7 @@ public class UserManagementController {
     }
 
     @DeleteMapping(UserUrlMapping.DELETE_USER)
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<String> deleteUser(@PathVariable Integer userId) {
         try {
             userService.deleteUserById(userId);
@@ -50,7 +50,7 @@ public class UserManagementController {
     }
 
     @GetMapping(UserUrlMapping.GET_USER_BY_ID)
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<UserInfoResponseDTO> getUserById(@PathVariable Integer userId) {
         try {
             UserInfoResponseDTO userDTO = userService.getUserById(userId);
@@ -61,7 +61,7 @@ public class UserManagementController {
     }
 
     @PutMapping(UserUrlMapping.UPDATE_USER)
-    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<String> updateUser(
             @PathVariable Integer userId,
             @RequestBody UserUpdateRequestDTO userUpdateDTO,
@@ -76,6 +76,7 @@ public class UserManagementController {
         }
     }
 
+    @PreAuthorize("isAuthenticated()")
     @PutMapping(UserUrlMapping.CHANGE_PASSWORD)
     public ResponseEntity<String> changePassword(@PathVariable Integer userId, @RequestBody ChangePasswordRequestDTO changePasswordRequestDTO) {
         try {
@@ -89,7 +90,7 @@ public class UserManagementController {
     }
 
     @PutMapping(UserUrlMapping.SUSPEND_USER_OR_UN_SUSPEND_USER)
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<String> suspendOrUnSuspendUser(@RequestParam String action, @PathVariable Integer userId) {
         try {
             userService.suspendOrUnSuspendUser(userId, action);
@@ -99,6 +100,7 @@ public class UserManagementController {
         }
     }
 
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping(UserUrlMapping.GET_ALL_USERS_BY_PROFILE_STATUS)
     public List<UserDetailsSummaryResponseDTO> getAllUsersByProfileStatus(
             @RequestParam(value = "status", required = false) String status) {
@@ -113,6 +115,7 @@ public class UserManagementController {
                 .toList();
     }
 
+    @PreAuthorize("isAuthenticated()")
     @PostMapping(UserUrlMapping.REQUEST_VERIFICATION_CODE)
     public ResponseEntity<String> requestVerificationCode() {
         Integer userId = jwtUtils.getUserIdFromContext();
@@ -121,6 +124,7 @@ public class UserManagementController {
         return ResponseEntity.ok("Verification code sent to your email.");
     }
 
+    @PreAuthorize("isAuthenticated()")
     @PostMapping(UserUrlMapping.VERIFY_CODE_AND_GET_PDF)
     public ResponseEntity<byte[]> verifyCodeAndGetPdf(@RequestParam String verificationCode) {
         userService.verifyDataRequestCode(verificationCode);

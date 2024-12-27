@@ -57,6 +57,7 @@ public class UserActivityController {
         }
     }
 
+    @PreAuthorize("isAuthenticated()")
     @GetMapping(SSEUrlMapping.SSE_ONLINE_LISTENERS)
     public SseEmitter streamOnlineListeners(@RequestParam("token") String token) {
         try {
@@ -82,6 +83,7 @@ public class UserActivityController {
         }
     }
 
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping(SSEUrlMapping.SSE_ACTIVE_SESSIONS)
     public SseEmitter streamActiveSessions(@RequestParam("token") String token) {
         try {
@@ -93,6 +95,7 @@ public class UserActivityController {
         }
     }
 
+    @PreAuthorize("isAuthenticated()")
     @GetMapping(SSEUrlMapping.HEARTBEAT)
     public String heartbeat(@RequestParam("token") String token) {
         return "OK";

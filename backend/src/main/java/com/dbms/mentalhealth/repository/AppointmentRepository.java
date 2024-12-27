@@ -5,6 +5,8 @@ import com.dbms.mentalhealth.model.Admin;
 import com.dbms.mentalhealth.model.Appointment;
 import com.dbms.mentalhealth.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
@@ -15,12 +17,33 @@ import java.util.List;
 @Repository
 public interface AppointmentRepository extends JpaRepository<Appointment, Integer> {
     boolean existsByUserAndStatusNot(User user, AppointmentStatus status);
+
     List<Appointment> findByUser_UserId(Integer userId);
+
     List<Appointment> findByAdmin_AdminId(Integer adminId);
+
     List<Appointment> findByTimeSlot_DateBetween(LocalDate startDate, LocalDate endDate);
+
     List<Appointment> findByAdminAndTimeSlot_DateAndTimeSlot_StartTimeAfterOrTimeSlot_DateAfter(Admin admin, LocalDate date, LocalTime startTime, LocalDate nextDate);
+
     List<Appointment> findByAdminAndStatus(Admin admin, AppointmentStatus status);
+
     boolean existsByUserAndAdminAndStatus(User user, Admin admin, AppointmentStatus status);
+
+    @Query("""
+                SELECT a FROM Appointment a
+                WHERE a.admin = :admin
+                AND (
+                    a.timeSlot.date > :today
+                    OR (a.timeSlot.date = :today AND a.timeSlot.startTime > :now)
+                )
+                AND a.status = 'CONFIRMED'
+            """)
+    List<Appointment> findByAdminAndUpcomingAppointments(
+            @Param("admin") Admin admin,
+            @Param("today") LocalDate today,
+            @Param("now") LocalTime now
+    );
 
 
 }

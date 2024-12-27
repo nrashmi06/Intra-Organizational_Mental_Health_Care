@@ -3,6 +3,7 @@ package com.dbms.mentalhealth.service.cachableImpl;
 import com.dbms.mentalhealth.dto.sessionFeedback.request.SessionFeedbackRequestDTO;
 import com.dbms.mentalhealth.dto.sessionFeedback.response.SessionFeedbackResponseDTO;
 import com.dbms.mentalhealth.dto.sessionFeedback.response.SessionFeedbackSummaryResponseDTO;
+import com.dbms.mentalhealth.repository.ListenerRepository;
 import com.dbms.mentalhealth.service.SessionFeedbackService;
 import com.dbms.mentalhealth.service.impl.SessionFeedbackServiceImpl;
 import com.github.benmanes.caffeine.cache.Cache;
@@ -24,13 +25,15 @@ public class CacheableSessionFeedbackServiceImpl implements SessionFeedbackServi
     private final Cache<String, List<SessionFeedbackResponseDTO>> sessionFeedbackListCache;
     private final Cache<String, SessionFeedbackSummaryResponseDTO> sessionFeedbackSummaryCache;
     private static final Logger logger = LoggerFactory.getLogger(CacheableSessionFeedbackServiceImpl.class);
+    private final ListenerRepository listenerRepository;
 
-    public CacheableSessionFeedbackServiceImpl(SessionFeedbackServiceImpl sessionFeedbackServiceImpl, Cache<Integer, SessionFeedbackResponseDTO> sessionFeedbackCache, Cache<String, List<SessionFeedbackResponseDTO>> sessionFeedbackListCache, Cache<String, SessionFeedbackSummaryResponseDTO> sessionFeedbackSummaryCache) {
+    public CacheableSessionFeedbackServiceImpl(SessionFeedbackServiceImpl sessionFeedbackServiceImpl, Cache<Integer, SessionFeedbackResponseDTO> sessionFeedbackCache, Cache<String, List<SessionFeedbackResponseDTO>> sessionFeedbackListCache, Cache<String, SessionFeedbackSummaryResponseDTO> sessionFeedbackSummaryCache, ListenerRepository listenerRepository) {
         this.sessionFeedbackServiceImpl = sessionFeedbackServiceImpl;
         this.sessionFeedbackCache = sessionFeedbackCache;
         this.sessionFeedbackListCache = sessionFeedbackListCache;
         this.sessionFeedbackSummaryCache = sessionFeedbackSummaryCache;
         logger.info("CacheableSessionFeedbackServiceImpl initialized with cache stats enabled");
+        this.listenerRepository = listenerRepository;
     }
 
     // Cache key generators
@@ -77,13 +80,18 @@ public class CacheableSessionFeedbackServiceImpl implements SessionFeedbackServi
 
     @Override
     @Transactional(readOnly = true)
-    public List<SessionFeedbackResponseDTO> getAllListenerFeedback(Integer listenerId) {
-        String cacheKey = generateSessionFeedbackListCacheKey("listener", listenerId);
+    public List<SessionFeedbackResponseDTO> getAllListenerFeedback(Integer id,String type) {
+        String cacheKey;
+        if(type.equals("listenerId")){
+            cacheKey = generateSessionFeedbackListCacheKey("listener", id);
+        }else{
+            cacheKey = generateSessionFeedbackListCacheKey("user", id);
+        }
         logger.info("Cache lookup for listener feedback with key: {}", cacheKey);
 
         return sessionFeedbackListCache.get(cacheKey, k -> {
-            logger.debug("Cache MISS - Fetching feedback from database for listener ID: {}", listenerId);
-            return sessionFeedbackServiceImpl.getAllListenerFeedback(listenerId);
+            logger.debug("Cache MISS - Fetching feedback from database for listener ID: {}", id);
+            return sessionFeedbackServiceImpl.getAllListenerFeedback(id, type);
         });
     }
 

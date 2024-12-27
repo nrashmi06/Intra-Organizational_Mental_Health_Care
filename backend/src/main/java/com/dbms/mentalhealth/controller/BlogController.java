@@ -1,13 +1,19 @@
 package com.dbms.mentalhealth.controller;
 
+import com.dbms.mentalhealth.dto.blog.TrendingBlogSummaryDTO;
 import com.dbms.mentalhealth.dto.blog.request.BlogRequestDTO;
 import com.dbms.mentalhealth.dto.blog.response.BlogResponseDTO;
 import com.dbms.mentalhealth.dto.blog.response.BlogSummaryDTO;
+import com.dbms.mentalhealth.enums.BlogFilterType;
 import com.dbms.mentalhealth.exception.blog.BlogNotFoundException;
 import com.dbms.mentalhealth.exception.blog.InvalidBlogActionException;
 import com.dbms.mentalhealth.service.BlogService;
 import com.dbms.mentalhealth.urlMapper.BlogUrlMapping;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +21,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -27,6 +32,7 @@ public class BlogController {
         this.blogService = blogService;
     }
 
+    @PreAuthorize("isAuthenticated()")
     @PostMapping(value = BlogUrlMapping.CREATE_BLOG, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<BlogResponseDTO> createBlog(
             @RequestPart("image") MultipartFile image,
@@ -40,6 +46,7 @@ public class BlogController {
         }
     }
 
+    @PreAuthorize("isAuthenticated()")
     @GetMapping(BlogUrlMapping.GET_BLOG_BY_ID)
     public ResponseEntity<BlogResponseDTO> getBlogById(@PathVariable("blogId") Integer blogId) {
         try {
@@ -51,6 +58,7 @@ public class BlogController {
         }
     }
 
+    @PreAuthorize("isAuthenticated()")
     @PutMapping(value = BlogUrlMapping.UPDATE_BLOG, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<BlogResponseDTO> updateBlog(
             @PathVariable("blogId") Integer blogId,
@@ -67,7 +75,7 @@ public class BlogController {
         }
     }
 
-
+    @PreAuthorize("isAuthenticated()")
     @DeleteMapping(BlogUrlMapping.DELETE_BLOG)
     public ResponseEntity<String> deleteBlog(@PathVariable("blogId") Integer blogId) {
         try {
@@ -80,7 +88,7 @@ public class BlogController {
         }
     }
 
-
+    @PreAuthorize("isAuthenticated()")
     @PostMapping(BlogUrlMapping.LIKE_UNLIKE_BLOG)
     public ResponseEntity<BlogResponseDTO> likeOrUnlikeBlog(@PathVariable Integer blogId, @RequestParam("action") String action) {
         try {
@@ -113,21 +121,42 @@ public class BlogController {
         }
     }
 
-    @GetMapping(BlogUrlMapping.GET_BLOGS_BY_USER)
-    public ResponseEntity<Iterable<BlogSummaryDTO>> getBlogsByUser(@PathVariable Integer userId) {
-        Iterable<BlogSummaryDTO> response = blogService.getBlogsByUser(userId);
-        return new ResponseEntity<>(response, HttpStatus.OK);
+
+    @GetMapping(BlogUrlMapping.FILTER_BLOGS)
+    public Page<BlogSummaryDTO> filterBlogs(
+            @RequestParam(required = false) Integer userId,
+            @RequestParam(defaultValue = "", required = false) String title,
+            @RequestParam(required = false) BlogFilterType filterType,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        if (filterType == null) {
+            filterType = BlogFilterType.RECENT;
+        }
+        String sortBy = switch (filterType) {
+            case RECENT -> "publishDate";
+            case MOST_VIEWED -> "viewCount";
+            case MOST_LIKED -> "likeCount";
+            default -> "createdAt";
+        };
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, sortBy));
+        return blogService.filterBlogs(userId, title, pageable);
     }
 
-    @GetMapping(BlogUrlMapping.SEARCH_BLOGS_BY_PARTIAL_TITLE)
-    public ResponseEntity<Iterable<BlogSummaryDTO>> searchBlogsByPartialTitle(@RequestParam("title") String title) {
-        Iterable<BlogSummaryDTO> response = blogService.searchBlogsByPartialTitle(title);
-        return new ResponseEntity<>(response, HttpStatus.OK);
-    }
-
+    @PreAuthorize("isAuthenticated()")
     @GetMapping(BlogUrlMapping.GET_BLOGS_BY_APPROVAL_STATUS)
-    public ResponseEntity<List<BlogSummaryDTO>> getBlogsByApprovalStatus(@RequestParam("status") String status) {
-        List<BlogSummaryDTO> response = blogService.getBlogsByApprovalStatus(status);
-        return new ResponseEntity<>(response, HttpStatus.OK);
+    public Page<BlogSummaryDTO> getBlogsByApprovalStatus(
+            @RequestParam String status,
+            Pageable pageable) {
+        return blogService.getBlogsByApprovalStatus(status, pageable);
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping(BlogUrlMapping.GET_TRENDING_BLOGS)
+    public Page<TrendingBlogSummaryDTO> getTrendingBlogs(
+            @RequestParam(required = false) Integer userId,
+            @RequestParam(required = false,defaultValue = "") String title,
+            Pageable pageable) {
+        return blogService.getTrendingBlogs(userId, title, pageable);
     }
 }

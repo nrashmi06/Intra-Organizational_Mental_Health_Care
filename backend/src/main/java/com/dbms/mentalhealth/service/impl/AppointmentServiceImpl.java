@@ -214,14 +214,15 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         LocalDate today = LocalDate.now();
         LocalTime now = LocalTime.now();
-        LocalDate nextDate = today.plusDays(1);
 
         logger.info("Fetching upcoming appointments for admin ID: {}", admin.getAdminId());
-        List<Appointment> appointments = appointmentRepository.findByAdminAndTimeSlot_DateAndTimeSlot_StartTimeAfterOrTimeSlot_DateAfter(admin, today, now, nextDate);
+        List<Appointment> appointments = appointmentRepository.findByAdminAndUpcomingAppointments(admin, today, now);
+
         return appointments.stream()
                 .map(AppointmentMapper::toSummaryDTO)
                 .toList();
     }
+
 
     @Override
     @Transactional(readOnly = true)

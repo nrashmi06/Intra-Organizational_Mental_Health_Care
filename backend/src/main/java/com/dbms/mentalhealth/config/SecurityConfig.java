@@ -27,6 +27,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 
 import java.util.Arrays;
 
@@ -63,39 +64,46 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, WebSocketAuthenticationFilter webSocketAuthenticationFilter) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(requests -> requests
-                        .requestMatchers(
-                                UserUrlMapping.FORGOT_PASSWORD,
-                                UserUrlMapping.RESET_PASSWORD,
-                                UserUrlMapping.USER_REGISTER,
-                                UserUrlMapping.VERIFY_EMAIL,
-                                UserUrlMapping.RESEND_VERIFICATION_EMAIL,
-                                UserUrlMapping.USER_LOGIN,
-                                UserUrlMapping.RENEW_TOKEN,
-                                EmergencyHelplineUrlMapping.GET_ALL_EMERGENCY_HELPLINES
-                        ).permitAll()
-                        .anyRequest().authenticated()
+                                .requestMatchers(
+                                        UserUrlMapping.FORGOT_PASSWORD,
+                                        UserUrlMapping.RESET_PASSWORD,
+                                        UserUrlMapping.USER_REGISTER,
+                                        UserUrlMapping.VERIFY_EMAIL,
+                                        UserUrlMapping.RESEND_VERIFICATION_EMAIL,
+                                        UserUrlMapping.USER_LOGIN,
+                                        UserUrlMapping.RENEW_TOKEN,
+                                        EmergencyHelplineUrlMapping.GET_ALL_EMERGENCY_HELPLINES
+                                ).permitAll()
+                                .anyRequest().authenticated() // Global rule for all other requests
+                        // Important: Remove .anyRequest().authenticated() if using @PreAuthorize
+                        // Let method security handle specific endpoints
                 )
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(unauthorizedHandler)
-                        .accessDeniedHandler((request, response, accessDeniedException) -> {
-                            logger.warn("Access denied for request: {} {}. Reason: {}",
-                                    request.getMethod(), request.getRequestURI(), accessDeniedException.getMessage());
-                            accessDeniedHandler.handle(request, response, accessDeniedException);
-                        })
+                        .accessDeniedHandler(accessDeniedHandler)
                 )
                 .csrf(AbstractHttpConfigurer::disable)
+                // Reorganize filters to ensure proper order
+                .addFilterBefore(corsFilter(), UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(rateLimitingFilter, UsernamePasswordAuthenticationFilter.class)
+                // JWT filter should be after CORS but before authentication
                 .addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(sseAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(webSocketAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                // Other filters after JWT authentication is established
+                .addFilterAfter(sseAuthenticationFilter, AuthTokenFilter.class)
+                .addFilterAfter(webSocketAuthenticationFilter, AuthTokenFilter.class)
                 .build();
+    }
+
+    @Bean
+    public CorsFilter corsFilter() {
+        return new CorsFilter(corsConfigurationSource());
     }
 
     @Bean

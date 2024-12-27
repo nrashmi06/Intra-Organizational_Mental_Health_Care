@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -27,6 +28,7 @@ public class MassEmailController {
     }
 
     Logger logger = LoggerFactory.getLogger(MassEmailController.class);
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PostMapping(value = EmailUrlMapping.MASS_EMAIL, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<String> sendMassEmail(@RequestParam("recipientType") String recipientType,
                                                 @ModelAttribute MassEmailRequestDTO request) {

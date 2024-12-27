@@ -18,32 +18,38 @@ import java.util.Map;
 
 @Component
 public class AuthEntryPointJwt implements AuthenticationEntryPoint {
-
     private static final Logger logger = LoggerFactory.getLogger(AuthEntryPointJwt.class);
+    private final ObjectMapper objectMapper;
+
+    public AuthEntryPointJwt(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException)
             throws IOException, ServletException {
-        String token = request.getHeader("Authorization");
         logger.error("Unauthorized error: {}", authException.getMessage());
-        logger.info("Authorization Header: {}", token);
 
-        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        if (!response.isCommitted()) {
+            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 
-        final Map<String, Object> body = new HashMap<>();
-        body.put("status", HttpServletResponse.SC_UNAUTHORIZED);
-        body.put("error", "Unauthorized");
+            final Map<String, Object> body = new HashMap<>();
+            body.put("status", HttpServletResponse.SC_UNAUTHORIZED);
+            body.put("error", "Unauthorized");
+            body.put("path", request.getServletPath());
 
-        if (authException.getCause() instanceof JwtTokenExpiredException) {
-            body.put("message", "JWT token has expired. Please renew your token.");
+            if (authException.getCause() instanceof JwtTokenExpiredException ||
+                    (request.getAttribute("expired") != null && (Boolean)request.getAttribute("expired"))) {
+                body.put("message", "JWT token has expired. Please renew your token.");
+            } else {
+                String message = (String) request.getAttribute("auth_error_message");
+                body.put("message", message != null ? message : authException.getMessage());
+            }
+
+            objectMapper.writeValue(response.getOutputStream(), body);
         } else {
-            body.put("message", authException.getMessage());
+            logger.warn("Response already committed. Unable to send error response.");
         }
-
-        body.put("path", request.getServletPath());
-
-        final ObjectMapper mapper = new ObjectMapper();
-        mapper.writeValue(response.getOutputStream(), body);
     }
 }

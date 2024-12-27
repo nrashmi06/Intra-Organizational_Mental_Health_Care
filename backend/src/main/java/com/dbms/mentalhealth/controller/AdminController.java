@@ -25,7 +25,7 @@ public class AdminController {
         this.adminService = adminService;
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PostMapping(AdminUrlMapping.CREATE_ADMIN_PROFILE)
     public ResponseEntity<AdminProfileResponseDTO> createAdminProfile(
             @RequestPart("adminProfile") AdminProfileRequestDTO adminProfileRequestDTO,
@@ -38,6 +38,7 @@ public class AdminController {
         }
     }
 
+    @PreAuthorize("isAuthenticated()")
     @GetMapping(AdminUrlMapping.GET_ADMIN_PROFILE)
     public ResponseEntity<AdminProfileResponseDTO> getAdminProfile(
             @RequestParam(value = "userId", required = false) Integer userId,
@@ -46,11 +47,11 @@ public class AdminController {
         return ResponseEntity.ok(adminProfile);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PutMapping(AdminUrlMapping.UPDATE_ADMIN_PROFILE)
     public ResponseEntity<AdminProfileResponseDTO> updateAdminProfile(
             @RequestPart("adminProfile") AdminProfileRequestDTO adminProfileRequestDTO,
-            @RequestPart(value = "profilePicture",required = false) MultipartFile profilePicture) throws Exception {
+            @RequestPart(value = "profilePicture", required = false) MultipartFile profilePicture) throws Exception {
         try {
             AdminProfileResponseDTO responseDTO = adminService.updateAdminProfile(adminProfileRequestDTO, profilePicture);
             return ResponseEntity.ok(responseDTO);
@@ -61,13 +62,14 @@ public class AdminController {
         }
     }
 
+    @PreAuthorize("isAuthenticated()")
     @GetMapping(AdminUrlMapping.GET_ALL_ADMINS)
     public ResponseEntity<List<AdminProfileSummaryResponseDTO>> getAllAdmins() {
         List<AdminProfileSummaryResponseDTO> responseDTO = adminService.getAllAdmins();
         return ResponseEntity.ok(responseDTO);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @DeleteMapping(AdminUrlMapping.DELETE_ADMIN_PROFILE)
     public ResponseEntity<String> deleteAdminProfile(@PathVariable Integer adminId) {
         try {

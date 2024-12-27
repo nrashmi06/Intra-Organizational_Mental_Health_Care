@@ -22,7 +22,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -32,25 +31,25 @@ public class AuthController {
 
     private final JwtUtils jwtUtils;
     private final UserService userService;
-    private final AuthenticationManager authenticationManager;
     private final RefreshTokenServiceImpl refreshTokenService;
     private final String baseUrl;
 
-    public AuthController(UserService userService, JwtUtils jwtUtils, AuthenticationManager authenticationManager, RefreshTokenServiceImpl refreshTokenService, @Value("${spring.app.base-url}") String baseUrl) {
+    public AuthController(UserService userService, JwtUtils jwtUtils, RefreshTokenServiceImpl refreshTokenService, @Value("${spring.app.base-url}") String baseUrl) {
         this.userService = userService;
         this.jwtUtils = jwtUtils;
-        this.authenticationManager = authenticationManager;
         this.refreshTokenService = refreshTokenService;
         this.baseUrl = baseUrl;
     }
 
     @PostMapping(UserUrlMapping.USER_REGISTER)
+    @PreAuthorize("permitAll()")
     public ResponseEntity<UserRegistrationResponseDTO> registerUser(@RequestBody UserRegistrationRequestDTO userRegistrationDTO) {
         UserRegistrationResponseDTO userDTO = userService.registerUser(userRegistrationDTO);
         return ResponseEntity.ok(userDTO);
     }
 
     @PostMapping(UserUrlMapping.USER_LOGIN)
+    @PreAuthorize("permitAll()")
     public ResponseEntity<?> authenticateUser(@RequestBody UserLoginRequestDTO loginRequest, HttpServletResponse response) {
         try {
             Map<String, Object> loginResponse = userService.loginUser(loginRequest);
@@ -82,6 +81,7 @@ public class AuthController {
     }
 
     @PostMapping(UserUrlMapping.USER_LOGOUT)
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<String> logoutUser(@CookieValue("refreshToken") String refreshToken) {
         if (refreshToken != null) {
             String email = refreshTokenService.getEmailFromRefreshToken(refreshToken);
@@ -92,18 +92,21 @@ public class AuthController {
     }
 
     @PostMapping(UserUrlMapping.VERIFY_EMAIL)
+    @PreAuthorize("permitAll()")
     public ResponseEntity<VerifyEmailResponseDTO> sendVerificationEmail(@RequestBody VerifyEmailRequestDTO verifyEmailRequestDTO) {
         userService.sendVerificationEmail(verifyEmailRequestDTO.getEmail());
         return ResponseEntity.ok(new VerifyEmailResponseDTO("Verification email sent successfully."));
     }
 
     @GetMapping(UserUrlMapping.VERIFY_EMAIL)
+    @PreAuthorize("permitAll()")
     public ResponseEntity<VerifyEmailResponseDTO> verifyEmail(@RequestParam String token) {
         userService.verifyUser(token);
         return ResponseEntity.ok(new VerifyEmailResponseDTO("Email verified successfully."));
     }
 
     @PostMapping(UserUrlMapping.RESEND_VERIFICATION_EMAIL)
+    @PreAuthorize("permitAll()")
     public ResponseEntity<VerifyEmailResponseDTO> resendVerificationEmail(@RequestBody VerifyEmailRequestDTO verifyEmailRequestDTO) {
         userService.resendVerificationEmail(verifyEmailRequestDTO.getEmail());
         return ResponseEntity.ok(new VerifyEmailResponseDTO("Verification email sent successfully."));
@@ -117,12 +120,14 @@ public class AuthController {
     }
 
     @PostMapping(UserUrlMapping.RESET_PASSWORD)
+    @PreAuthorize("permitAll()")
     public ResponseEntity<ResetPasswordResponseDTO> resetPassword(@RequestBody ResetPasswordRequestDTO resetPasswordRequestDTO) {
         userService.resetPassword(resetPasswordRequestDTO.getToken(), resetPasswordRequestDTO.getNewPassword());
         return ResponseEntity.ok(new ResetPasswordResponseDTO("Password has been reset successfully."));
     }
 
     @PostMapping(UserUrlMapping.RENEW_TOKEN)
+    @PreAuthorize("permitAll()")
     public ResponseEntity<?> renewToken(@CookieValue("refreshToken") String refreshToken, HttpServletResponse response) {
         try {
             if (refreshToken == null) {
