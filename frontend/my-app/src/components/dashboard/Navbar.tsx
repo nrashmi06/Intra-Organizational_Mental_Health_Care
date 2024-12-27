@@ -1,6 +1,5 @@
 "use client";
 
-import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Avatar from "../ui/avatar";
 import { clearUser } from "@/store/authSlice";
@@ -23,9 +22,8 @@ export default function Navbar({ children }: NavbarProps) {
       await router.push("/signin");
       await logout(token);
       dispatch(clearUser());
-      
+
       // Only clear the user state after navigation is complete
-      
     } catch (error) {
       console.error("Navigation failed:", error);
     }
@@ -38,16 +36,22 @@ export default function Navbar({ children }: NavbarProps) {
         <div className="flex items-center gap-x-4">
           <h2 className="text-xl hidden md:block">Dashboard</h2>
         </div>
-        <div className="ml-auto flex items-center gap-4">
+        <div className="ml-auto flex items-center gap-2">
           <Button
-            onClick={handleLogout}
-            className="text-red-400 flex gap-3"
+            onClick={() => router.push("/")}
+            className="text-black-400"
             variant="link"
           >
-            Log out <LogOut className="h-5 w-5" />
+            Home
+          </Button>
+          <Button
+            onClick={handleLogout}
+            className="text-red-400"
+            variant="link"
+          >
+            Log out
           </Button>
           <div className="flex items-center gap-x-2">
-            <span className="text-sm hidden md:inline-block">Admin</span>
             <Button variant="link" href="/adminprofile">
               <Avatar className="h-8 w-8" name="Admin" />
             </Button>

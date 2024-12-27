@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Head from "next/head";
 import Navbar1 from "@/components/navbar/NavBar";
-import Navbar2 from "@/components/navbar/navbar4";
 import BlogCard from "@/components/blog/BlogCard";
 import Footer from "@/components/footer/Footer";
 import {
@@ -46,8 +45,6 @@ export default function AllBlogsPage() {
   };
 
   const token = useSelector((state: RootState) => state.auth.accessToken);
-  const role = useSelector((state: RootState) => state.auth.role);
-
   useEffect(() => {
     if (token) {
       fetchBlogs("approved", token)
@@ -99,7 +96,7 @@ export default function AllBlogsPage() {
         />
       </Head>
 
-      {role === "ADMIN" ? <Navbar2 /> : <Navbar1 />}
+      <Navbar1/>
 
       <div className="w-full bg-white py-8 md:py-10 border-b">
         <div className="container mx-auto px-4 max-w-7xl">
