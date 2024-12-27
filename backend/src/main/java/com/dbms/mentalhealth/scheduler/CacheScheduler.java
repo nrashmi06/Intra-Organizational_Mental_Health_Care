@@ -7,7 +7,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class CacheScheduler {
 
-    private final CacheableBlogServiceImpl cacheableBlogServiceImpl;
     private final CacheableAdminServiceImpl cacheableAdminServiceImpl;
     private final CacheableSessionServiceImpl cacheableSessionServiceImpl;
     private final CacheableSessionFeedbackServiceImpl cacheableSessionFeedbackServiceImpl;
@@ -17,8 +16,7 @@ public class CacheScheduler {
     private final CacheableTimeSlotServiceImpl cacheableTimeSlotServiceImpl;
     private final CacheableAppointmentServiceImpl cacheableAppointmentServiceImpl;
 
-    public CacheScheduler(CacheableBlogServiceImpl cacheableBlogService, CacheableAdminServiceImpl cacheableAdminServiceImpl, CacheableSessionServiceImpl cacheableSessionServiceImpl, CacheableSessionFeedbackServiceImpl cacheableSessionFeedbackServiceImpl, CacheableSessionReportServiceImpl cacheableSessionReportServiceImpl, CacheableListenerApplicationServiceImpl cacheableListenerApplicationServiceImpl, CacheableListenerServiceImpl cacheableListenerServiceImpl, CacheableTimeSlotServiceImpl cacheableTimeSlotServiceImpl, CacheableAppointmentServiceImpl cacheableAppointmentServiceImpl) {
-        this.cacheableBlogServiceImpl = cacheableBlogService;
+    public CacheScheduler(CacheableAdminServiceImpl cacheableAdminServiceImpl, CacheableSessionServiceImpl cacheableSessionServiceImpl, CacheableSessionFeedbackServiceImpl cacheableSessionFeedbackServiceImpl, CacheableSessionReportServiceImpl cacheableSessionReportServiceImpl, CacheableListenerApplicationServiceImpl cacheableListenerApplicationServiceImpl, CacheableListenerServiceImpl cacheableListenerServiceImpl, CacheableTimeSlotServiceImpl cacheableTimeSlotServiceImpl, CacheableAppointmentServiceImpl cacheableAppointmentServiceImpl) {
         this.cacheableAdminServiceImpl = cacheableAdminServiceImpl;
         this.cacheableSessionServiceImpl = cacheableSessionServiceImpl;
         this.cacheableSessionFeedbackServiceImpl = cacheableSessionFeedbackServiceImpl;
@@ -36,7 +34,6 @@ public class CacheScheduler {
         cacheableListenerServiceImpl.logCacheStats();
         cacheableSessionFeedbackServiceImpl.logCacheStats();
         cacheableSessionReportServiceImpl.logCacheStats();
-        cacheableBlogServiceImpl.logCacheStats();
         cacheableAdminServiceImpl.logCacheStats();
         cacheableTimeSlotServiceImpl.logCacheStats();
         cacheableAppointmentServiceImpl.logCacheStats();

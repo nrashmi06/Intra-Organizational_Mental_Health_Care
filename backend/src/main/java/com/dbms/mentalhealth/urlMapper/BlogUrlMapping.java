@@ -23,5 +23,9 @@ public class BlogUrlMapping {
     // Blog retrieval by user
     public static final String GET_BLOGS_BY_USER = BASE_API + "/user/{userId}"; // Get all blogs by user
     // Blog search
-    public static final String SEARCH_BLOGS_BY_PARTIAL_TITLE = BASE_API + "/search/title"; // Search blogs by partial title
+    public static final String SEARCH_BLOGS_BY_PARTIAL_TITLE = BASE_API + "/search/title"; //
+    public static final String GET_RECENT_BLOGS =  BASE_API + "/recent";
+    public static final String GET_MOST_VIEWED_BLOGS =  BASE_API + "/most-viewed";
+    public static final String GET_MOST_LIKED_BLOGS =  BASE_API + "/most-liked";
+    public static final String GET_TRENDING_BLOGS =  BASE_API + "/trending";// Search blogs by partial title
 }
