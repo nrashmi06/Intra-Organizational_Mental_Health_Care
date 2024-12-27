@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -81,17 +82,18 @@ public class SessionFeedbackServiceImpl implements SessionFeedbackService {
     @Override
     @Transactional(readOnly = true)
     public List<SessionFeedbackResponseDTO> getAllListenerFeedback(Integer id, String type) {
-        Listener listener;
-        if (!type.equals("listenerId")) {
-            listener = listenerRepository.findByUser_UserId(id)
-                    .orElseThrow(() -> new ListenerNotFoundException("Listener with email " + type + " not found"));
+        List<SessionFeedback> feedbackList;
+        if (type.equals("listenerId")) {
+            feedbackList = sessionFeedbackRepository.findByListener_ListenerId(id);
         } else {
-            listener = listenerRepository.findById(id)
-                    .orElseThrow(() -> new ListenerNotFoundException("Listener with ID " + id + " not found"));
+            Optional<Listener> listenerOptional = listenerRepository.findByUser_UserId(id);
+            if (listenerOptional.isEmpty()) {
+                throw new ListenerNotFoundException("No listener found for user with ID " + id);
+            }
+            feedbackList = sessionFeedbackRepository.findByListener(listenerOptional.get());
         }
-        List<SessionFeedback> feedbackList = sessionFeedbackRepository.findByListener_ListenerId(listener.getListenerId());
         if (feedbackList.isEmpty()) {
-            throw new ListenerNotFoundException("Listener with ID " + listener.getListenerId() + " not found");
+            throw new ListenerNotFoundException("No feedback found for listener with ID " + id);
         }
         return feedbackList.stream()
                 .map(sessionFeedbackMapper::toResponseDTO)
