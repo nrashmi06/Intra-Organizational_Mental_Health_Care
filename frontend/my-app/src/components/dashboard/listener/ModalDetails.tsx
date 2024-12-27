@@ -88,7 +88,7 @@ const DetailsModal: React.FC<DetailsProps> = ({
         {/* Content area with conditional rendering */}
         <div className="min-h-[400px] p-6 pt-4">
           {isLoading ? (
-            <InlineLoader height="h-72"/>
+            <InlineLoader height="h-72" />
           ) : error ? (
             <div className="flex items-center justify-center h-[400px] text-red-500 text-center">
               {error}
@@ -117,15 +117,6 @@ const DetailsModal: React.FC<DetailsProps> = ({
                       day: "numeric",
                     })}
                   </p>
-                </div>
-              </div>
-              <div className="flex items-center p-4 rounded-lg border">
-                <User className="mr-2 text-indigo-500" />
-                <div>
-                  <p className="text-sm font-medium text-gray-500">
-                    Max Daily Sessions
-                  </p>
-                  <p className="text-sm">{listener.maxDailySessions}</p>
                 </div>
               </div>
               <div className="flex items-center p-4 rounded-lg border">
@@ -171,7 +162,9 @@ const DetailsModal: React.FC<DetailsProps> = ({
               <div className="flex items-center p-4 rounded-lg border">
                 <Shield className="mr-2 text-teal-500" />
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Approved By</p>
+                  <p className="text-sm font-medium text-gray-500">
+                    Approved By
+                  </p>
                   <p className="text-sm">{listener.approvedBy}</p>
                 </div>
               </div>
@@ -183,6 +176,7 @@ const DetailsModal: React.FC<DetailsProps> = ({
                   {listener.canApproveBlogs ? "Yes" : "No"}
                 </p>
               </div>
+
               {statusFilter && (
                 <div className="col-span-2 p-4 flex justify-end">
                   <Button
@@ -192,23 +186,28 @@ const DetailsModal: React.FC<DetailsProps> = ({
                         ? "text-red-500 bg-red-100 hover:bg-red-200"
                         : "text-green-500 bg-green-100 hover:bg-green-200"
                     }`}
-                    onClick={() => handleAction(listener.listenerId, statusFilter)}
+                    onClick={() =>
+                      handleAction(listener.listenerId, statusFilter)
+                    }
                   >
-                    {statusFilter === "ACTIVE" ? "Suspend" : "Activate"} Listener
+                    {statusFilter === "ACTIVE" ? "Suspend" : "Activate"}{" "}
+                    Listener
                   </Button>
                 </div>
               )}
-              {viewSession && (
-                <div className="p-4 flex justify-end">
-                  <Button
-                    variant="outline"
-                    className="text-blue-500 bg-blue-100"
-                    onClick={() => router.push(`/dashboard/listener/sessions/${id}`)}
-                  >
-                    View Sessions
-                  </Button>
-                </div>
-              )}
+            </div>
+          )}
+          {viewSession && (
+            <div className="p-4 flex justify-end">
+              <Button
+                variant="outline"
+                className="text-blue-500 bg-blue-100"
+                onClick={() =>
+                  router.push(`/dashboard/listener/sessions/${id}`)
+                }
+              >
+                View Sessions
+              </Button>
             </div>
           )}
         </div>

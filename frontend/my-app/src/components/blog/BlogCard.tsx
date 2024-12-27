@@ -24,7 +24,7 @@ const BlogCard: React.FC<{
           className="rounded-t-lg"
         />
       </div>
-      <div className="p-4 flex flex-col h-full">
+      <div className="p-4 flex flex-col">
         <h3 className="text-lg font-semibold">{post.title}</h3>
         <p className="text-sm text-gray-600 mb-4">{post.summary}</p>
         <Link href={`/blog/${post.id}`} className="text-blue-500 mt-4">

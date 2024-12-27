@@ -128,7 +128,7 @@ export function OnlineUsersTable() {
                           <DropdownMenuItem
                             onClick={() => handleDetailsModal(user.userId)}
                           >
-                            View Details
+                            Details
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() =>
@@ -137,7 +137,7 @@ export function OnlineUsersTable() {
                               )
                             }
                           >
-                            View Sessions
+                            Sessions
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() =>
@@ -146,7 +146,16 @@ export function OnlineUsersTable() {
                               )
                             }
                           >
-                            View Appointments
+                            Appointments
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() =>
+                              router.push(
+                                `/dashboard/user/reports/${user.userId}`
+                              )
+                            }
+                          >
+                            Reports
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>

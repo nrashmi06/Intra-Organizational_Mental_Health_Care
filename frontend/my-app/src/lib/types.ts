@@ -56,7 +56,6 @@ export interface ListenerDetails {
   listenerId: string;
   userEmail: string;
   canApproveBlogs: boolean;
-  maxDailySessions: number;
   totalSessions: number;
   totalMessagesSent: number | null;
   feedbackCount: number;
@@ -119,4 +118,41 @@ export interface AdminDetails {
   profilePictureUrl: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface UserReport {
+  reportId: number;
+  sessionId: number;
+  reportContent: string;
+  severityLevel: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ListenerFeedback {
+  feedbackId: number;
+  sessionId: number;
+  rating: number;
+  comments: string;
+  createdAt: string;
+  userId: string;
+}
+
+export interface BlogPost {
+  imageUrl: string;
+  summary: string;
+  id: number;
+  title: string;
+  date: string;
+  likeCount: number;
+  likedByCurrentUser: boolean;
+}
+
+export interface PaginationInfo {
+  pageNumber: number;
+  pageSize: number;
+  totalPages: number;
+  totalElements: number;
+  last: boolean;
+  first: boolean;
 }

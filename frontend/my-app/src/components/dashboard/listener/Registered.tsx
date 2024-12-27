@@ -187,14 +187,23 @@ export function RegisteredListenersTable() {
                                 )
                               }
                             >
-                              View Sessions
+                              Sessions
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() =>
                                 fetchApplicationData(listener.userId)
                               }
                             >
-                              View Application
+                              Application
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() =>
+                                router.push(
+                                  `/dashboard/listener/feedbacks/${listener.userId}`
+                                )
+                              }
+                            >
+                              Feedbacks
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>

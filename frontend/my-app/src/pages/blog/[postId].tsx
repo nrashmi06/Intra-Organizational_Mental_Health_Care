@@ -11,6 +11,8 @@ import Head from "next/head";
 import EditBlogModal from "@/components/blog/EditBlogModal";
 import DeleteBlogByID from "@/service/blog/DeleteBlogByID";
 import InlineLoader from "@/components/ui/inlineLoader";
+import BlogsByAuthor from "@/components/blog/BlogsByAuthor";
+import { getBlogsByUserId } from "@/service/blog/GetBlogsByUserId";
 
 const BlogPost = () => {
   const router = useRouter();
@@ -39,7 +41,7 @@ const BlogPost = () => {
     title: string;
     content: string;
     summary: string;
-  }>( {
+  }>({
     title: "",
     content: "",
     summary: "",
@@ -147,12 +149,12 @@ const BlogPost = () => {
       </Head>
 
       {/* Navbar with absolute positioning */}
-      <div className="relative top-0 left-0 w-full z-[100]">
+      <div className="relative top-0 left-0 w-full z-20">
         <Navbar1 />
       </div>
 
       {/* Blog content with overlay positioning */}
-      <main className="absolute top-[80px] left-0 w-full min-h-screen flex justify-center md:pb-10">
+      <main className="absolute top-[80px] left-0 w-full min-h-screen flex flex-col items-center justify-center md:pb-10">
         <div className="container max-w-3xl w-full bg-white shadow-xl md:rounded-2xl overflow-hidden border border-gray-100 transition-all duration-300 hover:shadow-2xl">
           {/* Blog Image with Modern Styling */}
           <div className="relative w-full h-[50vh] z-50 group overflow-hidden">
@@ -161,7 +163,7 @@ const BlogPost = () => {
               src={article?.imageUrl}
               alt={article?.title}
               className={`w-full h-full object-cover md:transform md:transition-transform md:duration-500 md:group-hover:scale-105 ${
-                imageLoading ? 'hidden' : ''
+                imageLoading ? "hidden" : ""
               }`}
               onLoad={handleImageLoad}
             />
@@ -205,7 +207,11 @@ const BlogPost = () => {
                 >
                   <Heart
                     className={`w-5 h-5 transition-colors duration-300 
-                      ${article?.likedByCurrentUser ? "text-red-500 fill-red-500" : "text-gray-500 group-hover:text-red-400"}`}
+                      ${
+                        article?.likedByCurrentUser
+                          ? "text-red-500 fill-red-500"
+                          : "text-gray-500 group-hover:text-red-400"
+                      }`}
                     fill={article?.likedByCurrentUser ? "currentColor" : "none"}
                   />
                   <span>{article?.likeCount}</span>
@@ -252,7 +258,18 @@ const BlogPost = () => {
               </p>
             </div>
           </div>
+          
         </div>
+        {article && postId && (
+            <div className="">
+              <BlogsByAuthor
+                userId={article.userId.toString()}
+                currentBlogId={postId}
+                token={token}
+                getBlogsByUserId={getBlogsByUserId}
+              />
+            </div>
+          )}
       </main>
 
       {/* Edit Modal */}
