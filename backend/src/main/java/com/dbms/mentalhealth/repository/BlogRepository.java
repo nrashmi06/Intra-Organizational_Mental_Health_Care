@@ -2,11 +2,14 @@ package com.dbms.mentalhealth.repository;
 
 import com.dbms.mentalhealth.enums.BlogApprovalStatus;
 import com.dbms.mentalhealth.model.Blog;
+import com.dbms.mentalhealth.model.BlogTrendingScore;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+
+import java.time.LocalDateTime;
 
 public interface BlogRepository extends JpaRepository<Blog, Integer> {
 
@@ -74,27 +77,20 @@ public interface BlogRepository extends JpaRepository<Blog, Integer> {
             Pageable pageable
     );
 
-    @Query(value = """
-        WITH TrendingScores AS (
-            SELECT 
-                b.*,
-                (b.view_count * 0.4 + b.like_count * 0.6) / 
-                POWER(EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - COALESCE(b.publish_date, b.created_at)))/3600 + 1, 1.8) as trend_score
-            FROM blogs b
-            WHERE b.blog_approval_status = 'APPROVED'
-            AND (:userId IS NULL OR b.user_id = :userId)
-        )
-        SELECT * FROM TrendingScores 
-        ORDER BY trend_score DESC
-        """,
-            countQuery = """
-            SELECT COUNT(*) FROM blogs b 
-            WHERE b.blog_approval_status = 'APPROVED'
-            AND (:userId IS NULL OR b.user_id = :userId)
-            """,
-            nativeQuery = true)
-    Page<Blog> findTrendingBlogs(
-            @Param("userId") Integer userId,
+
+    @Query("""
+    SELECT b FROM Blog b 
+    WHERE b.createdAt >= :cutoff 
+    OR b.updatedAt >= :cutoff 
+    OR EXISTS (
+        SELECT 1 FROM BlogLike bl 
+        WHERE bl.blog = b AND bl.createdAt >= :cutoff
+    )
+""")
+    Page<Blog> findRecentlyActiveBlogs(
+            @Param("cutoff") LocalDateTime cutoff,
             Pageable pageable
     );
+
+
 }

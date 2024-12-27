@@ -1,5 +1,6 @@
 package com.dbms.mentalhealth.controller;
 
+import com.dbms.mentalhealth.dto.blog.TrendingBlogSummaryDTO;
 import com.dbms.mentalhealth.dto.blog.request.BlogRequestDTO;
 import com.dbms.mentalhealth.dto.blog.response.BlogResponseDTO;
 import com.dbms.mentalhealth.dto.blog.response.BlogSummaryDTO;
@@ -152,11 +153,14 @@ public class BlogController {
     @PreAuthorize("isAuthenticated()")
     @GetMapping(BlogUrlMapping.GET_BLOGS_BY_APPROVAL_STATUS)
     public ResponseEntity<Page<BlogSummaryDTO>> getBlogsByApprovalStatus(
-            @PathVariable String status,
+            @RequestParam String status,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sort,
+            @RequestParam(defaultValue = "desc") String direction) {
 
-        Pageable pageable = PageRequest.of(page, size);
+        Sort.Direction sortDirection = Sort.Direction.fromString(direction.toUpperCase());
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sort));
         Page<BlogSummaryDTO> blogs = blogService.getBlogsByApprovalStatus(status, pageable);
         return ResponseEntity.ok(blogs);
     }
@@ -208,7 +212,7 @@ public class BlogController {
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping(BlogUrlMapping.GET_TRENDING_BLOGS)
-    public ResponseEntity<Page<BlogSummaryDTO>> getTrendingBlogs(
+    public ResponseEntity<Page<TrendingBlogSummaryDTO>> getTrendingBlogs(
             @RequestParam(required = false) Integer userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -217,8 +221,7 @@ public class BlogController {
 
         Sort.Direction sortDirection = Sort.Direction.fromString(direction.toUpperCase());
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sort));
-        Page<BlogSummaryDTO> blogs = blogService.getTrendingBlogs(userId, pageable);
+        Page<TrendingBlogSummaryDTO> blogs = blogService.getTrendingBlogs(userId, pageable);
         return ResponseEntity.ok(blogs);
     }
-
 }

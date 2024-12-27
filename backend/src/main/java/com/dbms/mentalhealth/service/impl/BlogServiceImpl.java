@@ -1,4 +1,5 @@
     package com.dbms.mentalhealth.service.impl;
+    import com.dbms.mentalhealth.dto.blog.TrendingBlogSummaryDTO;
     import com.dbms.mentalhealth.dto.blog.request.BlogRequestDTO;
     import com.dbms.mentalhealth.dto.blog.response.BlogResponseDTO;
     import com.dbms.mentalhealth.dto.blog.response.BlogSummaryDTO;
@@ -7,13 +8,12 @@
     import com.dbms.mentalhealth.exception.token.UnauthorizedException;
     import com.dbms.mentalhealth.exception.user.UserNotFoundException;
     import com.dbms.mentalhealth.mapper.BlogMapper;
+    import com.dbms.mentalhealth.mapper.TrendingScoreMapper;
     import com.dbms.mentalhealth.model.Admin;
     import com.dbms.mentalhealth.model.Blog;
     import com.dbms.mentalhealth.model.BlogLike;
-    import com.dbms.mentalhealth.repository.AdminRepository;
-    import com.dbms.mentalhealth.repository.BlogLikeRepository;
-    import com.dbms.mentalhealth.repository.BlogRepository;
-    import com.dbms.mentalhealth.repository.UserRepository;
+    import com.dbms.mentalhealth.model.BlogTrendingScore;
+    import com.dbms.mentalhealth.repository.*;
     import com.dbms.mentalhealth.security.jwt.JwtUtils;
     import com.dbms.mentalhealth.service.BlogService;
     import com.dbms.mentalhealth.service.EmailService;
@@ -46,9 +46,10 @@
         private final JwtUtils jwtUtils;
         private final EmailService emailService;
         private final AdminRepository adminRepository;
+        private final BlogTrendingScoreRepository blogTrendingScoreRepository;
 
         @Autowired
-        public BlogServiceImpl(UserRepository userRepository, ImageStorageService imageStorageService, BlogRepository blogRepository, BlogLikeRepository blogLikeRepository, UserService userService, JwtUtils jwtUtils, EmailService emailService, AdminRepository adminRepository) {
+        public BlogServiceImpl(UserRepository userRepository, ImageStorageService imageStorageService, BlogRepository blogRepository, BlogLikeRepository blogLikeRepository, UserService userService, JwtUtils jwtUtils, EmailService emailService, AdminRepository adminRepository, BlogTrendingScoreRepository blogTrendingScoreRepository) {
             this.blogRepository = blogRepository;
             this.blogLikeRepository = blogLikeRepository;
             this.userService = userService;
@@ -57,6 +58,7 @@
             this.jwtUtils = jwtUtils;
             this.emailService = emailService;
             this.adminRepository = adminRepository;
+            this.blogTrendingScoreRepository = blogTrendingScoreRepository;
         }
 
         @Transactional
@@ -193,6 +195,7 @@
             blogLike.setBlog(blog);
             blogLike.setUser(userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found")));
             blog.setLikeCount(blog.getLikeCount() + 1);
+            blogLike.setCreatedAt(LocalDateTime.now());
             blogLikeRepository.save(blogLike);
             blogRepository.save(blog);
 
@@ -310,14 +313,20 @@
             });
         }
 
+        @Override
         @Transactional(readOnly = true)
-        public Page<BlogSummaryDTO> getTrendingBlogs(Integer userId, Pageable pageable) {
+        public Page<TrendingBlogSummaryDTO> getTrendingBlogs(Integer userId, Pageable pageable) {
             Integer currentUserId = jwtUtils.getUserIdFromContext();
-            Page<Blog> blogs = blogRepository.findTrendingBlogs(userId, pageable);
 
-            return blogs.map(blog -> {
+            // Get trending scores directly from trending score repository
+            Page<BlogTrendingScore> trendingScores = blogTrendingScoreRepository.findTrendingBlogs(userId, pageable);
+
+            // Map to blogs with additional user-specific data
+            return trendingScores.map(score -> {
+                Blog blog = blogRepository.findById(score.getBlogId())
+                        .orElseThrow(() -> new BlogNotFoundException("Blog not found: " + score.getBlogId()));
                 boolean likedByCurrentUser = blogLikeRepository.existsByBlogIdAndUserUserId(blog.getId(), currentUserId);
-                return BlogMapper.toSummaryDTO(blog, likedByCurrentUser);
+                return TrendingScoreMapper.toTrendingSummaryDTO(blog, score, likedByCurrentUser);
             });
         }
         @Transactional
