@@ -120,15 +120,6 @@ const DetailsModal: React.FC<DetailsProps> = ({
                 </div>
               </div>
               <div className="flex items-center p-4 rounded-lg border">
-                <User className="mr-2 text-indigo-500" />
-                <div>
-                  <p className="text-sm font-medium text-gray-500">
-                    Max Daily Sessions
-                  </p>
-                  <p className="text-sm">{listener.maxDailySessions}</p>
-                </div>
-              </div>
-              <div className="flex items-center p-4 rounded-lg border">
                 <CheckCircle className="mr-2 text-purple-500" />
                 <div>
                   <p className="text-sm font-medium text-gray-500">

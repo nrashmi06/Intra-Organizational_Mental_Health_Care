@@ -56,7 +56,6 @@ export interface ListenerDetails {
   listenerId: string;
   userEmail: string;
   canApproveBlogs: boolean;
-  maxDailySessions: number;
   totalSessions: number;
   totalMessagesSent: number | null;
   feedbackCount: number;
