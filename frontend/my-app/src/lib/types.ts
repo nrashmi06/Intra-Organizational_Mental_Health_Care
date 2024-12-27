@@ -156,3 +156,4 @@ export interface PaginationInfo {
   last: boolean;
   first: boolean;
 }
+

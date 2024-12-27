@@ -10,8 +10,6 @@ export const BLOG_API_ENDPOINTS = {
   LIKE_UNLIKE_BLOG: (blogId : number) => `${BASE_API}/${blogId}/like-unlike`, // Like or Unlike a blog
   UPDATE_BLOG_APPROVAL_STATUS: (blogId : string) => `${BASE_API}/${blogId}/approval-status`, // Update blog approval status
   GET_BLOGS_BY_APPROVAL_STATUS: `${BASE_API}`, // Get all blogs by approval status
-  GET_BLOGS_BY_USER: (userId : string) => `${BASE_API}/user/${userId}`, // Get all blogs by user
-  SEARCH_BLOGS_BY_PARTIAL_TITLE: `${BASE_API}/search/title`, // Search blogs by partial title
-  GET_RECENT_BLOGS: `${BASE_API}/recent`, // Get recent blogs
+  GET_BLOGS: `${BASE_API}/filter`, // Get all kinds of blogs (recent, popular, etc. for all/for a user)
   GET_TRENDING_BLOGS: `${BASE_API}/trending`, // Get trending blogs
 };

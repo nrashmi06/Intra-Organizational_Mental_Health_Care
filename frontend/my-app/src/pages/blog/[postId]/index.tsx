@@ -12,7 +12,7 @@ import EditBlogModal from "@/components/blog/EditBlogModal";
 import DeleteBlogByID from "@/service/blog/DeleteBlogByID";
 import InlineLoader from "@/components/ui/inlineLoader";
 import BlogsByAuthor from "@/components/blog/BlogsByAuthor";
-import { getBlogsByUserId } from "@/service/blog/GetBlogsByUserId";
+import Image from "next/image";
 
 const BlogPost = () => {
   const router = useRouter();
@@ -63,10 +63,6 @@ const BlogPost = () => {
 
     fetchArticle();
   }, [postId, token]);
-
-  const handleImageLoad = () => {
-    setImageLoading(false);
-  };
 
   const handleLikeToggle = async () => {
     if (!article || !token) return;
@@ -159,14 +155,17 @@ const BlogPost = () => {
           {/* Blog Image with Modern Styling */}
           <div className="relative w-full h-[50vh] z-50 group overflow-hidden">
             {imageLoading && <InlineLoader height="h-full" />}
-            <img
-              src={article?.imageUrl}
-              alt={article?.title}
-              className={`w-full h-full object-cover md:transform md:transition-transform md:duration-500 md:group-hover:scale-105 ${
-                imageLoading ? "hidden" : ""
-              }`}
-              onLoad={handleImageLoad}
-            />
+            {article?.imageUrl && (
+              <Image
+                src={article?.imageUrl || "/images/blog/mh1.png"}
+                alt={article?.title || "Article image"}
+                className={`w-full h-full object-cover md:transform md:transition-transform md:duration-500 md:group-hover:scale-105`}
+                onLoadingComplete={() => setImageLoading(false)}
+                width={800}
+                height={600}
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              />
+            )}
             <div className="absolute inset-0 bg-black opacity-20 group-hover:opacity-10 transition-opacity duration-500"></div>
           </div>
 
@@ -258,18 +257,16 @@ const BlogPost = () => {
               </p>
             </div>
           </div>
-          
         </div>
         {article && postId && (
-            <div className="">
-              <BlogsByAuthor
-                userId={article.userId.toString()}
-                currentBlogId={postId}
-                token={token}
-                getBlogsByUserId={getBlogsByUserId}
-              />
-            </div>
-          )}
+          <div>
+            <BlogsByAuthor
+              userId={article.userId.toString()}
+              currentBlogId={postId}
+              token={token}
+            />
+          </div>
+        )}
       </main>
 
       {/* Edit Modal */}

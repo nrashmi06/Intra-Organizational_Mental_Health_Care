@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { 
-  ThumbsUp, 
-  ThumbsDown, 
-  Calendar, 
-  MessageSquare, 
+import React, { useEffect, useState } from "react";
+import {
+  ThumbsUp,
+  ThumbsDown,
+  Calendar,
+  MessageSquare,
   Star,
   User,
   Clock,
@@ -11,13 +11,26 @@ import {
   TrendingUp,
   List,
   BarChart2,
-  Users
-} from 'lucide-react';
-import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
-import { ListenerFeedback } from '@/lib/types';
+  Users,
+} from "lucide-react";
+import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+} from "recharts";
+import { ListenerFeedback } from "@/lib/types";
+import router from "next/router";
+import { getListenerFeedbacks } from "@/service/feedback/getListenerFeedbacks";
+import { RootState } from "@/store";
+import { useSelector } from "react-redux";
 
 interface FeedbackGridProps {
   feedbacks: ListenerFeedback[];
@@ -26,13 +39,39 @@ interface FeedbackGridProps {
   onPageChange: (page: number) => void;
 }
 
-const FeedbackDashboard = ({ feedbacks, currentPage, totalPages, onPageChange }: FeedbackGridProps) => {
-  const [timeRange, setTimeRange] = useState('30'); // '7', '30', '90' days
+const FeedbackDashboard = ({
+  currentPage,
+  totalPages,
+  onPageChange,
+}: FeedbackGridProps) => {
+  const [timeRange, setTimeRange] = useState("30"); // '7', '30', '90' days
+  const [feedbacks, setFeedbacks] = useState<ListenerFeedback[]>([]);
+  const itemsPerPage = 10;
+  const token = useSelector((state: RootState) => state.auth.accessToken);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const { id } = router.query;
+  useEffect(() => {
+    if (id) {
+      const parsedId = id as string;
+      fetchFeedbacks(parsedId);
+    }
+  }, [id]);
 
+  const fetchFeedbacks = async (userId: string) => {
+    try {
+      const response = await getListenerFeedbacks(userId, token);
+      if (response) {
+        const sessionData = await response;
+        setFeedbacks(sessionData);
+      }
+    } catch (error) {
+      console.error("Error fetching reports:", error);
+    }
+  };
   const getRatingColor = (rating: number) => {
-    if (rating >= 4) return 'text-green-500';
-    if (rating >= 3) return 'text-yellow-500';
-    return 'text-red-500';
+    if (rating >= 4) return "text-green-500";
+    if (rating >= 3) return "text-yellow-500";
+    return "text-red-500";
   };
 
   const renderRatingStars = (rating: number) => {
@@ -42,9 +81,9 @@ const FeedbackDashboard = ({ feedbacks, currentPage, totalPages, onPageChange }:
           <Star
             key={index}
             className={`w-4 h-4 ${
-              index < rating 
-                ? getRatingColor(rating) + ' fill-current' 
-                : 'text-gray-300'
+              index < rating
+                ? getRatingColor(rating) + " fill-current"
+                : "text-gray-300"
             }`}
           />
         ))}
@@ -56,21 +95,30 @@ const FeedbackDashboard = ({ feedbacks, currentPage, totalPages, onPageChange }:
   const calculateStats = () => {
     const daysAgo = new Date();
     daysAgo.setDate(daysAgo.getDate() - parseInt(timeRange));
-    
-    const recentFeedbacks = feedbacks.filter(f => new Date(f.createdAt) >= daysAgo);
-    
-    const avgRating = recentFeedbacks.reduce((acc, curr) => acc + curr.rating, 0) / 
+
+    const recentFeedbacks = feedbacks.filter(
+      (f) => new Date(f.createdAt) >= daysAgo
+    );
+
+    const avgRating =
+      recentFeedbacks.reduce((acc, curr) => acc + curr.rating, 0) /
       (recentFeedbacks.length || 1);
-    
-    const positiveCount = recentFeedbacks.filter(f => f.rating >= 4).length;
-    const negativeCount = recentFeedbacks.filter(f => f.rating <= 2).length;
-    
+
+    const positiveCount = recentFeedbacks.filter((f) => f.rating >= 4).length;
+    const negativeCount = recentFeedbacks.filter((f) => f.rating <= 2).length;
+
     return {
       total: recentFeedbacks.length,
       averageRating: avgRating.toFixed(1),
-      positivePercentage: ((positiveCount / recentFeedbacks.length) * 100).toFixed(1),
-      negativePercentage: ((negativeCount / recentFeedbacks.length) * 100).toFixed(1),
-      uniqueUsers: new Set(recentFeedbacks.map(f => f.userId)).size
+      positivePercentage: (
+        (positiveCount / recentFeedbacks.length) *
+        100
+      ).toFixed(1),
+      negativePercentage: (
+        (negativeCount / recentFeedbacks.length) *
+        100
+      ).toFixed(1),
+      uniqueUsers: new Set(recentFeedbacks.map((f) => f.userId)).size,
     };
   };
 
@@ -79,14 +127,19 @@ const FeedbackDashboard = ({ feedbacks, currentPage, totalPages, onPageChange }:
   // Timeline data for charts
   const getTimelineData = () => {
     const timeline = feedbacks
-      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+      .sort(
+        (a, b) =>
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      )
       .reduce((acc: any[], feedback) => {
         const date = new Date(feedback.createdAt).toLocaleDateString();
-        const existing = acc.find(item => item.date === date);
-        
+        const existing = acc.find((item) => item.date === date);
+
         if (existing) {
           existing.count += 1;
-          existing.avgRating = ((existing.avgRating * (existing.count - 1)) + feedback.rating) / existing.count;
+          existing.avgRating =
+            (existing.avgRating * (existing.count - 1) + feedback.rating) /
+            existing.count;
         } else {
           acc.push({ date, count: 1, avgRating: feedback.rating });
         }
@@ -99,11 +152,11 @@ const FeedbackDashboard = ({ feedbacks, currentPage, totalPages, onPageChange }:
   // Rating distribution data
   const getRatingDistribution = () => {
     const distribution = Array(5).fill(0);
-    feedbacks.forEach(f => distribution[f.rating - 1]++);
+    feedbacks.forEach((f) => distribution[f.rating - 1]++);
     return distribution.map((count, index) => ({
       rating: index + 1,
       count,
-      percentage: ((count / feedbacks.length) * 100).toFixed(1)
+      percentage: ((count / feedbacks.length) * 100).toFixed(1),
     }));
   };
 
@@ -159,17 +212,14 @@ const FeedbackDashboard = ({ feedbacks, currentPage, totalPages, onPageChange }:
     </Card>
   );
 
-  const itemsPerPage = 10;
-  const startIndex = (currentPage - 1) * itemsPerPage;
-
   return (
     <div className="space-y-6">
       {/* Time Range Selector */}
       <div className="flex justify-end space-x-2">
-        {['7', '30', '90'].map((days) => (
+        {["7", "30", "90"].map((days) => (
           <Button
             key={days}
-            variant={timeRange === days ? 'default' : 'outline'}
+            variant={timeRange === days ? "default" : "outline"}
             onClick={() => setTimeRange(days)}
             className="text-sm"
           >
@@ -209,7 +259,9 @@ const FeedbackDashboard = ({ feedbacks, currentPage, totalPages, onPageChange }:
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500">Positive Feedback</p>
-                <p className="text-2xl font-bold">{stats.positivePercentage}%</p>
+                <p className="text-2xl font-bold">
+                  {stats.positivePercentage}%
+                </p>
               </div>
               <ThumbsUp className="h-8 w-8 text-green-500" />
             </div>
@@ -247,9 +299,11 @@ const FeedbackDashboard = ({ feedbacks, currentPage, totalPages, onPageChange }:
 
         <TabsContent value="list">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {feedbacks.slice(startIndex, startIndex + itemsPerPage).map((feedback) => (
-              <FeedbackCard key={feedback.feedbackId} feedback={feedback} />
-            ))}
+            {feedbacks
+              .slice(startIndex, startIndex + itemsPerPage)
+              .map((feedback) => (
+                <FeedbackCard key={feedback.feedbackId} feedback={feedback} />
+              ))}
           </div>
         </TabsContent>
 
@@ -264,10 +318,26 @@ const FeedbackDashboard = ({ feedbacks, currentPage, totalPages, onPageChange }:
                   <LineChart data={getTimelineData()}>
                     <XAxis dataKey="date" />
                     <YAxis yAxisId="left" />
-                    <YAxis yAxisId="right" orientation="right" domain={[0, 5]} />
+                    <YAxis
+                      yAxisId="right"
+                      orientation="right"
+                      domain={[0, 5]}
+                    />
                     <Tooltip />
-                    <Line yAxisId="left" type="monotone" dataKey="count" stroke="#2563eb" name="Number of Feedbacks" />
-                    <Line yAxisId="right" type="monotone" dataKey="avgRating" stroke="#16a34a" name="Average Rating" />
+                    <Line
+                      yAxisId="left"
+                      type="monotone"
+                      dataKey="count"
+                      stroke="#2563eb"
+                      name="Number of Feedbacks"
+                    />
+                    <Line
+                      yAxisId="right"
+                      type="monotone"
+                      dataKey="avgRating"
+                      stroke="#16a34a"
+                      name="Average Rating"
+                    />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -305,11 +375,11 @@ const FeedbackDashboard = ({ feedbacks, currentPage, totalPages, onPageChange }:
         >
           Previous
         </Button>
-        
+
         <span className="text-gray-700 font-medium">
           Page {currentPage} of {totalPages}
         </span>
-        
+
         <Button
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}

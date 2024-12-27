@@ -19,18 +19,19 @@ import fetchRecentBlogs from "@/service/blog/fetchBlogs";
 import { RootState } from "@/store";
 import "@/styles/global.css";
 import getPageNumbers from "@/components/blog/PageNumbers";
-import { BlogPost } from "@/lib/types";
+import { BlogPost, FilterType } from "@/lib/types";
 
 const PAGE_SIZE_OPTIONS = [6, 9, 12, 15];
 const DEFAULT_FILTERS = {
   pageSize: 6,
-  filterType: "MOST_LIKED",
+  filterType: "MOST_LIKED" as FilterType,
   searchQuery: "",
 };
 const DEBOUNCE_DELAY = 750;
 
-export default function AllBlogsPage() {
+export default function MoreBlogs() {
   const router = useRouter();
+  const { userId, postId } = router.query;
   const token = useSelector((state: RootState) => state.auth.accessToken);
   const [blogs, setBlogs] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
@@ -57,10 +58,10 @@ export default function AllBlogsPage() {
     title: "",
   });
 
-  const [filterType, setFilterType] = useState<string>(() => {
+  const [filterType, setFilterType] = useState<FilterType>(() => {
     if (typeof window !== "undefined") {
       return (
-        (localStorage.getItem("blogFilterType")) ||
+        (localStorage.getItem("blogFilterType") as FilterType) ||
         DEFAULT_FILTERS.filterType
       );
     }
@@ -80,6 +81,7 @@ export default function AllBlogsPage() {
       router.push("/signin");
       return;
     }
+    if (!userId || !postId) return;
     fetchBlogs();
   }, [
     paginationInfo.pageNumber,
@@ -87,6 +89,8 @@ export default function AllBlogsPage() {
     filterType,
     token,
     debouncedSearchQuery,
+    userId,
+    postId,
   ]);
 
   const fetchBlogs = async () => {
@@ -98,6 +102,7 @@ export default function AllBlogsPage() {
         filterType,
         token,
         title: debouncedSearchQuery,
+        userId: Array.isArray(userId) ? userId[0] : userId,
       });
 
       if (response?.data) {
@@ -122,11 +127,13 @@ export default function AllBlogsPage() {
       pageSize: Number(newSize),
       pageNumber: 0,
     }));
+    localStorage.setItem("blogPageSize", newSize);
   };
 
-  const handleFilterChange = (value: string) => {
+  const handleFilterChange = (value: FilterType) => {
     setFilterType(value);
     setPaginationInfo((prev) => ({ ...prev, pageNumber: 0 }));
+    localStorage.setItem("blogFilterType", value);
   };
 
   const handlePageClick = (pageNum: number | string) => {
@@ -155,22 +162,16 @@ export default function AllBlogsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Head>
-        <title>Blog | Explore All Articles</title>
-        <meta
-          name="description"
-          content="Explore all blog posts on mental health and more!"
-        />
+        <title>More Blogs</title>
       </Head>
-
       <Navbar1 />
-
       <div className="w-full bg-white py-8 md:py-10 border-b">
         <div className="container mx-auto px-4 max-w-7xl">
           <h1 className="text-3xl md:text-4xl font-bold text-center text-gray-800 mb-2">
-            All Blogs
+            More Blogs
           </h1>
           <p className="text-base text-center text-gray-600 max-w-2xl mx-auto">
-            Explore all blog posts on mental health and more.
+            Explore all blog posts written by this author.
           </p>
         </div>
       </div>
@@ -185,6 +186,7 @@ export default function AllBlogsPage() {
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
                   setPaginationInfo((prev) => ({ ...prev, pageNumber: 0 }));
+                  localStorage.setItem("blogSearchQuery", e.target.value);
                 }}
                 placeholder="Search blogs..."
                 className="p-3 border rounded-lg w-full sm:w-64 focus:ring-2 focus:ring-green-500 focus:border-green-500"
@@ -198,7 +200,6 @@ export default function AllBlogsPage() {
                   <SelectItem value="MOST_LIKED">Most Liked</SelectItem>
                   <SelectItem value="RECENT">Most Recent</SelectItem>
                   <SelectItem value="MOST_VIEWED">Most Viewed</SelectItem>
-                  <SelectItem value="TRENDING">Trending</SelectItem>
                 </SelectContent>
               </Select>
 
