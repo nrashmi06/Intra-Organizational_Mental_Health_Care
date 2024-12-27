@@ -9,6 +9,7 @@ import com.dbms.mentalhealth.dto.Listener.response.ListenerDetailsResponseDTO;
 import com.dbms.mentalhealth.dto.TimeSlot.response.TimeSlotResponseDTO;
 import com.dbms.mentalhealth.dto.UserActivity.UserActivityDTO;
 import com.dbms.mentalhealth.dto.adminSettings.response.AdminSettingsResponseDTO;
+import com.dbms.mentalhealth.dto.blog.TrendingBlogSummaryDTO;
 import com.dbms.mentalhealth.dto.blog.response.BlogResponseDTO;
 import com.dbms.mentalhealth.dto.blog.response.BlogSummaryDTO;
 import com.dbms.mentalhealth.dto.chatMessage.ChatMessageDTO;
@@ -29,6 +30,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.domain.Page;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -74,35 +76,18 @@ public class CacheConfig {
 
     // Blog related caches
     @Bean
-    public Cache<String, BlogResponseDTO> blogCache() {
-        return createStandardBuilder()
+    public Cache<String, Page<BlogSummaryDTO>> blogPageCache() {
+        return createListBuilder()
                 .maximumSize(STANDARD_CACHE_SIZE)
                 .build();
     }
 
     @Bean
-    public Cache<String, List<BlogSummaryDTO>> blogListCache() {
+    public Cache<String, Page<TrendingBlogSummaryDTO>> trendingBlogPageCache() {
         return createListBuilder()
-                .maximumSize(SMALL_CACHE_SIZE)
+                .maximumSize(STANDARD_CACHE_SIZE)
                 .build();
     }
-
-    // View tracking caches
-    @Bean
-    public Cache<Integer, AtomicLong> viewCountCache() {
-        return createListBuilder()
-                .maximumSize(LARGE_CACHE_SIZE)
-                .build();
-    }
-
-    @Bean
-    public Cache<String, Boolean> recentViewCache() {
-        return createBaseBuilder()
-                .expireAfterWrite(10, TimeUnit.MINUTES)
-                .maximumSize(LARGE_CACHE_SIZE)
-                .build();
-    }
-
     // Admin related caches
     @Bean
     public Cache<Integer, AdminProfileResponseDTO> adminCache() {

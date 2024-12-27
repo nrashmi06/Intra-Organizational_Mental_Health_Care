@@ -21,6 +21,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -125,19 +126,21 @@ public class BlogController {
     @GetMapping(BlogUrlMapping.FILTER_BLOGS)
     public Page<BlogSummaryDTO> filterBlogs(
             @RequestParam(required = false) Integer userId,
-            @RequestParam(required = false) String title,
-            @RequestParam(required = false, defaultValue = "RECENT") BlogFilterType filterType,
-            Pageable pageable) {
-
+            @RequestParam(defaultValue = "", required = false) String title,
+            @RequestParam(required = false) BlogFilterType filterType,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        if (filterType == null) {
+            filterType = BlogFilterType.RECENT; // default filter
+        }
         String sortBy = switch (filterType) {
             case RECENT -> "publishDate";
             case MOST_VIEWED -> "viewCount";
             case MOST_LIKED -> "likeCount";
             default -> "createdAt";
         };
-        pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
-                Sort.by(Sort.Direction.DESC, sortBy));
 
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, sortBy));
         return blogService.filterBlogs(userId, title, pageable);
     }
 

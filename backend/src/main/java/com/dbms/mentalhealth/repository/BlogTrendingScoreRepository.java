@@ -11,12 +11,14 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface BlogTrendingScoreRepository extends JpaRepository<BlogTrendingScore, Integer> {
     @Query("""
-            SELECT bts FROM BlogTrendingScore bts
-            JOIN Blog b ON b.id = bts.blogId
-            WHERE b.blogApprovalStatus = 'APPROVED'
-            AND (:userId IS NULL OR b.userId = :userId)
-            ORDER BY bts.trendingScore DESC, bts.lastCalculated DESC
-            """)
+    SELECT bts FROM BlogTrendingScore bts
+    WHERE bts.blogId IN (
+        SELECT b.id FROM Blog b
+        WHERE b.blogApprovalStatus = 'APPROVED'
+        AND (:userId IS NULL OR b.userId = :userId)
+    )
+       ORDER BY bts.trendingScore DESC
+""")
     Page<BlogTrendingScore> findTrendingBlogs(
             @Param("userId") Integer userId,
             Pageable pageable

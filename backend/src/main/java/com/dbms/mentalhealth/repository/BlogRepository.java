@@ -26,11 +26,11 @@ public interface BlogRepository extends JpaRepository<Blog, Integer> {
 
     // Repository method
     @Query("""
-            SELECT DISTINCT b FROM Blog b
-            WHERE b.blogApprovalStatus = 'APPROVED'
-            AND (:userId IS NULL OR b.userId = :userId)
-            AND (:title IS NULL OR b.title LIKE CONCAT('%', :title, '%'))
-            """)
+        SELECT DISTINCT b FROM Blog b
+        WHERE b.blogApprovalStatus = 'APPROVED'
+        AND (:userId IS NULL OR b.userId = :userId)
+        AND (:title IS NULL OR LOWER(b.title) LIKE CONCAT('%', LOWER(:title), '%'))
+        """)
     Page<Blog> filterBlogs(
             @Param("userId") Integer userId,
             @Param("title") String title,
