@@ -65,60 +65,59 @@ public class AuthTokenFilter extends OncePerRequestFilter {
 
         String requestURI = request.getRequestURI();
 
-        if (EXCLUDED_URLS.contains(requestURI)|| requestURI.contains(CONTEXT_PATH + "/chat")) {
+        // Check for excluded URLs first
+        if (EXCLUDED_URLS.contains(requestURI) || requestURI.contains(CONTEXT_PATH + "/chat")) {
             logger.info("Skipping JWT validation for excluded URL: {}", requestURI);
             filterChain.doFilter(request, response);
             return;
         }
-        String jwt = parseJwt(request);
 
-        logger.info("Received JWT token: {}", jwt);
+        try {
+            String jwt = parseJwt(request);
+            logger.info("Received JWT token: {}", jwt);
 
-        if (jwt != null) {
-            try {
-                if (jwtUtils.validateJwtToken(jwt)) {
-                    String email = jwtUtils.getUserNameFromJwtToken(jwt);
-                    String role = jwtUtils.getRoleFromJwtToken(jwt);
+            if (jwt != null && jwtUtils.validateJwtToken(jwt)) {
+                String email = jwtUtils.getUserNameFromJwtToken(jwt);
+                String role = jwtUtils.getRoleFromJwtToken(jwt);
 
-                    UserDetails userDetails = userService.loadUserByUsername(email);
+                UserDetails userDetails = userService.loadUserByUsername(email);
 
-                    // Ensure role consistency
-                    if (!userDetails.getAuthorities().contains(new SimpleGrantedAuthority(role))) {
-                        throw new IllegalArgumentException("Role mismatch in JWT and user details");
-                    }
-
-                    // Set authentication context
-                    UsernamePasswordAuthenticationToken authentication =
-                            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
-
-                    // Update user activity
-                    userService.updateUserActivity(email);
-                    logger.info("User authenticated: {}", email);
+                // Ensure role consistency
+                if (!userDetails.getAuthorities().contains(new SimpleGrantedAuthority(role))) {
+                    logger.error("Role mismatch for user: {}", email);
+                    request.setAttribute("auth_error_message", "Role mismatch in JWT and user details");
+                    throw new ServletException("Role mismatch in JWT and user details");
                 }
-            } catch (ExpiredJwtException ex) {
-                logger.warn("JWT expired: {}", ex.getMessage());
 
-                // Extract user email and update isActive status
-                String email = ex.getClaims().getSubject(); // Extract email from expired token
-                userService.setUserActiveStatus(email, false); // Set isActive = false
+                // Set authentication context
+                UsernamePasswordAuthenticationToken authentication =
+                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authentication);
 
-                // Add logic to inform client about the expired token
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.getWriter().write("JWT token is expired. Please renew your token.");
-                return;
-            } catch (Exception e) {
-                logger.error("Error processing JWT: {}", e.getMessage());
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.getWriter().write("Invalid JWT token.");
-                return;
+                // Update user activity
+                userService.updateUserActivity(email);
+                logger.info("User authenticated: {}", email);
+
+                filterChain.doFilter(request, response);
+            } else {
+                request.setAttribute("auth_error_message", "Invalid or missing JWT token");
+                throw new ServletException("Invalid or missing JWT token");
+            }
+        } catch (ExpiredJwtException ex) {
+            logger.warn("JWT expired: {}", ex.getMessage());
+            String email = ex.getClaims().getSubject();
+            userService.setUserActiveStatus(email, false);
+            request.setAttribute("expired", true);
+            throw new ServletException("JWT token expired");
+        } catch (Exception e) {
+            logger.error("Error processing JWT: {}", e.getMessage());
+            if (!response.isCommitted()) {
+                throw new ServletException(e.getMessage());
             }
         }
-
-        // Proceed with the filter chain
-        filterChain.doFilter(request, response);
     }
+
 
     private String parseJwt(HttpServletRequest request) {
         String headerAuth = request.getHeader("Authorization");

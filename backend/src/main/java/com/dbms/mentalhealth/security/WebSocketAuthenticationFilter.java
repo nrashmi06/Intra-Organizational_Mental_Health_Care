@@ -28,42 +28,30 @@ public class WebSocketAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-
-        // Check if it's a WebSocket request
         if (request.getRequestURI().contains("/chat")) {
-            // Extract token from query parameter
             String token = request.getParameter("token");
 
             if (token == null || token.isEmpty()) {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.getWriter().write("Token is required for WebSocket connection");
-                return;
+                throw new ServletException("Token is required for WebSocket connection");
             }
 
             try {
-                // Validate the token
                 if (jwtUtils.validateJwtToken(token)) {
                     String email = jwtUtils.getUserNameFromJwtToken(token);
-
                     UserDetails userDetails = userService.loadUserByUsername(email);
-
-                    // Set authentication context
                     UsernamePasswordAuthenticationToken authentication =
                             new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                     userService.updateUserActivity(email);
+                    filterChain.doFilter(request, response);
                 } else {
-                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                    response.getWriter().write("Invalid or expired token");
-                    return;
+                    throw new ServletException("Invalid token");
                 }
             } catch (Exception e) {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.getWriter().write("Invalid or expired token");
-                return;
+                throw new ServletException("Authentication failed: " + e.getMessage());
             }
+        } else {
+            filterChain.doFilter(request, response);
         }
-
-        filterChain.doFilter(request, response);
     }
 }

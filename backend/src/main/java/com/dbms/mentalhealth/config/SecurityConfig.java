@@ -63,7 +63,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, WebSocketAuthenticationFilter webSocketAuthenticationFilter) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(requests -> requests
@@ -91,10 +91,13 @@ public class SecurityConfig {
                         })
                 )
                 .csrf(AbstractHttpConfigurer::disable)
+                // Order matters here - put rate limiting first
                 .addFilterBefore(rateLimitingFilter, UsernamePasswordAuthenticationFilter.class)
+                // Then JWT authentication
                 .addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(sseAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(webSocketAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                // Then specific authentication filters
+                .addFilterAfter(sseAuthenticationFilter, AuthTokenFilter.class)
+                .addFilterAfter(webSocketAuthenticationFilter, AuthTokenFilter.class)
                 .build();
     }
 
