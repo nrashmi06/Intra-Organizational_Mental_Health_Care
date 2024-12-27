@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { useSelector } from "react-redux";
 import { X, Image as ImageIcon } from "lucide-react";
 import Navbar1 from "@/components/navbar/NavBar";
-import Navbar2 from "@/components/navbar/navbar4";
 import Footer from "@/components/footer/Footer";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -26,7 +25,6 @@ export default function CreateBlogPage() {
   const [successMessage, setSuccessMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  const role = useSelector((state: RootState) => state.auth.role);
 
   // Fetch access token from Redux
   const { userId, accessToken } = useSelector((state: RootState) => state.auth);
@@ -82,7 +80,7 @@ export default function CreateBlogPage() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      {role === "ADMIN" ? <Navbar2 /> : <Navbar1 />}
+      <Navbar1 />
       <main className="flex flex-1 flex-col items-center pb-32 px-8">
         <div className="w-full max-w-4xl bg-white rounded-3xl shadow-xl p-8">
           <h1 className="text-3xl font-bold text-center mb-8">Create New Blog</h1>

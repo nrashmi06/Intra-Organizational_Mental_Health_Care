@@ -119,7 +119,7 @@ export default function Home() {
       </section>
 
       <section className="py-24 bg-gray-50">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto px-4 xl:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-6">
               <h2 className="text-5xl font-serif">Champions of Wellbeing</h2>
