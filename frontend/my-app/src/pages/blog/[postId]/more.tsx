@@ -19,12 +19,12 @@ import fetchRecentBlogs from "@/service/blog/fetchBlogs";
 import { RootState } from "@/store";
 import "@/styles/global.css";
 import getPageNumbers from "@/components/blog/PageNumbers";
-import { BlogPost, FilterType } from "@/lib/types";
+import { BlogPost} from "@/lib/types";
 
 const PAGE_SIZE_OPTIONS = [6, 9, 12, 15];
 const DEFAULT_FILTERS = {
   pageSize: 6,
-  filterType: "MOST_LIKED" as FilterType,
+  filterType: "MOST_LIKED",
   searchQuery: "",
 };
 const DEBOUNCE_DELAY = 750;
@@ -58,10 +58,10 @@ export default function MoreBlogs() {
     title: "",
   });
 
-  const [filterType, setFilterType] = useState<FilterType>(() => {
+  const [filterType, setFilterType] = useState<string>(() => {
     if (typeof window !== "undefined") {
       return (
-        (localStorage.getItem("blogFilterType") as FilterType) ||
+        (localStorage.getItem("blogFilterType")) ||
         DEFAULT_FILTERS.filterType
       );
     }
@@ -130,7 +130,7 @@ export default function MoreBlogs() {
     localStorage.setItem("blogPageSize", newSize);
   };
 
-  const handleFilterChange = (value: FilterType) => {
+  const handleFilterChange = (value: string) => {
     setFilterType(value);
     setPaginationInfo((prev) => ({ ...prev, pageNumber: 0 }));
     localStorage.setItem("blogFilterType", value);
@@ -200,6 +200,7 @@ export default function MoreBlogs() {
                   <SelectItem value="MOST_LIKED">Most Liked</SelectItem>
                   <SelectItem value="RECENT">Most Recent</SelectItem>
                   <SelectItem value="MOST_VIEWED">Most Viewed</SelectItem>
+                  <SelectItem value="TRENDING">Trending</SelectItem>
                 </SelectContent>
               </Select>
 
