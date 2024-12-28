@@ -1,7 +1,7 @@
 'use client'
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { DailySchedule } from '@/components/dashboard/schedule/DailySchedule'
+import DailySchedule from '@/components/dashboard/schedule/DailySchedule'
 import WeeklySchedule from '@/components/dashboard/schedule/WeeklySchedule'
 import MonthlySchedule from '@/components/dashboard/schedule/MonthlySchedule'
 import { Appointment } from '@/lib/types'

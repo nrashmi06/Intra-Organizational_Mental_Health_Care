@@ -1,57 +1,98 @@
 import React from 'react';
-import { format, parseISO, addMinutes } from 'date-fns';
 import { Appointment } from '@/lib/types';
-import TimeSlotCell from '@/components/dashboard/schedule/TimeSlotCell';
+import { format, parseISO } from 'date-fns';
 
-const DailySchedule: React.FC<{ appointments: Appointment[]; date: Date }> = ({
-  appointments,
-  date,
-}) => {
-  // Generate time slots for every 30 minutes from 7AM to 9PM
-  const timeSlots = Array.from({ length: 40 }, (_, i) => {
-    const baseTime = new Date(date);
-    baseTime.setHours(7, 0, 0, 0); // Start at 7:00 AM
-    return addMinutes(baseTime, i * 30);
+const DailySchedule: React.FC<{ 
+  appointments: Appointment[]; 
+  date: Date; 
+}> = ({ appointments, date }) => {
+  // Generate time slots for each hour from 5 AM to 10 PM
+  const timeSlots = Array.from({ length: 18 }, (_, i) => {
+    const hour = i + 5; // Start from 5 AM
+    return new Date(2024, 0, 1, hour, 0);
   });
 
-  const getAppointmentsForSlot = (time: Date) => {
-    const slotEnd = addMinutes(time, 30);
-    return appointments.filter(apt => {
-      const aptStart = parseISO(`2024-01-01T${apt.startTime}`);
-      const aptEnd = parseISO(`2024-01-01T${apt.endTime}`);
-      return aptStart < slotEnd && aptEnd > time;
-    });
+  // Filter and process appointments for the given day
+  const processAppointmentsForDay = () => {
+    return appointments
+      .filter(apt => {
+        const aptDate = parseISO(apt.date);
+        return (
+          aptDate.getFullYear() === date.getFullYear() &&
+          aptDate.getMonth() === date.getMonth() &&
+          aptDate.getDate() === date.getDate()
+        );
+      })
+      .map(apt => {
+        const aptStart = parseISO(`2024-01-01T${apt.startTime}`);
+        const aptEnd = parseISO(`2024-01-01T${apt.endTime}`);
+
+        // Calculate position and height
+        const startHour = aptStart.getHours() + aptStart.getMinutes() / 60;
+        const endHour = aptEnd.getHours() + aptEnd.getMinutes() / 60;
+        const top = (startHour - 5) * 96; // 96px per hour (24px * 4 quarters)
+        const height = (endHour - startHour) * 96;
+
+        return {
+          ...apt,
+          top,
+          height,
+          startHour,
+          endHour,
+        };
+      });
   };
 
   return (
     <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-      <div className="flex h-[calc(100vh-200px)] overflow-y-auto">
+      {/* Header */}
+      <div className="p-4 text-center border-b border-gray-200 bg-white sticky top-0 z-10">
+        <div className="font-semibold text-gray-900">{format(date, 'EEEE, MMMM d')}</div>
+      </div>
+
+      {/* Time grid */}
+      <div className="flex">
         {/* Time labels */}
-        <div className="w-20 flex-shrink-0 border-r border-gray-200">
+        <div className="w-20 flex-shrink-0 border-r border-gray-200 bg-white sticky left-0 z-10">
           {timeSlots.map((time, i) => (
-            <div key={i} className="h-20 -mt-3 text-right pr-2">
-              <span className="text-xs text-gray-500">
+            <div key={i} className="h-24 border-b border-gray-200 relative">
+              <span className="absolute -top-3 right-4 text-sm text-gray-500">
                 {format(time, 'h:mm a')}
               </span>
             </div>
           ))}
         </div>
 
-        {/* Main content */}
-        <div className="flex-1">
-          <div className="relative">
-            {timeSlots.map((time, i) => (
-              <TimeSlotCell
-                key={i}
-                time={time}
-                appointments={getAppointmentsForSlot(time)}
-              />
-            ))}
-          </div>
+        {/* Day column */}
+        <div className="flex-1 relative">
+          {/* Hour cells */}
+          {timeSlots.map((time, timeIdx) => (
+            <div key={timeIdx} className="h-24 border-b border-gray-200" />
+          ))}
+
+          {/* Appointments overlay */}
+          {processAppointmentsForDay().map((apt, aptIdx) => (
+            <div
+              key={aptIdx}
+              className="absolute left-1 right-1 bg-blue-100 rounded-lg border border-blue-200 p-2 overflow-hidden"
+              style={{
+                top: `${apt.top}px`,
+                height: `${apt.height}px`,
+              }}
+            >
+              <div className="text-sm font-medium text-blue-900 truncate">
+                {apt.appointmentReason}
+              </div>
+              <div className="text-xs text-blue-700">
+                {format(parseISO(`2024-01-01T${apt.startTime}`), 'h:mm a')} - 
+                {format(parseISO(`2024-01-01T${apt.endTime}`), 'h:mm a')}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>
   );
 };
 
-export { DailySchedule };
+export default DailySchedule;
