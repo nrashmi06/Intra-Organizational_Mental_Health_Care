@@ -21,6 +21,7 @@ import { RootState } from '@/store';
 import axios from 'axios';
 import createAppointment from '@/service/appointment/createAppointment';
 import fetchTimeSlots from '@/service/timeslot/fetchTimeSlotsTrue';
+import router from 'next/router';
 
 export default function BookAppointment() {
   const [showTooltip, setShowTooltip] = useState(false);
@@ -62,7 +63,11 @@ export default function BookAppointment() {
   // Fetch admins data
   useEffect(() => {
     async function loadAdmins() {
-      if (!token) return;
+      if (!token)
+      {
+        router.push('/signin');
+        return;
+      }
       try {
         const response = await fetchAdmins(token);
         setAdmins(response);
@@ -77,15 +82,12 @@ export default function BookAppointment() {
   // Fetch available slots
   useEffect(() => {
     const fetchSlots = async () => {
-      if (!selectedAdminId || !token) return; // Ensure a valid admin ID and token
-      console.log('Fetching time slots for admin:', selectedAdminId);
-  
+      if (!selectedAdminId || !token) return; // Ensure a valid admin ID and toke
       const startDate = new Date().toISOString().split('T')[0];
       const oneMonthLater = new Date();
       oneMonthLater.setMonth(oneMonthLater.getMonth() + 1);
       const endDate = oneMonthLater.toISOString().split('T')[0];
       const isAvailable = true;
-  
       try {
         const timeSlots = await fetchTimeSlots(selectedAdminId, startDate, endDate, isAvailable, token);
         setAvailableSlots(timeSlots);

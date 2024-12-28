@@ -28,9 +28,9 @@ export default function Navbar() {
   };
 
   return (
-    <header className="border-b z-50 relative">
+    <header className="z-20 relative">
       <div className="header">
-        <div className="mx-auto px-4 py-4 flex items-center justify-between w-full h-16">
+        <div className="mx-auto px-4 py-4 flex items-center justify-between w-full h-[3.7rem]">
           {/* Logo Section */}
           <div className="flex items-center gap-2">
             <Image
@@ -58,9 +58,9 @@ export default function Navbar() {
               </Link>
               {role === "ADMIN" && (
                 <Link
-                  href="/dashboard"
+                  href="/insights"
                   className={`text-sm font-medium text-white ${
-                    router.pathname === "/dashboard" ? "underline" : ""
+                    router.pathname === "/insights" ? "underline" : ""
                   }`}
                 >
                   Dashboard
@@ -96,7 +96,7 @@ export default function Navbar() {
                 {isServicesDropdownOpen && (
                   <div
                     className="absolute left-0 w-48 mt-2 bg-white text-black rounded-md shadow-lg"
-                    style={{ zIndex: 1000 }}
+                    style={{ zIndex: 20 }}
                   >
                     <Link
                       href="/listener-application"
@@ -236,7 +236,7 @@ export default function Navbar() {
               {isServicesDropdownOpen && (
                 <div
                   className="absolute left-0 w-48 mt-2 bg-white text-black rounded-md shadow-lg"
-                  style={{ zIndex: 1000 }}
+                  style={{ zIndex: 20 }}
                 >
                   <Link
                     href="/listener-application"

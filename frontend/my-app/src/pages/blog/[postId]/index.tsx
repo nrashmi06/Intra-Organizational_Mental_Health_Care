@@ -13,27 +13,14 @@ import DeleteBlogByID from "@/service/blog/DeleteBlogByID";
 import InlineLoader from "@/components/ui/inlineLoader";
 import BlogsByAuthor from "@/components/blog/BlogsByAuthor";
 import Image from "next/image";
+import { Article } from "@/lib/types";
 
 const BlogPost = () => {
   const router = useRouter();
   const { postId } = router.query;
-  const token = useSelector((state: RootState) => state.auth.accessToken); // Redux token
-  const ReduxuserId = useSelector((state: RootState) => state.auth.userId); // Redux userId
+  const token = useSelector((state: RootState) => state.auth.accessToken);
+  const ReduxuserId = useSelector((state: RootState) => state.auth.userId);
   const [imageLoading, setImageLoading] = useState(true);
-
-  interface Article {
-    id: number;
-    title: string;
-    publishDate: string;
-    viewCount: number;
-    userId: number;
-    imageUrl: string;
-    content: string;
-    summary: string;
-    likedByCurrentUser: boolean; // Determines if the current user liked the article
-    likeCount: number; // Total number of likes
-  }
-
   const [article, setArticle] = useState<Article | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [editMode, setEditMode] = useState<boolean>(false);
@@ -56,8 +43,7 @@ const BlogPost = () => {
         const response = await fetchBlogById(Number(postId), token);
         setArticle(response);
       } catch (error) {
-        console.error(error);
-        setError("Failed to fetch the article. Please try again later");
+        setError("Failed to fetch the article. Please try again later" + error);
       }
     };
 
@@ -66,18 +52,17 @@ const BlogPost = () => {
 
   const handleLikeToggle = async () => {
     if (!article || !token) return;
-
     try {
       const updatedArticle = await toggleLikeOnBlog(
         Number(postId),
         token,
         article.likedByCurrentUser
-      ); // Backend updates like status
+      );
       setArticle((prevArticle) =>
         prevArticle ? { ...prevArticle, ...updatedArticle } : null
       );
     } catch (error) {
-      console.error("Failed to update like status:", error);
+      setError("Failed to toggle like." + error);
     }
   };
 
@@ -94,7 +79,6 @@ const BlogPost = () => {
 
   const handleDeleteClick = async () => {
     DeleteBlogByID(Number(postId), token);
-    console.log("Deleted");
   };
 
   const handleSaveChanges = async () => {
@@ -120,8 +104,7 @@ const BlogPost = () => {
       setArticle(updatedArticle);
       setEditMode(false);
     } catch (error) {
-      console.error("Failed to save blog updates:", error);
-      setError("Failed to save blog updates.");
+      setError("Failed to save blog updates." + error);
     }
   };
 
@@ -143,16 +126,11 @@ const BlogPost = () => {
       <Head>
         <title>{article?.title}</title>
       </Head>
-
-      {/* Navbar with absolute positioning */}
       <div className="relative top-0 left-0 w-full z-20">
         <Navbar1 />
       </div>
-
-      {/* Blog content with overlay positioning */}
       <main className="absolute top-[80px] left-0 w-full min-h-screen flex flex-col items-center justify-center md:pb-10">
-        <div className="container max-w-3xl w-full bg-white shadow-xl md:rounded-2xl overflow-hidden border border-gray-100 transition-all duration-300 hover:shadow-2xl">
-          {/* Blog Image with Modern Styling */}
+        <div className="container max-w-3xl w-full bg-white shadow-xl md:rounded-2xl overflow-hidden border border-gray-100 transition-all duration-300 md:hover:shadow-2xl">
           <div className="relative w-full h-[50vh] z-50 group overflow-hidden">
             {imageLoading && <InlineLoader height="h-full" />}
             {article?.imageUrl && (
@@ -166,17 +144,13 @@ const BlogPost = () => {
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               />
             )}
-            <div className="absolute inset-0 bg-black opacity-20 group-hover:opacity-10 transition-opacity duration-500"></div>
+            <div className="hidden md:block absolute inset-0 bg-black opacity-20 group-hover:opacity-10 transition-opacity duration-500"></div>
           </div>
-
-          {/* Blog Content Container */}
           <div className="p-8 space-y-6">
             {/* Title */}
             <h1 className="text-4xl font-extrabold text-gray-900 leading-tight mb-4">
               {article?.title}
             </h1>
-
-            {/* Metadata and Actions */}
             <div className="flex justify-between items-center text-sm text-gray-600 pb-4 border-b border-gray-200">
               <span className="text-gray-500">
                 {article?.publishDate
@@ -192,13 +166,11 @@ const BlogPost = () => {
                   : null}
               </span>
               <div className="flex items-center space-x-4">
-                {/* View Count */}
                 <div className="flex items-center space-x-1 text-gray-600">
                   <Eye className="w-5 h-5 text-gray-500" />
                   <span>{article?.viewCount}</span>
                 </div>
 
-                {/* Like Button */}
                 <button
                   className="flex items-center space-x-1 group"
                   onClick={handleLikeToggle}
@@ -216,7 +188,6 @@ const BlogPost = () => {
                   <span>{article?.likeCount}</span>
                 </button>
 
-                {/* Edit and Delete Actions */}
                 {article?.userId === Number(ReduxuserId) && (
                   <div className="flex items-center space-x-3">
                     <button
@@ -236,7 +207,6 @@ const BlogPost = () => {
               </div>
             </div>
 
-            {/* Content Section */}
             <div className="prose max-w-none text-gray-800 space-y-4">
               <h2 className="text-2xl font-semibold text-gray-900 border-l-4 border-blue-500 pl-4 mb-4">
                 Content
@@ -247,7 +217,6 @@ const BlogPost = () => {
               />
             </div>
 
-            {/* Summary Section */}
             <div className="prose max-w-none text-gray-800 space-y-4">
               <h2 className="text-2xl font-semibold text-gray-900 border-l-4 border-green-500 pl-4 mb-4">
                 Summary
@@ -269,7 +238,6 @@ const BlogPost = () => {
         )}
       </main>
 
-      {/* Edit Modal */}
       {editMode && (
         <EditBlogModal
           title={editedBlogData.title}

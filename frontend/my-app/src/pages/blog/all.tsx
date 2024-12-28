@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import Navbar1 from "@/components/navbar/NavBar";
+import Navbar1 from "@/components/navbar/Navbar2";
 import BlogCard from "@/components/blog/BlogCard";
 import Footer from "@/components/footer/Footer";
 import InlineLoader from "@/components/ui/inlineLoader";
@@ -20,11 +20,12 @@ import { RootState } from "@/store";
 import "@/styles/global.css";
 import getPageNumbers from "@/components/blog/PageNumbers";
 import { BlogPost } from "@/lib/types";
+import Pagination2 from "@/components/ui/pagination2";
 
 const PAGE_SIZE_OPTIONS = [6, 9, 12, 15];
 const DEFAULT_FILTERS = {
   pageSize: 6,
-  filterType: "MOST_LIKED",
+  filterType: "TRENDING",
   searchQuery: "",
 };
 const DEBOUNCE_DELAY = 750;
@@ -34,7 +35,6 @@ export default function AllBlogsPage() {
   const token = useSelector((state: RootState) => state.auth.accessToken);
   const [blogs, setBlogs] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState(() => {
     if (typeof window !== "undefined") {
       return (
@@ -60,8 +60,7 @@ export default function AllBlogsPage() {
   const [filterType, setFilterType] = useState<string>(() => {
     if (typeof window !== "undefined") {
       return (
-        (localStorage.getItem("blogFilterType")) ||
-        DEFAULT_FILTERS.filterType
+        localStorage.getItem("blogFilterType") || DEFAULT_FILTERS.filterType
       );
     }
     return DEFAULT_FILTERS.filterType;
@@ -109,7 +108,6 @@ export default function AllBlogsPage() {
         }));
       }
     } catch (err) {
-      setError("Failed to load blogs");
       console.error(err);
     } finally {
       setLoading(false);
@@ -156,14 +154,8 @@ export default function AllBlogsPage() {
     <div className="min-h-screen bg-gray-50">
       <Head>
         <title>Blog | Explore All Articles</title>
-        <meta
-          name="description"
-          content="Explore all blog posts on mental health and more!"
-        />
       </Head>
-
       <Navbar1 />
-
       <div className="w-full bg-white py-8 md:py-10 border-b">
         <div className="container mx-auto px-4 max-w-7xl">
           <h1 className="text-3xl md:text-4xl font-bold text-center text-gray-800 mb-2">
@@ -174,7 +166,6 @@ export default function AllBlogsPage() {
           </p>
         </div>
       </div>
-
       <div className="w-full bg-white border-b py-4">
         <div className="container mx-auto px-4 max-w-7xl">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -189,16 +180,15 @@ export default function AllBlogsPage() {
                 placeholder="Search blogs..."
                 className="p-3 border rounded-lg w-full sm:w-64 focus:ring-2 focus:ring-green-500 focus:border-green-500"
               />
-
               <Select onValueChange={handleFilterChange} value={filterType}>
                 <SelectTrigger className="w-full sm:w-[180px]">
                   <SelectValue placeholder="Filter by" />
                 </SelectTrigger>
                 <SelectContent className="bg-white">
+                  <SelectItem value="TRENDING">Trending</SelectItem>
                   <SelectItem value="MOST_LIKED">Most Liked</SelectItem>
                   <SelectItem value="RECENT">Most Recent</SelectItem>
                   <SelectItem value="MOST_VIEWED">Most Viewed</SelectItem>
-                  <SelectItem value="TRENDING">Trending</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -244,68 +234,31 @@ export default function AllBlogsPage() {
           <div className="flex justify-center items-center min-h-[400px]">
             <InlineLoader />
           </div>
-        ) : error ? (
-          <div className="text-center py-8 text-red-500">{error}</div>
         ) : (
-          <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {blogs.map((post) => (
-                <BlogCard
-                  key={post.id}
-                  post={{
-                    ...post,
-                    summary:
-                      post.summary.length > 200
-                        ? `${post.summary.substring(0, 200)}...`
-                        : post.summary,
-                  }}
-                />
-              ))}
-            </div>
-
-            <div className="text-center text-xs text-gray-600 mt-6">
-              Showing {blogs.length} of {paginationInfo.totalElements} blogs
-            </div>
-          </>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {blogs.map((post) => (
+              <BlogCard
+                key={post.id}
+                post={{
+                  ...post,
+                  summary:
+                    post.summary.length > 200
+                      ? `${post.summary.substring(0, 200)}...`
+                      : post.summary,
+                }}
+              />
+            ))}
+          </div>
         )}
       </div>
-
       <div className="container mx-auto px-4 max-w-7xl">
-        <div className="flex justify-center items-center gap-2 py-6">
-          {getPageNumbers(
-            paginationInfo.pageNumber + 1,
-            paginationInfo.totalPages
-          ).map((pageNum, index) => (
-            <button
-              key={index}
-              onClick={() =>
-                typeof pageNum === "number"
-                  ? handlePageClick(pageNum)
-                  : undefined
-              }
-              className={`px-4 py-2 rounded-lg transition-colors ${
-                pageNum === "..."
-                  ? "cursor-default"
-                  : pageNum === paginationInfo.pageNumber + 1
-                  ? "bg-green-500 text-white"
-                  : "hover:bg-gray-100"
-              } ${
-                typeof pageNum === "number"
-                  ? "min-w-[40px] font-medium"
-                  : "pointer-events-none"
-              }`}
-              disabled={pageNum === "..."}
-            >
-              {pageNum}
-            </button>
-          ))}
-        </div>
-
-        <div className="text-center text-gray-600 pb-6">
-          Showing {blogs.length} of {paginationInfo.totalElements} blogs
-        </div>
+        <Pagination2
+          paginationInfo={paginationInfo}
+          blogs={blogs}
+          getPageNumbers={getPageNumbers}
+          handlePageClick={handlePageClick}
+        />
       </div>
-
       <Footer />
     </div>
   );
