@@ -6,11 +6,11 @@ import WeeklySchedule from '@/components/dashboard/schedule/WeeklySchedule'
 import MonthlySchedule from '@/components/dashboard/schedule/MonthlySchedule'
 import { Appointment } from '@/lib/types'
 import { useEffect, useState } from 'react'
-import { getAdminUpcomingAppointmentsForAdmin } from '@/service/appointment/getAdminUpcomingAppointmentsForAdmin'
 import { RootState } from '@/store'
 import { useSelector } from 'react-redux'
 import DashboardLayout from '@/components/dashboard/DashboardLayout'
 import DatePicker from '@/components/dashboard/schedule/DatePicker'
+import { getAppointmentByAdmin } from '@/service/appointment/getAppointmentByAdmin'
 
 const SchedulePage = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -20,8 +20,9 @@ const SchedulePage = () => {
   useEffect(() => {
     const fetchAppointments = async () => {
       try {
-        const response = await getAdminUpcomingAppointmentsForAdmin(token);
-        setAppointments(response);
+        const response = await getAppointmentByAdmin(token);
+        const data = response.data;
+        setAppointments(data);
       } catch (error) {
         console.error("Error fetching appointments:", error);
       }

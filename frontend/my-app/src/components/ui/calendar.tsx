@@ -61,7 +61,7 @@ export const Calendar: React.FC<CalendarProps> = ({ selected, onSelect, classNam
         </button>
       </div>
       <div className="grid grid-cols-7 text-center text-gray-600 font-medium">
-        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+        {["S", "M", "T", "W", "T", "F", "S"].map((day) => (
           <div key={day} className="p-2">
             {day}
           </div>

@@ -32,15 +32,16 @@ const DatePicker: React.FC<DatePickerProps> = ({
     <div className="relative">
       <Button
         variant="outline"
-        className={`w-[240px] justify-start text-left font-normal ${className}`}
+        className={`w-[240px] justify-start flex text-left font-normal ${className}`}
         onClick={handleCalendarToggle}
       >
-        <CalendarIcon className="mr-2 h-4 w-4" />
-        {format(date, "PPP")}
+
+        <span><CalendarIcon className="mr-2 h-4 w-4" /></span>
+        <span>{format(date, "PPP")}</span>
       </Button>
 
       {isCalendarVisible && (
-        <div className="absolute z-50 mt-2 w-72 rounded-md border bg-white p-4 shadow-md">
+        <div className="absolute z-50 mt-2 w-full sm:w-72 rounded-md border bg-white p-4 shadow-md max-w-full max-h-[90vh] overflow-auto">
           <Calendar
             selected={date}
             onSelect={handleDateSelect}
