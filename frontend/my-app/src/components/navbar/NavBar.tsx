@@ -25,8 +25,8 @@ export default function Navbar() {
   };
 
   return (
-    <header className="relative">
-      <div className="header relative">
+    <header className="z-50 relative">
+      <div className="header relative z-40">
         <div className="mx-auto px-4 py-4 flex items-center justify-between w-full h-[3.8rem]">
           {/* Logo Section */}
           <div className="flex items-center gap-2">
@@ -182,7 +182,7 @@ export default function Navbar() {
         <div
           className={`md:hidden ${
             isMenuOpen ? "block" : "hidden"
-          } absolute w-full bg-black z-50`}
+          } absolute w-full bg-black`}
         >
           <nav className="flex flex-col items-center gap-6 px-4">
             <Link
@@ -211,7 +211,7 @@ export default function Navbar() {
             </Link>
 
             {/* Mobile Dropdown for Services */}
-            <div className="relative !z-[9999]">
+            <div className="relative">
               <button
                 onClick={toggleServicesDropdown}
                 className={`text-sm font-medium text-white ${
