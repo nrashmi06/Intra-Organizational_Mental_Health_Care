@@ -48,7 +48,7 @@ export const Calendar: React.FC<CalendarProps> = ({ selected, onSelect, classNam
     date.getFullYear() === today.getFullYear()
 
   return (
-    <div className={clsx("p-4 bg-white rounded-lg shadow", className)}>
+    <div className={clsx("p-4 bg-white gap-2 rounded-lg shadow", className)}>
       <div className="flex items-center justify-between mb-4">
         <button onClick={handlePrevMonth}>
           <ChevronLeft className="h-5 w-5 text-gray-600" />
@@ -61,7 +61,7 @@ export const Calendar: React.FC<CalendarProps> = ({ selected, onSelect, classNam
         </button>
       </div>
       <div className="grid grid-cols-7 text-center text-gray-600 font-medium">
-        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+        {["S", "M", "T", "W", "T", "F", "S"].map((day) => (
           <div key={day} className="p-2">
             {day}
           </div>

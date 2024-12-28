@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Badge from "@/components/ui/badge";
-import { Calendar, Clock } from "lucide-react";
+import { Calendar, Clock, Plus } from "lucide-react";
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
@@ -13,6 +13,7 @@ import { fetchTimeSlots } from '@/service/timeslot/fetchTimeSlots';
 import deleteTimeSlots from '@/service/timeslot/deleteTimeSlots';
 import updateTimeSlot from '@/service/timeslot/updateTimeSlot';
 import deleteTimeSlotsById from '@/service/timeslot/deleteTimeSlotById';
+import { TimeSelector } from '@/components/dashboard/timeslot/TimeSelector';
 
 const TimeSlotPage = () => {
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
@@ -139,82 +140,92 @@ const TimeSlotPage = () => {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <Card className="border-none shadow-lg">
-        <CardHeader className="bg-gradient-to-r from-teal-800 to-lime-800  text-white rounded-t-lg">
-          <CardTitle>
-            <div className='flex justify-center'>
-              <Calendar className="w-6 h-6" />
-              Time Slot Manager
-            </div>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6 p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <Label htmlFor="startDate" className="flex items-center gap-2">
-                <Calendar className="w-4 h-4" />
-                Start Date
-              </Label>
-              <Input
-                id="startDate"
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="border-2 focus:ring-2 focus:ring-purple-500"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="endDate" className="flex items-center gap-2">
-                <Calendar className="w-4 h-4" />
-                End Date
-              </Label>
-              <Input
-                id="endDate"
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="border-2 focus:ring-2 focus:ring-purple-500"
-              />
-            </div>
+      <Card className="border-none  shadow-xl mx-auto">
+      <CardHeader className="bg-gradient-to-r from-teal-800 to-lime-800 p-6 rounded-t-xl">
+        <div className="flex items-center justify-center space-x-3 text-white text-xl">
+          <Calendar className="w-7 h-7" />
+          <span className="font-bold tracking-wide">Time Slot Manager</span>
+        </div>
+      </CardHeader>
+
+      <CardContent className="p-6 space-y-8">
+        {/* Date Selection Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="space-y-3 group">
+            <Label 
+              htmlFor="startDate" 
+              className="flex items-center gap-2 text-base font-medium group-hover:text-teal-700 transition-colors"
+            >
+              <Calendar className="w-5 h-5 text-teal-600" />
+              Start Date
+            </Label>
+            <Input
+              id="startDate"
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="border-2 rounded-lg p-3 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 
+                         hover:border-teal-400 transition-all duration-200"
+            />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <Label htmlFor="newStartTime" className="flex items-center gap-2">
-                <Clock className="w-4 h-4" />
-                Start Time
-              </Label>
-              <Input
-                id="newStartTime"
-                type="time"
-                value={newStartTime}
-                onChange={(e) => setNewStartTime(e.target.value)}
-                className="border-2 focus:ring-2 focus:ring-purple-500"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="newEndTime" className="flex items-center gap-2">
-                <Clock className="w-4 h-4" />
-                End Time
-              </Label>
-              <Input
-                id="newEndTime"
-                type="time"
-                value={newEndTime}
-                onChange={(e) => setNewEndTime(e.target.value)}
-                className="border-2 focus:ring-2 focus:ring-teal-500"
-              />
-            </div>
+          <div className="space-y-3 group">
+            <Label 
+              htmlFor="endDate" 
+              className="flex items-center gap-2 text-base font-medium group-hover:text-lime-700 transition-colors"
+            >
+              <Calendar className="w-5 h-5 text-lime-600" />
+              End Date
+            </Label>
+            <Input
+              id="endDate"
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="border-2 rounded-lg p-3 focus:ring-2 focus:ring-lime-500 focus:border-lime-500 
+                         hover:border-lime-400 transition-all duration-200"
+            />
+          </div>
+        </div>
+
+        {/* Time Selection Section */}
+        <div className="bg-gray-50 rounded-xl p-6 space-y-6">
+          <div className="flex items-center justify-center gap-2 text-gray-700">
+            <Clock className="w-6 h-6 text-teal-600" />
+            <h3 className="text-lg font-semibold">Time Selection</h3>
           </div>
 
-          <Button
-            onClick={handleAddTimeSlot}
-            className="w-full bg-gradient-to-r from-teal-800 to-lime-800 hover:from-teal-900 hover:to-lime-900 transition-all"
-          >
-            Add Time Slot
-          </Button>
-        </CardContent>
-      </Card>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <TimeSelector
+              label="Start Time"
+              selectedTime={newStartTime}
+              onChange={setNewStartTime}
+            />
+            <TimeSelector
+              label="End Time"
+              selectedTime={newEndTime}
+              onChange={setNewEndTime}
+            />
+            </div>
+        </div>
+
+        {/* Add Button */}
+        <Button
+          onClick={handleAddTimeSlot}
+          className="w-full bg-gradient-to-r from-teal-800 to-lime-800 
+                     hover:from-teal-700 hover:to-lime-700 
+                     active:from-teal-900 active:to-lime-900
+                     text-white py-6 rounded-lg text-lg font-semibold
+                     shadow-md hover:shadow-lg
+                     transform hover:-translate-y-0.5
+                     transition-all duration-200
+                     flex items-center justify-center gap-2"
+        >
+          <Plus className="w-5 h-5" />
+          Add Time Slot
+        </Button>
+      </CardContent>
+    </Card>
 
       <Card className="border-none shadow-lg">
         <CardHeader>

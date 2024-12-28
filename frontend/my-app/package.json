@@ -23,6 +23,7 @@
     "class-variance-authority": "^0.7.1",
     "classnames": "^2.5.1",
     "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
     "event-source-polyfill": "^1.0.31",
     "formidable": "^3.5.2",
     "framer-motion": "^11.15.0",
