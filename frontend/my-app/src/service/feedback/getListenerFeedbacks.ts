@@ -7,7 +7,7 @@ import { ListenerFeedback } from "@/lib/types";
 export const getListenerFeedbacks = async (
   userId: string,
   accessToken: string
-): Promise<ListenerFeedback[]> => {
+) => {
   try {
     const response = await axios.get<ListenerFeedback[]>(
       `${FEEDBACK_API_ENDPOINTS.GET_ALL_LISTNER_FEEDBCK(userId)}`,
@@ -20,6 +20,7 @@ export const getListenerFeedbacks = async (
         },
       }
     );
+    console.log(response.data);
     return response.data;
   } catch (error) {
     console.error("Error fetching listener feedbacks:", error);

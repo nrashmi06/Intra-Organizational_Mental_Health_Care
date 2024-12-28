@@ -18,7 +18,9 @@ import { PaginationInfo } from "@/lib/types";
 
 const DashboardPage = () => {
   const [blogs, setBlogs] = useState<BlogApproval[]>([]);
-  const [statusFilter, setStatusFilter] = useState<"pending" | "approved" | "rejected">("pending");
+  const [statusFilter, setStatusFilter] = useState<
+    "pending" | "approved" | "rejected"
+  >("pending");
   const [loading, setLoading] = useState(true);
   const token = useSelector((state: RootState) => state.auth.accessToken);
   const [paginationInfo, setPaginationInfo] = useState<PaginationInfo>({
@@ -39,12 +41,12 @@ const DashboardPage = () => {
           paginationInfo.pageNumber,
           paginationInfo.pageSize
         );
-        
+
         setBlogs(response.content);
-        setPaginationInfo(prev => ({
+        setPaginationInfo((prev) => ({
           ...prev,
-          totalPages: response.totalPages,
-          totalElements: response.totalElements,
+          totalPages: response.page.totalPages,
+          totalElements: response.page.totalElements,
           last: response.last,
           first: response.first,
         }));
@@ -58,7 +60,7 @@ const DashboardPage = () => {
 
   useEffect(() => {
     setLoading(true);
-    setPaginationInfo(prev => ({ ...prev, pageNumber: 0 }));
+    setPaginationInfo((prev) => ({ ...prev, pageNumber: 0 }));
     loadBlogs();
   }, [token, statusFilter]);
 
@@ -68,7 +70,7 @@ const DashboardPage = () => {
   }, [paginationInfo.pageNumber]);
 
   const handlePageClick = (pageNum: number) => {
-    setPaginationInfo(prev => ({ ...prev, pageNumber: pageNum }));
+    setPaginationInfo((prev) => ({ ...prev, pageNumber: pageNum }));
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -173,33 +175,37 @@ const DashboardPage = () => {
               </Button>
             </div>
           </div>
-          
+
           {loading ? (
             <InlineLoader />
           ) : (
             <>
               <BlogApprovalTable blogs={blogs} statusFilter={statusFilter} />
-              
+
               {/* Pagination Controls */}
               <div className="flex justify-center items-center gap-2 py-6">
                 {getPageNumbers().map((pageNum, index) => (
                   <button
                     key={index}
-                    onClick={() => typeof pageNum === 'number' ? handlePageClick(pageNum) : undefined}
+                    onClick={() =>
+                      typeof pageNum === "number"
+                        ? handlePageClick(pageNum)
+                        : undefined
+                    }
                     className={`px-4 py-2 rounded-lg transition-colors ${
-                      pageNum === '...' 
-                        ? 'cursor-default'
+                      pageNum === "..."
+                        ? "cursor-default"
                         : pageNum === paginationInfo.pageNumber
-                          ? 'bg-green-500 text-white'
-                          : 'hover:bg-gray-100'
+                        ? "bg-green-500 text-white"
+                        : "hover:bg-gray-100"
                     } ${
-                      typeof pageNum === 'number'
-                        ? 'min-w-[40px] font-medium'
-                        : 'pointer-events-none'
+                      typeof pageNum === "number"
+                        ? "min-w-[40px] font-medium"
+                        : "pointer-events-none"
                     }`}
-                    disabled={pageNum === '...'}
+                    disabled={pageNum === "..."}
                   >
-                    {typeof pageNum === 'number' ? pageNum + 1 : pageNum}
+                    {typeof pageNum === "number" ? pageNum + 1 : pageNum}
                   </button>
                 ))}
               </div>

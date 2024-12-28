@@ -136,6 +136,7 @@ export interface ListenerFeedback {
   comments: string;
   createdAt: string;
   userId: string;
+  submittedAt: string;
 }
 
 export interface BlogPost {
@@ -156,3 +157,4 @@ export interface PaginationInfo {
   last: boolean;
   first: boolean;
 }
+
