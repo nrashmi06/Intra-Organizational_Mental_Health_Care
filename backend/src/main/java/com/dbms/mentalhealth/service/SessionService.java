@@ -1,8 +1,8 @@
 package com.dbms.mentalhealth.service;
 
 import com.dbms.mentalhealth.dto.chatMessage.ChatMessageDTO;
-import com.dbms.mentalhealth.dto.session.SessionResponseDTO;
-import com.dbms.mentalhealth.dto.session.SessionSummaryDTO;
+import com.dbms.mentalhealth.dto.session.response.SessionResponseDTO;
+import com.dbms.mentalhealth.dto.session.response.SessionSummaryDTO;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 import java.util.List;

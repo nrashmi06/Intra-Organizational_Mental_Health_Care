@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -64,7 +65,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, CustomAccessDeniedHandler customAccessDeniedHandler) throws Exception {
         return http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(requests -> requests
@@ -78,16 +79,14 @@ public class SecurityConfig {
                                         UserUrlMapping.RENEW_TOKEN,
                                         EmergencyHelplineUrlMapping.GET_ALL_EMERGENCY_HELPLINES
                                 ).permitAll()
-                                .anyRequest().authenticated() // Global rule for all other requests
-                        // Important: Remove .anyRequest().authenticated() if using @PreAuthorize
-                        // Let method security handle specific endpoints
+                        .anyRequest().authenticated()
                 )
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(unauthorizedHandler)
-                        .accessDeniedHandler(accessDeniedHandler)
+                        .accessDeniedHandler(customAccessDeniedHandler)
                 )
                 .csrf(AbstractHttpConfigurer::disable)
                 // Reorganize filters to ensure proper order
@@ -119,14 +118,15 @@ public class SecurityConfig {
                 "GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"
         ));
         configuration.setAllowedHeaders(Arrays.asList(
-                "Authorization", "Content-Type", "X-Requested-With",
-                "accept", "Origin", "Access-Control-Request-Method",
-                "Access-Control-Request-Headers"
+                HttpHeaders.AUTHORIZATION, HttpHeaders.CONTENT_TYPE, "X-Requested-With",
+                "accept", HttpHeaders.ORIGIN, "Access-Control-Request-Method",
+                "Access-Control-Request-Headers", HttpHeaders.IF_NONE_MATCH  // Add this
         ));
         configuration.setExposedHeaders(Arrays.asList(
-                "Authorization", "Content-Type",
+                HttpHeaders.AUTHORIZATION, HttpHeaders.CONTENT_TYPE,
                 "Access-Control-Allow-Origin",
-                "Access-Control-Allow-Credentials"
+                "Access-Control-Allow-Credentials",
+                HttpHeaders.ETAG
         ));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);

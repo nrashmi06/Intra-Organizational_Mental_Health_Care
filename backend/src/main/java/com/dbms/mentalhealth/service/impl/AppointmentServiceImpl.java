@@ -5,6 +5,7 @@ import com.dbms.mentalhealth.dto.Appointment.response.AppointmentResponseDTO;
 import com.dbms.mentalhealth.dto.Appointment.response.AppointmentSummaryResponseDTO;
 import com.dbms.mentalhealth.exception.admin.AdminNotFoundException;
 import com.dbms.mentalhealth.exception.appointment.AppointmentNotFoundException;
+import com.dbms.mentalhealth.exception.appointment.PendingAppointmentException;
 import com.dbms.mentalhealth.exception.timeslot.TimeSlotNotFoundException;
 import com.dbms.mentalhealth.exception.user.UserNotFoundException;
 import com.dbms.mentalhealth.mapper.AppointmentMapper;
@@ -51,31 +52,38 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Override
     @Transactional
     public AppointmentResponseDTO createAppointment(AppointmentRequestDTO appointmentRequestDTO) {
-        logger.info("Creating appointment for user with ID: {}", jwtUtils.getUserIdFromContext());
-        Integer userId = jwtUtils.getUserIdFromContext();
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
-        Admin admin = adminRepository.findById(appointmentRequestDTO.getAdminId())
-                .orElseThrow(() -> new AdminNotFoundException("Admin not found"));
-        TimeSlot timeSlot = timeSlotRepository.findById(appointmentRequestDTO.getTimeSlotId())
-                .orElseThrow(() -> new TimeSlotNotFoundException("Time slot not found"));
+        try {
+            logger.info("Creating appointment for user with ID: {}", jwtUtils.getUserIdFromContext());
+            Integer userId = jwtUtils.getUserIdFromContext();
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new UserNotFoundException("User not found"));
+            Admin admin = adminRepository.findById(appointmentRequestDTO.getAdminId())
+                    .orElseThrow(() -> new AdminNotFoundException("Admin not found"));
+            boolean hasPendingAppointment = appointmentRepository.existsByUserAndAdminAndStatus(user, admin, AppointmentStatus.REQUESTED);
+            if (hasPendingAppointment) {
+                logger.warn("User with ID: {} has a pending appointment", userId);
+                throw new PendingAppointmentException("You have a pending appointment. Please wait for it to be processed.");
+            }
 
+            TimeSlot timeSlot = timeSlotRepository.findById(appointmentRequestDTO.getTimeSlotId())
+                    .orElseThrow(() -> new TimeSlotNotFoundException("Time slot not found"));
 
-        boolean hasPendingAppointment = appointmentRepository.existsByUserAndAdminAndStatus(user, admin, AppointmentStatus.REQUESTED);
-        if (hasPendingAppointment) {
-            logger.warn("User with ID: {} has a pending appointment", userId);
-            throw new IllegalStateException("You have a pending appointment. Please wait for it to be processed.");
+            Appointment appointment = AppointmentMapper.toEntity(appointmentRequestDTO);
+            appointment.setUser(user);
+            appointment.setAdmin(admin);
+            timeSlot.setIsAvailable(false);
+            timeSlotRepository.save(timeSlot);
+            appointment.setTimeSlot(timeSlot);
+            Appointment savedAppointment = appointmentRepository.save(appointment);
+            logger.info("Appointment created with ID: {}", savedAppointment.getAppointmentId());
+            return AppointmentMapper.toDTO(savedAppointment);
+        } catch (UserNotFoundException | AdminNotFoundException | TimeSlotNotFoundException | PendingAppointmentException e) {
+            logger.error("Error creating appointment: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            logger.error("Unexpected error creating appointment", e);
+            throw new RuntimeException("Unexpected error creating appointment", e);
         }
-
-        Appointment appointment = AppointmentMapper.toEntity(appointmentRequestDTO);
-        appointment.setUser(user);
-        appointment.setAdmin(admin);
-        timeSlot.setIsAvailable(false);
-        timeSlotRepository.save(timeSlot);
-        appointment.setTimeSlot(timeSlot);
-        Appointment savedAppointment = appointmentRepository.save(appointment);
-        logger.info("Appointment created with ID: {}", savedAppointment.getAppointmentId());
-        return AppointmentMapper.toDTO(savedAppointment);
     }
 
     @Override

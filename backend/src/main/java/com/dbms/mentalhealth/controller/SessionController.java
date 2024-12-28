@@ -2,12 +2,15 @@ package com.dbms.mentalhealth.controller;
 
 import com.dbms.mentalhealth.config.ChatWebSocketHandler;
 import com.dbms.mentalhealth.dto.chatMessage.ChatMessageDTO;
-import com.dbms.mentalhealth.dto.session.SessionResponseDTO;
-import com.dbms.mentalhealth.dto.session.SessionSummaryDTO;
+import com.dbms.mentalhealth.dto.session.response.SessionResponseDTO;
+import com.dbms.mentalhealth.dto.session.response.SessionSummaryDTO;
 import com.dbms.mentalhealth.service.SessionService;
 import com.dbms.mentalhealth.urlMapper.SessionUrlMapping;
+import com.dbms.mentalhealth.util.Etags.SessionETagGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -19,11 +22,13 @@ public class SessionController {
 
     private final SessionService sessionService;
     private final ChatWebSocketHandler chatWebSocketHandler;
+    private final SessionETagGenerator eTagGenerator;
 
     @Autowired
-    public SessionController(SessionService sessionService, ChatWebSocketHandler chatWebSocketHandler) {
+    public SessionController(SessionService sessionService, ChatWebSocketHandler chatWebSocketHandler, SessionETagGenerator eTagGenerator) {
         this.sessionService = sessionService;
         this.chatWebSocketHandler = chatWebSocketHandler;
+        this.eTagGenerator = eTagGenerator;
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -42,15 +47,38 @@ public class SessionController {
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping(SessionUrlMapping.GET_SESSION_BY_ID)
-    public ResponseEntity<SessionResponseDTO> getSessionById(@PathVariable Integer sessionId) {
+    public ResponseEntity<SessionResponseDTO> getSessionById(
+            @PathVariable Integer sessionId,
+            @RequestHeader(value = HttpHeaders.IF_NONE_MATCH, required = false) String ifNoneMatch) {
         SessionResponseDTO sessionResponseDTO = sessionService.getSessionById(sessionId);
-        return ResponseEntity.ok(sessionResponseDTO);
+        String eTag = eTagGenerator.generateSessionETag(sessionResponseDTO);
+        if (ifNoneMatch != null && !ifNoneMatch.trim().isEmpty() && eTag.equals(ifNoneMatch)) {
+            return ResponseEntity.status(HttpStatus.NOT_MODIFIED)
+                    .header(HttpHeaders.ETAG, eTag)
+                    .build();
+        }
+        return ResponseEntity.ok()
+                .header(HttpHeaders.ETAG, eTag)
+                .body(sessionResponseDTO);
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping(SessionUrlMapping.GET_ALL_SESSIONS)
-    public ResponseEntity<List<SessionSummaryDTO>> getAllSessions() {
-        return ResponseEntity.ok(sessionService.getAllSessions());
+    public ResponseEntity<List<SessionSummaryDTO>> getAllSessions(
+            @RequestHeader(value = HttpHeaders.IF_NONE_MATCH, required = false) String ifNoneMatch) {
+        List<SessionSummaryDTO> sessions = sessionService.getAllSessions();
+        if (sessions == null || sessions.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        String eTag = eTagGenerator.generateListETag(sessions);
+        if (ifNoneMatch != null && !ifNoneMatch.trim().isEmpty() && eTag.equals(ifNoneMatch)) {
+            return ResponseEntity.status(HttpStatus.NOT_MODIFIED)
+                    .header(HttpHeaders.ETAG, eTag)
+                    .build();
+        }
+        return ResponseEntity.ok()
+                .header(HttpHeaders.ETAG, eTag)
+                .body(sessions);
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -65,16 +93,41 @@ public class SessionController {
     @GetMapping(SessionUrlMapping.GET_SESSIONS_BY_USER_ID_OR_LISTENER_ID)
     public ResponseEntity<List<SessionSummaryDTO>> getSessionsByUserIdOrListenerId(
             @PathVariable Integer userId,
-            @RequestParam String role) {
+            @RequestParam String role,
+            @RequestHeader(value = HttpHeaders.IF_NONE_MATCH, required = false) String ifNoneMatch) {
         List<SessionSummaryDTO> sessions = sessionService.getSessionsByUserIdOrListenerId(userId, role);
-        return ResponseEntity.ok(sessions);
+        if (sessions == null || sessions.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        String eTag = eTagGenerator.generateListETag(sessions);
+        if (ifNoneMatch != null && !ifNoneMatch.trim().isEmpty() && eTag.equals(ifNoneMatch)) {
+            return ResponseEntity.status(HttpStatus.NOT_MODIFIED)
+                    .header(HttpHeaders.ETAG, eTag)
+                    .build();
+        }
+        return ResponseEntity.ok()
+                .header(HttpHeaders.ETAG, eTag)
+                .body(sessions);
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping(SessionUrlMapping.GET_SESSIONS_BY_STATUS)
-    public ResponseEntity<List<SessionSummaryDTO>> getSessionsByStatus(@RequestParam String status) {
+    public ResponseEntity<List<SessionSummaryDTO>> getSessionsByStatus(
+            @RequestParam String status,
+            @RequestHeader(value = HttpHeaders.IF_NONE_MATCH, required = false) String ifNoneMatch) {
         List<SessionSummaryDTO> sessions = sessionService.getSessionsByStatus(status);
-        return ResponseEntity.ok(sessions);
+        if (sessions == null || sessions.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        String eTag = eTagGenerator.generateListETag(sessions);
+        if (ifNoneMatch != null && !ifNoneMatch.trim().isEmpty() && eTag.equals(ifNoneMatch)) {
+            return ResponseEntity.status(HttpStatus.NOT_MODIFIED)
+                    .header(HttpHeaders.ETAG, eTag)
+                    .build();
+        }
+        return ResponseEntity.ok()
+                .header(HttpHeaders.ETAG, eTag)
+                .body(sessions);
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
@@ -92,8 +145,21 @@ public class SessionController {
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping(SessionUrlMapping.GET_SESSIONS_BY_LISTENERS_USER_ID)
-    public ResponseEntity<List<SessionSummaryDTO>> getSessionsByListenersUserId(@PathVariable Integer userId) {
+    public ResponseEntity<List<SessionSummaryDTO>> getSessionsByListenersUserId(
+            @PathVariable Integer userId,
+            @RequestHeader(value = HttpHeaders.IF_NONE_MATCH, required = false) String ifNoneMatch) {
         List<SessionSummaryDTO> sessions = sessionService.getSessionsByListenersUserId(userId);
-        return ResponseEntity.ok(sessions);
+        if (sessions == null || sessions.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        String eTag = eTagGenerator.generateListETag(sessions);
+        if (ifNoneMatch != null && !ifNoneMatch.trim().isEmpty() && eTag.equals(ifNoneMatch)) {
+            return ResponseEntity.status(HttpStatus.NOT_MODIFIED)
+                    .header(HttpHeaders.ETAG, eTag)
+                    .build();
+        }
+        return ResponseEntity.ok()
+                .header(HttpHeaders.ETAG, eTag)
+                .body(sessions);
     }
 }

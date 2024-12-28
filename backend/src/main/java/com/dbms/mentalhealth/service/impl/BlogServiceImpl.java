@@ -21,6 +21,7 @@ import com.dbms.mentalhealth.service.BlogService;
 import com.dbms.mentalhealth.service.EmailService;
 import com.dbms.mentalhealth.service.ImageStorageService;
 import com.dbms.mentalhealth.service.UserService;
+import com.github.benmanes.caffeine.cache.Cache;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -51,9 +52,10 @@ public class BlogServiceImpl implements BlogService {
     private final EmailService emailService;
     private final AdminRepository adminRepository;
     private final BlogTrendingScoreRepository blogTrendingScoreRepository;
+    private final Cache<String, LocalDateTime> blogViewCache;
 
     @Autowired
-    public BlogServiceImpl(UserRepository userRepository, ImageStorageService imageStorageService, BlogRepository blogRepository, BlogLikeRepository blogLikeRepository, UserService userService, JwtUtils jwtUtils, EmailService emailService, AdminRepository adminRepository, BlogTrendingScoreRepository blogTrendingScoreRepository) {
+    public BlogServiceImpl(UserRepository userRepository, ImageStorageService imageStorageService, BlogRepository blogRepository, BlogLikeRepository blogLikeRepository, UserService userService, JwtUtils jwtUtils, EmailService emailService, AdminRepository adminRepository, BlogTrendingScoreRepository blogTrendingScoreRepository, Cache<String, LocalDateTime> blogViewCache) {
         this.blogRepository = blogRepository;
         this.blogLikeRepository = blogLikeRepository;
         this.userService = userService;
@@ -63,6 +65,7 @@ public class BlogServiceImpl implements BlogService {
         this.emailService = emailService;
         this.adminRepository = adminRepository;
         this.blogTrendingScoreRepository = blogTrendingScoreRepository;
+        this.blogViewCache = blogViewCache;
     }
 
     @Transactional
@@ -113,12 +116,24 @@ public class BlogServiceImpl implements BlogService {
             throw new UnauthorizedException("Blog not approved yet");
         }
 
-        blog.setViewCount(blog.getViewCount() + 1);
-        blogRepository.save(blog);
+        // Check if this user has viewed this blog within the cooldown period
+        String cacheKey = generateViewCacheKey(userId, blogId);
+        if (blogViewCache.getIfPresent(cacheKey) == null) {
+            // No recent view found, increment view count and update cache
+            blog.setViewCount(blog.getViewCount() + 1);
+            blogRepository.save(blog);
+            blogViewCache.put(cacheKey, LocalDateTime.now());
+        }
+
         boolean likedByCurrentUser = blogLikeRepository.existsByBlogIdAndUserUserId(blogId, userId);
         BlogResponseDTO responseDTO = BlogMapper.toResponseDTO(blog, likedByCurrentUser);
 
         return Optional.of(responseDTO);
+    }
+
+    // Helper method to generate cache key
+    private String generateViewCacheKey(Integer userId, Integer blogId) {
+        return "blog-view:" + userId + ":" + blogId;
     }
 
     @Transactional
@@ -268,10 +283,5 @@ public class BlogServiceImpl implements BlogService {
         });
     }
 
-    @Transactional
-    public void incrementViewCountByAmount(Integer blogId, Integer amount) {
-        Blog blog = blogRepository.findById(blogId).orElseThrow(() -> new BlogNotFoundException("Blog not found"));
-        blog.setViewCount(blog.getViewCount() + amount);
-        blogRepository.save(blog);
-    }
+
 }

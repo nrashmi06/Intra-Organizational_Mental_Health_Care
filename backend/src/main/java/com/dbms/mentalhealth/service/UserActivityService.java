@@ -2,7 +2,7 @@ package com.dbms.mentalhealth.service;
 
 import com.dbms.mentalhealth.dto.UserActivity.UserActivityDTO;
 import com.dbms.mentalhealth.dto.UserActivity.UserRoleCountDTO;
-import com.dbms.mentalhealth.dto.session.SessionSummaryDTO;
+import com.dbms.mentalhealth.dto.session.response.SessionSummaryDTO;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
@@ -30,14 +30,13 @@ public interface UserActivityService {
     void broadcastListenerDetails();
     void broadcastUserDetails();
     void broadcastSessionDetails(List<SessionSummaryDTO> sessionSummaryDTOs);
-
+    void broadcastUpdates();
     List<UserActivityDTO> getAllOnlineUsers();
     List<UserRoleCountDTO> getOnlineUsersCountByRole();
     List<UserActivityDTO> getOnlineAdmins();
     List<UserActivityDTO> getOnlineListeners();
     List<UserActivityDTO> getOnlineUsers();
     void markUserInactive(String email);
-    List<String> findExpiredUsers();
     void updateLastSeen(String email);
     void updateLastSeenStatus(String email);
 

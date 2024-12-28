@@ -1,4 +1,4 @@
-package com.dbms.mentalhealth.dto.session;
+package com.dbms.mentalhealth.dto.session.response;
 
 import lombok.Data;
 

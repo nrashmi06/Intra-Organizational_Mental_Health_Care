@@ -1,0 +1,14 @@
+package com.dbms.mentalhealth.util.Cache.KeyEnum;
+
+public enum ListenerRelatedKeyType {
+    APPLICATION,
+    USER_APPLICATION,
+    ALL_APPLICATIONS,
+    STATUS_APPLICATIONS,
+    LISTENER_DETAILS,
+    LISTENER_BY_ID,
+    LISTENER_BY_USER_ID,
+    ALL_LISTENERS,
+    ACTIVE_LISTENERS,
+    SUSPENDED_LISTENERS
+}

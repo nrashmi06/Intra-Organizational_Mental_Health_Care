@@ -1,11 +1,14 @@
 package com.dbms.mentalhealth.service.cachableImpl;
 
 import com.dbms.mentalhealth.dto.chatMessage.ChatMessageDTO;
-import com.dbms.mentalhealth.dto.session.SessionResponseDTO;
-import com.dbms.mentalhealth.dto.session.SessionSummaryDTO;
+import com.dbms.mentalhealth.dto.session.response.SessionResponseDTO;
+import com.dbms.mentalhealth.dto.session.response.SessionSummaryDTO;
 import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.service.SessionService;
 import com.dbms.mentalhealth.service.impl.SessionServiceImpl;
+import com.dbms.mentalhealth.util.Cache.CacheKey.SessionCacheKey;
+import com.dbms.mentalhealth.util.Cache.KeyEnum.SessionKeyType;
+import com.dbms.mentalhealth.util.Cache.CacheUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.benmanes.caffeine.cache.Cache;
 import org.springframework.context.annotation.Primary;
@@ -20,64 +23,62 @@ import java.util.List;
 @Primary
 public class CacheableSessionServiceImpl implements SessionService {
 
-    private static final String CACHE_VERSION = "v1";
     private final SessionServiceImpl sessionServiceImpl;
-    private final Cache<String, SessionResponseDTO> sessionCache;
-    private final Cache<String, List<SessionSummaryDTO>> sessionListCache;
-    private final Cache<String, List<ChatMessageDTO>> chatMessageCache;
-    private final Cache<String, String> metricsCache;
+    private final Cache<SessionCacheKey, SessionResponseDTO> sessionCache;
+    private final Cache<SessionCacheKey, List<SessionSummaryDTO>> sessionListCache;
+    private final Cache<SessionCacheKey, List<ChatMessageDTO>> messageCache;
+    private final Cache<SessionCacheKey, String> metricsCache;
     private static final Logger logger = LoggerFactory.getLogger(CacheableSessionServiceImpl.class);
     private final JwtUtils jwtUtils;
 
-    public CacheableSessionServiceImpl(
-            SessionServiceImpl sessionServiceImpl,
-            Cache<String, SessionResponseDTO> sessionCache,
-            Cache<String, List<SessionSummaryDTO>> sessionListCache,
-            Cache<String, List<ChatMessageDTO>> chatMessageCache,
-            Cache<String, String> metricsCache,
-            JwtUtils jwtUtils) {
+    public CacheableSessionServiceImpl(SessionServiceImpl sessionServiceImpl,
+                                       Cache<SessionCacheKey, SessionResponseDTO> sessionCache,
+                                       Cache<SessionCacheKey, List<SessionSummaryDTO>> sessionListCache,
+                                       Cache<SessionCacheKey, List<ChatMessageDTO>> messageCache,
+                                       Cache<SessionCacheKey, String> metricsCache,
+                                       JwtUtils jwtUtils) {
         this.sessionServiceImpl = sessionServiceImpl;
         this.sessionCache = sessionCache;
         this.sessionListCache = sessionListCache;
-        this.chatMessageCache = chatMessageCache;
+        this.messageCache = messageCache;
         this.metricsCache = metricsCache;
         this.jwtUtils = jwtUtils;
-        logger.info("CacheableSessionServiceImpl initialized with comprehensive caching");
+        logger.info("CacheableSessionServiceImpl initialized with cache stats enabled");
     }
 
-    // Cache key generators
-    private String generateSessionCacheKey(Integer sessionId, Integer viewerId) {
-        return String.format("%s:session:%d:viewer:%d", CACHE_VERSION, sessionId, viewerId);
-    }
-
-    private String generateSessionListCacheKey(String type, Integer id) {
-        return String.format("%s:sessions:%s:%d", CACHE_VERSION, type, id);
-    }
-
-    private String generateStatusListCacheKey(String status) {
-        return String.format("%s:sessions:status:%s", CACHE_VERSION, status.toLowerCase());
-    }
-
-    private String generateChatMessagesCacheKey(Integer sessionId) {
-        return String.format("%s:messages:session:%d", CACHE_VERSION, sessionId);
+    private void invalidateUserAndListenerCaches(Integer userId, Integer listenerId) {
+        if (userId != null) {
+            sessionListCache.invalidate(new SessionCacheKey(userId, SessionKeyType.USER_SESSIONS));
+        }
+        if (listenerId != null) {
+            sessionListCache.invalidate(new SessionCacheKey(listenerId, SessionKeyType.LISTENER_SESSIONS));
+            sessionListCache.invalidate(new SessionCacheKey(listenerId, SessionKeyType.LISTENER_USER_SESSIONS));
+        }
     }
 
     @Override
     @Transactional(readOnly = true)
     public SessionResponseDTO getSessionById(Integer sessionId) {
-        String cacheKey = generateSessionCacheKey(sessionId, getCurrentUserId());
+        SessionCacheKey cacheKey = new SessionCacheKey(sessionId, SessionKeyType.SESSION);
+        logger.info("Cache lookup for session ID: {}", sessionId);
         return sessionCache.get(cacheKey, k -> {
-            logger.debug("Cache MISS - Fetching session: {}", sessionId);
-            return sessionServiceImpl.getSessionById(sessionId);
+            logger.info("Cache MISS - Fetching session from database for ID: {}", sessionId);
+            SessionResponseDTO response = sessionServiceImpl.getSessionById(sessionId);
+            logger.debug("Cached session for ID: {}", sessionId);
+            return response;
         });
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<SessionSummaryDTO> getSessionsByUserIdOrListenerId(Integer id, String role) {
-        String cacheKey = generateSessionListCacheKey(role, id);
+        SessionKeyType keyType = role.equalsIgnoreCase("listener") ?
+                SessionKeyType.LISTENER_SESSIONS : SessionKeyType.USER_SESSIONS;
+        SessionCacheKey cacheKey = new SessionCacheKey(id, keyType);
+
+        logger.info("Cache lookup for sessions by {} ID: {}", role, id);
         return sessionListCache.get(cacheKey, k -> {
-            logger.debug("Cache MISS - Fetching sessions for {} ID: {}", role, id);
+            logger.info("Cache MISS - Fetching sessions from database for {} ID: {}", role, id);
             return sessionServiceImpl.getSessionsByUserIdOrListenerId(id, role);
         });
     }
@@ -85,28 +86,28 @@ public class CacheableSessionServiceImpl implements SessionService {
     @Override
     @Transactional(readOnly = true)
     public List<SessionSummaryDTO> getSessionsByStatus(String status) {
-        String cacheKey = generateStatusListCacheKey(status);
+        SessionCacheKey cacheKey = new SessionCacheKey(status, SessionKeyType.STATUS_SESSIONS);
+        logger.info("Cache lookup for sessions with status: {}", status);
         return sessionListCache.get(cacheKey, k -> {
-            logger.debug("Cache MISS - Fetching sessions for status: {}", status);
+            logger.info("Cache MISS - Fetching sessions from database for status: {}", status);
             return sessionServiceImpl.getSessionsByStatus(status);
         });
     }
 
     @Override
     @Transactional
-    public String initiateSession(Integer listenerId, String message) throws JsonProcessingException {
-        String response = sessionServiceImpl.initiateSession(listenerId, message);
-        invalidateListenerSessionCaches(listenerId);
-        invalidateStatusBasedCaches();
-        return response;
-    }
-
-    @Override
-    @Transactional
     public String updateSessionStatus(Integer userId, String action) {
         String response = sessionServiceImpl.updateSessionStatus(userId, action);
-        invalidateUserRelatedCaches(userId);
-        invalidateStatusBasedCaches();
+
+        // Invalidate all status-based caches since status has changed
+        sessionListCache.asMap().keySet().stream()
+                .filter(key -> key.getKeyType() == SessionKeyType.STATUS_SESSIONS)
+                .forEach(sessionListCache::invalidate);
+
+        // Invalidate user and listener session caches
+        sessionListCache.invalidate(new SessionCacheKey(userId, SessionKeyType.USER_SESSIONS));
+        sessionListCache.invalidate(new SessionCacheKey(userId, SessionKeyType.LISTENER_USER_SESSIONS));
+
         return response;
     }
 
@@ -116,12 +117,18 @@ public class CacheableSessionServiceImpl implements SessionService {
         SessionResponseDTO session = getSessionById(sessionId);
         String response = sessionServiceImpl.endSession(sessionId);
 
-        invalidateSessionCaches(sessionId);
-        invalidateUserRelatedCaches(session.getUserId());
-        if (session.getListenerId() != null) {
-            invalidateListenerSessionCaches(session.getListenerId());
-        }
-        invalidateStatusBasedCaches();
+        // Invalidate session cache
+        sessionCache.invalidate(new SessionCacheKey(sessionId, SessionKeyType.SESSION));
+        messageCache.invalidate(new SessionCacheKey(sessionId, SessionKeyType.SESSION_MESSAGES));
+
+        // Invalidate related caches
+        invalidateUserAndListenerCaches(session.getUserId(), session.getListenerId());
+
+        // Invalidate status and metrics caches
+        sessionListCache.asMap().keySet().stream()
+                .filter(key -> key.getKeyType() == SessionKeyType.STATUS_SESSIONS)
+                .forEach(sessionListCache::invalidate);
+        metricsCache.invalidateAll();
 
         return response;
     }
@@ -129,15 +136,19 @@ public class CacheableSessionServiceImpl implements SessionService {
     @Override
     @Transactional(readOnly = true)
     public List<SessionSummaryDTO> getAllSessions() {
-        return sessionServiceImpl.getAllSessions();
+        SessionCacheKey cacheKey = new SessionCacheKey("all", SessionKeyType.ALL_SESSIONS);
+        return sessionListCache.get(cacheKey, k -> {
+            logger.info("Cache MISS - Fetching all sessions from database");
+            return sessionServiceImpl.getAllSessions();
+        });
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<ChatMessageDTO> getMessagesBySessionId(Integer sessionId) {
-        String cacheKey = generateChatMessagesCacheKey(sessionId);
-        return chatMessageCache.get(cacheKey, k -> {
-            logger.debug("Cache MISS - Fetching messages for session: {}", sessionId);
+        SessionCacheKey cacheKey = new SessionCacheKey(sessionId, SessionKeyType.SESSION_MESSAGES);
+        return messageCache.get(cacheKey, k -> {
+            logger.info("Cache MISS - Fetching messages for session ID: {}", sessionId);
             return sessionServiceImpl.getMessagesBySessionId(sessionId);
         });
     }
@@ -145,9 +156,9 @@ public class CacheableSessionServiceImpl implements SessionService {
     @Override
     @Transactional(readOnly = true)
     public String getAverageSessionDuration() {
-        String cacheKey = CACHE_VERSION + ":metrics:avg-duration";
+        SessionCacheKey cacheKey = new SessionCacheKey("avgDuration", SessionKeyType.SESSION_METRICS);
         return metricsCache.get(cacheKey, k -> {
-            logger.debug("Cache MISS - Calculating average session duration");
+            logger.info("Cache MISS - Calculating average session duration");
             return sessionServiceImpl.getAverageSessionDuration();
         });
     }
@@ -155,41 +166,11 @@ public class CacheableSessionServiceImpl implements SessionService {
     @Override
     @Transactional(readOnly = true)
     public List<SessionSummaryDTO> getSessionsByListenersUserId(Integer userId) {
-        String cacheKey = generateSessionListCacheKey("listener-user", userId);
+        SessionCacheKey cacheKey = new SessionCacheKey(userId, SessionKeyType.LISTENER_USER_SESSIONS);
         return sessionListCache.get(cacheKey, k -> {
-            logger.debug("Cache MISS - Fetching sessions for listener user: {}", userId);
+            logger.info("Cache MISS - Fetching sessions for listener user ID: {}", userId);
             return sessionServiceImpl.getSessionsByListenersUserId(userId);
         });
-    }
-
-    // Cache invalidation methods
-    private void invalidateSessionCaches(Integer sessionId) {
-        sessionCache.asMap().keySet().stream()
-                .filter(key -> key.contains(":session:" + sessionId + ":"))
-                .forEach(sessionCache::invalidate);
-        chatMessageCache.invalidate(generateChatMessagesCacheKey(sessionId));
-    }
-
-    private void invalidateUserRelatedCaches(Integer userId) {
-        sessionListCache.invalidate(generateSessionListCacheKey("user", userId));
-        sessionListCache.invalidate(generateSessionListCacheKey("listener", userId));
-        sessionListCache.invalidate(generateSessionListCacheKey("listener-user", userId));
-    }
-
-    private void invalidateListenerSessionCaches(Integer listenerId) {
-        sessionListCache.invalidate(generateSessionListCacheKey("listener", listenerId));
-    }
-
-    private void invalidateStatusBasedCaches() {
-        sessionListCache.asMap().keySet().stream()
-                .filter(key -> key.contains(":sessions:status:"))
-                .forEach(sessionListCache::invalidate);
-        sessionListCache.invalidate(CACHE_VERSION + ":sessions:all");
-        metricsCache.invalidateAll();
-    }
-
-    private Integer getCurrentUserId() {
-        return jwtUtils.getUserIdFromContext();
     }
 
     @Override
@@ -202,10 +183,16 @@ public class CacheableSessionServiceImpl implements SessionService {
         return sessionServiceImpl.isUserInSession(userId);
     }
 
+    @Override
+    @Transactional
+    public String initiateSession(Integer listenerId, String message) throws JsonProcessingException {
+        return sessionServiceImpl.initiateSession(listenerId, message);
+    }
+
     public void logCacheStats() {
-        logger.info("Session Cache Stats: {}", sessionCache.stats());
-        logger.info("Session List Cache Stats: {}", sessionListCache.stats());
-        logger.info("Chat Message Cache Stats: {}", chatMessageCache.stats());
-        logger.info("Metrics Cache Stats: {}", metricsCache.stats());
+        CacheUtils.logCacheStats(sessionCache);
+        CacheUtils.logCacheStats(sessionListCache);
+        CacheUtils.logCacheStats(messageCache);
+        CacheUtils.logCacheStats(metricsCache);
     }
 }
