@@ -1,10 +1,23 @@
-import { Pencil, Trash2, Calendar, Phone, GraduationCap, UserCircle, Hash } from "lucide-react";
+import {
+  Pencil,
+  Trash2,
+  Calendar,
+  Phone,
+  GraduationCap,
+  UserCircle,
+  Hash,
+  Clock,
+  FileText,
+  CheckCircle,
+  AlertCircle,
+  Building2,
+} from "lucide-react";
 import Image from "next/image";
 import Navbar from "@/components/navbar/Navbar2";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { ListenerApplication } from "@/lib/types";
+import { EditApplicationModal } from "./EditApplicationModal";
 
 interface ApplicationDetailsProps {
   applicationData: ListenerApplication;
@@ -18,233 +31,184 @@ const ApplicationDetails: React.FC<ApplicationDetailsProps> = ({
   onDelete,
 }) => {
   const [isModalOpen, setModalOpen] = useState(false);
-  const [formData, setFormData] = useState<ListenerApplication>(applicationData);
-  const [imageFile, setImageFile] = useState<File | null>(null);
 
   const handleEdit = () => setModalOpen(true);
   const handleCloseModal = () => setModalOpen(false);
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };
-  const handleImageUpload = (file: File | null) => file && setImageFile(file);
-  const handleRemoveImage = () => setImageFile(null);
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onEdit({ ...formData, image: imageFile });
-    handleCloseModal();
-  };
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      <main className="container mx-auto py-8">
-        {/* Header Section */}
-        <div className="flex justify-between items-center mb-8 px-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Application Details</h1>
-            <p className="text-gray-500">Submitted on {new Date(applicationData.submissionDate).toLocaleDateString()}</p>
-          </div>
-          <div className="flex space-x-4">
-            <Button variant="outline" onClick={handleEdit} className="flex items-center gap-2">
-              <Pencil className="h-4 w-4" />
-              Edit
-            </Button>
-            <Button variant="outline" onClick={onDelete} className="flex items-center gap-2">
-              <Trash2 className="h-4 w-4" />
-              Delete
-            </Button>
-          </div>
-        </div>
-
-        {/* Main Content */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 px-4">
-          {/* Left Column - Personal Details */}
-          <div className="bg-white p-6 rounded-lg shadow-sm space-y-6">
-            <h2 className="text-xl font-semibold mb-4 text-gray-800">Personal Information</h2>
-            <div className="grid grid-cols-1 gap-4">
-              <div className="flex items-center gap-3">
-                <UserCircle className="h-5 w-5 text-gray-500" />
-                <div>
-                  <p className="text-sm text-gray-500">Full Name</p>
-                  <p className="font-medium">{applicationData.fullName}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <GraduationCap className="h-5 w-5 text-gray-500" />
-                <div>
-                  <p className="text-sm text-gray-500">Branch</p>
-                  <p className="font-medium">{applicationData.branch}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <Calendar className="h-5 w-5 text-gray-500" />
-                <div>
-                  <p className="text-sm text-gray-500">Semester</p>
-                  <p className="font-medium">{applicationData.semester}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <Hash className="h-5 w-5 text-gray-500" />
-                <div>
-                  <p className="text-sm text-gray-500">USN</p>
-                  <p className="font-medium">{applicationData.usn}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <Phone className="h-5 w-5 text-gray-500" />
-                <div>
-                  <p className="text-sm text-gray-500">Phone Number</p>
-                  <p className="font-medium">{applicationData.phoneNumber}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column - Application Status */}
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            <h2 className="text-xl font-semibold mb-4 text-gray-800">Application Status</h2>
-            <div className="space-y-6">
-              <div>
-                <p className="text-sm text-gray-500 mb-2">Current Status</p>
-                <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm
-                  ${applicationData.applicationStatus === 'APPROVED' ? 'bg-green-100 text-green-800' : 
-                    applicationData.applicationStatus === 'PENDING' ? 'bg-yellow-100 text-yellow-800' : 
-                    'bg-red-100 text-red-800'}`}>
-                  {applicationData.applicationStatus}
-                </div>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500 mb-2">Reason for Applying</p>
-                <p className="bg-gray-50 p-4 rounded-lg text-gray-700">
-                  {applicationData.reasonForApplying}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Certificate Section - Full Width */}
-          {applicationData.certificateUrl && (
-            <div className="md:col-span-2 bg-white p-6 rounded-lg shadow-sm">
-              <h2 className="text-xl font-semibold mb-4 text-gray-800">Uploaded Certificate</h2>
-              <div className="relative w-full h-64">
-                <Image
-                  src={applicationData.certificateUrl}
-                  alt="Certificate"
-                  layout="fill"
-                  objectFit="contain"
-                  className="rounded-lg"
-                />
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Edit Modal */}
-        {isModalOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-2xl max-h-[80vh] overflow-y-auto">
-              <h2 className="text-2xl font-bold mb-4">Edit Application</h2>
-              <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
-                <div className="col-span-2 md:col-span-1">
-                  <Label htmlFor="fullName">Full Name</Label>
-                  <input
-                    id="fullName"
-                    name="fullName"
-                    value={formData.fullName}
-                    onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1"
-                  />
-                </div>
-                <div className="col-span-2 md:col-span-1">
-                  <Label htmlFor="branch">Branch</Label>
-                  <input
-                    id="branch"
-                    name="branch"
-                    value={formData.branch}
-                    onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1"
-                  />
-                </div>
-                <div className="col-span-2 md:col-span-1">
-                  <Label htmlFor="semester">Semester</Label>
-                  <input
-                    id="semester"
-                    name="semester"
-                    type="number"
-                    value={formData.semester}
-                    onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1"
-                  />
-                </div>
-                <div className="col-span-2 md:col-span-1">
-                  <Label htmlFor="usn">USN</Label>
-                  <input
-                    id="usn"
-                    name="usn"
-                    value={formData.usn}
-                    onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1"
-                  />
-                </div>
-                <div className="col-span-2">
-                  <Label htmlFor="phoneNumber">Phone Number</Label>
-                  <input
-                    id="phoneNumber"
-                    name="phoneNumber"
-                    value={formData.phoneNumber}
-                    onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1"
-                  />
-                </div>
-                <div className="col-span-2">
-                  <Label htmlFor="reasonForApplying">Reason for Applying</Label>
-                  <textarea
-                    id="reasonForApplying"
-                    name="reasonForApplying"
-                    value={formData.reasonForApplying}
-                    onChange={handleInputChange}
-                    rows={4}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1"
-                  />
-                </div>
-                <div className="col-span-2">
-                  <Label htmlFor="image">Update Certificate</Label>
-                  <input
-                    id="image"
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => handleImageUpload(e.target.files?.[0] || null)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1"
-                  />
-                  {imageFile && (
-                    <div className="relative mt-4">
-                      <Image
-                        src={URL.createObjectURL(imageFile)}
-                        alt="Selected"
-                        width={1000}
-                        height={1000}
-                        className="w-full max-h-96 object-cover rounded-lg"
-                      />
-                      <button
-                        onClick={handleRemoveImage}
-                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+      <main className="container mx-auto py-6 px-4">
+        <div className="relative mb-8">
+          <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+            <div className="px-6 py-8">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-blue-100 rounded-lg">
+                      <FileText className="h-6 w-6 text-blue-600" />
                     </div>
-                  )}
+                    <h1 className="text-3xl font-bold text-gray-900">
+                      Application Details
+                    </h1>
+                  </div>
+                  <div className="flex items-center gap-2 text-gray-600">
+                    <Calendar className="h-4 w-4" />
+                    <p>
+                      Submitted on{" "}
+                      {new Date(
+                        applicationData.submissionDate
+                      ).toLocaleDateString()}
+                    </p>
+                  </div>
                 </div>
-                <div className="col-span-2 flex justify-end gap-4">
-                  <Button variant="outline" onClick={handleCloseModal}>
-                    Cancel
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={handleEdit}
+                    className="border-2 hover:bg-blue-50 hover:border-blue-200 transition-all"
+                  >
+                    <Pencil className="h-4 w-4 mr-2" />
+                    Edit
                   </Button>
-                  <Button type="submit">Save Changes</Button>
+                  <Button
+                    variant="outline"
+                    onClick={onDelete}
+                    className="border-2 hover:bg-red-50 hover:border-red-200 text-red-600 transition-all"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete
+                  </Button>
                 </div>
-              </form>
+              </div>
+            </div>
+            <div
+              className={`px-6 py-4 border-t ${
+                applicationData.applicationStatus === "APPROVED"
+                  ? "bg-green-50 border-green-100"
+                  : applicationData.applicationStatus === "PENDING"
+                  ? "bg-yellow-50 border-yellow-100"
+                  : "bg-red-50 border-red-100"
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                {applicationData.applicationStatus === "APPROVED" ? (
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                ) : applicationData.applicationStatus === "PENDING" ? (
+                  <Clock className="h-5 w-5 text-yellow-600" />
+                ) : (
+                  <AlertCircle className="h-5 w-5 text-red-600" />
+                )}
+                <span className="font-medium text-gray-800">
+                  Status: {applicationData.applicationStatus}
+                </span>
+              </div>
             </div>
           </div>
-        )}
+        </div>
+        <div className="grid grid-cols-12 gap-6">
+          <div className="col-span-12 md:col-span-5">
+            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-2 bg-purple-100 rounded-lg">
+                  <UserCircle className="h-5 w-5 text-purple-600" />
+                </div>
+                <h2 className="text-xl font-semibold text-gray-800">
+                  Personal Information
+                </h2>
+              </div>
+
+              <div className="space-y-4">
+                {[
+                  {
+                    icon: <UserCircle className="h-5 w-5" />,
+                    label: "Full Name",
+                    value: applicationData.fullName,
+                  },
+                  {
+                    icon: <Building2 className="h-5 w-5" />,
+                    label: "Branch",
+                    value: applicationData.branch,
+                  },
+                  {
+                    icon: <GraduationCap className="h-5 w-5" />,
+                    label: "Semester",
+                    value: applicationData.semester,
+                  },
+                  {
+                    icon: <Hash className="h-5 w-5" />,
+                    label: "USN",
+                    value: applicationData.usn,
+                  },
+                  {
+                    icon: <Phone className="h-5 w-5" />,
+                    label: "Phone Number",
+                    value: applicationData.phoneNumber,
+                  },
+                ].map((item, index) => (
+                  <div
+                    key={index}
+                    className="p-4 rounded-lg border border-gray-100 hover:border-purple-100 hover:bg-purple-50/30 transition-all"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="text-purple-600">{item.icon}</div>
+                      <div>
+                        <p className="text-sm text-gray-500">{item.label}</p>
+                        <p className="font-medium text-gray-900">
+                          {item.value}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          
+          <div className="col-span-12 md:col-span-7 space-y-1">
+            {applicationData.certificateUrl && (
+              <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-2 bg-green-100 rounded-lg">
+                    <GraduationCap className="h-5 w-5 text-green-600" />
+                  </div>
+                  <h2 className="text-xl font-semibold text-gray-800">
+                    Certificate
+                  </h2>
+                </div>
+                <div className="relative h-72 rounded-lg overflow-hidden border border-gray-200">
+                  <Image
+                    src={applicationData.certificateUrl}
+                    alt="Certificate"
+                    layout="fill"
+                    objectFit="cover"
+                    className="w-full h-full"
+                  />
+                </div>
+              </div>
+            )}
+            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <FileText className="h-5 w-5 text-blue-600" />
+                </div>
+                <h2 className="text-xl font-semibold text-gray-800">
+                  Reason for Applying
+                </h2>
+              </div>
+              <p className="text-gray-700 leading-relaxed">
+                {applicationData.reasonForApplying}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <EditApplicationModal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          applicationData={applicationData}
+          onEdit={onEdit}
+        />
       </main>
     </div>
   );
