@@ -1,4 +1,3 @@
-// EmergencyHelplineETagGenerator.java
 package com.dbms.mentalhealth.util.Etags;
 
 import com.dbms.mentalhealth.dto.EmergencyHelpline.EmergencyHelplineDTO;
@@ -15,7 +14,7 @@ import java.util.stream.StreamSupport;
  */
 @Component
 public class EmergencyHelplineETagGenerator {
-    private static final String HELPLINE_TAG_FORMAT = "helpline-%d-%s-%s-%s-%d"; // name-phoneNumber-countryCode-emergencyType-priority
+    private static final String HELPLINE_TAG_FORMAT = "helpline-%s-%s-%s-%s-%d"; // name-phoneNumber-countryCode-emergencyType-priority
     private static final String LIST_TAG_FORMAT = "helpline-list-%d-%d"; // size-hash
 
     /**
@@ -35,7 +34,13 @@ public class EmergencyHelplineETagGenerator {
 
         // Generate a hash of the helpline data
         int contentHash = Objects.hash(helplineData);
-        return String.format(HELPLINE_TAG_FORMAT, contentHash);
+        return String.format(HELPLINE_TAG_FORMAT,
+                nullSafe(helpline.getName()),
+                nullSafe(helpline.getPhoneNumber()),
+                nullSafe(helpline.getCountryCode()),
+                nullSafe(helpline.getEmergencyType()),
+                helpline.getPriority()
+        );
     }
 
     /**

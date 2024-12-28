@@ -1,4 +1,3 @@
-// ListenerApplicationETagGenerator.java
 package com.dbms.mentalhealth.util.Etags;
 
 import com.dbms.mentalhealth.dto.listenerApplication.response.ListenerApplicationResponseDTO;
@@ -17,7 +16,7 @@ import java.util.stream.StreamSupport;
  */
 @Component
 public class ListenerApplicationETagGenerator {
-    private static final String APPLICATION_TAG_FORMAT = "application-%d-%s-%s-%s-%s-%s-%d-%s-%s"; // applicationId-usn-status-fullName-branch-certificateUrl-semester-reasonForApplying-phoneNumber
+    private static final String APPLICATION_TAG_FORMAT = "application-%d"; // contentHash
     private static final String LIST_TAG_FORMAT = "application-list-%d-%d"; // size-hash
     private static final String PAGE_TAG_FORMAT = "application-page-%d-%d-%d-%d"; // pageNumber-pageSize-totalElements-contentHash
 
