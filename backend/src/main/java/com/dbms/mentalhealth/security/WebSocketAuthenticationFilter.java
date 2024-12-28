@@ -4,6 +4,7 @@ import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.service.UserService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -38,10 +39,21 @@ public class WebSocketAuthenticationFilter extends OncePerRequestFilter {
             try {
                 if (jwtUtils.validateJwtToken(token)) {
                     String email = jwtUtils.getUserNameFromJwtToken(token);
-                    UserDetails userDetails = userService.loadUserByUsername(email);
+                    String role = jwtUtils.getRoleFromJwtToken(token);
+
+                    // Create UserDetails from JWT claims
+                    UserDetails userDetails = org.springframework.security.core.userdetails.User.builder()
+                            .username(email)
+                            .authorities(new SimpleGrantedAuthority(role))
+                            .password("") // Password is not needed for JWT-based auth
+                            .build();
+
+                    // Set authentication context
                     UsernamePasswordAuthenticationToken authentication =
                             new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                     SecurityContextHolder.getContext().setAuthentication(authentication);
+
+                    // Update user activity
                     userService.updateUserActivity(email);
                     filterChain.doFilter(request, response);
                 } else {
