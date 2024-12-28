@@ -48,7 +48,7 @@ export const Calendar: React.FC<CalendarProps> = ({ selected, onSelect, classNam
     date.getFullYear() === today.getFullYear()
 
   return (
-    <div className={clsx("p-4 bg-white rounded-lg shadow", className)}>
+    <div className={clsx("p-4 bg-white gap-2 rounded-lg shadow", className)}>
       <div className="flex items-center justify-between mb-4">
         <button onClick={handlePrevMonth}>
           <ChevronLeft className="h-5 w-5 text-gray-600" />

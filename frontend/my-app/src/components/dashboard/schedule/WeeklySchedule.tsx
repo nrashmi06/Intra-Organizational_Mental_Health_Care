@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { format, addDays, startOfWeek, isSameDay, parseISO, setHours } from 'date-fns';
 import { TimeSlotProps, WeeklyScheduleProps } from '@/lib/types';
 import { getStatusColor } from '@/components/dashboard/schedule/Calendar';
-import { WeeklySidePanel } from './WeeklySidePanel';
-import { WeeklyMobileDrawer } from './WeeklyMobileDrawer';
+import { getAppointmentsForDay } from '@/components/dashboard/schedule/Calendar';
+import { SidePanel } from './SidePanel';
+import { MobileDrawer } from './MobileDrawer';
+import { CalendarHeader } from './CalendarHeader';
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 const TIME_LABELS = HOURS.map(hour => 
@@ -73,19 +75,24 @@ const WeeklySchedule: React.FC<WeeklyScheduleProps> = ({
     <div className="bg-white rounded-xl shadow-xl overflow-hidden">
       <div className="flex flex-col md:flex-row">
         <div className="flex-1">
+          <CalendarHeader date={date} />
           {/* Header */}
           <div className="sticky top-0 z-10 bg-white border-b">
             <div className="grid grid-cols-8 divide-x">
-              <div className="p-4 text-gray-500 font-medium">Time</div>
+              <div className="p-2 md:p-4 text-gray-500 font-medium text-xs md:text-sm">Time</div>
               {weekDays.map((day, idx) => (
                 <div
                   key={idx}
-                  className={`p-4 text-center ${
+                  className={`p-1 md:p-4 text-center ${
                     isSameDay(day, today) ? 'bg-blue-50' : ''
                   }`}
                 >
-                  <div className="font-medium">{format(day, 'EEE')}</div>
-                  <div className="text-sm text-gray-500">{format(day, 'MMM d')}</div>
+                  <div className="font-medium text-xs md:text-sm truncate">
+                    {format(day, 'EEE')}
+                  </div>
+                  <div className="text-xs md:text-sm text-gray-500 truncate">
+                    {format(day, 'd')}
+                  </div>
                 </div>
               ))}
             </div>
@@ -99,7 +106,7 @@ const WeeklySchedule: React.FC<WeeklyScheduleProps> = ({
                 {TIME_LABELS.map((label, idx) => (
                   <div
                     key={idx}
-                    className="h-20 border-b border-r border-gray-200 p-2 text-sm text-gray-500"
+                    className="h-20 border-b border-r border-gray-200 p-1 md:p-2 text-xs md:text-sm text-gray-500"
                   >
                     {label}
                   </div>
@@ -127,17 +134,17 @@ const WeeklySchedule: React.FC<WeeklyScheduleProps> = ({
           </div>
         </div>
 
-        <WeeklySidePanel
-          selectedSlot={selectedSlot}
-          appointments={appointments}
+        <SidePanel 
+          selectedDay={selectedSlot ? selectedSlot.date : null}
+          appointments={selectedSlot ? getAppointmentsForDay(appointments, selectedSlot.date) : []}
         />
       </div>
 
-      <WeeklyMobileDrawer
+      <MobileDrawer
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
-        selectedSlot={selectedSlot}
-        appointments={appointments}
+        selectedDay={selectedSlot?.date || null}
+        appointments={selectedSlot?.date ? getAppointmentsForDay(appointments, selectedSlot?.date) : []}
       />
     </div>
   );
