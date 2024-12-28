@@ -22,6 +22,7 @@ import com.dbms.mentalhealth.model.Session;
 import com.dbms.mentalhealth.service.UserActivityService;
 import com.dbms.mentalhealth.util.Cache.CacheKey.AdminCacheKey;
 import com.dbms.mentalhealth.util.Cache.CacheKey.AppointmentCacheKey;
+import com.dbms.mentalhealth.util.Cache.CacheKey.EmergencyHelplineCacheKey;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.slf4j.Logger;
@@ -162,14 +163,14 @@ public class CacheConfig {
 
     // Emergency helpline caches
     @Bean
-    public Cache<Integer, EmergencyHelplineDTO> emergencyHelplineCache() {
+    public Cache<EmergencyHelplineCacheKey, EmergencyHelplineDTO> emergencyHelplineCache() {
         return createListBuilder()
                 .maximumSize(STANDARD_CACHE_SIZE)
                 .build();
     }
 
     @Bean
-    public Cache<Integer, List<EmergencyHelplineDTO>> emergencyHelplineListCache() {
+    public Cache<EmergencyHelplineCacheKey, List<EmergencyHelplineDTO>> emergencyHelplineListCache() {
         return createListBuilder()
                 .maximumSize(SMALL_CACHE_SIZE)
                 .build();

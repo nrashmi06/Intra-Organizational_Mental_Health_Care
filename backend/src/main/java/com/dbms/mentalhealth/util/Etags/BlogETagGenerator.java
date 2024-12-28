@@ -1,5 +1,5 @@
 // BlogETagGenerator.java
-package com.dbms.mentalhealth.util;
+package com.dbms.mentalhealth.util.Etags;
 
 import com.dbms.mentalhealth.dto.blog.TrendingBlogSummaryDTO;
 import com.dbms.mentalhealth.dto.blog.response.BlogResponseDTO;

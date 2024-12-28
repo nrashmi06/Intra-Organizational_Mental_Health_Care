@@ -8,7 +8,7 @@ import com.dbms.mentalhealth.dto.blog.response.BlogSummaryDTO;
 import com.dbms.mentalhealth.enums.BlogFilterType;
 import com.dbms.mentalhealth.service.BlogService;
 import com.dbms.mentalhealth.urlMapper.BlogUrlMapping;
-import com.dbms.mentalhealth.util.BlogETagGenerator;
+import com.dbms.mentalhealth.util.Etags.BlogETagGenerator;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
