@@ -22,9 +22,11 @@ export default function Navbar() {
     setIsServicesDropdownOpen(!isServicesDropdownOpen);
 
   const handleLogout = async () => {
-    dispatch(clearUser(),clearHelplines()); // Clear user data from Redux state
+     // Clear user data from Redux state
     await logout(user.accessToken); // Call the logout API
     router.push("/signin"); // Redirect to the sign-in page
+    dispatch(clearUser() );
+    dispatch(clearHelplines()); 
   };
 
   return (

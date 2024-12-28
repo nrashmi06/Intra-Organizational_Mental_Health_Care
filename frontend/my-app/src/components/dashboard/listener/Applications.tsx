@@ -11,12 +11,13 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { GetByApproval } from "@/service/listener/getByStatus";
-import { fetchApplication } from "@/service/listener/fetchApplication";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import ListenerDetailsForAdmin from "@/components/dashboard/listener/ModalApplication";
 import { ListenerApplication } from "@/lib/types";
 import InlineLoader from "@/components/ui/inlineLoader";
+import { useAppDispatch } from "@/hooks/useAppDispatch";
+import { fetchApplication } from "@/service/listener/fetchApplication";
 
 export function ListenerApplicationsTable() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -26,20 +27,23 @@ export function ListenerApplicationsTable() {
   const accessToken = useSelector((state: RootState) => state.auth.accessToken);
   const [applicationModal, setApplicationModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [selectedApplication, setSelectedApplication] =
-    useState<ListenerApplication | null>(null);
-  const itemsPerPage = 6; // Increased for better grid layout
+  const [selectedApplication, setSelectedApplication] = useState<ListenerApplication | null>(null);
+  const itemsPerPage = 6;
   const [loading, setLoading] = useState(true);
+  const dispatch = useAppDispatch();
+
   const fetchListenersByStatus = useCallback(
     async (status: "PENDING" | "APPROVED" | "REJECTED") => {
       try {
         setLoading(true);
         const response = await GetByApproval(accessToken, status);
-        setApplications(response?.data);
+        setApplications(response?.data || []);
         setStatusFilter(status);
         setLoading(false);
       } catch (error) {
         console.error("Error fetching listeners:", error);
+        setApplications([]);
+        setLoading(false);
       }
     },
     [accessToken]
@@ -54,20 +58,34 @@ export function ListenerApplicationsTable() {
     fetchListenersByStatus(status as "PENDING" | "APPROVED" | "REJECTED");
   };
 
+  const applicationDataFromStore = useSelector(
+    (state: RootState) => state.detailedApplication.applicationData
+  );
+  
   const handleApplicationModal = async (applicationId: string) => {
     try {
-      const applicationData = await fetchApplication(
-        accessToken,
-        applicationId
-      );
-      setSelectedApplication(applicationData);
+      const response = await dispatch(fetchApplication(accessToken, applicationId));
+      
+      // If response is null, use the data from Redux store
+      if (response?.payload) {
+        setSelectedApplication(response.payload);
+      } else if (applicationDataFromStore) {
+        setSelectedApplication(applicationDataFromStore);
+      }
+      
       setApplicationModal(true);
     } catch (err) {
       console.error("Error fetching application details:", err);
+      // Even if there's an error, try to use store data as fallback
+      if (applicationDataFromStore) {
+        setSelectedApplication(applicationDataFromStore);
+        setApplicationModal(true);
+      }
     }
   };
 
-  const filteredApplications = applications.filter((application) => {
+  // Ensure applications is an array before filtering
+  const filteredApplications = (applications || []).filter((application) => {
     const matchesSearch =
       application.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       application.applicationId
@@ -121,7 +139,7 @@ export function ListenerApplicationsTable() {
       </div>
 
       {loading ? (
-        <InlineLoader/>
+        <InlineLoader />
       ) : paginatedApplications.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:min-h-[400]">
           {paginatedApplications.map((application) => (

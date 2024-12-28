@@ -8,6 +8,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { logout } from "@/service/user/Logout";
 import { RootState } from "@/store";
 import { clearHelplines } from "@/store/emergencySlice";
+import useClearStore from "@/utils/clearStore";
 
 type NavbarProps = {
   children?: React.ReactNode;
@@ -18,12 +19,16 @@ export default function Navbar({ children }: NavbarProps) {
   const dispatch = useDispatch();
   const token = useSelector((state: RootState) => state.auth.accessToken);
 
+  const clearStore = useClearStore();
+
   const handleLogout = async () => {
     try {
       console.log("Logging out... with token : ", token);
       await router.push("/signin");
       await logout(token);
-      dispatch(clearUser() ,clearHelplines());
+      dispatch(clearUser());
+      dispatch(clearHelplines());
+      clearStore(); // Properly call the clearStore function
 
       // Only clear the user state after navigation is complete
     } catch (error) {

@@ -22,7 +22,8 @@ export default function Navbar() {
   const handleLogout = () => {
     router.push("/signin");
     logout(user.accessToken);
-    dispatch(clearUser(), clearHelplines());
+    dispatch(clearUser() );
+    dispatch(clearHelplines()); 
   };
 
   return (

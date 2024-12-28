@@ -3,30 +3,40 @@ import authReducer from './authSlice'; // Your auth reducer
 import notificationReducer from './notificationSlice'; // Import your notification slice
 import { persistReducer, persistStore } from 'redux-persist';
 import storage from 'redux-persist/lib/storage/session'; // Using sessionStorage
-import chatReducer from './chatSlice'; // Import your chat slice
-import emergencyReducer from './emergencySlice'; // Import your emergency slice
+import chatReducer from './chatSlice';
+import emergencyReducer from './emergencySlice'; 
+import detailedApplicationSlice from './detailedApplicationSlice'; 
+import applicationListSlice from './applicationListSlice';
 
-// Define the persist config for auth reducer
+// Define  reducers
 const authPersistConfig = {
-  key: 'auth',  // Key for storage
-  storage,      // Using sessionStorage
+  key: 'auth',  
+  storage,      
 };
 
-// Define the persist config for notification reducer
 const notificationPersistConfig = {
   key: 'notifications',  // Key for storage
   storage,               // Using sessionStorage
 };
 
-// Define the persist config for chat reducer
 const chatPersistConfig = {
-  key: 'chat',  // Key for storage
-  storage,      // Using sessionStorage
+  key: 'chat', 
+  storage,     
 };
 
 const emergencyPersistConfig = {
-  key: 'emergency',  // Key for storage
-  storage,      // Using sessionStorage
+  key: 'emergency', 
+  storage,      
+};
+
+const detailedApplicationPersistConfig = {
+  key: 'detailedApplication',
+  storage,
+};
+
+const applicationListPersistConfig = {
+  key: 'applicationList',
+  storage,
 };
 
 // Persist the auth and notification reducers separately
@@ -34,6 +44,8 @@ const persistedAuthReducer = persistReducer(authPersistConfig, authReducer);
 const persistedNotificationReducer = persistReducer(notificationPersistConfig, notificationReducer);
 const persistedChatReducer = persistReducer(chatPersistConfig, chatReducer);
 const persistedEmergencyReducer = persistReducer(emergencyPersistConfig, emergencyReducer);
+const persistedDetailedApplicationReducer = persistReducer(detailedApplicationPersistConfig, detailedApplicationSlice);
+const persistedApplicationListReducer = persistReducer(applicationListPersistConfig, applicationListSlice);
 
 // Create the Redux store
 const store = configureStore({
@@ -41,7 +53,9 @@ const store = configureStore({
     auth: persistedAuthReducer,  // Use the persisted auth reducer
     notification: persistedNotificationReducer, // Add your notification reducer
     chat: persistedChatReducer, // Add your chat reducer
-    emergency: persistedEmergencyReducer, // Add your emergency reducer
+    emergency: persistedEmergencyReducer, 
+    detailedApplication: persistedDetailedApplicationReducer,
+    applicationList: persistedApplicationListReducer,
   },
   devTools: true, // Enable Redux DevTools in development
 });
