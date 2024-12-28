@@ -5,6 +5,7 @@ import com.dbms.mentalhealth.exception.adminSettings.AdminSettingsNotFoundExcept
 import com.dbms.mentalhealth.exception.adminSettings.InvalidAdminSettingsException;
 import com.dbms.mentalhealth.exception.appointment.AppointmentNotFoundException;
 import com.dbms.mentalhealth.exception.appointment.InvalidRequestException;
+import com.dbms.mentalhealth.exception.appointment.PendingAppointmentException;
 import com.dbms.mentalhealth.exception.blog.BlogNotFoundException;
 import com.dbms.mentalhealth.exception.blog.InvalidBlogActionException;
 import com.dbms.mentalhealth.exception.emergency.EmergencyHelplineNotFoundException;
@@ -59,6 +60,11 @@ public class CustomExceptionHandler {
     @ExceptionHandler(JwtTokenExpiredException.class)
     public ResponseEntity<Object> handleJwtTokenExpiredException(JwtTokenExpiredException ex, WebRequest request) {
         return new ResponseEntity<>("Session expired. Please log in again.", HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(PendingAppointmentException.class)
+    public ResponseEntity<String> handlePendingAppointmentException(PendingAppointmentException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler(MultipartException.class)

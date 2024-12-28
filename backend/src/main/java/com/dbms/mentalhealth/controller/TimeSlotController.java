@@ -44,7 +44,7 @@ public class TimeSlotController {
         }
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     @GetMapping(TimeSlotUrlMapping.GET_TIME_SLOTS_BY_ADMIN_IN_DATE_RANGE)
     public ResponseEntity<List<TimeSlotResponseDTO>> getTimeSlotsByDateRange(
             @PathVariable("Id") Integer id,

@@ -5,8 +5,6 @@ import com.dbms.mentalhealth.dto.Appointment.request.UpdateAppointmentStatusRequ
 import com.dbms.mentalhealth.dto.Appointment.response.AppointmentResponseDTO;
 import com.dbms.mentalhealth.dto.Appointment.response.AppointmentSummaryResponseDTO;
 import com.dbms.mentalhealth.exception.appointment.AppointmentNotFoundException;
-import com.dbms.mentalhealth.repository.AppointmentRepository;
-import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.service.AppointmentService;
 import com.dbms.mentalhealth.urlMapper.AppointmentUrlMapping;
 import org.springframework.http.HttpStatus;
@@ -21,37 +19,33 @@ import java.util.List;
 public class AppointmentController {
 
     private final AppointmentService appointmentService;
-    private final JwtUtils jwtUtils;
-    private final AppointmentRepository appointmentRepository;
 
-    public AppointmentController(AppointmentService appointmentService, JwtUtils jwtUtils, AppointmentRepository appointmentRepository) {
+    public AppointmentController(AppointmentService appointmentService) {
         this.appointmentService = appointmentService;
-        this.jwtUtils = jwtUtils;
-        this.appointmentRepository = appointmentRepository;
     }
 
     @PreAuthorize("isAuthenticated()")
     @PostMapping(AppointmentUrlMapping.BOOK_APPOINTMENT)
-    public ResponseEntity<?> createAppointment(@RequestBody AppointmentRequestDTO appointmentRequestDTO) {
+    public ResponseEntity<AppointmentResponseDTO> createAppointment(@RequestBody AppointmentRequestDTO appointmentRequestDTO) {
         if (appointmentRequestDTO.getFullName() == null || appointmentRequestDTO.getFullName().isEmpty() || appointmentRequestDTO.getPhoneNumber() == null || appointmentRequestDTO.getPhoneNumber().isEmpty() || appointmentRequestDTO.getSeverityLevel() == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Some fields are missing");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
         try {
             AppointmentResponseDTO appointmentResponseDTO = appointmentService.createAppointment(appointmentRequestDTO);
             return ResponseEntity.ok(appointmentResponseDTO);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping(AppointmentUrlMapping.GET_APPOINTMENTS_BY_USER)
-    public ResponseEntity<?> getAppointmentsByUser(@RequestParam(value = "userId", required = false) Integer userId) {
+    public ResponseEntity<List<AppointmentSummaryResponseDTO>> getAppointmentsByUser(@RequestParam(value = "userId", required = false) Integer userId) {
         try {
             List<AppointmentSummaryResponseDTO> appointments = appointmentService.getAppointmentsByUser(userId);
             return ResponseEntity.ok(appointments);
         } catch (AppointmentNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
     }
 
@@ -70,18 +64,18 @@ public class AppointmentController {
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping(AppointmentUrlMapping.GET_APPOINTMENT_BY_ID)
-    public ResponseEntity<?> getAppointmentById(@PathVariable Integer appointmentId) {
+    public ResponseEntity<AppointmentResponseDTO> getAppointmentById(@PathVariable Integer appointmentId) {
         try {
             AppointmentResponseDTO appointment = appointmentService.getAppointmentById(appointmentId);
             return ResponseEntity.ok(appointment);
         } catch (AppointmentNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping(AppointmentUrlMapping.UPDATE_APPOINTMENT_STATUS)
-    public ResponseEntity<?> updateAppointmentStatus(@PathVariable Integer appointmentId, @RequestBody UpdateAppointmentStatusRequestDTO request) {
+    public ResponseEntity<String> updateAppointmentStatus(@PathVariable Integer appointmentId, @RequestBody UpdateAppointmentStatusRequestDTO request) {
         try {
             appointmentService.updateAppointmentStatus(appointmentId, request.getStatus(), request.getCancellationReason());
             return ResponseEntity.noContent().build();
@@ -92,7 +86,7 @@ public class AppointmentController {
 
     @PreAuthorize("isAuthenticated()")
     @PutMapping(AppointmentUrlMapping.CANCEL_APPOINTMENT)
-    public ResponseEntity<?> cancelAppointment(@PathVariable Integer appointmentId, @RequestBody String cancellationReason) {
+    public ResponseEntity<String> cancelAppointment(@PathVariable Integer appointmentId, @RequestBody String cancellationReason) {
         try {
             appointmentService.cancelAppointment(appointmentId, cancellationReason);
             return ResponseEntity.noContent().build();
@@ -103,7 +97,7 @@ public class AppointmentController {
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping(AppointmentUrlMapping.GET_APPOINTMENTS_BY_DATE_RANGE)
-    public ResponseEntity<?> getAppointmentsByDateRange(
+    public ResponseEntity<List<AppointmentSummaryResponseDTO>> getAppointmentsByDateRange(
             @RequestParam("startDate") LocalDate startDate,
             @RequestParam("endDate") LocalDate endDate) {
         try {
@@ -116,25 +110,25 @@ public class AppointmentController {
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping(AppointmentUrlMapping.GET_CURRENT_ADMIN_UPCOMING_APPOINTMENTS)
-    public ResponseEntity<?> getCurrentAdminUpcomingAppointments() {
+    public ResponseEntity<List<AppointmentSummaryResponseDTO>> getCurrentAdminUpcomingAppointments() {
         try {
             List<AppointmentSummaryResponseDTO> appointments = appointmentService.getUpcomingAppointmentsForAdmin();
             return ResponseEntity.ok(appointments);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping(AppointmentUrlMapping.GET_APPOINTMENTS_BY_ADMIN_STATUS)
-    public ResponseEntity<?> getAppointmentsByAdminStatus(@RequestParam("status") String status) {
+    public ResponseEntity<List<AppointmentSummaryResponseDTO>> getAppointmentsByAdminStatus(@RequestParam("status") String status) {
         try {
             List<AppointmentSummaryResponseDTO> appointments = appointmentService.getAppointmentsByAdminStatus(status);
             return ResponseEntity.ok(appointments);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 }

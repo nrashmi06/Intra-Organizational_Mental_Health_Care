@@ -9,9 +9,6 @@ import com.dbms.mentalhealth.dto.Listener.response.ListenerDetailsResponseDTO;
 import com.dbms.mentalhealth.dto.TimeSlot.response.TimeSlotResponseDTO;
 import com.dbms.mentalhealth.dto.UserActivity.UserActivityDTO;
 import com.dbms.mentalhealth.dto.adminSettings.response.AdminSettingsResponseDTO;
-import com.dbms.mentalhealth.dto.blog.TrendingBlogSummaryDTO;
-import com.dbms.mentalhealth.dto.blog.response.BlogResponseDTO;
-import com.dbms.mentalhealth.dto.blog.response.BlogSummaryDTO;
 import com.dbms.mentalhealth.dto.chatMessage.ChatMessageDTO;
 import com.dbms.mentalhealth.dto.listenerApplication.response.ListenerApplicationResponseDTO;
 import com.dbms.mentalhealth.dto.listenerApplication.response.ListenerApplicationSummaryResponseDTO;
@@ -23,6 +20,8 @@ import com.dbms.mentalhealth.dto.sessionFeedback.response.SessionFeedbackRespons
 import com.dbms.mentalhealth.dto.sessionFeedback.response.SessionFeedbackSummaryResponseDTO;
 import com.dbms.mentalhealth.model.Session;
 import com.dbms.mentalhealth.service.UserActivityService;
+import com.dbms.mentalhealth.util.Cache.CacheKey.AdminCacheKey;
+import com.dbms.mentalhealth.util.Cache.CacheKey.AppointmentCacheKey;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.slf4j.Logger;
@@ -33,7 +32,6 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.data.domain.Page;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -83,6 +81,7 @@ public class CacheConfig {
         return createBaseBuilder()
                 .expireAfterWrite(cacheExpiry, TimeUnit.MINUTES);
     }
+
     private Caffeine<Object, Object> createUserDetailsCacheBuilder() {
         return Caffeine.newBuilder()
                 .recordStats()
@@ -109,31 +108,17 @@ public class CacheConfig {
                     }
                 });
     }
-    // Blog related caches
-    @Bean
-    public Cache<String, Page<BlogSummaryDTO>> blogPageCache() {
-        return createListBuilder()
-                .maximumSize(STANDARD_CACHE_SIZE)
-                .build();
-    }
-
-    @Bean
-    public Cache<String, Page<TrendingBlogSummaryDTO>> trendingBlogPageCache() {
-        return createListBuilder()
-                .maximumSize(STANDARD_CACHE_SIZE)
-                .build();
-    }
 
     // Admin related caches
     @Bean
-    public Cache<Integer, AdminProfileResponseDTO> adminCache() {
+    public Cache<AdminCacheKey, AdminProfileResponseDTO> adminCache() {
         return createStandardBuilder()
                 .maximumSize(STANDARD_CACHE_SIZE)
                 .build();
     }
 
     @Bean
-    public Cache<String, List<AdminProfileSummaryResponseDTO>> adminListCache() {
+    public Cache<AdminCacheKey, List<AdminProfileSummaryResponseDTO>> adminListCache() {
         return createListBuilder()
                 .maximumSize(SMALL_CACHE_SIZE)
                 .build();
@@ -162,14 +147,14 @@ public class CacheConfig {
     }
 
     @Bean
-    public Cache<String, AppointmentResponseDTO> appointmentCache() {
+    public Cache<AppointmentCacheKey, AppointmentResponseDTO> appointmentCache() {
         return createListBuilder()
                 .maximumSize(STANDARD_CACHE_SIZE)
                 .build();
     }
 
     @Bean
-    public Cache<String, List<AppointmentSummaryResponseDTO>> appointmentListCache() {
+    public Cache<AppointmentCacheKey, List<AppointmentSummaryResponseDTO>> appointmentListCache() {
         return createListBuilder()
                 .maximumSize(STANDARD_CACHE_SIZE)
                 .build();

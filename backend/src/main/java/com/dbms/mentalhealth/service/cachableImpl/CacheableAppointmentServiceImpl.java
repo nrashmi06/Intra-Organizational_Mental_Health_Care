@@ -6,6 +6,9 @@ import com.dbms.mentalhealth.dto.Appointment.response.AppointmentSummaryResponse
 import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.service.AppointmentService;
 import com.dbms.mentalhealth.service.impl.AppointmentServiceImpl;
+import com.dbms.mentalhealth.util.Cache.CacheKey.AppointmentCacheKey;
+import com.dbms.mentalhealth.util.Cache.KeyEnum.AppointmentKeyType;
+import com.dbms.mentalhealth.util.Cache.CacheUtils;
 import com.github.benmanes.caffeine.cache.Cache;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
@@ -14,30 +17,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 
 @Service
 @Primary
 public class CacheableAppointmentServiceImpl implements AppointmentService {
 
-    private static final String APPOINTMENT_PREFIX = "appointment";
-    private static final String USER_APPOINTMENTS_PREFIX = "userAppointments";
-    private static final String ADMIN_APPOINTMENTS_PREFIX = "adminAppointments";
-    private static final String DATE_RANGE_APPOINTMENTS_PREFIX = "dateRangeAppointments";
-    private static final String UPCOMING_ADMIN_APPOINTMENTS_PREFIX = "upcomingAdminAppointments";
-    private static final String ADMIN_STATUS_APPOINTMENTS_PREFIX = "adminStatusAppointments";
-
     private final AppointmentServiceImpl appointmentServiceImpl;
-    private final Cache<String, AppointmentResponseDTO> appointmentCache;
-    private final Cache<String, List<AppointmentSummaryResponseDTO>> appointmentListCache;
+    private final Cache<AppointmentCacheKey, AppointmentResponseDTO> appointmentCache;
+    private final Cache<AppointmentCacheKey, List<AppointmentSummaryResponseDTO>> appointmentListCache;
     private static final Logger logger = LoggerFactory.getLogger(CacheableAppointmentServiceImpl.class);
     private final JwtUtils jwtUtils;
 
     public CacheableAppointmentServiceImpl(AppointmentServiceImpl appointmentServiceImpl,
-                                           Cache<String, AppointmentResponseDTO> appointmentCache,
-                                           Cache<String, List<AppointmentSummaryResponseDTO>> appointmentListCache,
+                                           Cache<AppointmentCacheKey, AppointmentResponseDTO> appointmentCache,
+                                           Cache<AppointmentCacheKey, List<AppointmentSummaryResponseDTO>> appointmentListCache,
                                            JwtUtils jwtUtils) {
         this.appointmentServiceImpl = appointmentServiceImpl;
         this.appointmentCache = appointmentCache;
@@ -46,28 +40,22 @@ public class CacheableAppointmentServiceImpl implements AppointmentService {
         logger.info("CacheableAppointmentServiceImpl initialized with cache stats enabled");
     }
 
-    private String generateCacheKey(String prefix, Object... parts) {
-        return prefix + ":" + String.join(":", Arrays.stream(parts)
-                .filter(Objects::nonNull)
-                .map(Object::toString)
-                .toList());
-    }
-
     private void invalidateUserAndAdminCaches(Integer userId, Integer adminId) {
-        appointmentListCache.invalidate(generateCacheKey(USER_APPOINTMENTS_PREFIX, userId));
-        appointmentListCache.invalidate(generateCacheKey(ADMIN_APPOINTMENTS_PREFIX, userId, adminId));
-
+        if (userId != null) {
+            appointmentListCache.invalidate(new AppointmentCacheKey(userId, AppointmentKeyType.USER_APPOINTMENTS));
+        }
+        if (adminId != null) {
+            appointmentListCache.invalidate(new AppointmentCacheKey(adminId, AppointmentKeyType.ADMIN_APPOINTMENTS));
+        }
     }
-
 
     @Override
     @Transactional
     public AppointmentResponseDTO createAppointment(AppointmentRequestDTO appointmentRequestDTO) {
         Integer userId = jwtUtils.getUserIdFromContext();
         AppointmentResponseDTO response = appointmentServiceImpl.createAppointment(appointmentRequestDTO);
-        appointmentCache.put(generateCacheKey(APPOINTMENT_PREFIX, response.getAppointmentId()), response);
+        appointmentCache.put(new AppointmentCacheKey(response.getAppointmentId(), AppointmentKeyType.APPOINTMENT), response);
         invalidateUserAndAdminCaches(userId, appointmentRequestDTO.getAdminId());
-        appointmentListCache.invalidate(generateCacheKey(ADMIN_APPOINTMENTS_PREFIX, null, appointmentRequestDTO.getAdminId())); // Invalidate admin appointments cache
         logger.info("Added new appointment to cache and invalidated relevant caches after appointment creation");
         return response;
     }
@@ -75,10 +63,10 @@ public class CacheableAppointmentServiceImpl implements AppointmentService {
     @Override
     @Transactional(readOnly = true)
     public List<AppointmentSummaryResponseDTO> getAppointmentsByUser(Integer userId) {
-        if(userId == null){
+        if (userId == null) {
             userId = jwtUtils.getUserIdFromContext();
         }
-        String cacheKey = generateCacheKey(USER_APPOINTMENTS_PREFIX, userId);
+        AppointmentCacheKey cacheKey = new AppointmentCacheKey(userId, AppointmentKeyType.USER_APPOINTMENTS);
         logger.info("Cache lookup for appointments by user ID: {}", userId);
         Integer finalUserId = userId;
         return appointmentListCache.get(cacheKey, k -> {
@@ -95,11 +83,17 @@ public class CacheableAppointmentServiceImpl implements AppointmentService {
             userId = jwtUtils.getUserIdFromContext();
         }
 
-        String cacheKey = generateCacheKey(ADMIN_APPOINTMENTS_PREFIX, userId, adminId);
+        AppointmentCacheKey cacheKey;
+        if (adminId != null) {
+            cacheKey = new AppointmentCacheKey(adminId, AppointmentKeyType.ADMIN_APPOINTMENTS);
+        } else {
+            cacheKey = new AppointmentCacheKey(userId, AppointmentKeyType.USER_APPOINTMENTS);
+        }
 
+        logger.info("Cache lookup for appointments by admin ID: {} and user ID: {}", adminId, userId);
         Integer finalUserId = userId;
         return appointmentListCache.get(cacheKey, k -> {
-            logger.info("Cache MISS - Fetching appointments from database for key: {}", cacheKey);
+            logger.info("Cache MISS - Fetching appointments from database for admin ID: {} and user ID: {}", adminId, finalUserId);
             return appointmentServiceImpl.getAppointmentsByAdmin(finalUserId, adminId);
         });
     }
@@ -107,7 +101,7 @@ public class CacheableAppointmentServiceImpl implements AppointmentService {
     @Override
     @Transactional(readOnly = true)
     public AppointmentResponseDTO getAppointmentById(Integer appointmentId) {
-        String cacheKey = generateCacheKey(APPOINTMENT_PREFIX, appointmentId);
+        AppointmentCacheKey cacheKey = new AppointmentCacheKey(appointmentId, AppointmentKeyType.APPOINTMENT);
         logger.info("Cache lookup for appointment ID: {}", appointmentId);
         return appointmentCache.get(cacheKey, k -> {
             logger.info("Cache MISS - Fetching appointment from database for ID: {}", appointmentId);
@@ -119,22 +113,30 @@ public class CacheableAppointmentServiceImpl implements AppointmentService {
 
     @Override
     public void updateAppointmentStatus(Integer appointmentId, String status, String cancellationReason) {
+        // Retrieve the appointment details before invalidating the cache
         AppointmentResponseDTO appointment = getAppointmentById(appointmentId);
+
+        // Update the appointment status in the service implementation
         appointmentServiceImpl.updateAppointmentStatus(appointmentId, status, cancellationReason);
-        String cacheKey = generateCacheKey(APPOINTMENT_PREFIX, appointmentId);
+
+        // Invalidate the appointment cache
+        AppointmentCacheKey cacheKey = new AppointmentCacheKey(appointmentId, AppointmentKeyType.APPOINTMENT);
         appointmentCache.invalidate(cacheKey);
 
         if (appointment != null) {
+            // Invalidate related caches
             invalidateUserAndAdminCaches(appointment.getUserId(), appointment.getAdminId());
-            appointmentListCache.invalidate(generateCacheKey(ADMIN_STATUS_APPOINTMENTS_PREFIX, status));
+            appointmentListCache.invalidate(new AppointmentCacheKey(status, AppointmentKeyType.ADMIN_STATUS_APPOINTMENTS));
         }
+
+        logger.info("Updated appointment status and invalidated related caches for appointmentId: {}", appointmentId);
     }
 
     @Override
     @Transactional
     public void cancelAppointment(Integer appointmentId, String cancellationReason) {
         appointmentServiceImpl.cancelAppointment(appointmentId, cancellationReason);
-        String cacheKey = generateCacheKey(APPOINTMENT_PREFIX, appointmentId);
+        AppointmentCacheKey cacheKey = new AppointmentCacheKey(appointmentId, AppointmentKeyType.APPOINTMENT);
         appointmentCache.invalidate(cacheKey);
 
         AppointmentResponseDTO appointment = appointmentCache.getIfPresent(cacheKey);
@@ -167,7 +169,7 @@ public class CacheableAppointmentServiceImpl implements AppointmentService {
     }
 
     public void logCacheStats() {
-        logger.info("Appointment Cache Stats: {}", appointmentCache.stats());
-        logger.info("Appointment List Cache Stats: {}", appointmentListCache.stats());
+        CacheUtils.logCacheStats(appointmentCache);
+        CacheUtils.logCacheStats(appointmentListCache);
     }
 }
