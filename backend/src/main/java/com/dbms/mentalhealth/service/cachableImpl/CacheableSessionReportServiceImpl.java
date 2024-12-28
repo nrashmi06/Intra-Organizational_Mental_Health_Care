@@ -1,8 +1,8 @@
 package com.dbms.mentalhealth.service.cachableImpl;
 
 import com.dbms.mentalhealth.dto.session.request.SessionReportRequestDTO;
-import com.dbms.mentalhealth.dto.session.response.SessionReportResponseDTO;
-import com.dbms.mentalhealth.dto.session.response.SessionReportSummaryResponseDTO;
+import com.dbms.mentalhealth.dto.SessionReport.SessionReportResponseDTO;
+import com.dbms.mentalhealth.dto.SessionReport.SessionReportSummaryResponseDTO;
 import com.dbms.mentalhealth.service.SessionReportService;
 import com.dbms.mentalhealth.service.impl.SessionReportServiceImpl;
 import com.github.benmanes.caffeine.cache.Cache;

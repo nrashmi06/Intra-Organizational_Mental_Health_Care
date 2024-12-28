@@ -1,8 +1,8 @@
 package com.dbms.mentalhealth.service.impl;
 
 import com.dbms.mentalhealth.dto.session.request.SessionReportRequestDTO;
-import com.dbms.mentalhealth.dto.session.response.SessionReportResponseDTO;
-import com.dbms.mentalhealth.dto.session.response.SessionReportSummaryResponseDTO;
+import com.dbms.mentalhealth.dto.SessionReport.SessionReportResponseDTO;
+import com.dbms.mentalhealth.dto.SessionReport.SessionReportSummaryResponseDTO;
 import com.dbms.mentalhealth.exception.session.ReportNotFoundException;
 import com.dbms.mentalhealth.mapper.SessionReportMapper;
 import com.dbms.mentalhealth.model.SessionReport;

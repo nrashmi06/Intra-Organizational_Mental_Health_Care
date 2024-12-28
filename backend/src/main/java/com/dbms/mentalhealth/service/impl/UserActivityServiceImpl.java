@@ -2,7 +2,7 @@ package com.dbms.mentalhealth.service.impl;
 
 import com.dbms.mentalhealth.dto.UserActivity.UserActivityDTO;
 import com.dbms.mentalhealth.dto.UserActivity.UserRoleCountDTO;
-import com.dbms.mentalhealth.dto.session.SessionSummaryDTO;
+import com.dbms.mentalhealth.dto.session.response.SessionSummaryDTO;
 import com.dbms.mentalhealth.enums.CacheKey;
 import com.dbms.mentalhealth.enums.Role;
 import com.dbms.mentalhealth.mapper.UserActivityMapper;
@@ -13,7 +13,6 @@ import com.dbms.mentalhealth.service.UserActivityService;
 import com.github.benmanes.caffeine.cache.Cache;
 import org.slf4j.Logger;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 

@@ -1,8 +1,8 @@
 package com.dbms.mentalhealth.service.cachableImpl;
 
 import com.dbms.mentalhealth.dto.chatMessage.ChatMessageDTO;
-import com.dbms.mentalhealth.dto.session.SessionResponseDTO;
-import com.dbms.mentalhealth.dto.session.SessionSummaryDTO;
+import com.dbms.mentalhealth.dto.session.response.SessionResponseDTO;
+import com.dbms.mentalhealth.dto.session.response.SessionSummaryDTO;
 import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.service.SessionService;
 import com.dbms.mentalhealth.service.impl.SessionServiceImpl;

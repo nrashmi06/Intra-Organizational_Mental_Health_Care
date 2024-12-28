@@ -2,8 +2,8 @@ package com.dbms.mentalhealth.controller;
 
 import com.dbms.mentalhealth.config.ChatWebSocketHandler;
 import com.dbms.mentalhealth.dto.chatMessage.ChatMessageDTO;
-import com.dbms.mentalhealth.dto.session.SessionResponseDTO;
-import com.dbms.mentalhealth.dto.session.SessionSummaryDTO;
+import com.dbms.mentalhealth.dto.session.response.SessionResponseDTO;
+import com.dbms.mentalhealth.dto.session.response.SessionSummaryDTO;
 import com.dbms.mentalhealth.service.SessionService;
 import com.dbms.mentalhealth.urlMapper.SessionUrlMapping;
 import com.dbms.mentalhealth.util.Etags.SessionETagGenerator;
@@ -16,7 +16,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Objects;
 
 @RestController
 public class SessionController {

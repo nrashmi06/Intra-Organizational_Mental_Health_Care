@@ -12,10 +12,10 @@ import com.dbms.mentalhealth.dto.adminSettings.response.AdminSettingsResponseDTO
 import com.dbms.mentalhealth.dto.chatMessage.ChatMessageDTO;
 import com.dbms.mentalhealth.dto.listenerApplication.response.ListenerApplicationResponseDTO;
 import com.dbms.mentalhealth.dto.listenerApplication.response.ListenerApplicationSummaryResponseDTO;
-import com.dbms.mentalhealth.dto.session.SessionResponseDTO;
-import com.dbms.mentalhealth.dto.session.SessionSummaryDTO;
-import com.dbms.mentalhealth.dto.session.response.SessionReportResponseDTO;
-import com.dbms.mentalhealth.dto.session.response.SessionReportSummaryResponseDTO;
+import com.dbms.mentalhealth.dto.session.response.SessionResponseDTO;
+import com.dbms.mentalhealth.dto.session.response.SessionSummaryDTO;
+import com.dbms.mentalhealth.dto.SessionReport.SessionReportResponseDTO;
+import com.dbms.mentalhealth.dto.SessionReport.SessionReportSummaryResponseDTO;
 import com.dbms.mentalhealth.dto.sessionFeedback.response.SessionFeedbackResponseDTO;
 import com.dbms.mentalhealth.dto.sessionFeedback.response.SessionFeedbackSummaryResponseDTO;
 import com.dbms.mentalhealth.model.Session;

@@ -1,7 +1,7 @@
 package com.dbms.mentalhealth.service.impl;
 import com.dbms.mentalhealth.dto.chatMessage.ChatMessageDTO;
-import com.dbms.mentalhealth.dto.session.SessionResponseDTO;
-import com.dbms.mentalhealth.dto.session.SessionSummaryDTO;
+import com.dbms.mentalhealth.dto.session.response.SessionResponseDTO;
+import com.dbms.mentalhealth.dto.session.response.SessionSummaryDTO;
 import com.dbms.mentalhealth.enums.SessionStatus;
 import com.dbms.mentalhealth.exception.listener.ListenerNotFoundException;
 import com.dbms.mentalhealth.exception.session.SessionNotFoundException;
