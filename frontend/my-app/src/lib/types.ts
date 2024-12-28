@@ -157,4 +157,21 @@ export interface PaginationInfo {
   last: boolean;
   first: boolean;
 }
+export interface CalendarDayProps {
+  day: Date;
+  isCurrentMonth: boolean;
+  isToday: boolean;
+  isSelected: boolean;
+  appointments: Appointment[];
+  onSelectDay: (day: Date) => void;
+}
+
+export interface AppointmentItemProps {
+  appointment: Appointment;
+}
+
+export interface MonthlyScheduleProps {
+  appointments: Appointment[];
+  date?: Date;
+}
 
