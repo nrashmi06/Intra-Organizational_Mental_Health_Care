@@ -174,4 +174,14 @@ export interface MonthlyScheduleProps {
   appointments: Appointment[];
   date?: Date;
 }
-
+export interface WeeklyScheduleProps {
+  appointments: Appointment[];
+  date?: Date;
+}
+export interface TimeSlotProps {
+  hour: number;
+  date: Date;
+  appointments: Appointment[];
+  isToday: boolean;
+  onSelectSlot: (date: Date, hour: number) => void;
+}
