@@ -1,5 +1,6 @@
 package com.dbms.mentalhealth.exception;
 
+import com.dbms.mentalhealth.exception.Image.ImageStorageException;
 import com.dbms.mentalhealth.exception.admin.*;
 import com.dbms.mentalhealth.exception.adminSettings.*;
 import com.dbms.mentalhealth.exception.appointment.*;
@@ -40,7 +41,10 @@ public class CustomExceptionHandler {
     public ResponseEntity<String> handleMultipartException(MultipartException ex) {
         return createErrorResponse("Failed to parse multipart file", HttpStatus.BAD_REQUEST);
     }
-
+    @ExceptionHandler(ImageStorageException.class)
+    public ResponseEntity<String> handleImageStorageException(ImageStorageException ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
+    }
     @ExceptionHandler(IncorrectResultSizeDataAccessException.class)
     public ResponseEntity<String> handleIncorrectResultSizeDataAccessException(IncorrectResultSizeDataAccessException ex) {
         return createErrorResponse("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);

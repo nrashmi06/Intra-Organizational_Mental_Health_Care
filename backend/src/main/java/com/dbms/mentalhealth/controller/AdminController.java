@@ -5,7 +5,7 @@ import com.dbms.mentalhealth.dto.Admin.response.AdminProfileResponseDTO;
 import com.dbms.mentalhealth.dto.Admin.response.AdminProfileSummaryResponseDTO;
 import com.dbms.mentalhealth.service.AdminService;
 import com.dbms.mentalhealth.urlMapper.AdminUrlMapping;
-import com.dbms.mentalhealth.util.AdminETagGenerator;
+import com.dbms.mentalhealth.util.Etags.AdminETagGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;

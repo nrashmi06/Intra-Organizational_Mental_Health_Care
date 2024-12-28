@@ -316,4 +316,12 @@ public class CacheConfig {
                 .maximumSize(LARGE_CACHE_SIZE)
                 .build();
     }
+    @Bean
+    public Cache<String, LocalDateTime> blogViewCache() {
+        return Caffeine.newBuilder()
+                .expireAfterWrite(10, TimeUnit.MINUTES)  // 10 minute cooldown
+                .maximumSize(10000)  // Adjust based on your needs
+                .recordStats()
+                .build();
+    }
 }

@@ -1,4 +1,4 @@
-package com.dbms.mentalhealth.util;
+package com.dbms.mentalhealth.util.Etags;
 
 import com.dbms.mentalhealth.dto.Admin.response.AdminProfileResponseDTO;
 import com.dbms.mentalhealth.dto.Admin.response.AdminProfileSummaryResponseDTO;

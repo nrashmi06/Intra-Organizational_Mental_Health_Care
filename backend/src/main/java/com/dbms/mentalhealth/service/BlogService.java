@@ -22,6 +22,5 @@ public interface BlogService {
     BlogResponseDTO unlikeBlog(Integer blogId);
     Page<BlogSummaryDTO> getBlogsByApprovalStatus(String status, Pageable pageable);
     Page<TrendingBlogSummaryDTO> getTrendingBlogs(Integer userId, String title, Pageable pageable);
-    void incrementViewCountByAmount(Integer blogId, Integer amount);
     Page<BlogSummaryDTO> filterBlogs(Integer userId, String title,Pageable pageable);
 }
