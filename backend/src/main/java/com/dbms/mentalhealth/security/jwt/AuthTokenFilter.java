@@ -79,6 +79,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
                 if (jwtUtils.validateJwtToken(jwt)) {
                     String email = jwtUtils.getUserNameFromJwtToken(jwt);
                     String role = jwtUtils.getRoleFromJwtToken(jwt);
+                    logger.debug("JWT validated for user: {} with role: {}", email, role);
 
                     UserDetails userDetails = userService.loadUserByUsername(email);
 

@@ -1,6 +1,7 @@
 package com.dbms.mentalhealth.scheduler;
 
 import com.dbms.mentalhealth.service.cachableImpl.*;
+import com.dbms.mentalhealth.service.impl.UserActivityServiceImpl;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -15,8 +16,9 @@ public class CacheScheduler {
     private final CacheableListenerServiceImpl cacheableListenerServiceImpl;
     private final CacheableTimeSlotServiceImpl cacheableTimeSlotServiceImpl;
     private final CacheableAppointmentServiceImpl cacheableAppointmentServiceImpl;
+    private final UserActivityServiceImpl userActivityServiceImpl;
 
-    public CacheScheduler(CacheableAdminServiceImpl cacheableAdminServiceImpl, CacheableSessionServiceImpl cacheableSessionServiceImpl, CacheableSessionFeedbackServiceImpl cacheableSessionFeedbackServiceImpl, CacheableSessionReportServiceImpl cacheableSessionReportServiceImpl, CacheableListenerApplicationServiceImpl cacheableListenerApplicationServiceImpl, CacheableListenerServiceImpl cacheableListenerServiceImpl, CacheableTimeSlotServiceImpl cacheableTimeSlotServiceImpl, CacheableAppointmentServiceImpl cacheableAppointmentServiceImpl) {
+    public CacheScheduler(CacheableAdminServiceImpl cacheableAdminServiceImpl, CacheableSessionServiceImpl cacheableSessionServiceImpl, CacheableSessionFeedbackServiceImpl cacheableSessionFeedbackServiceImpl, CacheableSessionReportServiceImpl cacheableSessionReportServiceImpl, CacheableListenerApplicationServiceImpl cacheableListenerApplicationServiceImpl, CacheableListenerServiceImpl cacheableListenerServiceImpl, CacheableTimeSlotServiceImpl cacheableTimeSlotServiceImpl, CacheableAppointmentServiceImpl cacheableAppointmentServiceImpl, UserActivityServiceImpl userActivityServiceImpl) {
         this.cacheableAdminServiceImpl = cacheableAdminServiceImpl;
         this.cacheableSessionServiceImpl = cacheableSessionServiceImpl;
         this.cacheableSessionFeedbackServiceImpl = cacheableSessionFeedbackServiceImpl;
@@ -25,6 +27,7 @@ public class CacheScheduler {
         this.cacheableListenerServiceImpl = cacheableListenerServiceImpl;
         this.cacheableTimeSlotServiceImpl = cacheableTimeSlotServiceImpl;
         this.cacheableAppointmentServiceImpl = cacheableAppointmentServiceImpl;
+        this.userActivityServiceImpl = userActivityServiceImpl;
     }
 
     @Scheduled(fixedRateString = "${scheduler.user-activity-cleanup-interval}")
@@ -37,5 +40,6 @@ public class CacheScheduler {
         cacheableAdminServiceImpl.logCacheStats();
         cacheableTimeSlotServiceImpl.logCacheStats();
         cacheableAppointmentServiceImpl.logCacheStats();
+        userActivityServiceImpl.logCacheStats();
     }
 }

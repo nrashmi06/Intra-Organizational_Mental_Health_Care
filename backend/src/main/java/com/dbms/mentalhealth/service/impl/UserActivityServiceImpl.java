@@ -3,6 +3,7 @@ package com.dbms.mentalhealth.service.impl;
 import com.dbms.mentalhealth.dto.UserActivity.UserActivityDTO;
 import com.dbms.mentalhealth.dto.UserActivity.UserRoleCountDTO;
 import com.dbms.mentalhealth.dto.session.SessionSummaryDTO;
+import com.dbms.mentalhealth.enums.CacheKey;
 import com.dbms.mentalhealth.enums.Role;
 import com.dbms.mentalhealth.mapper.UserActivityMapper;
 import com.dbms.mentalhealth.model.User;
@@ -12,15 +13,18 @@ import com.dbms.mentalhealth.service.UserActivityService;
 import com.github.benmanes.caffeine.cache.Cache;
 import org.slf4j.Logger;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -39,6 +43,8 @@ public class UserActivityServiceImpl implements UserActivityService {
     private final Cache<String, UserActivityDTO> userDetailsCache;
     private final Cache<String, List<UserActivityDTO>> roleBasedDetailsCache;
     private final Cache<String, LocalDateTime> lastSeenCache;
+    private static final long BROADCAST_THROTTLE_MS = 1000;
+    private LocalDateTime lastBroadcast = LocalDateTime.now();
 
     public UserActivityServiceImpl(UserRepository userRepository,
                                    Cache<String, UserActivityDTO> userDetailsCache,
@@ -53,17 +59,38 @@ public class UserActivityServiceImpl implements UserActivityService {
         initializeCaches();
     }
 
-    private void initializeCaches() {
+    private synchronized void initializeCaches() {
         log.info("Initializing caches with active users");
-        List<User> activeUsers = userRepository.findByIsActive(true);
-        activeUsers.forEach(user -> {
-            UserActivityDTO dto = UserActivityMapper.toUserActivityDTO(user);
-            userDetailsCache.put(user.getEmail(), dto);
-            roleBasedDetailsCache.asMap().computeIfAbsent(user.getRole().name(),
-                    k -> new CopyOnWriteArrayList<>()).add(dto);
-            lastSeenCache.put(user.getEmail(), user.getLastSeen());
-        });
-        log.info("Caches initialized successfully");
+        try {
+            List<User> activeUsers = userRepository.findByIsActive(true);
+
+            userDetailsCache.invalidateAll();
+            roleBasedDetailsCache.invalidateAll();
+            lastSeenCache.invalidateAll();
+
+            activeUsers.forEach(user -> {
+                try {
+                    UserActivityDTO dto = UserActivityMapper.toUserActivityDTO(user);
+                    String email = user.getEmail();
+                    CacheKey cacheKey = CacheKey.fromRole(user.getRole());
+
+                    userDetailsCache.put(email, dto);
+                    roleBasedDetailsCache.asMap()
+                            .computeIfAbsent(cacheKey.getCacheKey(), k -> new CopyOnWriteArrayList<>())
+                            .add(dto);
+                    lastSeenCache.put(email, user.getLastSeen());
+
+                    log.debug("Initialized caches for user: {} with cache key: {}", email, cacheKey);
+                } catch (Exception e) {
+                    log.error("Error initializing caches for user: {}", user.getEmail(), e);
+                }
+            });
+
+            logCacheStats();
+        } catch (Exception e) {
+            log.error("Failed to initialize caches", e);
+            throw new RuntimeException("Cache initialization failed", e);
+        }
     }
 
     @Override
@@ -129,36 +156,38 @@ public class UserActivityServiceImpl implements UserActivityService {
                 .collect(Collectors.toList());
     }
 
-    private void sendInitialData(SseEmitter emitter, String mapKey, CopyOnWriteArrayList<SseEmitter> emitters) {
+    private void sendInitialData(SseEmitter emitter, CacheKey cacheKey, CopyOnWriteArrayList<SseEmitter> emitters) {
         try {
             logMapContents();
-            List<UserActivityDTO> cachedData = roleBasedDetailsCache.getIfPresent(mapKey);
-            if (cachedData == null) {
-                cachedData = fetchUserActivityDataForKey(mapKey);
-                roleBasedDetailsCache.put(mapKey, updateSessionStatus(cachedData));
+            List<UserActivityDTO> cachedData;
+
+            if (cacheKey == CacheKey.ALL_USERS) {
+                cachedData = getAllOnlineUsers();
+            } else {
+                cachedData = roleBasedDetailsCache.getIfPresent(cacheKey.getCacheKey());
+                if (cachedData == null) {
+                    cachedData = fetchUserActivityDataForKey(cacheKey);
+                    roleBasedDetailsCache.put(cacheKey.getCacheKey(), updateSessionStatus(cachedData));
+                }
             }
-            emitter.send(SseEmitter.event().name(mapKey).data(updateSessionStatus(cachedData)));
+
+            emitter.send(SseEmitter.event()
+                    .name(cacheKey.getEventName())
+                    .data(updateSessionStatus(cachedData)));
         } catch (IOException e) {
-            log.error("Error sending initial data for key: {}", mapKey, e);
+            log.error("Error sending initial data for key: {}", cacheKey, e);
             emitters.remove(emitter);
         }
     }
 
-    private List<UserActivityDTO> fetchUserActivityDataForKey(String key) {
-        return switch (key) {
-            case "allUsers" -> getAllOnlineUsers();
-            case "adminDetails" -> getOnlineAdmins();
-            case "listenerDetails" -> getOnlineListeners();
-            case "userDetails" -> getOnlineUsers();
-            default -> throw new IllegalArgumentException("Unknown map key: " + key);
+    private List<UserActivityDTO> fetchUserActivityDataForKey(CacheKey cacheKey) {
+        return switch (cacheKey) {
+            case ALL_USERS -> getAllOnlineUsers();
+            case ADMIN_DETAILS -> getOnlineAdmins();
+            case LISTENER_DETAILS -> getOnlineListeners();
+            case USER_DETAILS -> getOnlineUsers();
         };
     }
-
-    @Override
-    public void sendInitialAllUsers(SseEmitter emitter) {
-        sendInitialData(emitter, "allUsers", allUserEmitters);
-    }
-
     @Override
     public void sendInitialRoleCounts(SseEmitter emitter) {
         try {
@@ -171,18 +200,23 @@ public class UserActivityServiceImpl implements UserActivityService {
     }
 
     @Override
+    public void sendInitialAllUsers(SseEmitter emitter) {
+        sendInitialData(emitter, CacheKey.ALL_USERS, allUserEmitters);
+    }
+
+    @Override
     public void sendInitialAdminDetails(SseEmitter emitter) {
-        sendInitialData(emitter, "adminDetails", adminEmitters);
+        sendInitialData(emitter, CacheKey.ADMIN_DETAILS, adminEmitters);
     }
 
     @Override
     public void sendInitialListenerDetails(SseEmitter emitter) {
-        sendInitialData(emitter, "listenerDetails", listenerEmitters);
+        sendInitialData(emitter, CacheKey.LISTENER_DETAILS, listenerEmitters);
     }
 
     @Override
     public void sendInitialUserDetails(SseEmitter emitter) {
-        sendInitialData(emitter, "userDetails", userEmitters);
+        sendInitialData(emitter, CacheKey.USER_DETAILS, userEmitters);
     }
 
     private void logMapContents() {
@@ -223,28 +257,49 @@ public class UserActivityServiceImpl implements UserActivityService {
         });
     }
 
-    private <T> void broadcastData(String mapKey, List<T> data, CopyOnWriteArrayList<SseEmitter> emitterList) {
-        if (data instanceof List<?>) {
-            List<Object> updatedList = ((List<?>) data).stream()
-                    .map(item -> item instanceof UserActivityDTO ?
-                            UserActivityMapper.toUserActivityDTO((UserActivityDTO) item) : item)
-                    .collect(Collectors.toList());
+    private <T> void broadcastData(CacheKey cacheKey, CopyOnWriteArrayList<SseEmitter> emitterList) {
+        List<UserActivityDTO> data = fetchUserActivityDataForKey(cacheKey);
+        List<UserActivityDTO> updatedData = data.stream()
+                .map(UserActivityMapper::toUserActivityDTO)
+                .collect(Collectors.toList());
 
-            emitterList.forEach(emitter -> {
-                try {
-                    emitter.send(SseEmitter.event().name(mapKey).data(updatedList));
-                } catch (IOException e) {
-                    log.error("Error broadcasting data for key: {}", mapKey, e);
-                    emitterList.remove(emitter);
-                }
-            });
-        }
+        emitterList.forEach(emitter -> {
+            try {
+                emitter.send(SseEmitter.event()
+                        .name(cacheKey.getEventName())
+                        .data(updatedData));
+            } catch (IOException e) {
+                log.error("Error broadcasting data for key: {}", cacheKey, e);
+                emitterList.remove(emitter);
+            }
+        });
     }
 
     @Override
     @Async
     public void broadcastAllUsers() {
-        broadcastData("allUsers", getAllOnlineUsers(), allUserEmitters);
+        broadcastData(CacheKey.ALL_USERS, allUserEmitters);
+        broadcastFullCacheDetails();
+    }
+
+    @Override
+    @Async
+    public void broadcastAdminDetails() {
+        broadcastData(CacheKey.ADMIN_DETAILS, adminEmitters);
+        broadcastFullCacheDetails();
+    }
+
+    @Override
+    @Async
+    public void broadcastListenerDetails() {
+        broadcastData(CacheKey.LISTENER_DETAILS, listenerEmitters);
+        broadcastFullCacheDetails();
+    }
+
+    @Override
+    @Async
+    public void broadcastUserDetails() {
+        broadcastData(CacheKey.USER_DETAILS, userEmitters);
         broadcastFullCacheDetails();
     }
 
@@ -263,26 +318,6 @@ public class UserActivityServiceImpl implements UserActivityService {
         broadcastFullCacheDetails();
     }
 
-    @Override
-    @Async
-    public void broadcastAdminDetails() {
-        broadcastData("adminDetails", getOnlineAdmins(), adminEmitters);
-        broadcastFullCacheDetails();
-    }
-
-    @Override
-    @Async
-    public void broadcastListenerDetails() {
-        broadcastData("listenerDetails", getOnlineListeners(), listenerEmitters);
-        broadcastFullCacheDetails();
-    }
-
-    @Override
-    @Async
-    public void broadcastUserDetails() {
-        broadcastData("userDetails", getOnlineUsers(), userEmitters);
-        broadcastFullCacheDetails();
-    }
 
     private void broadcastFullCacheDetails() {
         logMapContents();
@@ -335,8 +370,8 @@ public class UserActivityServiceImpl implements UserActivityService {
 
 
 
-    @Async
     @Override
+    @Async
     public void updateLastSeenStatus(String email) {
         User user = userRepository.findByEmail(email);
         if (user != null) {
@@ -346,25 +381,13 @@ public class UserActivityServiceImpl implements UserActivityService {
             lastSeenCache.put(email, user.getLastSeen());
 
             UserActivityDTO dto = UserActivityMapper.toUserActivityDTO(user);
+            updateCaches(email, dto, Role.valueOf(user.getRole().name()));
 
-            // Update caches
-            userDetailsCache.invalidate(email);
-            roleBasedDetailsCache.asMap().forEach((role, list) -> {
-                List<UserActivityDTO> mutableList = new ArrayList<>(list);
-                mutableList.removeIf(existingUser -> existingUser.getUserId().equals(dto.getUserId()));
-                roleBasedDetailsCache.put(role, mutableList);
-            });
-
-            userDetailsCache.put(email, dto);
-            roleBasedDetailsCache.asMap()
-                    .computeIfAbsent(user.getRole().name(), k -> new CopyOnWriteArrayList<>())
-                    .add(dto);
-
-            broadcastAllUsers();
-            broadcastRoleCounts();
-            broadcastAdminDetails();
-            broadcastListenerDetails();
-            broadcastUserDetails();
+            // Throttle broadcasts
+            if (Duration.between(lastBroadcast, LocalDateTime.now()).toMillis() > BROADCAST_THROTTLE_MS) {
+                broadcastUpdates();
+                lastBroadcast = LocalDateTime.now();
+            }
         }
     }
 
@@ -382,16 +405,6 @@ public class UserActivityServiceImpl implements UserActivityService {
     }
 
     @Override
-    public List<String> findExpiredUsers() {
-        LocalDateTime now = LocalDateTime.now();
-        return lastSeenCache.asMap().entrySet().stream()
-                .filter(entry -> entry.getValue() != null &&
-                        entry.getValue().isBefore(now.minusMinutes(5)))
-                .map(Map.Entry::getKey)
-                .collect(Collectors.toList());
-    }
-
-    @Override
     @Async
     public void markUserInactive(String email) {
         User user = userRepository.findByEmail(email);
@@ -399,16 +412,55 @@ public class UserActivityServiceImpl implements UserActivityService {
             user.setIsActive(false);
             userRepository.save(user);
 
+            // Clear from caches
             lastSeenCache.invalidate(email);
             userDetailsCache.invalidate(email);
             roleBasedDetailsCache.asMap().values().forEach(list ->
                     list.removeIf(dto -> dto.getUserId().equals(user.getUserId())));
 
+            // Don't broadcast here - let checkInactiveUsers handle it
+        }
+    }
+    @Override
+    public void broadcastUpdates() {
+        CompletableFuture.runAsync(() -> {
             broadcastAllUsers();
             broadcastRoleCounts();
             broadcastAdminDetails();
             broadcastListenerDetails();
             broadcastUserDetails();
+        });
+    }
+    private synchronized void updateCaches(String email, UserActivityDTO dto, Role role) {
+        try {
+            synchronized (this) {
+                userDetailsCache.put(email, dto);
+
+                CacheKey cacheKey = CacheKey.fromRole(role);
+                List<UserActivityDTO> roleUsers = roleBasedDetailsCache.getIfPresent(cacheKey.getCacheKey());
+                if (roleUsers == null) {
+                    roleUsers = new CopyOnWriteArrayList<>();
+                    roleBasedDetailsCache.put(cacheKey.getCacheKey(), roleUsers);
+                }
+
+                roleUsers.removeIf(existing -> existing.getUserId().equals(dto.getUserId()));
+                roleUsers.add(dto);
+
+                lastSeenCache.put(email, LocalDateTime.now());
+
+                log.debug("Updated all caches for user: {} with cache key: {}", email, cacheKey);
+            }
+        } catch (Exception e) {
+            log.error("Failed to update caches for user: {}", email, e);
+            initializeCaches();
         }
+    }
+
+
+    public void logCacheStats() {
+        log.info("Cache stats - User Details: {}, Role Based: {}, Last Seen: {}",
+                userDetailsCache.stats(), roleBasedDetailsCache.stats(), lastSeenCache.stats());
+        log.info("Cache contents - User Details: {}, Role Based: {}, Last Seen: {}",
+                userDetailsCache.asMap(), roleBasedDetailsCache.asMap(), lastSeenCache.asMap());
     }
 }

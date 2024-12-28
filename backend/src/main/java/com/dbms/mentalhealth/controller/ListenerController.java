@@ -20,7 +20,7 @@ public class ListenerController {
         this.listenerService = listenerService;
     }
 
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_LISTENER')")
+    @PreAuthorize("isAuthenticated()")
     @GetMapping(ListenerUrlMapping.LISTENER_BY_ID)
     public ListenerDetailsResponseDTO getListenerDetails(@RequestParam("type") String type, @RequestParam("id") Integer id) {
         return listenerService.getListenerDetails(type, id);

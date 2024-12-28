@@ -64,7 +64,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, CustomAccessDeniedHandler customAccessDeniedHandler) throws Exception {
         return http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(requests -> requests
@@ -78,16 +78,14 @@ public class SecurityConfig {
                                         UserUrlMapping.RENEW_TOKEN,
                                         EmergencyHelplineUrlMapping.GET_ALL_EMERGENCY_HELPLINES
                                 ).permitAll()
-                                .anyRequest().authenticated() // Global rule for all other requests
-                        // Important: Remove .anyRequest().authenticated() if using @PreAuthorize
-                        // Let method security handle specific endpoints
+                        .anyRequest().authenticated()
                 )
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(unauthorizedHandler)
-                        .accessDeniedHandler(accessDeniedHandler)
+                        .accessDeniedHandler(customAccessDeniedHandler)
                 )
                 .csrf(AbstractHttpConfigurer::disable)
                 // Reorganize filters to ensure proper order

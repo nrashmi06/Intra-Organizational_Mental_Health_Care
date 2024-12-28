@@ -30,14 +30,13 @@ public interface UserActivityService {
     void broadcastListenerDetails();
     void broadcastUserDetails();
     void broadcastSessionDetails(List<SessionSummaryDTO> sessionSummaryDTOs);
-
+    void broadcastUpdates();
     List<UserActivityDTO> getAllOnlineUsers();
     List<UserRoleCountDTO> getOnlineUsersCountByRole();
     List<UserActivityDTO> getOnlineAdmins();
     List<UserActivityDTO> getOnlineListeners();
     List<UserActivityDTO> getOnlineUsers();
     void markUserInactive(String email);
-    List<String> findExpiredUsers();
     void updateLastSeen(String email);
     void updateLastSeenStatus(String email);
 
