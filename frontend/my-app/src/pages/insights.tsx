@@ -112,7 +112,7 @@ const DashboardPage = () => {
   return (
     <div className="md:p-6 space-y-8">
       <UserCountGrid />
-      <div className="grid gap-8 md:grid-cols-3">
+      <div className="grid gap-8 grid-cols-1 xl:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <CardTitle>Listener Summary</CardTitle>

@@ -25,9 +25,9 @@ export default function Navbar() {
   };
 
   return (
-    <header className="border-b z-50 relative">
-      <div className="header relative z-20">
-        <div className="mx-auto px-4 py-4 flex items-center justify-between w-full h-16">
+    <header className="relative">
+      <div className="header relative">
+        <div className="mx-auto px-4 py-4 flex items-center justify-between w-full h-[3.8rem]">
           {/* Logo Section */}
           <div className="flex items-center gap-2">
             <Image
@@ -43,7 +43,7 @@ export default function Navbar() {
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex md:flex-row md:items-center gap-6 z-20">
+          <div className="hidden md:flex md:flex-row md:items-center gap-6 z-40">
             <nav className="flex flex-row items-center gap-6 px-4">
               <Link
                 href="/"
@@ -55,9 +55,9 @@ export default function Navbar() {
               </Link>
               {role === "ADMIN" && (
                 <Link
-                  href="/dashboard"
+                  href="/insights"
                   className={`text-sm font-medium text-white ${
-                    router.pathname === "/dashboard" ? "underline" : ""
+                    router.pathname === "/insights" ? "underline" : ""
                   }`}
                 >
                   Dashboard
@@ -182,7 +182,7 @@ export default function Navbar() {
         <div
           className={`md:hidden ${
             isMenuOpen ? "block" : "hidden"
-          } absolute w-full bg-black`}
+          } absolute w-full bg-black z-50`}
         >
           <nav className="flex flex-col items-center gap-6 px-4">
             <Link
@@ -211,7 +211,7 @@ export default function Navbar() {
             </Link>
 
             {/* Mobile Dropdown for Services */}
-            <div className="relative">
+            <div className="relative !z-[9999]">
               <button
                 onClick={toggleServicesDropdown}
                 className={`text-sm font-medium text-white ${

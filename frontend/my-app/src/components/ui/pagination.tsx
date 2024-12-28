@@ -17,7 +17,7 @@ export default function Pagination({
         className={`px-4 py-2 rounded ${
           currentPage === 1
             ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-            : "bg-blue-500 text-white hover:bg-blue-600"
+            : "bg-green-500 text-white hover:bg-green-600"
         }`}
       >
         Previous
@@ -31,7 +31,7 @@ export default function Pagination({
         className={`px-4 py-2 rounded ${
           currentPage === totalPages
             ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-            : "bg-blue-500 text-white hover:bg-blue-600"
+            : "bg-green-500 text-white hover:bg-green-600"
         }`}
       >
         Next

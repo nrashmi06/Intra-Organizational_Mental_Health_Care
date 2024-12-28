@@ -17,7 +17,7 @@ import {
 import Image from "next/image";
 
 const routes = [
-  { label: "Home", icon: LayoutDashboard, href: "/analytics" },
+  { label: "Insights", icon: LayoutDashboard, href: "/insights" },
   { label: "Scheduler", icon: Calendar, href: "/dashboard/scheduler" },
   { label: "Listener", icon: Headphones, href: "/dashboard/listener" },
   { label: "User", icon: Users, href: "/dashboard/user" },

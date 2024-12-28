@@ -43,14 +43,14 @@ function UserCountGrid() {
   }, [token]);
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
       <Card className="bg-green-50">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle>Accounts</CardTitle>
           <User className="h-4 w-4 " />
         </CardHeader>
         <CardContent>
-          <div className="text-sm ">Total active accounts: {totalCount}</div>
+          <div className="text-sm ">Active accounts: {totalCount}</div>
         </CardContent>
       </Card>
       <Card className="bg-pink-50">

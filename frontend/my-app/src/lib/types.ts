@@ -38,7 +38,7 @@ export interface Listener {
 }
 
 export interface User {
-  id: string;
+  userId: string;
   anonymousName: string;
   email: string;
   active: boolean;
@@ -157,4 +157,15 @@ export interface PaginationInfo {
   last: boolean;
   first: boolean;
 }
-
+export interface Article {
+  id: number;
+  title: string;
+  publishDate: string;
+  viewCount: number;
+  userId: number;
+  imageUrl: string;
+  content: string;
+  summary: string;
+  likedByCurrentUser: boolean;
+  likeCount: number;
+}
