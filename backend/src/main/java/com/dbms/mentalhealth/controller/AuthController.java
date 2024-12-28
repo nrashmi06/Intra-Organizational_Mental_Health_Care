@@ -19,6 +19,7 @@ import com.dbms.mentalhealth.urlMapper.UserUrlMapping;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -71,7 +72,7 @@ public class AuthController {
             response.addCookie(refreshTokenCookie);
 
             return ResponseEntity.ok()
-                    .header("Authorization", "Bearer " + accessToken)
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
                     .body(responseDTO);
         } catch (InvalidUserCredentialsException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
@@ -151,7 +152,7 @@ public class AuthController {
             response.addCookie(refreshTokenCookie);
 
             return ResponseEntity.ok()
-                    .header("Authorization", "Bearer " + newAccessToken)
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + newAccessToken)
                     .body(responseDTO);
         } catch (RefreshTokenException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
