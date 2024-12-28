@@ -7,6 +7,7 @@ import { useRouter } from "next/router";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "@/service/user/Logout";
 import { RootState } from "@/store";
+import { clearHelplines } from "@/store/emergencySlice";
 
 type NavbarProps = {
   children?: React.ReactNode;
@@ -19,9 +20,10 @@ export default function Navbar({ children }: NavbarProps) {
 
   const handleLogout = async () => {
     try {
+      console.log("Logging out... with token : ", token);
       await router.push("/signin");
       await logout(token);
-      dispatch(clearUser());
+      dispatch(clearUser() ,clearHelplines());
 
       // Only clear the user state after navigation is complete
     } catch (error) {

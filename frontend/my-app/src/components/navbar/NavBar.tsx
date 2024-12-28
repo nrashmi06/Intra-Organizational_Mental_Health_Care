@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { clearUser } from "@/store/authSlice";
 import { logout } from "@/service/user/Logout";
+import { clearHelplines } from "@/store/emergencySlice";
 
 export default function Navbar() {
   const router = useRouter();
@@ -21,7 +22,7 @@ export default function Navbar() {
   const handleLogout = () => {
     router.push("/signin");
     logout(user.accessToken);
-    dispatch(clearUser());
+    dispatch(clearUser(), clearHelplines());
   };
 
   return (

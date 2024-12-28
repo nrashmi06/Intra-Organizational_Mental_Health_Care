@@ -185,3 +185,10 @@ export interface TimeSlotProps {
   isToday: boolean;
   onSelectSlot: (date: Date, hour: number) => void;
 }
+export interface Helpline {
+  name: string;
+  phoneNumber: string;
+  countryCode: string;
+  emergencyType: string;
+  priority: number;
+}
