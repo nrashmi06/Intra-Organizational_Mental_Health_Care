@@ -1,4 +1,4 @@
-package com.dbms.mentalhealth.dto.SessionReport;
+package com.dbms.mentalhealth.dto.SessionReport.response;
 
 import lombok.Data;
 import java.time.LocalDateTime;

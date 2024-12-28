@@ -1,7 +1,7 @@
 package com.dbms.mentalhealth.util.Etags;
 
-import com.dbms.mentalhealth.dto.SessionReport.SessionReportResponseDTO;
-import com.dbms.mentalhealth.dto.SessionReport.SessionReportSummaryResponseDTO;
+import com.dbms.mentalhealth.dto.SessionReport.response.SessionReportResponseDTO;
+import com.dbms.mentalhealth.dto.SessionReport.response.SessionReportSummaryResponseDTO;
 import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Objects;

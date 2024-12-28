@@ -1,8 +1,8 @@
 package com.dbms.mentalhealth.controller;
 
-import com.dbms.mentalhealth.dto.session.request.SessionReportRequestDTO;
-import com.dbms.mentalhealth.dto.SessionReport.SessionReportResponseDTO;
-import com.dbms.mentalhealth.dto.SessionReport.SessionReportSummaryResponseDTO;
+import com.dbms.mentalhealth.dto.SessionReport.request.SessionReportRequestDTO;
+import com.dbms.mentalhealth.dto.SessionReport.response.SessionReportResponseDTO;
+import com.dbms.mentalhealth.dto.SessionReport.response.SessionReportSummaryResponseDTO;
 import com.dbms.mentalhealth.service.SessionReportService;
 import com.dbms.mentalhealth.urlMapper.SessionReportUrlMapping;
 import com.dbms.mentalhealth.util.Etags.SessionReportETagGenerator;

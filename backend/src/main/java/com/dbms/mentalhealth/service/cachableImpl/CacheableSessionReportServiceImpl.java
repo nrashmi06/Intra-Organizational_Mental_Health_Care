@@ -1,10 +1,13 @@
 package com.dbms.mentalhealth.service.cachableImpl;
 
-import com.dbms.mentalhealth.dto.session.request.SessionReportRequestDTO;
-import com.dbms.mentalhealth.dto.SessionReport.SessionReportResponseDTO;
-import com.dbms.mentalhealth.dto.SessionReport.SessionReportSummaryResponseDTO;
+import com.dbms.mentalhealth.dto.SessionReport.request.SessionReportRequestDTO;
+import com.dbms.mentalhealth.dto.SessionReport.response.SessionReportResponseDTO;
+import com.dbms.mentalhealth.dto.SessionReport.response.SessionReportSummaryResponseDTO;
 import com.dbms.mentalhealth.service.SessionReportService;
 import com.dbms.mentalhealth.service.impl.SessionReportServiceImpl;
+import com.dbms.mentalhealth.util.Cache.CacheKey.SessionReportCacheKey;
+import com.dbms.mentalhealth.util.Cache.KeyEnum.SessionReportKeyType;
+import com.dbms.mentalhealth.util.Cache.CacheUtils;
 import com.github.benmanes.caffeine.cache.Cache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,49 +20,47 @@ import java.util.List;
 @Service
 @Primary
 public class CacheableSessionReportServiceImpl implements SessionReportService {
-
-    private static final String CACHE_VERSION = "v1";
-    private final SessionReportServiceImpl sessionReportServiceImpl;
-    private final Cache<Integer, SessionReportResponseDTO> sessionReportCache;
-    private final Cache<String, List<SessionReportResponseDTO>> sessionReportListCache;
-    private final Cache<String, SessionReportSummaryResponseDTO> sessionReportSummaryCache;
     private static final Logger logger = LoggerFactory.getLogger(CacheableSessionReportServiceImpl.class);
+    private final SessionReportServiceImpl sessionReportServiceImpl;
+    private final Cache<SessionReportCacheKey, SessionReportResponseDTO> reportCache;
+    private final Cache<SessionReportCacheKey, List<SessionReportResponseDTO>> reportListCache;
+    private final Cache<SessionReportCacheKey, SessionReportSummaryResponseDTO> reportSummaryCache;
 
-    public CacheableSessionReportServiceImpl(SessionReportServiceImpl sessionReportServiceImpl, Cache<Integer, SessionReportResponseDTO> sessionReportCache, Cache<String, List<SessionReportResponseDTO>> sessionReportListCache, Cache<String, SessionReportSummaryResponseDTO> sessionReportSummaryCache) {
+    public CacheableSessionReportServiceImpl(
+            SessionReportServiceImpl sessionReportServiceImpl,
+            Cache<SessionReportCacheKey, SessionReportResponseDTO> reportCache,
+            Cache<SessionReportCacheKey, List<SessionReportResponseDTO>> reportListCache,
+            Cache<SessionReportCacheKey, SessionReportSummaryResponseDTO> reportSummaryCache) {
         this.sessionReportServiceImpl = sessionReportServiceImpl;
-        this.sessionReportCache = sessionReportCache;
-        this.sessionReportListCache = sessionReportListCache;
-        this.sessionReportSummaryCache = sessionReportSummaryCache;
+        this.reportCache = reportCache;
+        this.reportListCache = reportListCache;
+        this.reportSummaryCache = reportSummaryCache;
         logger.info("CacheableSessionReportServiceImpl initialized with cache stats enabled");
     }
 
-    // Cache key generators
-    private String generateSessionReportListCacheKey(String type, Integer id) {
-        return String.format("%s:session_report:%s:%d", CACHE_VERSION, type, id);
-    }
-
-    private String generateSessionReportSummaryCacheKey() {
-        return String.format("%s:session_report:summary", CACHE_VERSION);
+    private void invalidateAllCaches() {
+        reportCache.invalidateAll();
+        reportListCache.invalidateAll();
+        logger.debug("Invalidated all caches");
     }
 
     @Override
     @Transactional
     public SessionReportResponseDTO createReport(SessionReportRequestDTO requestDTO) {
         SessionReportResponseDTO response = sessionReportServiceImpl.createReport(requestDTO);
-        sessionReportCache.put(response.getReportId(), response);
-        sessionReportListCache.invalidateAll();
-        sessionReportSummaryCache.invalidateAll();
-        logger.info("Cached new session report and invalidated list and summary caches after report creation");
+        reportCache.put(new SessionReportCacheKey(response.getReportId(), SessionReportKeyType.REPORT), response);
+        invalidateAllCaches();
+        logger.info("Added new report to cache and invalidated all caches for report ID: {}", response.getReportId());
         return response;
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<SessionReportResponseDTO> getReportBySessionId(Integer sessionId) {
-        String cacheKey = generateSessionReportListCacheKey("session", sessionId);
-        logger.info("Cache lookup for session report with key: {}", cacheKey);
+        SessionReportCacheKey cacheKey = new SessionReportCacheKey(sessionId, SessionReportKeyType.SESSION_REPORT);
+        logger.info("Cache lookup for session report with ID: {}", sessionId);
 
-        return sessionReportListCache.get(cacheKey, k -> {
+        return reportListCache.get(cacheKey, k -> {
             logger.debug("Cache MISS - Fetching report from database for session ID: {}", sessionId);
             return sessionReportServiceImpl.getReportBySessionId(sessionId);
         });
@@ -68,8 +69,10 @@ public class CacheableSessionReportServiceImpl implements SessionReportService {
     @Override
     @Transactional(readOnly = true)
     public SessionReportResponseDTO getReportById(Integer reportId) {
+        SessionReportCacheKey cacheKey = new SessionReportCacheKey(reportId, SessionReportKeyType.REPORT);
         logger.info("Cache lookup for report ID: {}", reportId);
-        return sessionReportCache.get(reportId, k -> {
+
+        return reportCache.get(cacheKey, k -> {
             logger.debug("Cache MISS - Fetching report from database for ID: {}", reportId);
             return sessionReportServiceImpl.getReportById(reportId);
         });
@@ -78,11 +81,11 @@ public class CacheableSessionReportServiceImpl implements SessionReportService {
     @Override
     @Transactional(readOnly = true)
     public List<SessionReportResponseDTO> getAllUserReports(Integer userId) {
-        String cacheKey = generateSessionReportListCacheKey("user", userId);
-        logger.info("Cache lookup for user report with key: {}", cacheKey);
+        SessionReportCacheKey cacheKey = new SessionReportCacheKey(userId, SessionReportKeyType.USER_REPORT);
+        logger.info("Cache lookup for user reports with ID: {}", userId);
 
-        return sessionReportListCache.get(cacheKey, k -> {
-            logger.debug("Cache MISS - Fetching report from database for user ID: {}", userId);
+        return reportListCache.get(cacheKey, k -> {
+            logger.debug("Cache MISS - Fetching reports from database for user ID: {}", userId);
             return sessionReportServiceImpl.getAllUserReports(userId);
         });
     }
@@ -90,19 +93,18 @@ public class CacheableSessionReportServiceImpl implements SessionReportService {
     @Override
     @Transactional(readOnly = true)
     public SessionReportSummaryResponseDTO getReportSummary() {
-        String cacheKey = generateSessionReportSummaryCacheKey();
-        logger.info("Cache lookup for report summary with key: {}", cacheKey);
+        SessionReportCacheKey cacheKey = new SessionReportCacheKey("summary", SessionReportKeyType.SUMMARY);
+        logger.info("Cache lookup for report summary");
 
-        return sessionReportSummaryCache.get(cacheKey, k -> {
+        return reportSummaryCache.get(cacheKey, k -> {
             logger.debug("Cache MISS - Fetching report summary from database");
             return sessionReportServiceImpl.getReportSummary();
         });
     }
 
     public void logCacheStats() {
-        logger.info("Current Cache Statistics:");
-        logger.info("Session Report Cache - Size: {}", sessionReportCache.stats());
-        logger.info("Session Report List Cache - Size: {}", sessionReportListCache.stats());
-        logger.info("Session Report Summary Cache - Size: {}", sessionReportSummaryCache.stats());
+        CacheUtils.logCacheStats(reportCache);
+        CacheUtils.logCacheStats(reportListCache);
+        CacheUtils.logCacheStats(reportSummaryCache);
     }
 }

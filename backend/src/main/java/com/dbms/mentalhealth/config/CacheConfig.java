@@ -14,8 +14,8 @@ import com.dbms.mentalhealth.dto.listenerApplication.response.ListenerApplicatio
 import com.dbms.mentalhealth.dto.listenerApplication.response.ListenerApplicationSummaryResponseDTO;
 import com.dbms.mentalhealth.dto.session.response.SessionResponseDTO;
 import com.dbms.mentalhealth.dto.session.response.SessionSummaryDTO;
-import com.dbms.mentalhealth.dto.SessionReport.SessionReportResponseDTO;
-import com.dbms.mentalhealth.dto.SessionReport.SessionReportSummaryResponseDTO;
+import com.dbms.mentalhealth.dto.SessionReport.response.SessionReportResponseDTO;
+import com.dbms.mentalhealth.dto.SessionReport.response.SessionReportSummaryResponseDTO;
 import com.dbms.mentalhealth.dto.sessionFeedback.response.SessionFeedbackResponseDTO;
 import com.dbms.mentalhealth.dto.sessionFeedback.response.SessionFeedbackSummaryResponseDTO;
 import com.dbms.mentalhealth.model.Session;
@@ -214,43 +214,43 @@ public class CacheConfig {
 
     // Session feedback caches
     @Bean
-    public Cache<Integer, SessionFeedbackResponseDTO> sessionFeedbackCache() {
+    public Cache<SessionFeedbackCacheKey, SessionFeedbackResponseDTO> feedbackCache() {
         return createStandardBuilder()
                 .maximumSize(STANDARD_CACHE_SIZE)
                 .build();
     }
 
     @Bean
-    public Cache<String, List<SessionFeedbackResponseDTO>> sessionFeedbackListCache() {
+    public Cache<SessionFeedbackCacheKey, List<SessionFeedbackResponseDTO>> feedbackListCache() {
         return createListBuilder()
                 .maximumSize(SMALL_CACHE_SIZE)
                 .build();
     }
 
     @Bean
-    public Cache<String, SessionFeedbackSummaryResponseDTO> sessionFeedbackSummaryCache() {
-        return createListBuilder()
+    public Cache<SessionFeedbackCacheKey, SessionFeedbackSummaryResponseDTO> feedbackSummaryCache() {
+        return Caffeine.newBuilder()
+                .recordStats()
                 .maximumSize(TINY_CACHE_SIZE)
                 .build();
     }
-
     // Session report caches
     @Bean
-    public Cache<Integer, SessionReportResponseDTO> sessionReportCache() {
+    public Cache<SessionReportCacheKey, SessionReportResponseDTO> sessionReportCache() {
         return createStandardBuilder()
                 .maximumSize(STANDARD_CACHE_SIZE)
                 .build();
     }
 
     @Bean
-    public Cache<String, List<SessionReportResponseDTO>> sessionReportListCache() {
+    public Cache<SessionReportCacheKey, List<SessionReportResponseDTO>> sessionReportListCache() {
         return createListBuilder()
                 .maximumSize(SMALL_CACHE_SIZE)
                 .build();
     }
 
     @Bean
-    public Cache<String, SessionReportSummaryResponseDTO> sessionReportSummaryCache() {
+    public Cache<SessionReportCacheKey, SessionReportSummaryResponseDTO> sessionReportSummaryCache() {
         return createListBuilder()
                 .maximumSize(SMALL_CACHE_SIZE)
                 .build();
