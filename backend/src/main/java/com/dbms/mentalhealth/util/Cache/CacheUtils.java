@@ -34,6 +34,6 @@ public class CacheUtils {
     }
 
     public static void logCacheStats(Cache<?, ?> cache) {
-        logger.info("Cache - Size: {}", cache.estimatedSize());
+        logger.info("Cache - status: {}", cache.stats());
     }
 }

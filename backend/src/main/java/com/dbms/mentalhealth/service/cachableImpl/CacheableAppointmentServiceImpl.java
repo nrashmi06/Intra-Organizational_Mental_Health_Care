@@ -111,6 +111,8 @@ public class CacheableAppointmentServiceImpl implements AppointmentService {
         });
     }
 
+
+
     @Override
     public void updateAppointmentStatus(Integer appointmentId, String status, String cancellationReason) {
         // Retrieve the appointment details before invalidating the cache
@@ -119,19 +121,21 @@ public class CacheableAppointmentServiceImpl implements AppointmentService {
         // Update the appointment status in the service implementation
         appointmentServiceImpl.updateAppointmentStatus(appointmentId, status, cancellationReason);
 
-        // Invalidate the appointment cache
-        AppointmentCacheKey cacheKey = new AppointmentCacheKey(appointmentId, AppointmentKeyType.APPOINTMENT);
-        appointmentCache.invalidate(cacheKey);
+        // Invalidate all relevant caches
+        AppointmentCacheKey appointmentKey = new AppointmentCacheKey(appointmentId, AppointmentKeyType.APPOINTMENT);
+        appointmentCache.invalidate(appointmentKey);
 
         if (appointment != null) {
-            // Invalidate related caches
-            invalidateUserAndAdminCaches(appointment.getUserId(), appointment.getAdminId());
+            // Invalidate the old status cache
+            appointmentListCache.invalidate(new AppointmentCacheKey(appointment.getStatus(), AppointmentKeyType.ADMIN_STATUS_APPOINTMENTS));
+            // Invalidate the new status cache
             appointmentListCache.invalidate(new AppointmentCacheKey(status, AppointmentKeyType.ADMIN_STATUS_APPOINTMENTS));
+            // Invalidate user and admin caches
+            invalidateUserAndAdminCaches(appointment.getUserId(), appointment.getAdminId());
         }
 
         logger.info("Updated appointment status and invalidated related caches for appointmentId: {}", appointmentId);
     }
-
     @Override
     @Transactional
     public void cancelAppointment(Integer appointmentId, String cancellationReason) {
@@ -164,8 +168,12 @@ public class CacheableAppointmentServiceImpl implements AppointmentService {
     @Override
     @Transactional(readOnly = true)
     public List<AppointmentSummaryResponseDTO> getAppointmentsByAdminStatus(String status) {
-        logger.info("Fetching appointments by admin status: {}", status);
-        return appointmentServiceImpl.getAppointmentsByAdminStatus(status);
+        AppointmentCacheKey cacheKey = new AppointmentCacheKey(status, AppointmentKeyType.ADMIN_STATUS_APPOINTMENTS);
+        logger.info("Cache lookup for appointments with status: {}", status);
+        return appointmentListCache.get(cacheKey, k -> {
+            logger.info("Cache MISS - Fetching appointments from database for status: {}", status);
+            return appointmentServiceImpl.getAppointmentsByAdminStatus(status);
+        });
     }
 
     public void logCacheStats() {

@@ -20,9 +20,7 @@ import com.dbms.mentalhealth.dto.sessionFeedback.response.SessionFeedbackRespons
 import com.dbms.mentalhealth.dto.sessionFeedback.response.SessionFeedbackSummaryResponseDTO;
 import com.dbms.mentalhealth.model.Session;
 import com.dbms.mentalhealth.service.UserActivityService;
-import com.dbms.mentalhealth.util.Cache.CacheKey.AdminCacheKey;
-import com.dbms.mentalhealth.util.Cache.CacheKey.AppointmentCacheKey;
-import com.dbms.mentalhealth.util.Cache.CacheKey.EmergencyHelplineCacheKey;
+import com.dbms.mentalhealth.util.Cache.CacheKey.*;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.slf4j.Logger;
@@ -260,28 +258,34 @@ public class CacheConfig {
 
     // Listener related caches
     @Bean
-    public Cache<String, ListenerApplicationResponseDTO> listenerApplicationCache() {
+    public Cache<ListenerApplicationCacheKey, ListenerApplicationResponseDTO> listenerApplicationCache() {
         return createStandardBuilder()
                 .maximumSize(STANDARD_CACHE_SIZE)
                 .build();
     }
 
     @Bean
-    public Cache<String, List<ListenerApplicationSummaryResponseDTO>> listenerApplicationListCache() {
+    public Cache<ListenerApplicationCacheKey, List<ListenerApplicationSummaryResponseDTO>> listenerApplicationListCache() {
         return createListBuilder()
                 .maximumSize(SMALL_CACHE_SIZE)
                 .build();
     }
 
     @Bean
-    public Cache<String, ListenerDetailsResponseDTO> listenerDetailsCache() {
+    public Cache<ListenerApplicationCacheKey, ListenerDetailsResponseDTO> listenerDetailsFromListenerApplicationCache() {
         return createStandardBuilder()
                 .maximumSize(STANDARD_CACHE_SIZE)
                 .build();
     }
 
     @Bean
-    public Cache<String, List<UserActivityDTO>> listenerListCache() {
+    public Cache<ListenerCacheKey,ListenerDetailsResponseDTO> listenerDetailsCache(){
+        return createStandardBuilder()
+                .maximumSize(STANDARD_CACHE_SIZE)
+                .build();
+    }
+    @Bean
+    public Cache<ListenerCacheKey, List<UserActivityDTO>> listenerListCache() {
         return createListBuilder()
                 .maximumSize(SMALL_CACHE_SIZE)
                 .build();
