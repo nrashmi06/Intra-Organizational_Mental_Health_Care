@@ -176,14 +176,14 @@ public class CacheConfig {
 
     // Session related caches
     @Bean
-    public Cache<String, SessionResponseDTO> sessionCache() {
+    public Cache<SessionCacheKey, SessionResponseDTO> sessionCache() {
         return createStandardBuilder()
                 .maximumSize(STANDARD_CACHE_SIZE)
                 .build();
     }
 
     @Bean
-    public Cache<String, List<SessionSummaryDTO>> sessionListCache() {
+    public Cache<SessionCacheKey, List<SessionSummaryDTO>> sessionListCache() {
         return createListBuilder()
                 .maximumSize(SMALL_CACHE_SIZE)
                 .build();
@@ -199,14 +199,14 @@ public class CacheConfig {
 
     // Chat and metrics caches
     @Bean
-    public Cache<String, List<ChatMessageDTO>> chatMessageCache() {
+    public Cache<SessionCacheKey, List<ChatMessageDTO>> chatMessageCache() {
         return createListBuilder()
                 .maximumSize(STANDARD_CACHE_SIZE)
                 .build();
     }
 
     @Bean
-    public Cache<String, String> metricsCache() {
+    public Cache<SessionCacheKey, String> metricsCache() {
         return createListBuilder()
                 .maximumSize(TINY_CACHE_SIZE)
                 .build();
