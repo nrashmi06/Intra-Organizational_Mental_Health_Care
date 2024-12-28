@@ -29,7 +29,7 @@ export default function Navbar() {
   return (
     <header className="z-20 relative">
       <div className="header">
-        <div className="mx-auto px-4 py-4 flex items-center justify-between w-full h-[3.8rem]">
+        <div className="mx-auto px-4 py-4 flex items-center justify-between w-full h-[3.7rem]">
           {/* Logo Section */}
           <div className="flex items-center gap-2">
             <Image
