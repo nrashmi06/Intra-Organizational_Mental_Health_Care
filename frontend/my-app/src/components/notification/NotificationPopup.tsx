@@ -1,8 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/store";
-import { X, MessageCircle } from "lucide-react"; // Import icons
-import { clearNotifications } from "@/store/notificationSlice";
+import { X, MessageCircle, RotateCcw } from "lucide-react";
+import {
+  clearNotifications,
+  hidePopup,
+  showPopup,
+  clearStoredRequest
+} from "@/store/notificationSlice";
 import { replyNotification } from "@/service/session/replyNotification";
 import { useRouter } from "next/router";
 import { setSessionId } from "@/store/chatSlice";
@@ -12,7 +17,13 @@ const NotificationPopup: React.FC = () => {
   const dispatch = useDispatch();
   const router = useRouter();
   const notifications = useSelector(
-    (state: RootState) => state.notification.notifications
+    (state: RootState) => state.notification.visibleNotifications
+  );
+  const storedRequest = useSelector(
+    (state: RootState) => state.notification.storedSessionRequest
+  );
+  const isPopupVisible = useSelector(
+    (state: RootState) => state.notification.isPopupVisible
   );
   const role = useSelector((state: RootState) => state.auth.role);
   const accessToken = useSelector((state: RootState) => state.auth.accessToken);
@@ -21,14 +32,24 @@ const NotificationPopup: React.FC = () => {
   );
 
   useEffect(() => {
-    if (notifications.length > 0) {
-      const audio = new Audio("/pop.mp3"); 
+    if (notifications.length > 0 && isPopupVisible) {
+      const audio = new Audio("/pop.mp3");
       audio.play().catch((err) => console.error("Failed to play sound:", err));
     }
-  }, [notifications]);
+  }, [notifications, isPopupVisible]);
 
   const handleClose = () => {
-    dispatch(clearNotifications());
+    const currentNotification = notifications[0];
+    if (currentNotification && currentNotification.message.includes("User ID:") &&
+        !currentNotification.message.includes("accepted") &&
+        !currentNotification.message.includes("rejected") &&
+        !currentNotification.message.includes("ended")) {
+      // Only hide the popup for session requests
+      dispatch(hidePopup());
+    } else {
+      // Clear everything for other types of notifications
+      dispatch(clearNotifications());
+    }
     setShowOkButton({});
   };
 
@@ -42,10 +63,15 @@ const NotificationPopup: React.FC = () => {
         console.error("Authorization token or senderId is missing.");
         return;
       }
-      dispatch(clearNotifications());
 
       const response = await replyNotification(senderId, action, accessToken);
       console.log(`Session ${action} response:`, response);
+
+      // Clear everything as the request has been handled
+      dispatch(clearStoredRequest());
+      if(action === "reject") {
+        dispatch(clearNotifications());
+      }
 
       const sessionIdMatch = message.match(/Session ID:(\d+)/);
       if (sessionIdMatch && sessionIdMatch[1]) {
@@ -85,6 +111,7 @@ const NotificationPopup: React.FC = () => {
     const sessionIdMatch = message.match(/Session ID:(\d+)/);
     if (sessionIdMatch && sessionIdMatch[1]) {
       const sessionID = sessionIdMatch[1];
+      dispatch(clearStoredRequest());
       dispatch(clearNotifications());
       dispatch(setSessionId(sessionID));
       router.push(`/chat/${sessionID}`);
@@ -100,11 +127,9 @@ const NotificationPopup: React.FC = () => {
     } else if (message.includes("accepted")) {
       return {
         title: "Session Request Accepted",
-        details:
-          "",
+        details: "",
       };
-    }
-    else if (message.includes("ended")){
+    } else if (message.includes("ended")) {
       return {
         title: "Session Ended",
         details: "",
@@ -116,15 +141,22 @@ const NotificationPopup: React.FC = () => {
     };
   };
 
-  if (notifications.length === 0) return null;
+  if (!isPopupVisible || notifications.length === 0) return null;
 
   return (
-    <div className="fixed bottom-5 right-5 flex items-end justify-end z-[9999]">
-      <div
-        className="relative bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 p-6 rounded-lg shadow-lg w-80 
-        backdrop-blur-sm border border-gray-300 space-y-4 animate-slide-in-up"
-      >
-        {/* Header */}
+    <div className="fixed bottom-5 right-5 flex flex-col items-end justify-end z-[9999] space-y-2">
+      {/* Restore button - only show if there's a stored request and popup is hidden */}
+      {!isPopupVisible && storedRequest && (
+        <button
+          onClick={() => dispatch(showPopup())}
+          className="bg-purple-500 hover:bg-purple-600 text-white p-2 rounded-full shadow-lg"
+          aria-label="Restore notification"
+        >
+          <RotateCcw size={20} />
+        </button>
+      )}
+
+      <div className="relative bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 p-6 rounded-lg shadow-lg w-80 backdrop-blur-sm border border-gray-300 space-y-4 animate-slide-in-up">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold text-purple-700">Notification</h3>
           <button
@@ -136,7 +168,6 @@ const NotificationPopup: React.FC = () => {
           </button>
         </div>
 
-        {/* Notifications */}
         {notifications.map((notification, index) => {
           const { message, senderId } = notification;
           const { title, details } = getNotificationContent(message);
@@ -155,7 +186,6 @@ const NotificationPopup: React.FC = () => {
                 </div>
               </div>
 
-              {/* Action buttons */}
               <div className="mt-4 space-y-2">
                 {sessionIdMatch && !isSessionEnded && (
                   <button
@@ -172,17 +202,13 @@ const NotificationPopup: React.FC = () => {
                   !isOkVisible && (
                     <div className="flex justify-between space-x-2">
                       <button
-                        onClick={() =>
-                          handleAction("accept", senderId, message)
-                        }
+                        onClick={() => handleAction("accept", senderId, message)}
                         className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg font-medium"
                       >
                         Accept
                       </button>
                       <button
-                        onClick={() =>
-                          handleAction("reject", senderId, message)
-                        }
+                        onClick={() => handleAction("reject", senderId, message)}
                         className="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg font-medium"
                       >
                         Reject

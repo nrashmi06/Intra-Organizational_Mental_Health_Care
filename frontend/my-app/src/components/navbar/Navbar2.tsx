@@ -6,6 +6,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store"; // Import RootState to access Redux state
 import { clearUser } from "@/store/authSlice";
 import { logout } from "@/service/user/Logout";
+import {
+  clearNotifications,
+  clearStoredRequest,
+} from "@/store/notificationSlice";
 
 export default function Navbar() {
   const router = useRouter();
@@ -21,9 +25,11 @@ export default function Navbar() {
     setIsServicesDropdownOpen(!isServicesDropdownOpen);
 
   const handleLogout = async () => {
+    await router.push("/signin");
     dispatch(clearUser()); // Clear user data from Redux state
-    await logout(user.accessToken); // Call the logout API
-    router.push("/signin"); // Redirect to the sign-in page
+    logout(user.accessToken); // Call the logout API
+    dispatch(clearNotifications());
+    dispatch(clearStoredRequest());
   };
 
   return (

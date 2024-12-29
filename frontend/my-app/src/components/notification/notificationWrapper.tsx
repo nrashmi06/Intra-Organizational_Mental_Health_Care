@@ -4,6 +4,7 @@ import { RootState } from '@/store';
 import { setNotification } from '@/store/notificationSlice';
 import { subscribeToNotifications } from '@/service/notification/subscribeNotification';
 import NotificationPopup from '@/components/notification/NotificationPopup';
+import NotificationBell from './NotificationBell';
 
 
 const NotificationWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -33,6 +34,7 @@ const NotificationWrapper: React.FC<{ children: React.ReactNode }> = ({ children
     <>
       <NotificationPopup />
       {children}
+      <NotificationBell />
     </>
   );
 };

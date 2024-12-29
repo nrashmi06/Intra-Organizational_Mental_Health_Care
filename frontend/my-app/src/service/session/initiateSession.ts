@@ -20,6 +20,7 @@ export const initiateSession = async (
         },
       }
     );
+    console.log("Session initiated:", response);
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {

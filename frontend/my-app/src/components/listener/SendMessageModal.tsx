@@ -24,15 +24,18 @@ const SendMessageModal: React.FC<{
     setIsSending(true);
     try {
       const response = await initiateSession(userId, message, token);
-      if (response) {
-        setAlert("Message sent successfully!");
-        setMessage("");
+      if (response.status === 200) {
+        setMessage(response.data);
+        setAlert(response.data)
         setTimeout(() => {
           setAlert("");
           closeModal();
         }, 3000);
-      } else {
-        setAlert("Unfortunately, the listener went offline. Please try again.");
+      } else if(response.status===500) {
+        setAlert("Listener is already in a session. Please try later.");
+      }
+      else{
+        setAlert(response.statusText);
       }
     } catch (error) {
       console.error("Error sending message:", error);
