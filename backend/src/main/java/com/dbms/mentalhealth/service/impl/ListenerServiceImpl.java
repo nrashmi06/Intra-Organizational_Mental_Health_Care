@@ -67,16 +67,14 @@ public class ListenerServiceImpl implements ListenerService {
             }
         }
 
-        // Normalize search term - modified logic
-        String normalizedSearch = null;
-        if (searchTerm != null) {
-            String trimmed = searchTerm.trim();
-            if (!trimmed.isEmpty()) {
-                normalizedSearch = trimmed;
-            }
+        Page<Listener> listeners;
+        if (searchTerm == null || searchTerm.trim().isEmpty()) {
+            listeners = listenerRepository.findListenersWithStatus(profileStatus, pageable);
+        } else {
+            String normalizedSearch = searchTerm.trim();
+            listeners = listenerRepository.findListenersWithFilters(profileStatus, normalizedSearch, pageable);
         }
 
-        Page<Listener> listeners = listenerRepository.findListenersWithFilters(profileStatus, normalizedSearch, pageable);
         return listeners.map(listener -> UserActivityMapper.toUserActivityDTO(listener.getUser()));
     }
 

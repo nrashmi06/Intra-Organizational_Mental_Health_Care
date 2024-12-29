@@ -34,12 +34,4 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     Page<User> findUsersWithFilters(
             @Param("status") ProfileStatus status,
             Pageable pageable);
-    @Query("SELECT u FROM User u WHERE " +
-            "u.role = 'USER' AND " +
-            "u.userId = :userId AND " +
-            "(:status IS NULL OR u.profileStatus = :status)")
-    Page<User> findUsersByIdAndFilters(
-            @Param("userId") Integer userId,
-            @Param("status") ProfileStatus status,
-            Pageable pageable);
 }

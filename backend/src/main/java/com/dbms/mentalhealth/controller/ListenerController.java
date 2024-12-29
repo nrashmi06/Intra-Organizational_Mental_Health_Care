@@ -73,10 +73,6 @@ public class ListenerController {
         try {
             Page<UserActivityDTO> listeners = listenerService.getListenersByFilters(status, search, pageable);
 
-            if (listeners.isEmpty()) {
-                return ResponseEntity.noContent().build();
-            }
-
             String eTag = eTagGenerator.generatePageETag(listeners);
             if (ifNoneMatch != null && !ifNoneMatch.trim().isEmpty() && eTag.equals(ifNoneMatch)) {
                 return ResponseEntity.status(HttpStatus.NOT_MODIFIED)

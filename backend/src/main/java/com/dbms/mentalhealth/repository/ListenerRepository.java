@@ -16,10 +16,16 @@ import java.util.Optional;
 public interface ListenerRepository extends JpaRepository<Listener, Integer> {
     @Query("""
             SELECT l FROM Listener l JOIN l.user u WHERE
-            (:status IS NULL OR u.profileStatus = :status) AND 
-            (:search IS NULL OR
-            LOWER(u.anonymousName) LIKE LOWER(CONCAT('%', :search, '%')) OR
-            CAST(u.userId AS string) LIKE CONCAT('%', :search, '%'))
+            (:status IS NULL OR u.profileStatus = :status)
+            """)
+    Page<Listener> findListenersWithStatus(
+            @Param("status") ProfileStatus status,
+            Pageable pageable);
+
+    @Query("""
+            SELECT l FROM Listener l JOIN l.user u WHERE
+            (:status IS NULL OR u.profileStatus = :status) AND
+            (LOWER(u.anonymousName) LIKE LOWER(CONCAT('%', :search, '%')))
             """)
     Page<Listener> findListenersWithFilters(
             @Param("status") ProfileStatus status,
