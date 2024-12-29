@@ -1,5 +1,4 @@
 package com.dbms.mentalhealth.controller;
-
 import com.dbms.mentalhealth.dto.listenerApplication.response.ListenerApplicationSummaryResponseDTO;
 import com.dbms.mentalhealth.dto.Listener.response.ListenerDetailsResponseDTO;
 import com.dbms.mentalhealth.dto.listenerApplication.request.ListenerApplicationRequestDTO;
@@ -105,7 +104,7 @@ public class ListenerApplicationController {
                 .body(responseDTO);
     }
 
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_LISTENER')")
+    @PreAuthorize("isAuthenticated()")
     @PutMapping(value = ListenerApplicationUrlMapping.UPDATE_APPLICATION, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ListenerApplicationResponseDTO> updateApplication(
             @PathVariable("applicationId") Integer applicationId,

@@ -1,7 +1,6 @@
-// BlogController.java
 package com.dbms.mentalhealth.controller;
 
-import com.dbms.mentalhealth.dto.blog.TrendingBlogSummaryDTO;
+import com.dbms.mentalhealth.dto.blog.trending.TrendingBlogSummaryDTO;
 import com.dbms.mentalhealth.dto.blog.request.BlogRequestDTO;
 import com.dbms.mentalhealth.dto.blog.response.BlogResponseDTO;
 import com.dbms.mentalhealth.dto.blog.response.BlogSummaryDTO;

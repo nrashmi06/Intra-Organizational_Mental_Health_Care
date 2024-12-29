@@ -1,9 +1,7 @@
 package com.dbms.mentalhealth.dto.Admin.response;
 
 import lombok.Data;
-
 import java.time.LocalDateTime;
-
 @Data
 public class AdminProfileResponseDTO {
     private Integer adminId;

@@ -1,24 +1,26 @@
-// Modified ListenerController.java
 package com.dbms.mentalhealth.controller;
-
 import com.dbms.mentalhealth.dto.Listener.response.ListenerDetailsResponseDTO;
 import com.dbms.mentalhealth.dto.UserActivity.UserActivityDTO;
+import com.dbms.mentalhealth.exception.appointment.InvalidRequestException;
 import com.dbms.mentalhealth.service.ListenerService;
 import com.dbms.mentalhealth.urlMapper.ListenerUrlMapping;
 import com.dbms.mentalhealth.util.Etags.ListenerETagGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 import java.util.Objects;
 
 @RestController
 public class ListenerController {
 
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ListenerController.class);
     private final ListenerService listenerService;
     private final ListenerETagGenerator eTagGenerator;
 
@@ -58,25 +60,32 @@ public class ListenerController {
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping(ListenerUrlMapping.ALL_LISTENERS)
-    public ResponseEntity<List<UserActivityDTO>> getAllListeners(
-            @RequestParam(value = "type", required = false) String type,
+    public ResponseEntity<Page<UserActivityDTO>> getAllListeners(
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String search,
+            @PageableDefault(size = 10, sort = "user.userId", direction = Sort.Direction.DESC) Pageable pageable,
             @RequestHeader(value = HttpHeaders.IF_NONE_MATCH, required = false) String ifNoneMatch) {
 
-        List<UserActivityDTO> listeners = listenerService.getAllListeners(type);
-        if (listeners == null || listeners.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
+        try {
+            Page<UserActivityDTO> listeners = listenerService.getListenersByFilters(status, search, pageable);
 
-        String eTag = eTagGenerator.generateListETag(listeners);
-        if (ifNoneMatch != null && !ifNoneMatch.trim().isEmpty() && eTag.equals(ifNoneMatch)) {
-            return ResponseEntity.status(HttpStatus.NOT_MODIFIED)
+            String eTag = eTagGenerator.generatePageETag(listeners);
+            if (ifNoneMatch != null && !ifNoneMatch.trim().isEmpty() && eTag.equals(ifNoneMatch)) {
+                return ResponseEntity.status(HttpStatus.NOT_MODIFIED)
+                        .header(HttpHeaders.ETAG, eTag)
+                        .build();
+            }
+
+            return ResponseEntity.ok()
                     .header(HttpHeaders.ETAG, eTag)
-                    .build();
+                    .body(listeners);
+        } catch (InvalidRequestException e) {
+            logger.error("Invalid request parameters", e);
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            logger.error("Error fetching listeners", e);
+            return ResponseEntity.internalServerError().build();
         }
-
-        return ResponseEntity.ok()
-                .header(HttpHeaders.ETAG, eTag)
-                .body(listeners);
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")

@@ -130,21 +130,6 @@ public class CacheConfig {
                 .build();
     }
 
-    // Time slot and appointment caches
-    @Bean
-    public Cache<String, TimeSlotResponseDTO> individualTimeSlotCache() {
-        return createListBuilder()
-                .maximumSize(STANDARD_CACHE_SIZE)
-                .build();
-    }
-
-    @Bean
-    public Cache<String, List<TimeSlotResponseDTO>> timeSlotCache() {
-        return createListBuilder()
-                .maximumSize(STANDARD_CACHE_SIZE)
-                .build();
-    }
-
     @Bean
     public Cache<AppointmentCacheKey, AppointmentResponseDTO> appointmentCache() {
         return createListBuilder()
@@ -152,12 +137,6 @@ public class CacheConfig {
                 .build();
     }
 
-    @Bean
-    public Cache<AppointmentCacheKey, List<AppointmentSummaryResponseDTO>> appointmentListCache() {
-        return createListBuilder()
-                .maximumSize(STANDARD_CACHE_SIZE)
-                .build();
-    }
 
     // Emergency helpline caches
     @Bean
@@ -182,12 +161,6 @@ public class CacheConfig {
                 .build();
     }
 
-    @Bean
-    public Cache<SessionCacheKey, List<SessionSummaryDTO>> sessionListCache() {
-        return createListBuilder()
-                .maximumSize(SMALL_CACHE_SIZE)
-                .build();
-    }
 
     @Bean
     public Cache<Integer, Session> ongoingSessionsCache() {
@@ -208,7 +181,7 @@ public class CacheConfig {
     @Bean
     public Cache<SessionCacheKey, String> metricsCache() {
         return createListBuilder()
-                .maximumSize(TINY_CACHE_SIZE)
+                .maximumSize(1)
                 .build();
     }
 
@@ -278,19 +251,6 @@ public class CacheConfig {
                 .build();
     }
 
-    @Bean
-    public Cache<ListenerCacheKey,ListenerDetailsResponseDTO> listenerDetailsCache(){
-        return createStandardBuilder()
-                .maximumSize(STANDARD_CACHE_SIZE)
-                .build();
-    }
-    @Bean
-    public Cache<ListenerCacheKey, List<UserActivityDTO>> listenerListCache() {
-        return createListBuilder()
-                .maximumSize(SMALL_CACHE_SIZE)
-                .build();
-    }
-
     // User related caches
     @Bean
     public Cache<String, UserActivityDTO> userDetailsCache() {
@@ -327,6 +287,13 @@ public class CacheConfig {
                 .expireAfterWrite(10, TimeUnit.MINUTES)  // 10 minute cooldown
                 .maximumSize(10000)  // Adjust based on your needs
                 .recordStats()
+                .build();
+    }
+
+    @Bean
+    public Cache<AppointmentCacheKey, List<AppointmentSummaryResponseDTO>> appointmentListCache() {
+        return createListBuilder()
+                .maximumSize(SMALL_CACHE_SIZE)
                 .build();
     }
 }

@@ -74,36 +74,29 @@ public class AuthTokenFilter extends OncePerRequestFilter {
             String jwt = parseJwt(request);
             logger.debug("Received JWT token: {}", jwt);
 
-            // Important: Don't throw exception for null JWT, let Spring Security handle it
-            if (jwt != null) {
-                if (jwtUtils.validateJwtToken(jwt)) {
-                    String email = jwtUtils.getUserNameFromJwtToken(jwt);
-                    String role = jwtUtils.getRoleFromJwtToken(jwt);
-                    logger.debug("JWT validated for user: {} with role: {}", email, role);
+            if (jwt != null && jwtUtils.validateJwtToken(jwt)) {
+                String email = jwtUtils.getUserNameFromJwtToken(jwt);
+                String role = jwtUtils.getRoleFromJwtToken(jwt);
+                logger.debug("JWT validated for user: {} with role: {}", email, role);
 
-                    UserDetails userDetails = userService.loadUserByUsername(email);
+                // Create UserDetails from JWT claims
+                UserDetails userDetails = org.springframework.security.core.userdetails.User.builder()
+                        .username(email)
+                        .authorities(new SimpleGrantedAuthority(role))
+                        .password("")
+                        .build();
 
-                    // Ensure role consistency
-                    if (!userDetails.getAuthorities().contains(new SimpleGrantedAuthority(role))) {
-                        logger.error("Role mismatch for user: {}", email);
-                        SecurityContextHolder.clearContext();
-                    } else {
-                        // Set authentication context
-                        UsernamePasswordAuthenticationToken authentication =
-                                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                        SecurityContextHolder.getContext().setAuthentication(authentication);
+                // Set authentication context
+                UsernamePasswordAuthenticationToken authentication =
+                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authentication);
 
-                        // Update user activity
-                        userService.updateUserActivity(email);
-                        logger.debug("User authenticated: {}", email);
-                    }
-                } else {
-                    logger.debug("Invalid JWT token");
-                    SecurityContextHolder.clearContext();
-                }
+                // Update user activity
+                userService.updateUserActivity(email);
+                logger.debug("User authenticated: {}", email);
             } else {
-                logger.debug("No JWT token found in request");
+                logger.debug("Invalid or missing JWT token");
                 SecurityContextHolder.clearContext();
             }
 

@@ -1,11 +1,9 @@
 package com.dbms.mentalhealth.service;
 
-import com.dbms.mentalhealth.dto.blog.TrendingBlogSummaryDTO;
-import com.dbms.mentalhealth.dto.blog.TrendingScoreDTO;
+import com.dbms.mentalhealth.dto.blog.trending.TrendingBlogSummaryDTO;
 import com.dbms.mentalhealth.dto.blog.request.BlogRequestDTO;
 import com.dbms.mentalhealth.dto.blog.response.BlogResponseDTO;
 import com.dbms.mentalhealth.dto.blog.response.BlogSummaryDTO;
-import com.dbms.mentalhealth.enums.BlogFilterType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;

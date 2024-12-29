@@ -1,7 +1,7 @@
 // BlogETagGenerator.java
 package com.dbms.mentalhealth.util.Etags;
 
-import com.dbms.mentalhealth.dto.blog.TrendingBlogSummaryDTO;
+import com.dbms.mentalhealth.dto.blog.trending.TrendingBlogSummaryDTO;
 import com.dbms.mentalhealth.dto.blog.response.BlogResponseDTO;
 import com.dbms.mentalhealth.dto.blog.response.BlogSummaryDTO;
 import org.springframework.data.domain.Page;

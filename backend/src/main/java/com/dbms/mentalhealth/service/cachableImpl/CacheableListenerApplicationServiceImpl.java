@@ -163,8 +163,9 @@ public class CacheableListenerApplicationServiceImpl implements ListenerApplicat
     }
 
     public void logCacheStats() {
-        CacheUtils.logCacheStats(applicationCache);
-        CacheUtils.logCacheStats(applicationListCache);
-        CacheUtils.logCacheStats(listenerDetailsCache);
+        logger.info("=== Listener Application Cache Statistics ===");
+        CacheUtils.logCacheStats(applicationCache, "Listener Application Cache");
+        CacheUtils.logCacheStats(applicationListCache, "Listener Application List Cache");
+        CacheUtils.logCacheStats(listenerDetailsCache, "Listener Details Cache");
     }
 }

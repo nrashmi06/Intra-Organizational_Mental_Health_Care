@@ -1,6 +1,6 @@
 package com.dbms.mentalhealth.config;
 
-import com.dbms.mentalhealth.security.WebSocketAuthenticationFilter;
+import com.dbms.mentalhealth.security.filter.WebSocketAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;

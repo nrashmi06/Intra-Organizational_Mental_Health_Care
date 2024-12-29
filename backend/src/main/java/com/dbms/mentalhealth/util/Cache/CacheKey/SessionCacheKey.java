@@ -21,6 +21,10 @@ public class SessionCacheKey {
         return keyType;
     }
 
+    public SessionKeyType getType() {
+        return keyType;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

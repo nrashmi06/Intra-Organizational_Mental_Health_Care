@@ -18,6 +18,7 @@ import com.dbms.mentalhealth.service.impl.RefreshTokenServiceImpl;
 import com.dbms.mentalhealth.urlMapper.UserUrlMapping;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -28,18 +29,15 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
+@Slf4j
 public class AuthController {
 
-    private final JwtUtils jwtUtils;
     private final UserService userService;
     private final RefreshTokenServiceImpl refreshTokenService;
-    private final String baseUrl;
 
-    public AuthController(UserService userService, JwtUtils jwtUtils, RefreshTokenServiceImpl refreshTokenService, @Value("${spring.app.base-url}") String baseUrl) {
+    public AuthController(UserService userService, RefreshTokenServiceImpl refreshTokenService) {
         this.userService = userService;
-        this.jwtUtils = jwtUtils;
         this.refreshTokenService = refreshTokenService;
-        this.baseUrl = baseUrl;
     }
 
     @PostMapping(UserUrlMapping.USER_REGISTER)
@@ -50,8 +48,8 @@ public class AuthController {
     }
 
     @PostMapping(UserUrlMapping.USER_LOGIN)
-    @PreAuthorize("permitAll()")
-    public ResponseEntity<?> authenticateUser(@RequestBody UserLoginRequestDTO loginRequest, HttpServletResponse response) {
+    public ResponseEntity<?> authenticateUser(@RequestBody UserLoginRequestDTO loginRequest,
+                                              HttpServletResponse response) {
         try {
             Map<String, Object> loginResponse = userService.loginUser(loginRequest);
 
@@ -59,18 +57,10 @@ public class AuthController {
             String refreshToken = (String) loginResponse.get("refreshToken");
             UserLoginResponseDTO responseDTO = (UserLoginResponseDTO) loginResponse.get("user");
 
-            boolean isSecure = !baseUrl.contains("localhost");
+            // Set refresh token as HttpOnly cookie
+            refreshTokenService.setSecureRefreshTokenCookie(response, refreshToken);
 
-            Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
-            refreshTokenCookie.setHttpOnly(true);
-            refreshTokenCookie.setSecure(isSecure);
-            refreshTokenCookie.setPath("/mental-health/api/v1/users");
-            refreshTokenCookie.setMaxAge(24 * 60 * 60);
-            refreshTokenCookie.setDomain("localhost");
-
-            response.addHeader("Set-Cookie", "refreshToken=" + refreshToken + "; HttpOnly; Secure=" + isSecure + "; Path=/; Max-Age=86400; SameSite=None");
-            response.addCookie(refreshTokenCookie);
-
+            // Only return access token in Authorization header and user data in body
             return ResponseEntity.ok()
                     .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
                     .body(responseDTO);
@@ -83,13 +73,44 @@ public class AuthController {
 
     @PostMapping(UserUrlMapping.USER_LOGOUT)
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<String> logoutUser(@CookieValue("refreshToken") String refreshToken) {
-        if (refreshToken != null) {
+    public ResponseEntity<String> logoutUser(@CookieValue(name = "refreshToken", required = false) String refreshToken,
+                                             HttpServletResponse response) {
+        log.info("Logout request received");
+
+        if (refreshToken == null) {
+            log.info("No refresh token found in request - user already logged out");
+            clearCookies(response);
+            return ResponseEntity.ok("User logged out successfully.");
+        }
+
+        try {
+            // Try to get email and process logout
             String email = refreshTokenService.getEmailFromRefreshToken(refreshToken);
             userService.setUserActiveStatus(email, false);
             refreshTokenService.deleteRefreshToken(refreshToken);
+
+            log.info("Logout successful for user: {}", email);
+        } catch (RefreshTokenException e) {
+            // Token is invalid/expired - this is okay during logout
+            log.warn("Invalid or expired refresh token during logout: {}", e.getMessage());
+        } catch (Exception e) {
+            // Log other unexpected errors
+            log.error("Unexpected error during logout process", e);
+        } finally {
+            // Always clear cookies on logout attempt
+            clearCookies(response);
         }
+
         return ResponseEntity.ok("User logged out successfully.");
+    }
+
+    private void clearCookies(HttpServletResponse response) {
+        Cookie refreshTokenCookie = new Cookie("refreshToken", null);
+        refreshTokenCookie.setMaxAge(0);
+        refreshTokenCookie.setPath("/mental-health/api/v1/users");
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setSecure(true);
+        response.addCookie(refreshTokenCookie);
     }
 
     @PostMapping(UserUrlMapping.VERIFY_EMAIL)
@@ -128,8 +149,8 @@ public class AuthController {
     }
 
     @PostMapping(UserUrlMapping.RENEW_TOKEN)
-    @PreAuthorize("permitAll()")
-    public ResponseEntity<?> renewToken(@CookieValue("refreshToken") String refreshToken, HttpServletResponse response) {
+    public ResponseEntity<?> renewToken(@CookieValue("refreshToken") String refreshToken,
+                                        HttpServletResponse response) {
         try {
             if (refreshToken == null) {
                 throw new MissingRequestCookieException("Required cookie 'refreshToken' is not present");
@@ -138,19 +159,13 @@ public class AuthController {
             Map<String, Object> renewResponse = refreshTokenService.renewToken(refreshToken);
 
             String newAccessToken = (String) renewResponse.get("accessToken");
+            String newRefreshToken = (String) renewResponse.get("refreshToken");
             UserLoginResponseDTO responseDTO = (UserLoginResponseDTO) renewResponse.get("user");
 
-            Cookie refreshTokenCookie = new Cookie("refreshToken", renewResponse.get("refreshToken").toString());
-            boolean isSecure = !baseUrl.contains("localhost");
-            refreshTokenCookie.setHttpOnly(true);
-            refreshTokenCookie.setSecure(isSecure);
-            refreshTokenCookie.setPath("/mental-health/api/v1/users");
-            refreshTokenCookie.setMaxAge(24 * 60 * 60);
+            // Set new refresh token as HttpOnly cookie
+            refreshTokenService.setSecureRefreshTokenCookie(response, newRefreshToken);
 
-            response.addHeader("Set-Cookie", "refreshToken=" + renewResponse.get("refreshToken").toString()
-                    + "; HttpOnly; Secure=" + isSecure + "; Path=/; Max-Age=86400; SameSite=None");
-            response.addCookie(refreshTokenCookie);
-
+            // Only return new access token in Authorization header and user data in body
             return ResponseEntity.ok()
                     .header(HttpHeaders.AUTHORIZATION, "Bearer " + newAccessToken)
                     .body(responseDTO);
@@ -159,7 +174,8 @@ public class AuthController {
         } catch (UserNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("An unexpected error occurred");
         }
     }
 }

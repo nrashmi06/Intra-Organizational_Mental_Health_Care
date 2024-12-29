@@ -9,6 +9,7 @@ import com.dbms.mentalhealth.dto.user.response.UserRegistrationResponseDTO;
 import com.dbms.mentalhealth.dto.user.response.UserInfoResponseDTO;
 import com.dbms.mentalhealth.enums.ProfileStatus;
 import com.dbms.mentalhealth.enums.Role;
+import com.dbms.mentalhealth.exception.appointment.InvalidRequestException;
 import com.dbms.mentalhealth.exception.user.*;
 import com.dbms.mentalhealth.mapper.UserMapper;
 import com.dbms.mentalhealth.model.Appointment;
@@ -25,6 +26,12 @@ import com.dbms.mentalhealth.service.RefreshTokenService;
 import com.dbms.mentalhealth.service.UserActivityService;
 import com.dbms.mentalhealth.service.UserService;
 import jakarta.persistence.EntityNotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Profile;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
@@ -42,9 +49,11 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService, UserDetailsService {
+    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
     private final UserRepository userRepository;
     private final JwtUtils jwtUtils;
@@ -345,18 +354,6 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         emailVerificationRepository.save(emailVerification);
     }
 
-    public Integer getUserIdByUsername(String username) {
-        User user = userRepository.findByEmail(username);
-        return user != null ? user.getUserId() : null;
-    }
-
-    public String getUserNameFromAuthentication(Authentication authentication) {
-        return authentication.getName();
-    }
-
-    public User findByEmail(String email) {
-        return userRepository.findByEmail(email);
-    }
 
     @Override
     @Transactional
@@ -392,22 +389,41 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         userRepository.save(user);
     }
 
-    @Override
     @Transactional(readOnly = true)
-    public List<User> getAllUsers() {
-        return userRepository.findAll().stream()
-                .filter(user -> user.getRole().equals(Role.USER))
-                .toList();
+    public Page<User> getUsersByFilters(String status, String searchTerm, Pageable pageable) {
+        logger.debug("Fetching users with search term: {}, pagination: {}", searchTerm, pageable);
+
+        ProfileStatus profileStatus = null;
+        if (status != null && !status.isEmpty()) {
+            try {
+                profileStatus = ProfileStatus.valueOf(status.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                logger.error("Invalid profile status: {}", status);
+                throw new InvalidRequestException("Invalid profile status: " + status);
+            }
+        }
+
+        // Normalize search term
+        String normalizedSearch = searchTerm != null ? searchTerm.trim() : null;
+        if (normalizedSearch != null && normalizedSearch.isEmpty()) {
+            normalizedSearch = null;
+        }
+
+        Page<User> users;
+        if (normalizedSearch == null) {
+            users = userRepository.findUsersWithFilters(profileStatus, pageable);
+        } else {
+            users = userRepository.findUsersWithFilters(profileStatus, normalizedSearch, pageable);
+        }
+
+        logger.debug("Found {} users in page {} of {}",
+                users.getNumberOfElements(),
+                users.getNumber(),
+                users.getTotalPages());
+
+        return users;
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<User> getUsersByProfileStatus(String status) {
-        ProfileStatus profileStatus = ProfileStatus.valueOf(status.toUpperCase());
-        return userRepository.findByProfileStatus(profileStatus).stream()
-                .filter(user -> user.getRole().equals(Role.USER))
-                .toList();
-    }
 
     @Override
     @Transactional(readOnly = true)

@@ -3,6 +3,7 @@ package com.dbms.mentalhealth.service.impl;
 import com.dbms.mentalhealth.dto.Appointment.request.AppointmentRequestDTO;
 import com.dbms.mentalhealth.dto.Appointment.response.AppointmentResponseDTO;
 import com.dbms.mentalhealth.dto.Appointment.response.AppointmentSummaryResponseDTO;
+import com.dbms.mentalhealth.enums.AppointmentTimeFilter;
 import com.dbms.mentalhealth.exception.admin.AdminNotFoundException;
 import com.dbms.mentalhealth.exception.appointment.AppointmentNotFoundException;
 import com.dbms.mentalhealth.exception.appointment.PendingAppointmentException;
@@ -22,6 +23,8 @@ import com.dbms.mentalhealth.service.AppointmentService;
 import com.dbms.mentalhealth.enums.AppointmentStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -104,30 +107,6 @@ public class AppointmentServiceImpl implements AppointmentService {
                 .toList();
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<AppointmentSummaryResponseDTO> getAppointmentsByAdmin(Integer userId, Integer adminId) {
-        Integer adminUserId;
-        List<Appointment> appointments;
-        if (userId == null && adminId == null) {
-            adminUserId = jwtUtils.getUserIdFromContext();
-            adminId = adminRepository.findByUser_UserId(adminUserId)
-                    .orElseThrow(() -> new AdminNotFoundException("Admin not found"))
-                    .getAdminId();
-            appointments = appointmentRepository.findByAdmin_AdminId(adminId);
-        } else if (userId == null) {
-            appointments = appointmentRepository.findByAdmin_AdminId(adminId);
-        } else {
-            adminId = adminRepository.findByUser_UserId(userId)
-                    .orElseThrow(() -> new AdminNotFoundException("Admin not found"))
-                    .getAdminId();
-            appointments = appointmentRepository.findByAdmin_AdminId(adminId);
-        }
-        logger.info("Fetched appointments for admin ID: {}", adminId);
-        return appointments.stream()
-                .map(AppointmentMapper::toSummaryDTO)
-                .toList();
-    }
 
     @Override
     @Transactional(readOnly = true)
@@ -205,65 +184,51 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<AppointmentSummaryResponseDTO> getAppointmentsByDateRange(LocalDate startDate, LocalDate endDate) {
+    public Page<AppointmentSummaryResponseDTO> getAppointmentsByDateRange(LocalDate startDate, LocalDate endDate, Pageable pageable) {
         logger.info("Fetching appointments between dates: {} and {}", startDate, endDate);
-        List<Appointment> appointments = appointmentRepository.findByTimeSlot_DateBetween(startDate, endDate);
-        return appointments.stream()
-                .map(AppointmentMapper::toSummaryDTO)
-                .toList();
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<AppointmentSummaryResponseDTO> getUpcomingAppointmentsForAdmin() {
         Integer userId = jwtUtils.getUserIdFromContext();
         Admin admin = adminRepository.findByUser_UserId(userId)
                 .orElseThrow(() -> new AdminNotFoundException("Admin not found"));
-
-        LocalDate today = LocalDate.now();
-        LocalTime now = LocalTime.now();
-
-        logger.info("Fetching upcoming appointments for admin ID: {}", admin.getAdminId());
-        List<Appointment> appointments = appointmentRepository.findByAdminAndUpcomingAppointments(admin, today, now);
-
-        return appointments.stream()
-                .map(AppointmentMapper::toSummaryDTO)
-                .toList();
+        Page<Appointment> appointments = appointmentRepository.findByTimeSlot_DateBetween(admin,startDate, endDate, pageable);
+        return appointments.map(AppointmentMapper::toSummaryDTO);
     }
-
 
     @Override
     @Transactional(readOnly = true)
-    public List<AppointmentSummaryResponseDTO> getAppointmentsByAdminStatus(String status) {
-        try {
-            if (status == null || status.isEmpty()) {
-                logger.warn("Status cannot be null or empty");
-                throw new IllegalArgumentException("Status cannot be null or empty");
-            }
-
-            AppointmentStatus appointmentStatus;
-            try {
-                appointmentStatus = AppointmentStatus.valueOf(status.toUpperCase());
-            } catch (IllegalArgumentException e) {
-                logger.error("Invalid status: {}", status);
-                throw new IllegalArgumentException("Invalid status: " + status, e);
-            }
-
-            Integer adminUserId = jwtUtils.getUserIdFromContext();
-            Admin admin = adminRepository.findByUser_UserId(adminUserId)
-                    .orElseThrow(() -> new AdminNotFoundException("Admin not found"));
-
-            logger.info("Fetching appointments for admin ID: {} with status: {}", admin.getAdminId(), status);
-            List<Appointment> appointments = appointmentRepository.findByAdminAndStatus(admin, appointmentStatus);
-
-            return appointments.stream()
-                    .map(AppointmentMapper::toSummaryDTO)
-                    .toList();
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Invalid status: " + status, e);
-        } catch (Exception e) {
-            logger.error("An error occurred while fetching appointments by status", e);
-            throw new RuntimeException("An error occurred while fetching appointments by status", e);
+    public Page<AppointmentSummaryResponseDTO> getAppointmentsForAdmin(
+            AppointmentTimeFilter timeFilter,
+            AppointmentStatus status,
+            Pageable pageable,
+            Integer userId,
+            Integer adminId) {
+        if(userId == null && adminId == null){
+            userId = jwtUtils.getUserIdFromContext();
         }
+        Admin admin;
+        if(adminId == null){
+            admin = adminRepository.findByUser_UserId(userId)
+                    .orElseThrow(() -> new AdminNotFoundException("Admin not found"));
+        }else{
+            admin = adminRepository.findById(adminId)
+                    .orElseThrow(() -> new AdminNotFoundException("Admin not found"));
+        }
+        LocalDate today = LocalDate.now();
+        LocalTime now = LocalTime.now();
+
+        Page<Appointment> appointments;
+        if (timeFilter == AppointmentTimeFilter.UPCOMING) {
+            logger.info("Fetching upcoming appointments for admin ID: {} with status: {}",
+                    admin.getAdminId(), status);
+            appointments = appointmentRepository.findUpcomingAppointments(
+                    admin, today, now, status, pageable);
+        } else {
+            logger.info("Fetching past appointments for admin ID: {} with status: {}",
+                    admin.getAdminId(), status);
+            appointments = appointmentRepository.findPastAppointments(
+                    admin, today, now, status, pageable);
+        }
+
+        return appointments.map(AppointmentMapper::toSummaryDTO);
     }
+
 }

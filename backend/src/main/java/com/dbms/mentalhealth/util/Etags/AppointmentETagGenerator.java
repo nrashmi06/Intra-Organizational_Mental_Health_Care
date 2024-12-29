@@ -2,6 +2,7 @@ package com.dbms.mentalhealth.util.Etags;
 
 import com.dbms.mentalhealth.dto.Appointment.response.AppointmentResponseDTO;
 import com.dbms.mentalhealth.dto.Appointment.response.AppointmentSummaryResponseDTO;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Objects;
@@ -15,6 +16,7 @@ import java.util.stream.Collectors;
 public class AppointmentETagGenerator {
     private static final String APPOINTMENT_TAG_FORMAT = "appointment-%d-%s-%s"; // appointmentId-status-phone
     private static final String LIST_TAG_FORMAT = "appointment-list-%d-%d"; // size-hash
+    private static final String PAGE_TAG_FORMAT = "appointment-page-%d-%d-%d-%s-%d"; // pageNumber-pageSize-totalElements-sort-hash
 
     /**
      * Generates an ETag for a single appointment.
@@ -49,12 +51,44 @@ public class AppointmentETagGenerator {
                 .sorted()
                 .collect(Collectors.joining());
 
-        // Use a more robust hashing algorithm if needed
         int contentHash = Objects.hash(contentFingerprint);
 
         return String.format(LIST_TAG_FORMAT,
                 appointmentList.size(),
                 contentHash
+        );
+    }
+
+    /**
+     * Generates an ETag for a paginated response of appointments.
+     * @param appointmentPage The page of appointments to generate an ETag for
+     * @return A unique ETag string for the page of appointments
+     * @throws IllegalArgumentException if appointmentPage is null
+     */
+    public String generatePageETag(Page<AppointmentSummaryResponseDTO> appointmentPage) {
+        if (appointmentPage == null) {
+            throw new IllegalArgumentException("Appointment page cannot be null");
+        }
+
+        String contentFingerprint = appointmentPage.getContent().stream()
+                .filter(Objects::nonNull)
+                .map(this::generateAppointmentFingerprint)
+                .sorted()
+                .collect(Collectors.joining());
+
+        // Include sort information in the fingerprint
+        String sortFingerprint = appointmentPage.getSort().stream()
+                .map(order -> order.getProperty() + order.getDirection())
+                .collect(Collectors.joining(","));
+
+        int contentHash = Objects.hash(contentFingerprint);
+
+        return String.format(PAGE_TAG_FORMAT,
+                appointmentPage.getNumber(),           // current page number
+                appointmentPage.getSize(),             // page size
+                appointmentPage.getTotalElements(),     // total number of elements
+                sortFingerprint,                       // sorting information
+                contentHash                            // content hash
         );
     }
 

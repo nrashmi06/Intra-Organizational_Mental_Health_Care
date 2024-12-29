@@ -2,7 +2,9 @@ package com.dbms.mentalhealth.util.Etags;
 
 import com.dbms.mentalhealth.dto.Listener.response.ListenerDetailsResponseDTO;
 import com.dbms.mentalhealth.dto.UserActivity.UserActivityDTO;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -11,6 +13,7 @@ import java.util.stream.Collectors;
 public class ListenerETagGenerator {
     private static final String LISTENER_TAG_FORMAT = "listener-%d-%d-%d-%.2f"; // listenerId-totalSessions-messagesSent-avgRating
     private static final String LIST_TAG_FORMAT = "listener-list-%d-%d"; // size-hash
+    private static final String PAGE_TAG_FORMAT = "listener-page-%d-%d"; // size-hash
 
     public String generateListenerETag(ListenerDetailsResponseDTO listener) {
         validateListener(listener);
@@ -38,6 +41,25 @@ public class ListenerETagGenerator {
 
         return String.format(LIST_TAG_FORMAT,
                 listenerList.size(),
+                contentHash
+        );
+    }
+
+    public String generatePageETag(Page<UserActivityDTO> listenerPage) {
+        if (listenerPage == null) {
+            throw new IllegalArgumentException("Listener page cannot be null");
+        }
+
+        String contentFingerprint = listenerPage.stream()
+                .filter(Objects::nonNull)
+                .map(this::generateListenerFingerprint)
+                .sorted()
+                .collect(Collectors.joining());
+
+        int contentHash = Objects.hash(contentFingerprint);
+
+        return String.format(PAGE_TAG_FORMAT,
+                listenerPage.getSize(),
                 contentHash
         );
     }

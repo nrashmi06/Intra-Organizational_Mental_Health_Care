@@ -3,6 +3,7 @@ import com.dbms.mentalhealth.dto.chatMessage.ChatMessageDTO;
 import com.dbms.mentalhealth.dto.session.response.SessionResponseDTO;
 import com.dbms.mentalhealth.dto.session.response.SessionSummaryDTO;
 import com.dbms.mentalhealth.enums.SessionStatus;
+import com.dbms.mentalhealth.exception.appointment.InvalidRequestException;
 import com.dbms.mentalhealth.exception.listener.ListenerNotFoundException;
 import com.dbms.mentalhealth.exception.session.SessionNotFoundException;
 import com.dbms.mentalhealth.exception.user.UserNotFoundException;
@@ -20,6 +21,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.Cache;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -109,6 +112,7 @@ public class SessionServiceImpl implements SessionService {
         if ("accept".equalsIgnoreCase(action)) {
             // Create and save session
             Session session = new Session();
+            listener.setTotalSessions(listener.getTotalSessions() + 1);
             session.setListener(listener);
             session.setUser(user);
             session.setSessionStatus(SessionStatus.ONGOING);
@@ -168,32 +172,6 @@ public class SessionServiceImpl implements SessionService {
         return SessionMapper.toSessionResponseDTO(session);
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<SessionSummaryDTO> getSessionsByUserIdOrListenerId(Integer id, String role) {
-        List<Session> sessions;
-        if ("listener".equalsIgnoreCase(role)) {
-            Listener listener = listenerRepository.findByUser_UserId(id)
-                    .orElseThrow(() -> new ListenerNotFoundException("Listener not found"));
-            sessions = sessionRepository.findByListener_ListenerId(listener.getListenerId());
-        } else if ("user".equalsIgnoreCase(role)) {
-            sessions = sessionRepository.findByUser_UserId(id);
-        } else {
-            throw new IllegalArgumentException("Invalid role: " + role);
-        }
-        return sessions.stream()
-                .map(SessionMapper::toSessionSummaryDTO)
-                .toList();
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<SessionSummaryDTO> getSessionsByStatus(String status) {
-        List<Session> sessions = sessionRepository.findBySessionStatus(SessionStatus.valueOf(status.toUpperCase()));
-        return sessions.stream()
-                .map(SessionMapper::toSessionSummaryDTO)
-                .toList();
-    }
 
     @Override
     @Transactional
@@ -232,14 +210,6 @@ public class SessionServiceImpl implements SessionService {
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public List<SessionSummaryDTO> getAllSessions() {
-        return sessionRepository.findAll().stream()
-                .map(SessionMapper::toSessionSummaryDTO)
-                .toList();
-    }
-
-    @Override
     @Transactional
     public List<ChatMessageDTO> getMessagesBySessionId(Integer sessionId) {
         List<ChatMessage> messages = chatMessageRepository.findBySession_SessionId(sessionId);
@@ -268,15 +238,45 @@ public class SessionServiceImpl implements SessionService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<SessionSummaryDTO> getSessionsByListenersUserId(Integer userId) {
-        Listener listener = listenerRepository.findByUser_UserId(userId)
-                .orElseThrow(() -> new ListenerNotFoundException("Listener not found"));
-        List<Session> sessions = sessionRepository.findByListener_ListenerId(listener.getListenerId());
-        return sessions.stream()
-                .map(SessionMapper::toSessionSummaryDTO)
-                .toList();
-    }
+    public Page<SessionSummaryDTO> getSessionsByFilters(String status, Integer id, String idType, Pageable pageable) {
+        Page<Session> sessions;
 
+        if (id != null && idType != null && status != null) {
+            SessionStatus sessionStatus;
+            try {
+                sessionStatus = SessionStatus.valueOf(status.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new InvalidRequestException("Invalid session status: " + status);
+            }
+            if (idType.equalsIgnoreCase("userId")) {
+                sessions = sessionRepository.findByUser_UserIdAndSessionStatus(id, sessionStatus, pageable);
+            } else if (idType.equalsIgnoreCase("listenerId")) {
+                sessions = sessionRepository.findByListener_ListenerIdAndSessionStatus(id, sessionStatus, pageable);
+            } else {
+                throw new InvalidRequestException("Invalid idType: " + idType);
+            }
+        } else if (id != null && idType != null) {
+            if (idType.equalsIgnoreCase("userId")) {
+                sessions = sessionRepository.findByUser_UserId(id, pageable);
+            } else if (idType.equalsIgnoreCase("listenerId")) {
+                sessions = sessionRepository.findByListener_ListenerId(id, pageable);
+            } else {
+                throw new InvalidRequestException("Invalid idType: " + idType);
+            }
+        } else if (status != null) {
+            SessionStatus sessionStatus;
+            try {
+                sessionStatus = SessionStatus.valueOf(status.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new InvalidRequestException("Invalid session status: " + status);
+            }
+            sessions = sessionRepository.findBySessionStatus(sessionStatus, pageable);
+        } else {
+            sessions = sessionRepository.findAll(pageable);
+        }
+
+        return sessions.map(SessionMapper::toSessionSummaryDTO);
+    }
     public static boolean isUserInSessionStatic(Integer userId) {
         return instance.isUserInSession(userId);
     }
