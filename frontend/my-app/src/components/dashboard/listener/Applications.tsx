@@ -17,6 +17,7 @@ import { RootState } from "@/store";
 import ListenerDetailsForAdmin from "@/components/dashboard/listener/ModalApplication";
 import { ListenerApplication } from "@/lib/types";
 import InlineLoader from "@/components/ui/inlineLoader";
+import Pagination3 from "@/components/ui/pagination3";
 
 export function ListenerApplicationsTable() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -26,20 +27,30 @@ export function ListenerApplicationsTable() {
   const accessToken = useSelector((state: RootState) => state.auth.accessToken);
   const [applicationModal, setApplicationModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [selectedApplication, setSelectedApplication] =
-    useState<ListenerApplication | null>(null);
-  const itemsPerPage = 6; // Increased for better grid layout
+  const [selectedApplication, setSelectedApplication] = useState<ListenerApplication | null>(null);
   const [loading, setLoading] = useState(true);
+  const itemsPerPage = 6;
+
   const fetchListenersByStatus = useCallback(
     async (status: "PENDING" | "APPROVED" | "REJECTED") => {
       try {
         setLoading(true);
         const response = await GetByApproval(accessToken, status);
-        setApplications(response?.data);
+        
+        // Handle null response
+        if (!response) {
+          setApplications([]);
+          setLoading(false);
+          return;
+        }
+
+        setApplications(response.data || []); // Ensure we always set an array
         setStatusFilter(status);
-        setLoading(false);
       } catch (error) {
         console.error("Error fetching listeners:", error);
+        setApplications([]); // Set empty array on error
+      } finally {
+        setLoading(false);
       }
     },
     [accessToken]
@@ -50,16 +61,15 @@ export function ListenerApplicationsTable() {
   }, [fetchListenersByStatus]);
 
   const handleFilterChange = (status: string) => {
+    setSearchQuery(""); // Reset search when changing filters
+    setCurrentPage(1); // Reset pagination
     setStatusFilter(status);
     fetchListenersByStatus(status as "PENDING" | "APPROVED" | "REJECTED");
   };
 
   const handleApplicationModal = async (applicationId: string) => {
     try {
-      const applicationData = await fetchApplication(
-        accessToken,
-        applicationId
-      );
+      const applicationData = await fetchApplication(accessToken, applicationId);
       setSelectedApplication(applicationData);
       setApplicationModal(true);
     } catch (err) {
@@ -67,23 +77,26 @@ export function ListenerApplicationsTable() {
     }
   };
 
-  const filteredApplications = applications.filter((application) => {
-    const matchesSearch =
-      application.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      application.applicationId
-        .toString()
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase());
-    const matchesStatus =
-      statusFilter === "PENDING" ||
-      application.applicationStatus === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  // Only filter if we have applications
+  const filteredApplications = applications.length > 0 
+    ? applications.filter((application) => {
+        const matchesSearch =
+          application.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          application.applicationId.toString().toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesStatus =
+          statusFilter === "PENDING" ||
+          application.applicationStatus === statusFilter;
+        return matchesSearch && matchesStatus;
+      })
+    : [];
 
-  const paginatedApplications = filteredApplications.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  // Only paginate if we have filtered results
+  const paginatedApplications = filteredApplications.length > 0
+    ? filteredApplications.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+      )
+    : [];
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -95,6 +108,11 @@ export function ListenerApplicationsTable() {
         return "bg-yellow-100 text-yellow-800";
     }
   };
+
+  // Render loading state
+  if (loading) {
+    return <InlineLoader />;
+  }
 
   return (
     <div className="space-y-6">
@@ -120,9 +138,15 @@ export function ListenerApplicationsTable() {
         </Select>
       </div>
 
-      {loading ? (
-        <InlineLoader/>
-      ) : paginatedApplications.length > 0 ? (
+      {applications.length === 0 ? (
+        <div className="text-center py-12 bg-white rounded-lg">
+          <p className="text-gray-500">No applications found</p>
+        </div>
+      ) : paginatedApplications.length === 0 ? (
+        <div className="text-center py-12 bg-white rounded-lg">
+          <p className="text-gray-500">No matching applications found</p>
+        </div>
+      ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:min-h-[400]">
           {paginatedApplications.map((application) => (
             <Card
@@ -165,9 +189,7 @@ export function ListenerApplicationsTable() {
                   </div>
 
                   <Button
-                    onClick={() =>
-                      handleApplicationModal(application.applicationId)
-                    }
+                    onClick={() => handleApplicationModal(application.applicationId)}
                     className="w-full"
                     variant="outline"
                   >
@@ -180,38 +202,17 @@ export function ListenerApplicationsTable() {
             </Card>
           ))}
         </div>
-      ) : (
-        <div className="text-center py-12 bg-white rounded-lg">
-          <p className="text-gray-500">No applications found</p>
-        </div>
       )}
 
-      {/* Pagination */}
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
-          {Math.min(currentPage * itemsPerPage, filteredApplications.length)} of{" "}
-          {filteredApplications.length} entries
-        </p>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-            disabled={currentPage === 1}
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setCurrentPage((p) => p + 1)}
-            disabled={currentPage * itemsPerPage >= filteredApplications.length}
-          >
-            Next
-          </Button>
-        </div>
-      </div>
+      {/* Only show pagination if we have applications */}
+      {applications.length > 0 && filteredApplications.length > 0 && (
+        <Pagination3
+          itemsPerPage={itemsPerPage}
+          currentPage={currentPage}
+          filteredElements={filteredApplications}
+          setCurrentPage={setCurrentPage}
+        />
+      )}
 
       {/* Modal */}
       {applicationModal && selectedApplication && (

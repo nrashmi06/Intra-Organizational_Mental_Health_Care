@@ -24,6 +24,5 @@ export const fetchApplication = async (
       return null;
     }
     console.error("Error fetching application:", error);
-    throw error;
   }
 };
