@@ -18,6 +18,14 @@ export function UpcomingAppointments() {
   const appointments = useSelector((state: RootState) => state.appointments.appointments);
   const totalPages = useSelector((state: RootState) => state.appointments.page?.totalPages);
   const dispatch = useAppDispatch();
+  const [isPageSizeOpen, setIsPageSizeOpen] = useState(false);
+  
+  const pageSizeOptions = [
+    { value: 2, label: '2 per page' },
+    { value: 5, label: '5 per page' },
+    { value: 10, label: '10 per page' },
+    { value: 20, label: '20 per page' }
+  ];
 
   const dateRangeOptions = [
     { value: 'today', label: 'Today' },
@@ -102,60 +110,83 @@ export function UpcomingAppointments() {
 
   return (
     <div className="bg-white rounded-lg shadow-lg p-6">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col md:flex-row sapce-x-10 justify-around items-center mb-6">
         <h2 className="text-2xl font-semibold text-gray-800">
           Upcoming Appointments
         </h2>
         
-        <div className="flex gap-4 relative">
-          {/* Custom Dropdown */}
-          <div className="relative">
-            <button
-              className="border rounded-md p-2 flex items-center justify-between min-w-[200px]"
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            >
-              <span>{selectedRange.label}</span>
-              {isDropdownOpen ? (
-                <ChevronUp className="w-4 h-4 ml-2" />
-              ) : (
-                <ChevronDown className="w-4 h-4 ml-2" />
-              )}
-            </button>
-            
-            {isDropdownOpen && (
-              <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-48 overflow-y-auto">
-                {dateRangeOptions.map((option) => (
-                  <div
-                    key={option.value}
-                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                    onClick={() => {
-                      setSelectedRange(option);
-                      setIsDropdownOpen(false);
-                      setCurrentPage(1); // Reset to first page on range change
-                    }}
-                  >
-                    {option.label}
-                  </div>
-                ))}
+        <div className="flex gap-4 items-center">
+      {/* Date Range Dropdown */}
+      <div className="relative">
+        <button
+          className="bg-white border border-gray-200 rounded-lg px-4 py-2.5 flex items-center justify-between min-w-[220px] hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-colors duration-200"
+          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+        >
+          <span className="text-gray-700 font-medium">{selectedRange.label}</span>
+          {isDropdownOpen ? (
+            <ChevronUp className="w-4 h-4 ml-2 text-gray-500" />
+          ) : (
+            <ChevronDown className="w-4 h-4 ml-2 text-gray-500" />
+          )}
+        </button>
+        
+        {isDropdownOpen && (
+          <div className="absolute z-50 w-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg max-h-64 overflow-y-auto">
+            {dateRangeOptions.map((option) => (
+              <div
+                key={option.value}
+                className="px-4 py-2.5 hover:bg-gray-50 cursor-pointer first:rounded-t-lg last:rounded-b-lg text-gray-700 transition-colors duration-200"
+                onClick={() => {
+                  setSelectedRange(option);
+                  setIsDropdownOpen(false);
+                  setCurrentPage(1);
+                }}
+              >
+                <span className={`${option.value === selectedRange.value ? 'font-medium' : 'font-normal'}`}>
+                  {option.label}
+                </span>
               </div>
-            )}
+            ))}
           </div>
-
-          <select
-            className="border rounded-md p-2"
-            value={pageSize}
-            onChange={(e) => {
-              setPageSize(Number(e.target.value));
-              setCurrentPage(1); // Reset to first page on size change
-            }}
-          >
-            <option value="2">2 per page</option>
-            <option value="5">5 per page</option>
-            <option value="10">10 per page</option>
-            <option value="20">20 per page</option>
-          </select>
-        </div>
+        )}
       </div>
+
+      {/* Items per page dropdown - matching style */}
+      <div className="relative">
+        <button
+          className="bg-white border border-gray-200 rounded-lg px-4 py-2.5 flex items-center justify-between min-w-[160px] hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-colors duration-200"
+          onClick={() => setIsPageSizeOpen(!isPageSizeOpen)}
+        >
+          <span className="text-gray-700 font-medium">{pageSize} per page</span>
+          {isPageSizeOpen ? (
+            <ChevronUp className="w-4 h-4 ml-2 text-gray-500" />
+          ) : (
+            <ChevronDown className="w-4 h-4 ml-2 text-gray-500" />
+          )}
+        </button>
+
+        {isPageSizeOpen && (
+          <div className="absolute z-50 w-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg overflow-y-auto">
+            {pageSizeOptions.map((option) => (
+              <div
+                key={option.value}
+                className="px-4 py-2.5 hover:bg-gray-50 cursor-pointer first:rounded-t-lg last:rounded-b-lg text-gray-700 transition-colors duration-200"
+                onClick={() => {
+                  setPageSize(option.value);
+                  setIsPageSizeOpen(false);
+                  setCurrentPage(1);
+                }}
+              >
+                <span className={`${pageSize === option.value ? 'font-medium' : 'font-normal'}`}>
+                  {option.label}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+    </div>
 
       <div className="mt-6">
         {loading ? (
