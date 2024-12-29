@@ -6,7 +6,11 @@ import com.dbms.mentalhealth.dto.user.request.UserUpdateRequestDTO;
 import com.dbms.mentalhealth.dto.user.response.UserDataResponseDTO;
 import com.dbms.mentalhealth.dto.user.response.UserRegistrationResponseDTO;
 import com.dbms.mentalhealth.dto.user.response.UserInfoResponseDTO;
+import com.dbms.mentalhealth.enums.ProfileStatus;
 import com.dbms.mentalhealth.model.User;
+import org.springframework.context.annotation.Profile;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -33,9 +37,8 @@ public interface UserService {
     User findByEmail(String email);
     void updateUserActivity(String email);
     void suspendOrUnSuspendUser(Integer userId, String action);
-    List<User> getAllUsers();
-    List<User> getUsersByProfileStatus(String status);
     UserDataResponseDTO getUserData(Integer userId);
     void sendDataRequestVerificationEmail(String email);
     void verifyDataRequestCode(String verificationCode);
+    Page<User> getUsersByFilters(String status, String searchTerm, Pageable pageable);
 }

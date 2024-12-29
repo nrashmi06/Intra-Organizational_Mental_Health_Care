@@ -109,6 +109,7 @@ public class SessionServiceImpl implements SessionService {
         if ("accept".equalsIgnoreCase(action)) {
             // Create and save session
             Session session = new Session();
+            listener.setTotalSessions(listener.getTotalSessions() + 1);
             session.setListener(listener);
             session.setUser(user);
             session.setSessionStatus(SessionStatus.ONGOING);

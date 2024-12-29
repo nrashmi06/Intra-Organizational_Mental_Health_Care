@@ -4,6 +4,7 @@ package com.dbms.mentalhealth.config;
 import com.dbms.mentalhealth.security.*;
 import com.dbms.mentalhealth.security.jwt.*;
 import com.dbms.mentalhealth.urlMapper.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -21,6 +22,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
+@Slf4j
 public class SecurityConfig {
     private final AuthEntryPointJwt unauthorizedHandler;
     private final AuthTokenFilter authTokenFilter;
@@ -50,28 +52,38 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, CustomAccessDeniedHandler customAccessDeniedHandler) throws Exception {
-        return http
-                .cors(cors -> cors.configurationSource(corsConfig.corsConfigurationSource()))
-                .authorizeHttpRequests(requests -> requests
-                        .requestMatchers(
-                                UserUrlMapping.FORGOT_PASSWORD,
-                                UserUrlMapping.RESET_PASSWORD,
-                                UserUrlMapping.USER_REGISTER,
-                                UserUrlMapping.VERIFY_EMAIL,
-                                UserUrlMapping.RESEND_VERIFICATION_EMAIL,
-                                UserUrlMapping.USER_LOGIN,
-                                UserUrlMapping.RENEW_TOKEN,
-                                EmergencyHelplineUrlMapping.GET_ALL_EMERGENCY_HELPLINES
-                        ).permitAll()
-                        .anyRequest().authenticated()
-                )
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
-                .exceptionHandling(exception -> exception
-                        .authenticationEntryPoint(unauthorizedHandler)
-                        .accessDeniedHandler(customAccessDeniedHandler)
-                )
+        log.debug("Configuring SecurityFilterChain");
+
+        SecurityFilterChain chain = http
+                .cors(cors -> {
+                    log.debug("Configuring CORS");
+                    cors.configurationSource(corsConfig.corsConfigurationSource());
+                })
+                .authorizeHttpRequests(requests -> {
+                    log.debug("Configuring HTTP request authorization");
+                    requests
+                            .requestMatchers(
+                                    UserUrlMapping.FORGOT_PASSWORD,
+                                    UserUrlMapping.RESET_PASSWORD,
+                                    UserUrlMapping.USER_REGISTER,
+                                    UserUrlMapping.VERIFY_EMAIL,
+                                    UserUrlMapping.RESEND_VERIFICATION_EMAIL,
+                                    UserUrlMapping.USER_LOGIN,
+                                    UserUrlMapping.RENEW_TOKEN,
+                                    EmergencyHelplineUrlMapping.GET_ALL_EMERGENCY_HELPLINES
+                            ).permitAll()
+                            .anyRequest().authenticated();
+                })
+                .sessionManagement(session -> {
+                    log.debug("Configuring session management");
+                    session.sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+                })
+                .exceptionHandling(exception -> {
+                    log.debug("Configuring exception handling");
+                    exception
+                            .authenticationEntryPoint(unauthorizedHandler)
+                            .accessDeniedHandler(customAccessDeniedHandler);
+                })
                 .csrf(AbstractHttpConfigurer::disable)
                 .addFilterBefore(corsConfig.corsFilter(), UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(rateLimitingFilter, UsernamePasswordAuthenticationFilter.class)
@@ -79,6 +91,9 @@ public class SecurityConfig {
                 .addFilterAfter(sseAuthenticationFilter, AuthTokenFilter.class)
                 .addFilterAfter(webSocketAuthenticationFilter, AuthTokenFilter.class)
                 .build();
+
+        log.info("SecurityFilterChain configuration completed");
+        return chain;
     }
 
     @Bean

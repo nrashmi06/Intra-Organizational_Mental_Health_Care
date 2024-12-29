@@ -308,4 +308,11 @@ public class CacheConfig {
                 .recordStats()
                 .build();
     }
+
+    @Bean
+    public Cache<AppointmentCacheKey, List<AppointmentSummaryResponseDTO>> appointmentListCache() {
+        return createListBuilder()
+                .maximumSize(SMALL_CACHE_SIZE)
+                .build();
+    }
 }

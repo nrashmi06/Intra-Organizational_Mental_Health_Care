@@ -5,15 +5,24 @@ import com.dbms.mentalhealth.dto.user.request.UserUpdateRequestDTO;
 import com.dbms.mentalhealth.dto.user.response.UserDataResponseDTO;
 import com.dbms.mentalhealth.dto.user.response.UserDetailsSummaryResponseDTO;
 import com.dbms.mentalhealth.dto.user.response.UserInfoResponseDTO;
+import com.dbms.mentalhealth.enums.ProfileStatus;
+import com.dbms.mentalhealth.exception.appointment.InvalidRequestException;
 import com.dbms.mentalhealth.exception.user.UserNotFoundException;
 import com.dbms.mentalhealth.exception.user.InvalidUserUpdateException;
 import com.dbms.mentalhealth.mapper.UserMapper;
 import com.dbms.mentalhealth.model.User;
+import com.dbms.mentalhealth.repository.UserRepository;
 import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.service.UserService;
 import com.dbms.mentalhealth.service.impl.UserServiceImpl;
 import com.dbms.mentalhealth.urlMapper.UserUrlMapping;
 import com.dbms.mentalhealth.util.PdfGenerator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,11 +39,14 @@ public class UserManagementController {
     private final JwtUtils jwtUtils;
     private final UserService userService;
     private final PdfGenerator pdfGenerator;
+    private final UserRepository userRepository;
+    private static final Logger logger = LoggerFactory.getLogger(UserManagementController.class);
 
-    public UserManagementController(UserServiceImpl userService, JwtUtils jwtUtils, PdfGenerator pdfGenerator) {
+    public UserManagementController(UserServiceImpl userService, JwtUtils jwtUtils, PdfGenerator pdfGenerator, UserRepository userRepository) {
         this.userService = userService;
         this.jwtUtils = jwtUtils;
         this.pdfGenerator = pdfGenerator;
+        this.userRepository = userRepository;
     }
 
     @DeleteMapping(UserUrlMapping.DELETE_USER)
@@ -102,18 +114,32 @@ public class UserManagementController {
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping(UserUrlMapping.GET_ALL_USERS_BY_PROFILE_STATUS)
-    public List<UserDetailsSummaryResponseDTO> getAllUsersByProfileStatus(
-            @RequestParam(value = "status", required = false) String status) {
-        List<User> users;
-        if (status == null) {
-            users = userService.getAllUsers();
-        } else {
-            users = userService.getUsersByProfileStatus(status);
+    public ResponseEntity<Page<UserDetailsSummaryResponseDTO>> getAllUsers(
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String search,
+            Pageable pageable
+    ) {
+        logger.debug("Request to get users with status: {}, search: {}", status, search);
+
+        try {
+            Page<User> users = userService.getUsersByFilters(status, search, pageable);
+            Page<UserDetailsSummaryResponseDTO> response = users.map(UserMapper::toUserDetailsSummaryResponseDTO);
+
+            logger.debug("Returning {} users of {} total",
+                    response.getNumberOfElements(),
+                    response.getTotalElements());
+
+            return ResponseEntity.ok(response);
+        } catch (InvalidRequestException e) {
+            logger.error("Invalid request parameters", e);
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            logger.error("Error fetching users", e);
+            return ResponseEntity.internalServerError().build();
         }
-        return users.stream()
-                .map(UserMapper::toUserDetailsSummaryResponseDTO)
-                .toList();
     }
+
+
 
     @PreAuthorize("isAuthenticated()")
     @PostMapping(UserUrlMapping.REQUEST_VERIFICATION_CODE)

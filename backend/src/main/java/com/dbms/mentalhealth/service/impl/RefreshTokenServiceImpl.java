@@ -13,6 +13,7 @@ import com.dbms.mentalhealth.service.RefreshTokenService;
 import com.dbms.mentalhealth.service.UserService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @Service
+@Slf4j
 public class RefreshTokenServiceImpl implements RefreshTokenService {
 
     private static final long REFRESH_TOKEN_VALIDITY_MS = 1_000L * 60 * 60 * 24; // 24 hrs
@@ -69,10 +71,25 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 
     @Override
     public String getEmailFromRefreshToken(String token) {
+        log.debug("Attempting to get email from refresh token: {}", token.substring(0, 6) + "...");
         RefreshToken refreshToken = validateRefreshTokenAndGet(token);
-        return refreshToken.getUser().getEmail();
+        String email = refreshToken.getUser().getEmail();
+        log.debug("Successfully retrieved email: {}", email);
+        return email;
     }
 
+    @Transactional
+    @Override
+    public void deleteRefreshToken(String token) {
+        log.debug("Attempting to delete refresh token: {}", token.substring(0, 6) + "...");
+        try {
+            refreshTokenRepository.deleteByToken(token);
+            log.info("Successfully deleted refresh token");
+        } catch (Exception e) {
+            log.error("Error deleting refresh token", e);
+            throw e;
+        }
+    }
     @Override
     public boolean verifyRefreshToken(String token) {
         return refreshTokenRepository.findByToken(token)
@@ -80,11 +97,6 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
                 .isPresent();
     }
 
-    @Transactional
-    @Override
-    public void deleteRefreshToken(String token) {
-        refreshTokenRepository.deleteByToken(token);
-    }
 
     @Transactional
     @Override
@@ -121,35 +133,65 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     }
 
     private RefreshToken validateRefreshTokenAndGet(String token) {
+        log.debug("Validating refresh token: {}", token.substring(0, 6) + "...");
         return refreshTokenRepository.findByToken(token)
-                .filter(rt -> rt.getExpiry().isAfter(Instant.now()))
-                .orElseThrow(() -> new RefreshTokenException("Invalid or expired refresh token"));
+                .filter(rt -> {
+                    boolean isValid = rt.getExpiry().isAfter(Instant.now());
+                    log.debug("Token valid: {}, Expiry: {}", isValid, rt.getExpiry());
+                    return isValid;
+                })
+                .orElseThrow(() -> {
+                    log.warn("Invalid or expired refresh token");
+                    return new RefreshTokenException("Invalid or expired refresh token");
+                });
     }
 
     @Override
     public void setSecureRefreshTokenCookie(HttpServletResponse response, String refreshToken) {
+        log.debug("Setting secure refresh token cookie");
         boolean isSecure = !baseUrl.contains("localhost");
-        String domain = baseUrl.contains("localhost") ? "localhost" : baseUrl;
+        String domain = baseUrl.replaceAll("https?://", "")
+                .replaceAll("/.*$", "")
+                .trim();
 
-        Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
-        refreshTokenCookie.setHttpOnly(true);  // Prevents JavaScript access
-        refreshTokenCookie.setSecure(isSecure);  // Requires HTTPS in production
-        refreshTokenCookie.setPath("/mental-health/api/v1/users");
-        refreshTokenCookie.setMaxAge(24 * 60 * 60);  // 24 hours
-        refreshTokenCookie.setDomain(domain);
+        log.debug("Base URL: {}", baseUrl);
+        log.debug("Calculated domain: {}", domain);
+        log.debug("isSecure: {}", isSecure);
 
-        // Set SameSite attribute through header
-        String cookieHeader = String.format(
-                "refreshToken=%s; " +
-                        "HttpOnly; " +  // Prevents JavaScript access
-                        "Secure=%s; " +
-                        "Path=/mental-health/api/v1/users; " +
-                        "Domain=%s; " +
-                        "Max-Age=86400; " +
-                        "SameSite=Strict",  // Changed to Strict for better security
-                refreshToken, isSecure, domain
-        );
+        if (domain.contains("localhost")) {
+            domain = "localhost";
+            log.debug("Domain set to localhost");
+        }
 
-        response.addHeader("Set-Cookie", cookieHeader);
+        try {
+            Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
+            refreshTokenCookie.setHttpOnly(true);
+            refreshTokenCookie.setSecure(isSecure);
+            refreshTokenCookie.setPath("/mental-health/api/v1/users");
+            refreshTokenCookie.setMaxAge(24 * 60 * 60);
+            refreshTokenCookie.setDomain(domain);
+
+            String cookieHeader = String.format(
+                    "refreshToken=%s; " +
+                            "HttpOnly; " +
+                            "Secure=%s; " +
+                            "Path=/mental-health/api/v1/users; " +
+                            "Domain=%s; " +
+                            "Max-Age=86400; " +
+                            "SameSite=None",
+                    refreshToken, isSecure, domain
+            );
+
+            log.debug("Cookie settings - HttpOnly: true, Secure: {}, Path: {}, Domain: {}, SameSite: None",
+                    isSecure, "/mental-health/api/v1/users", domain);
+
+            response.addCookie(refreshTokenCookie);
+            response.addHeader("Set-Cookie", cookieHeader);
+            log.info("Successfully set refresh token cookie and header");
+        } catch (Exception e) {
+            log.error("Error setting refresh token cookie", e);
+            throw e;
+        }
     }
+
 }

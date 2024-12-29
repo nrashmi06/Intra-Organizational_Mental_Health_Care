@@ -18,6 +18,7 @@ import com.dbms.mentalhealth.service.impl.RefreshTokenServiceImpl;
 import com.dbms.mentalhealth.urlMapper.UserUrlMapping;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -28,6 +29,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
+@Slf4j
 public class AuthController {
 
     private final JwtUtils jwtUtils;
@@ -75,13 +77,32 @@ public class AuthController {
 
     @PostMapping(UserUrlMapping.USER_LOGOUT)
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<String> logoutUser(@CookieValue("refreshToken") String refreshToken) {
-        if (refreshToken != null) {
-            String email = refreshTokenService.getEmailFromRefreshToken(refreshToken);
-            userService.setUserActiveStatus(email, false);
-            refreshTokenService.deleteRefreshToken(refreshToken);
+    public ResponseEntity<String> logoutUser(@CookieValue(name = "refreshToken", required = false) String refreshToken) {
+        log.info("Logout request received");
+
+        if (refreshToken == null) {
+            log.warn("No refresh token found in request");
+            return ResponseEntity.ok("User logged out successfully (no refresh token present).");
         }
-        return ResponseEntity.ok("User logged out successfully.");
+
+        try {
+            log.debug("Attempting to get email from refresh token");
+            String email = refreshTokenService.getEmailFromRefreshToken(refreshToken);
+            log.info("Retrieved email: {} from refresh token", email);
+
+            log.debug("Setting user active status to false");
+            userService.setUserActiveStatus(email, false);
+
+            log.debug("Deleting refresh token");
+            refreshTokenService.deleteRefreshToken(refreshToken);
+
+            log.info("Logout successful for user: {}", email);
+            return ResponseEntity.ok("User logged out successfully.");
+        } catch (Exception e) {
+            log.error("Error during logout process", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("An error occurred during logout: " + e.getMessage());
+        }
     }
 
     @PostMapping(UserUrlMapping.VERIFY_EMAIL)

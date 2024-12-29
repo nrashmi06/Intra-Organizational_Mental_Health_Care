@@ -2,6 +2,7 @@ package com.dbms.mentalhealth.service.cachableImpl;
 
 import com.dbms.mentalhealth.dto.Listener.response.ListenerDetailsResponseDTO;
 import com.dbms.mentalhealth.dto.UserActivity.UserActivityDTO;
+import com.dbms.mentalhealth.repository.ListenerRepository;
 import com.dbms.mentalhealth.service.ListenerService;
 import com.dbms.mentalhealth.service.impl.ListenerServiceImpl;
 import com.dbms.mentalhealth.util.Cache.CacheKey.ListenerCacheKey;
@@ -11,6 +12,8 @@ import com.github.benmanes.caffeine.cache.Cache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Primary;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,14 +26,16 @@ public class CacheableListenerServiceImpl implements ListenerService {
     private final Cache<ListenerCacheKey, ListenerDetailsResponseDTO> listenerDetailsCache;
     private final Cache<ListenerCacheKey, List<UserActivityDTO>> listenerListCache;
     private static final Logger logger = LoggerFactory.getLogger(CacheableListenerServiceImpl.class);
+    private final ListenerRepository listenerRepository;
 
     public CacheableListenerServiceImpl(ListenerServiceImpl listenerServiceImpl,
                                         Cache<ListenerCacheKey, ListenerDetailsResponseDTO> listenerDetailsCache,
-                                        Cache<ListenerCacheKey, List<UserActivityDTO>> listenerListCache) {
+                                        Cache<ListenerCacheKey, List<UserActivityDTO>> listenerListCache, ListenerRepository listenerRepository) {
         this.listenerServiceImpl = listenerServiceImpl;
         this.listenerDetailsCache = listenerDetailsCache;
         this.listenerListCache = listenerListCache;
         logger.info("CacheableListenerServiceImpl initialized with cache stats enabled");
+        this.listenerRepository = listenerRepository;
     }
 
     @Override
@@ -51,50 +56,24 @@ public class CacheableListenerServiceImpl implements ListenerService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<UserActivityDTO> getAllListeners(String type) {
-        ListenerRelatedKeyType keyType;
-        switch (type.toLowerCase()) {
-            case "active":
-                keyType = ListenerRelatedKeyType.ACTIVE_LISTENERS;
-                break;
-            case "suspended":
-                keyType = ListenerRelatedKeyType.SUSPENDED_LISTENERS;
-                break;
-            default:
-                keyType = ListenerRelatedKeyType.ALL_LISTENERS;
-        }
-
-        ListenerCacheKey cacheKey = new ListenerCacheKey(type, keyType);
-        logger.info("Cache lookup for listeners of type: {}", type);
-
-        return listenerListCache.get(cacheKey, k -> {
-            logger.info("Cache MISS - Fetching {} listeners from database", type);
-            return listenerServiceImpl.getAllListeners(type);
-        });
+    public Page<UserActivityDTO> getListenersByFilters(String status, String searchTerm, Pageable pageable) {
+        return listenerServiceImpl.getListenersByFilters(status,searchTerm,pageable);
     }
 
     @Override
     @Transactional
     public String suspendOrUnsuspendListener(Integer listenerId, String action) {
         String response = listenerServiceImpl.suspendOrUnsuspendListener(listenerId, action);
-        invalidateListenerCaches(listenerId);
-        logger.info("Updated listener status and invalidated caches for listener ID: {}", listenerId);
+        clearAllCaches();
+        logger.info("Updated listener status and cleared all caches for listener ID: {}", listenerId);
         return response;
     }
 
-    private void invalidateListenerCaches(Integer listenerId) {
-        // Invalidate both by ID and by UserID caches
-        listenerDetailsCache.invalidate(new ListenerCacheKey(listenerId, ListenerRelatedKeyType.LISTENER_BY_ID, "listenerId"));
-        listenerDetailsCache.invalidate(new ListenerCacheKey(listenerId, ListenerRelatedKeyType.LISTENER_BY_USER_ID, "userId"));
-
-        // Invalidate all list caches since the status changed
-        listenerListCache.invalidate(new ListenerCacheKey("all", ListenerRelatedKeyType.ALL_LISTENERS));
-        listenerListCache.invalidate(new ListenerCacheKey("active", ListenerRelatedKeyType.ACTIVE_LISTENERS));
-        listenerListCache.invalidate(new ListenerCacheKey("suspended", ListenerRelatedKeyType.SUSPENDED_LISTENERS));
-
-        logger.info("Invalidated all related caches for listener ID: {}", listenerId);
+    private void clearAllCaches() {
+        listenerDetailsCache.invalidateAll();
+        listenerListCache.invalidateAll();
+        logger.info("Cleared all caches");
     }
-
     @Override
     @Transactional
     public void incrementMessageCount(String username) {
