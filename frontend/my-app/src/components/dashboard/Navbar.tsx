@@ -7,6 +7,8 @@ import { useRouter } from "next/router";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "@/service/user/Logout";
 import { RootState } from "@/store";
+import { clearEventSources } from "@/store/eventsourceSlice";
+import { clearNotifications } from "@/store/notificationSlice";
 
 type NavbarProps = {
   children?: React.ReactNode;
@@ -21,6 +23,8 @@ export default function Navbar({ children }: NavbarProps) {
     try {
       await router.push("/signin");
       await logout(token);
+      dispatch(clearEventSources());
+      dispatch(clearNotifications());
       dispatch(clearUser());
 
       // Only clear the user state after navigation is complete

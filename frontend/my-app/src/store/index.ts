@@ -1,49 +1,56 @@
 import { configureStore } from '@reduxjs/toolkit';
-import authReducer from './authSlice'; // Your auth reducer
-import notificationReducer from './notificationSlice'; // Import your notification slice
 import { persistReducer, persistStore } from 'redux-persist';
-import storage from 'redux-persist/lib/storage/session'; // Using sessionStorage
-import chatReducer from './chatSlice'; // Import your chat slice
+import storage from 'redux-persist/lib/storage/session'; // Using sessionStorage for persistence
 
-// Define the persist config for auth reducer
+import authReducer from './authSlice'; // Auth reducer
+import notificationReducer from './notificationSlice'; // Notification reducer
+import chatReducer from './chatSlice'; // Chat reducer
+import eventSourceReducer from './eventsourceSlice'; // EventSource reducer
+
+// Define individual persist configs
 const authPersistConfig = {
-  key: 'auth',  // Key for storage
-  storage,      // Using sessionStorage
+  key: 'auth', // Key for auth storage
+  storage,     // Using sessionStorage
 };
 
-// Define the persist config for notification reducer
 const notificationPersistConfig = {
-  key: 'notifications',  // Key for storage
-  storage,               // Using sessionStorage
+  key: 'notifications', // Key for notification storage
+  storage,              // Using sessionStorage
 };
 
-// Define the persist config for chat reducer
 const chatPersistConfig = {
-  key: 'chat',  // Key for storage
-  storage,      // Using sessionStorage
+  key: 'chat', // Key for chat storage
+  storage,     // Using sessionStorage
 };
 
-// Persist the auth and notification reducers separately
+const eventSourcePersistConfig = {
+  key: 'eventSource', // Key for eventSource storage
+  storage,            // Using sessionStorage
+};
+
+// Persist reducers
 const persistedAuthReducer = persistReducer(authPersistConfig, authReducer);
 const persistedNotificationReducer = persistReducer(notificationPersistConfig, notificationReducer);
 const persistedChatReducer = persistReducer(chatPersistConfig, chatReducer);
+const persistedEventSourceReducer = persistReducer(eventSourcePersistConfig, eventSourceReducer);
 
 // Create the Redux store
 const store = configureStore({
   reducer: {
-    auth: persistedAuthReducer,  // Use the persisted auth reducer
-    notification: persistedNotificationReducer, // Add your notification reducer
-    chat: persistedChatReducer, // Add your chat reducer
+    auth: persistedAuthReducer,         // Persisted auth reducer
+    notification: persistedNotificationReducer, // Persisted notification reducer
+    chat: persistedChatReducer,         // Persisted chat reducer
+    eventSource: persistedEventSourceReducer,    // EventSource reducer (not persisted)
   },
-  devTools: true, // Enable Redux DevTools in development
+  devTools: process.env.NODE_ENV !== 'production', // Enable Redux DevTools in development mode only
 });
 
-// Create the persistor for Redux Persist
-const persistor = persistStore(store); // Type for persistor is already inferred from persistStore
+// Create the persistor
+const persistor = persistStore(store);
 
-// Export the store and persistor for use in _app.tsx
+// Export the store and persistor
 export { store, persistor };
 
-// Type the RootState and AppDispatch for useSelector and useDispatch
+// Type definitions for convenience in TypeScript
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;

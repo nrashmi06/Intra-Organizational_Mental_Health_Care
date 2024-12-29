@@ -1,13 +1,9 @@
 import React, { useEffect, useState } from "react";
-import {
-  Search,
-  Users,
-  Info,
-} from "lucide-react";
+import { Search, Users, Info } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { getActiveListeners } from "@/service/SSE/getActiveListeners";
-import { RootState } from "@/store";
-import { useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/store";
+import { useDispatch, useSelector } from "react-redux";
 import DetailsModal from "./ModalDetails";
 import ApplicationModal from "@/components/dashboard/listener/ModalApplication";
 import { ListenerApplication } from "@/lib/types";
@@ -17,13 +13,17 @@ import router from "next/router";
 import InlineLoader from "@/components/ui/inlineLoader";
 import Pagination3 from "@/components/ui/pagination3";
 import ListenerCard from "./ListenerCard";
+import {
+  addEventSource,
+  clearEventSources,
+  removeEventSource,
+} from "@/store/eventsourceSlice";
 
 export function OnlineListenersTable() {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6; // Adjusted to match admin table
+  const itemsPerPage = 6;
   const [listeners, setListeners] = useState<Listener[]>([]);
-  const [eventSource, setEventSource] = useState<EventSource | null>(null);
   const token = useSelector((state: RootState) => state.auth.accessToken);
   const [detailsModal, setDetailsModal] = useState(false);
   const [applicationModal, setApplicationModal] = useState(false);
@@ -32,6 +32,7 @@ export function OnlineListenersTable() {
   );
   const [selectedListener, setSelectedListener] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch<AppDispatch>();
 
   const handleModalClose = () => {
     setApplicationModal(false);
@@ -50,22 +51,33 @@ export function OnlineListenersTable() {
   };
 
   useEffect(() => {
-    if (eventSource) {
-      eventSource.close();
-    }
     setLoading(true);
-
-    const newEventSource = getActiveListeners(token, (data) => {
+    const eventSource = getActiveListeners(token, (data) => {
       setListeners(data);
       setLoading(false);
     });
 
-    setEventSource(newEventSource);
+    if (eventSource) {
+      const eventSourceEntry = {
+        id: "onlineListeners",
+        eventSource,
+      };
+      dispatch(addEventSource(eventSourceEntry));
+    }
 
     return () => {
-      newEventSource.close();
+      dispatch(removeEventSource("onlineListeners"));
+      if (eventSource) {
+        eventSource.close();
+      }
     };
-  }, [token]);
+  }, [token, dispatch]);
+
+  useEffect(() => {
+    return () => {
+      dispatch(clearEventSources());
+    };
+  }, [dispatch]);
 
   const fetchApplicationData = async (userId: string) => {
     try {

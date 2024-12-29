@@ -2,8 +2,8 @@ import React, { useEffect, useState } from "react";
 import { Search, Info, Users } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
-import { useSelector } from "react-redux";
-import { RootState } from "@/store";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/store";
 import ModalDetails from "./ModalDetails";
 import { UserSummary } from "@/lib/types";
 import { getActiveUserByRoleName } from "@/service/SSE/getActiveUserByRoleName";
@@ -11,37 +11,50 @@ import router from "next/router";
 import InlineLoader from "@/components/ui/inlineLoader";
 import Pagination3 from "@/components/ui/pagination3";
 import UserCard from "./UserCard";
+import { addEventSource, clearEventSources, removeEventSource } from "@/store/eventsourceSlice";
 
 export function OnlineUsersTable() {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [users, setUsers] = useState<UserSummary[]>([]);
-  const [eventSource, setEventSource] = useState<EventSource | null>(null);
   const token = useSelector((state: RootState) => state.auth.accessToken);
   const [detailsModal, setDetailsModal] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true); // Added loading state
+  const [loading, setLoading] = useState(true);
   const itemsPerPage = 12;
+  const dispatch = useDispatch<AppDispatch>();
 
   useEffect(() => {
-    if (eventSource) {
-      eventSource.close();
-    }
-
-    const newEventSource = getActiveUserByRoleName(
+    const eventSource = getActiveUserByRoleName(
       "onlineUsers",
       token,
       (data) => {
         setUsers(data);
-        setLoading(false); // Data loaded
+        setLoading(false);
       }
     );
-    setEventSource(newEventSource);
-    setLoading(true); // Start loading
+    setLoading(true);
+    if (eventSource) {
+      const eventSourceEntry = {
+        id: "onlineUsers",
+        eventSource,
+      };
+
+      dispatch(addEventSource(eventSourceEntry));
+    }
     return () => {
-      newEventSource?.close();
+      dispatch(removeEventSource("onlineUsers"));
+      if (eventSource) {
+        eventSource.close();
+      }
     };
-  }, [token]);
+  }, [token, dispatch]);
+
+  useEffect(() => {
+    return () => {
+      dispatch(clearEventSources());
+    };
+  }, [dispatch]);
 
   const filteredUsers = users.filter(
     (user) =>
@@ -61,7 +74,6 @@ export function OnlineUsersTable() {
 
   return (
     <div className="space-y-6">
-      {/* Search Bar */}
       <div className="flex items-center gap-2">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
@@ -110,7 +122,6 @@ export function OnlineUsersTable() {
         </div>
       )}
 
-      {/* Pagination Controls */}
       <Pagination3
         currentPage={currentPage}
         itemsPerPage={itemsPerPage}
@@ -118,7 +129,6 @@ export function OnlineUsersTable() {
         filteredElements={filteredUsers}
       />
 
-      {/* Details Modal */}
       {detailsModal && selectedUserId && (
         <ModalDetails
           userId={selectedUserId}

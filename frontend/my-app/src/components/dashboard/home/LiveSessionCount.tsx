@@ -1,24 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getActiveSessions } from "@/service/SSE/getActiveSessions";
 import { MessageCircle } from "lucide-react";
-import { useEffect, useState } from "react";
 
-export default function LiveSessionCount({token}: {token: string}) {
-  const [sessionCount, setSessionCount] = useState<number>();
-
-  useEffect(() => {
-    try {
-      const eventSource = getActiveSessions(token, (data) => {
-        setSessionCount(data.length);
-      });
-      return () => {
-        eventSource.close();
-      };
-    } catch (error) {
-      console.error("Error fetching active sessions:", error);
-    }
-  }, [token]);
-
+export default function LiveSessionCount({
+  sessionCount,
+}: {
+  sessionCount: number;
+}) {
   return (
     <Card className="bg-red-50">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -26,7 +13,7 @@ export default function LiveSessionCount({token}: {token: string}) {
         <MessageCircle className="h-4 w-4 " />
       </CardHeader>
       <CardContent>
-        <div className="text-sm ">Live: {sessionCount}</div>
+        <div className="text-sm ">Live: {sessionCount ?? 0}</div>
       </CardContent>
     </Card>
   );

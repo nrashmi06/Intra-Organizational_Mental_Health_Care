@@ -24,18 +24,15 @@ const SendMessageModal: React.FC<{
     setIsSending(true);
     try {
       const response = await initiateSession(userId, message, token);
-      if (response.status === 200) {
-        setMessage(response.data);
-        setAlert(response.data)
+      if (response) {
+        setMessage("Message sent successfully!");
+        setAlert("Message sent successfully!");
         setTimeout(() => {
           setAlert("");
           closeModal();
         }, 3000);
-      } else if(response.status===500) {
-        setAlert("Listener is already in a session. Please try later.");
-      }
-      else{
-        setAlert(response.statusText);
+      } else {
+        setAlert("Failed to send message. Please try again.");
       }
     } catch (error) {
       console.error("Error sending message:", error);

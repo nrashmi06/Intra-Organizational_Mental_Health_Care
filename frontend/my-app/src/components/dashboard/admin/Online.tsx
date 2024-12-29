@@ -4,31 +4,29 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { getActiveUserByRoleName } from "@/service/SSE/getActiveUserByRoleName";
-import { RootState } from "@/store";
-import { useSelector } from "react-redux";
 import ModalDetails from "./ModalDetails";
 import { Admin } from "@/lib/types";
 import UserIcon from "@/components/ui/userIcon";
 import "@/styles/global.css";
 import InlineLoader from "@/components/ui/inlineLoader";
+import { addEventSource, clearEventSources, removeEventSource } from "@/store/eventsourceSlice";
+import { AppDispatch, RootState } from "@/store";
+import { useDispatch, useSelector } from "react-redux";
 
 export function OnlineAdminsTable() {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6; // Adjusted for grid layout
+  const itemsPerPage = 6;
   const [admins, setAdmins] = useState<Admin[]>([]);
-  const [eventSource, setEventSource] = useState<EventSource | null>(null);
   const token = useSelector((state: RootState) => state.auth.accessToken);
   const [detailsModal, setDetailsModal] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string>("");
   const [loading, setLoading] = useState(true);
+  const dispatch = useDispatch<AppDispatch>();
 
   useEffect(() => {
-    if (eventSource) {
-      eventSource.close();
-    }
     setLoading(true);
-    const newEventSource = getActiveUserByRoleName(
+    const eventSource = getActiveUserByRoleName(
       "onlineAdmins",
       token,
       (data) => {
@@ -36,12 +34,27 @@ export function OnlineAdminsTable() {
         setLoading(false);
       }
     );
-    setEventSource(newEventSource);
+    if (eventSource) {
+      const eventSourceEntry = {
+        id: "onlineAdmins",
+        eventSource,
+      };
+      dispatch(addEventSource(eventSourceEntry));
+    }
 
     return () => {
-      newEventSource?.close();
+      dispatch(removeEventSource("onlineAdmins"));
+      if (eventSource) {
+        eventSource.close();
+      }
     };
-  }, [token]);
+  }, [token, dispatch]);
+  
+  useEffect(() => {
+    return () => {
+      dispatch(clearEventSources());
+    };
+  }, [dispatch]);
 
   const handleDetailsModal = (userId: string) => {
     setSelectedUserId(userId);

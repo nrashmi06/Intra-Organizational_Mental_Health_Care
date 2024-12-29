@@ -1,18 +1,14 @@
 // src/service/notifications/subscribeToNotifications.ts
 import { NOTIFICATION_API_ENDPOINTS } from "@/mapper/notificationMapper"; // Import from the mapper file
-
 export const subscribeToNotifications = (
   token: string,
   userId: number,
   onNotificationReceived: (message: string, senderId: string) => void
 ) => {
   const eventSource = new EventSource(
-    NOTIFICATION_API_ENDPOINTS.SUBSCRIBE_TO_NOTIFICATIONS(userId) + `&token=${encodeURIComponent(token)}`
+    NOTIFICATION_API_ENDPOINTS.SUBSCRIBE_TO_NOTIFICATIONS(userId) +
+      `&token=${encodeURIComponent(token)}`
   );
-
-  eventSource.onopen = () => {
-    console.log("SSE connection opened.");
-  };
 
   eventSource.addEventListener("notification", (event) => {
     try {
