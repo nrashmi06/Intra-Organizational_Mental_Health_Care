@@ -18,21 +18,58 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Slf4j
 @Component
 public class ChatWebSocketHandler extends TextWebSocketHandler {
 
+    private static final int MAX_PARTICIPANTS = 2;
     private final SessionRepository sessionRepository;
     private final UserService userService;
     private final ListenerService listenerService;
     private final ChatMessageService chatMessageService;
-
-    private static final Map<String, Map<String, WebSocketSession>> chatSessions = new ConcurrentHashMap<>();
     private final UserRepository userRepository;
 
-    public ChatWebSocketHandler(SessionRepository sessionRepository, UserService userService, ListenerService listenerService, ChatMessageService chatMessageService, UserRepository userRepository) {
+    // Thread-safe session management with locks
+    private static final Map<String, ChatRoom> chatRooms = new ConcurrentHashMap<>();
+    private static final Map<String, ReentrantLock> sessionLocks = new ConcurrentHashMap<>();
+
+    private static class ChatRoom {
+        private final Map<String, WebSocketSession> participants;
+        private final Set<String> authorizedUsers;
+        private final String sessionId;
+        private boolean isActive;
+
+        public ChatRoom(String sessionId) {
+            this.sessionId = sessionId;
+            this.participants = new ConcurrentHashMap<>();
+            this.authorizedUsers = ConcurrentHashMap.newKeySet();
+            this.isActive = true;
+        }
+
+        public boolean canJoin(String username) {
+            return isActive &&
+                    participants.size() < MAX_PARTICIPANTS &&
+                    (participants.isEmpty() || authorizedUsers.contains(username));
+        }
+
+        public void addAuthorizedUser(String username) {
+            authorizedUsers.add(username);
+        }
+
+        public boolean isParticipant(String username) {
+            return participants.containsKey(username);
+        }
+    }
+
+    public ChatWebSocketHandler(SessionRepository sessionRepository,
+                                UserService userService,
+                                ListenerService listenerService,
+                                ChatMessageService chatMessageService,
+                                UserRepository userRepository) {
         this.sessionRepository = sessionRepository;
         this.userService = userService;
         this.listenerService = listenerService;
@@ -45,76 +82,67 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         String sessionId = getPathParam(session, "sessionId");
         String username = getPathParam(session, "username");
 
-        log.info("WebSocket connection established for user: {}, sessionId: {}", username, sessionId);
+        ReentrantLock sessionLock = sessionLocks.computeIfAbsent(sessionId, k -> new ReentrantLock());
+        sessionLock.lock();
+        try {
+            ChatRoom chatRoom = chatRooms.computeIfAbsent(sessionId, ChatRoom::new);
 
-        Map<String, WebSocketSession> sessionsForId = chatSessions.computeIfAbsent(sessionId, k -> new ConcurrentHashMap<>());
-        if (sessionsForId.size() >= 2) {
-            log.warn("Session {} is full. Closing connection for user: {}", sessionId, username);
-            session.close(CloseStatus.NOT_ACCEPTABLE.withReason("Session is full"));
-            return;
+            if (!chatRoom.canJoin(username)) {
+                log.warn("Access denied for user: {} to session: {}", username, sessionId);
+                session.close(CloseStatus.NOT_ACCEPTABLE.withReason("Access denied"));
+                return;
+            }
+
+            if (chatRoom.participants.isEmpty()) {
+                chatRoom.addAuthorizedUser(username);
+            }
+
+            chatRoom.participants.put(username, session);
+            log.info("User {} joined session {}", username, sessionId);
+            broadcastMessage(chatRoom, createSystemMessage(username + " has joined the chat"), null);
+        } finally {
+            sessionLock.unlock();
         }
-
-        sessionsForId.put(username, session);
-        log.info("User {} added to session {}", username, sessionId);
-        broadcastMessage(sessionId, createSystemMessage(username + " has joined the chat"), null);
     }
 
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
-        try {
-            String sessionId = getPathParam(session, "sessionId");
-            String username = getPathParam(session, "username");
+        String sessionId = getPathParam(session, "sessionId");
+        String username = getPathParam(session, "username");
+        ChatRoom chatRoom = chatRooms.get(sessionId);
 
-            log.info("Received message from {} in session {}: {}", username, sessionId, message.getPayload());
-
-            if (message.getPayload().trim().isEmpty()) {
-                log.warn("Empty message received from {}", username);
-                return;
-            }
-
-            if (sessionId == null || username == null) {
-                log.error("Invalid session parameters: sessionId={}, username={}", sessionId, username);
-                return;
-            }
-
-            int parsedSessionId;
-            try {
-                parsedSessionId = Integer.parseInt(sessionId);
-            } catch (NumberFormatException e) {
-                log.error("Invalid session ID format: {}", sessionId);
-                return;
-            }
-
-            Session foundSession = sessionRepository.findById(parsedSessionId).orElse(null);
-            User sender = userRepository.findByAnonymousName(username);
-
-            if (foundSession == null) {
-                log.error("Session not found for ID: {}", parsedSessionId);
-                return;
-            }
-
-            if (sender == null) {
-                log.error("User not found with username: {}", username);
-                return;
-            }
-
-            ChatMessage chatMessage = new ChatMessage();
-            chatMessage.setSession(foundSession);
-            chatMessage.setSender(sender);
-            chatMessage.setMessageContent(message.getPayload());
-            chatMessage.setSentAt(LocalDateTime.now());
-
-            chatMessageService.saveMessage(chatMessage);
-            log.info("Saved chat message from {} in session {}", username, sessionId);
-
-            listenerService.incrementMessageCount(username);
-            log.info("Incremented message count for user: {}", username);
-
-            broadcastMessage(sessionId, username + ": " + message.getPayload(), username);
-
-        } catch (Exception e) {
-            log.error("Error processing WebSocket message", e);
+        if (chatRoom == null || !chatRoom.isParticipant(username)) {
+            log.error("Unauthorized message attempt from user: {} in session: {}", username, sessionId);
+            session.close(CloseStatus.POLICY_VIOLATION);
+            return;
         }
+
+        try {
+            processAndBroadcastMessage(sessionId, username, message.getPayload(), chatRoom);
+        } catch (Exception e) {
+            log.error("Error processing message", e);
+            session.close(CloseStatus.SERVER_ERROR);
+        }
+    }
+
+    private void processAndBroadcastMessage(String sessionId, String username, String content, ChatRoom chatRoom) {
+        if (content.trim().isEmpty()) {
+            return;
+        }
+
+        Session dbSession = sessionRepository.findById(Integer.parseInt(sessionId))
+                .orElseThrow(() -> new IllegalStateException("Session not found: " + sessionId));
+        User sender = userRepository.findByAnonymousName(username);
+
+        ChatMessage chatMessage = new ChatMessage();
+        chatMessage.setSession(dbSession);
+        chatMessage.setSender(sender);
+        chatMessage.setMessageContent(content);
+        chatMessage.setSentAt(LocalDateTime.now());
+
+        chatMessageService.saveMessage(chatMessage);
+        listenerService.incrementMessageCount(username);
+        broadcastMessage(chatRoom, username + ": " + content, username);
     }
 
     @Override
@@ -122,70 +150,70 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         String sessionId = getPathParam(session, "sessionId");
         String username = getPathParam(session, "username");
 
-        Map<String, WebSocketSession> sessionsForId = chatSessions.get(sessionId);
-        if (sessionsForId != null) {
-            sessionsForId.remove(username);
-            log.info("WebSocket closed for user {} in session {}", username, sessionId);
-
-            if (sessionsForId.isEmpty()) {
-                chatSessions.remove(sessionId);
-                log.info("Session {} removed from chatSessions", sessionId);
-            } else {
-                broadcastMessage(sessionId, createSystemMessage(username + " has left the chat"), null);
+        ReentrantLock sessionLock = sessionLocks.get(sessionId);
+        if (sessionLock != null) {
+            sessionLock.lock();
+            try {
+                ChatRoom chatRoom = chatRooms.get(sessionId);
+                if (chatRoom != null && chatRoom.isParticipant(username)) {
+                    chatRoom.participants.remove(username);
+                    if (chatRoom.participants.isEmpty()) {
+                        chatRooms.remove(sessionId);
+                        sessionLocks.remove(sessionId);
+                    } else {
+                        broadcastMessage(chatRoom, createSystemMessage(username + " has left the chat"), null);
+                    }
+                }
+            } finally {
+                sessionLock.unlock();
             }
         }
+    }
+
+    public boolean endSession(String sessionId) {
+        ReentrantLock sessionLock = sessionLocks.get(sessionId);
+        if (sessionLock != null) {
+            sessionLock.lock();
+            try {
+                ChatRoom chatRoom = chatRooms.remove(sessionId);
+                if (chatRoom != null) {
+                    chatRoom.isActive = false;
+                    chatRoom.participants.forEach((username, wsSession) -> {
+                        try {
+                            wsSession.close(CloseStatus.NORMAL);
+                        } catch (IOException e) {
+                            log.error("Error closing session for user: " + username, e);
+                        }
+                    });
+                    return true;
+                }
+            } finally {
+                sessionLock.unlock();
+                sessionLocks.remove(sessionId);
+            }
+        }
+        return false;
+    }
+
+    private void broadcastMessage(ChatRoom chatRoom, String message, String excludeUser) {
+        chatRoom.participants.forEach((username, wsSession) -> {
+            if (!username.equals(excludeUser) && wsSession.isOpen()) {
+                synchronized (wsSession) {
+                    try {
+                        wsSession.sendMessage(new TextMessage(message));
+                    } catch (IOException | IllegalStateException e) {
+                        log.error("Error broadcasting to user: " + username, e);
+                    }
+                }
+            }
+        });
     }
 
     private String getPathParam(WebSocketSession session, String paramName) {
         String path = session.getUri().getPath();
         String[] pathParts = path.split("/");
-        if ("sessionId".equals(paramName)) {
-            return pathParts[pathParts.length - 2];
-        } else if ("username".equals(paramName)) {
-            return pathParts[pathParts.length - 1];
-        }
-        return null;
-    }
-
-    private void broadcastMessage(String sessionId, String message, String excludeUser) {
-        Map<String, WebSocketSession> sessionsForId = chatSessions.get(sessionId);
-        if (sessionsForId != null) {
-            sessionsForId.forEach((username, wsSession) -> {
-                if (!username.equals(excludeUser) && wsSession.isOpen()) {
-                    synchronized (wsSession) {
-                        try {
-                            wsSession.sendMessage(new TextMessage(message));
-                            log.info("Broadcasted message to user {} in session {}: {}", username, sessionId, message);
-                        } catch (IOException e) {
-                            log.error("Error broadcasting message to user {} in session {}", username, sessionId, e);
-                        } catch (IllegalStateException e) {
-                            log.error("WebSocket session in invalid state for sending message to user {} in session {}", username, sessionId, e);
-                        }
-                    }
-                }
-            });
-        }
-    }
-
-    public boolean endSession(String sessionId) {
-        Map<String, WebSocketSession> sessionsForId = chatSessions.remove(sessionId);
-        if (sessionsForId != null) {
-            sessionsForId.forEach((username, wsSession) -> {
-                if (wsSession.isOpen()) {
-                    try {
-                        wsSession.close(CloseStatus.NORMAL);
-                        log.info("Closed WebSocket session for user {} in session {}", username, sessionId);
-                    } catch (IOException e) {
-                        log.error("Error closing WebSocket session for user {} in session {}", username, sessionId, e);
-                    }
-                }
-            });
-            log.info("Session {} ended and removed from chatSessions", sessionId);
-            return true;
-        } else {
-            log.warn("Session {} not found in chatSessions", sessionId);
-            return false;
-        }
+        return "sessionId".equals(paramName) ? pathParts[pathParts.length - 2] :
+                "username".equals(paramName) ? pathParts[pathParts.length - 1] : null;
     }
 
     private String createSystemMessage(String content) {
