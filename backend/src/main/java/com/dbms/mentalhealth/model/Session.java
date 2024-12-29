@@ -39,7 +39,6 @@ public class Session {
     @Column(name = "session_end")
     private LocalDateTime sessionEnd;
 
-
     @OneToMany(mappedBy = "session", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ChatMessage> chatMessages;
 }

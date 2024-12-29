@@ -5,7 +5,6 @@ import com.dbms.mentalhealth.dto.user.request.UserUpdateRequestDTO;
 import com.dbms.mentalhealth.dto.user.response.UserDataResponseDTO;
 import com.dbms.mentalhealth.dto.user.response.UserDetailsSummaryResponseDTO;
 import com.dbms.mentalhealth.dto.user.response.UserInfoResponseDTO;
-import com.dbms.mentalhealth.enums.ProfileStatus;
 import com.dbms.mentalhealth.exception.appointment.InvalidRequestException;
 import com.dbms.mentalhealth.exception.user.UserNotFoundException;
 import com.dbms.mentalhealth.exception.user.InvalidUserUpdateException;
@@ -21,8 +20,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,23 +27,18 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 @RestController
 public class UserManagementController {
 
     private final JwtUtils jwtUtils;
     private final UserService userService;
     private final PdfGenerator pdfGenerator;
-    private final UserRepository userRepository;
     private static final Logger logger = LoggerFactory.getLogger(UserManagementController.class);
 
-    public UserManagementController(UserServiceImpl userService, JwtUtils jwtUtils, PdfGenerator pdfGenerator, UserRepository userRepository) {
+    public UserManagementController(UserServiceImpl userService, JwtUtils jwtUtils, PdfGenerator pdfGenerator) {
         this.userService = userService;
         this.jwtUtils = jwtUtils;
         this.pdfGenerator = pdfGenerator;
-        this.userRepository = userRepository;
     }
 
     @DeleteMapping(UserUrlMapping.DELETE_USER)

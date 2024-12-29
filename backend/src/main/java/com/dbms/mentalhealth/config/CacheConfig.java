@@ -161,12 +161,6 @@ public class CacheConfig {
                 .build();
     }
 
-    @Bean
-    public Cache<SessionCacheKey, List<SessionSummaryDTO>> sessionListCache() {
-        return createListBuilder()
-                .maximumSize(SMALL_CACHE_SIZE)
-                .build();
-    }
 
     @Bean
     public Cache<Integer, Session> ongoingSessionsCache() {
@@ -254,19 +248,6 @@ public class CacheConfig {
     public Cache<ListenerApplicationCacheKey, ListenerDetailsResponseDTO> listenerDetailsFromListenerApplicationCache() {
         return createStandardBuilder()
                 .maximumSize(STANDARD_CACHE_SIZE)
-                .build();
-    }
-
-    @Bean
-    public Cache<ListenerCacheKey,ListenerDetailsResponseDTO> listenerDetailsCache(){
-        return createStandardBuilder()
-                .maximumSize(STANDARD_CACHE_SIZE)
-                .build();
-    }
-    @Bean
-    public Cache<ListenerCacheKey, List<UserActivityDTO>> listenerListCache() {
-        return createListBuilder()
-                .maximumSize(SMALL_CACHE_SIZE)
                 .build();
     }
 

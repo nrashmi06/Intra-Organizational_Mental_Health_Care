@@ -9,6 +9,10 @@ import com.dbms.mentalhealth.urlMapper.SessionUrlMapping;
 import com.dbms.mentalhealth.util.Etags.SessionETagGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -62,72 +66,12 @@ public class SessionController {
                 .body(sessionResponseDTO);
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @GetMapping(SessionUrlMapping.GET_ALL_SESSIONS)
-    public ResponseEntity<List<SessionSummaryDTO>> getAllSessions(
-            @RequestHeader(value = HttpHeaders.IF_NONE_MATCH, required = false) String ifNoneMatch) {
-        List<SessionSummaryDTO> sessions = sessionService.getAllSessions();
-        if (sessions == null || sessions.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        String eTag = eTagGenerator.generateListETag(sessions);
-        if (ifNoneMatch != null && !ifNoneMatch.trim().isEmpty() && eTag.equals(ifNoneMatch)) {
-            return ResponseEntity.status(HttpStatus.NOT_MODIFIED)
-                    .header(HttpHeaders.ETAG, eTag)
-                    .build();
-        }
-        return ResponseEntity.ok()
-                .header(HttpHeaders.ETAG, eTag)
-                .body(sessions);
-    }
-
     @PreAuthorize("isAuthenticated()")
     @PostMapping(SessionUrlMapping.END_SESSION)
     public ResponseEntity<String> endSession(@PathVariable Integer sessionId) {
         String response = sessionService.endSession(sessionId);
         chatWebSocketHandler.endSession(sessionId.toString());
         return ResponseEntity.ok(response);
-    }
-
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @GetMapping(SessionUrlMapping.GET_SESSIONS_BY_USER_ID_OR_LISTENER_ID)
-    public ResponseEntity<List<SessionSummaryDTO>> getSessionsByUserIdOrListenerId(
-            @PathVariable Integer userId,
-            @RequestParam String role,
-            @RequestHeader(value = HttpHeaders.IF_NONE_MATCH, required = false) String ifNoneMatch) {
-        List<SessionSummaryDTO> sessions = sessionService.getSessionsByUserIdOrListenerId(userId, role);
-        if (sessions == null || sessions.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        String eTag = eTagGenerator.generateListETag(sessions);
-        if (ifNoneMatch != null && !ifNoneMatch.trim().isEmpty() && eTag.equals(ifNoneMatch)) {
-            return ResponseEntity.status(HttpStatus.NOT_MODIFIED)
-                    .header(HttpHeaders.ETAG, eTag)
-                    .build();
-        }
-        return ResponseEntity.ok()
-                .header(HttpHeaders.ETAG, eTag)
-                .body(sessions);
-    }
-
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @GetMapping(SessionUrlMapping.GET_SESSIONS_BY_STATUS)
-    public ResponseEntity<List<SessionSummaryDTO>> getSessionsByStatus(
-            @RequestParam String status,
-            @RequestHeader(value = HttpHeaders.IF_NONE_MATCH, required = false) String ifNoneMatch) {
-        List<SessionSummaryDTO> sessions = sessionService.getSessionsByStatus(status);
-        if (sessions == null || sessions.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        String eTag = eTagGenerator.generateListETag(sessions);
-        if (ifNoneMatch != null && !ifNoneMatch.trim().isEmpty() && eTag.equals(ifNoneMatch)) {
-            return ResponseEntity.status(HttpStatus.NOT_MODIFIED)
-                    .header(HttpHeaders.ETAG, eTag)
-                    .build();
-        }
-        return ResponseEntity.ok()
-                .header(HttpHeaders.ETAG, eTag)
-                .body(sessions);
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
@@ -143,21 +87,25 @@ public class SessionController {
         return sessionService.getAverageSessionDuration();
     }
 
+
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @GetMapping(SessionUrlMapping.GET_SESSIONS_BY_LISTENERS_USER_ID)
-    public ResponseEntity<List<SessionSummaryDTO>> getSessionsByListenersUserId(
-            @PathVariable Integer userId,
+    @GetMapping(SessionUrlMapping.GET_SESSIONS_BY_FILTERS)
+    public ResponseEntity<Page<SessionSummaryDTO>> getSessionsByFilters(
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) Integer id,
+            @RequestParam(required = false) String idType,
+            @PageableDefault(size = 10, sort = "sessionId", direction = Sort.Direction.DESC) Pageable pageable,
             @RequestHeader(value = HttpHeaders.IF_NONE_MATCH, required = false) String ifNoneMatch) {
-        List<SessionSummaryDTO> sessions = sessionService.getSessionsByListenersUserId(userId);
-        if (sessions == null || sessions.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        String eTag = eTagGenerator.generateListETag(sessions);
+
+        Page<SessionSummaryDTO> sessions = sessionService.getSessionsByFilters(status, id, idType, pageable);
+
+        String eTag = eTagGenerator.generatePageETag(sessions);
         if (ifNoneMatch != null && !ifNoneMatch.trim().isEmpty() && eTag.equals(ifNoneMatch)) {
             return ResponseEntity.status(HttpStatus.NOT_MODIFIED)
                     .header(HttpHeaders.ETAG, eTag)
                     .build();
         }
+
         return ResponseEntity.ok()
                 .header(HttpHeaders.ETAG, eTag)
                 .body(sessions);
