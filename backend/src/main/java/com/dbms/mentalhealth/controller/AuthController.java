@@ -50,8 +50,8 @@ public class AuthController {
     }
 
     @PostMapping(UserUrlMapping.USER_LOGIN)
-    @PreAuthorize("permitAll()")
-    public ResponseEntity<?> authenticateUser(@RequestBody UserLoginRequestDTO loginRequest, HttpServletResponse response) {
+    public ResponseEntity<?> authenticateUser(@RequestBody UserLoginRequestDTO loginRequest,
+                                              HttpServletResponse response) {
         try {
             Map<String, Object> loginResponse = userService.loginUser(loginRequest);
 
@@ -59,18 +59,10 @@ public class AuthController {
             String refreshToken = (String) loginResponse.get("refreshToken");
             UserLoginResponseDTO responseDTO = (UserLoginResponseDTO) loginResponse.get("user");
 
-            boolean isSecure = !baseUrl.contains("localhost");
+            // Set refresh token as HttpOnly cookie
+            refreshTokenService.setSecureRefreshTokenCookie(response, refreshToken);
 
-            Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
-            refreshTokenCookie.setHttpOnly(true);
-            refreshTokenCookie.setSecure(isSecure);
-            refreshTokenCookie.setPath("/mental-health/api/v1/users");
-            refreshTokenCookie.setMaxAge(24 * 60 * 60);
-            refreshTokenCookie.setDomain("localhost");
-
-            response.addHeader("Set-Cookie", "refreshToken=" + refreshToken + "; HttpOnly; Secure=" + isSecure + "; Path=/; Max-Age=86400; SameSite=None");
-            response.addCookie(refreshTokenCookie);
-
+            // Only return access token in Authorization header and user data in body
             return ResponseEntity.ok()
                     .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
                     .body(responseDTO);
@@ -128,8 +120,8 @@ public class AuthController {
     }
 
     @PostMapping(UserUrlMapping.RENEW_TOKEN)
-    @PreAuthorize("permitAll()")
-    public ResponseEntity<?> renewToken(@CookieValue("refreshToken") String refreshToken, HttpServletResponse response) {
+    public ResponseEntity<?> renewToken(@CookieValue("refreshToken") String refreshToken,
+                                        HttpServletResponse response) {
         try {
             if (refreshToken == null) {
                 throw new MissingRequestCookieException("Required cookie 'refreshToken' is not present");
@@ -138,19 +130,13 @@ public class AuthController {
             Map<String, Object> renewResponse = refreshTokenService.renewToken(refreshToken);
 
             String newAccessToken = (String) renewResponse.get("accessToken");
+            String newRefreshToken = (String) renewResponse.get("refreshToken");
             UserLoginResponseDTO responseDTO = (UserLoginResponseDTO) renewResponse.get("user");
 
-            Cookie refreshTokenCookie = new Cookie("refreshToken", renewResponse.get("refreshToken").toString());
-            boolean isSecure = !baseUrl.contains("localhost");
-            refreshTokenCookie.setHttpOnly(true);
-            refreshTokenCookie.setSecure(isSecure);
-            refreshTokenCookie.setPath("/mental-health/api/v1/users");
-            refreshTokenCookie.setMaxAge(24 * 60 * 60);
+            // Set new refresh token as HttpOnly cookie
+            refreshTokenService.setSecureRefreshTokenCookie(response, newRefreshToken);
 
-            response.addHeader("Set-Cookie", "refreshToken=" + renewResponse.get("refreshToken").toString()
-                    + "; HttpOnly; Secure=" + isSecure + "; Path=/; Max-Age=86400; SameSite=None");
-            response.addCookie(refreshTokenCookie);
-
+            // Only return new access token in Authorization header and user data in body
             return ResponseEntity.ok()
                     .header(HttpHeaders.AUTHORIZATION, "Bearer " + newAccessToken)
                     .body(responseDTO);
@@ -159,7 +145,8 @@ public class AuthController {
         } catch (UserNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("An unexpected error occurred");
         }
     }
 }

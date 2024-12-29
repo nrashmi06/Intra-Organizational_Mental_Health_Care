@@ -11,6 +11,9 @@ import com.dbms.mentalhealth.repository.UserRepository;
 import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.service.RefreshTokenService;
 import com.dbms.mentalhealth.service.UserService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -27,7 +30,7 @@ import java.util.UUID;
 public class RefreshTokenServiceImpl implements RefreshTokenService {
 
     private static final long REFRESH_TOKEN_VALIDITY_MS = 1_000L * 60 * 60 * 24; // 24 hrs
-
+    private final String baseUrl;
     private final UserService userService;
     private final RefreshTokenRepository refreshTokenRepository;
     private final UserRepository userRepository;
@@ -38,12 +41,14 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
             RefreshTokenRepository refreshTokenRepository,
             UserRepository userRepository,
             JwtUtils jwtUtils,
-            @Lazy UserService userService
+            @Lazy UserService userService,
+             @Value("${spring.app.base-url}") String baseUrl
     ) {
         this.refreshTokenRepository = refreshTokenRepository;
         this.userRepository = userRepository;
         this.jwtUtils = jwtUtils;
         this.userService = userService;
+        this.baseUrl = baseUrl;
     }
 
     @Transactional
@@ -119,5 +124,32 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         return refreshTokenRepository.findByToken(token)
                 .filter(rt -> rt.getExpiry().isAfter(Instant.now()))
                 .orElseThrow(() -> new RefreshTokenException("Invalid or expired refresh token"));
+    }
+
+    @Override
+    public void setSecureRefreshTokenCookie(HttpServletResponse response, String refreshToken) {
+        boolean isSecure = !baseUrl.contains("localhost");
+        String domain = baseUrl.contains("localhost") ? "localhost" : baseUrl;
+
+        Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
+        refreshTokenCookie.setHttpOnly(true);  // Prevents JavaScript access
+        refreshTokenCookie.setSecure(isSecure);  // Requires HTTPS in production
+        refreshTokenCookie.setPath("/mental-health/api/v1/users");
+        refreshTokenCookie.setMaxAge(24 * 60 * 60);  // 24 hours
+        refreshTokenCookie.setDomain(domain);
+
+        // Set SameSite attribute through header
+        String cookieHeader = String.format(
+                "refreshToken=%s; " +
+                        "HttpOnly; " +  // Prevents JavaScript access
+                        "Secure=%s; " +
+                        "Path=/mental-health/api/v1/users; " +
+                        "Domain=%s; " +
+                        "Max-Age=86400; " +
+                        "SameSite=Strict",  // Changed to Strict for better security
+                refreshToken, isSecure, domain
+        );
+
+        response.addHeader("Set-Cookie", cookieHeader);
     }
 }

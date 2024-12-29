@@ -3,6 +3,7 @@ package com.dbms.mentalhealth.service;
 
 import com.dbms.mentalhealth.dto.user.response.UserLoginResponseDTO;
 import com.dbms.mentalhealth.model.RefreshToken;
+import jakarta.servlet.http.HttpServletResponse;
 
 import java.util.Map;
 
@@ -12,4 +13,5 @@ public interface RefreshTokenService {
     void deleteRefreshToken(String token);
     String getEmailFromRefreshToken(String token);
     public Map<String,Object> renewToken(String refreshToken);
+    void setSecureRefreshTokenCookie(HttpServletResponse response, String refreshToken);
 }
