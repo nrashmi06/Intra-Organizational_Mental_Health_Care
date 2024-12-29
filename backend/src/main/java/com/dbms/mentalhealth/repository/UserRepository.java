@@ -23,11 +23,23 @@ public interface UserRepository extends JpaRepository<User, Integer> {
             "u.role = 'USER' AND " +
             "(:status IS NULL OR u.profileStatus = :status) AND " +
             "(:search IS NULL OR " +
-            "LOWER(CAST(u.anonymousName AS string)) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
-            "CAST(u.userId AS string) LIKE CONCAT('%', :search, '%'))")
+            "CAST(u.anonymousName AS string) LIKE CONCAT('%', :search, '%'))")
     Page<User> findUsersWithFilters(
             @Param("status") ProfileStatus status,
             @Param("search") String search,
             Pageable pageable);
-
+    @Query("SELECT u FROM User u WHERE " +
+            "u.role = 'USER' AND " +
+            "(:status IS NULL OR u.profileStatus = :status)")
+    Page<User> findUsersWithFilters(
+            @Param("status") ProfileStatus status,
+            Pageable pageable);
+    @Query("SELECT u FROM User u WHERE " +
+            "u.role = 'USER' AND " +
+            "u.userId = :userId AND " +
+            "(:status IS NULL OR u.profileStatus = :status)")
+    Page<User> findUsersByIdAndFilters(
+            @Param("userId") Integer userId,
+            @Param("status") ProfileStatus status,
+            Pageable pageable);
 }

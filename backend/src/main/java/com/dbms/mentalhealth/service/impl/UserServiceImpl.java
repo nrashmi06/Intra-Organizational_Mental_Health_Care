@@ -403,8 +403,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     @Transactional(readOnly = true)
     public Page<User> getUsersByFilters(String status, String searchTerm, Pageable pageable) {
-        logger.debug("Fetching users with status: {}, search term: {}, pagination: {}",
-                status, searchTerm, pageable);
+        logger.debug("Fetching users with search term: {}, pagination: {}", searchTerm, pageable);
 
         ProfileStatus profileStatus = null;
         if (status != null && !status.isEmpty()) {
@@ -422,7 +421,13 @@ public class UserServiceImpl implements UserService, UserDetailsService {
             normalizedSearch = null;
         }
 
-        Page<User> users = userRepository.findUsersWithFilters(profileStatus, normalizedSearch, pageable);
+        Page<User> users;
+        if (normalizedSearch == null) {
+            users = userRepository.findUsersWithFilters(profileStatus, pageable);
+        } else {
+            users = userRepository.findUsersWithFilters(profileStatus, normalizedSearch, pageable);
+        }
+
         logger.debug("Found {} users in page {} of {}",
                 users.getNumberOfElements(),
                 users.getNumber(),
@@ -430,6 +435,8 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
         return users;
     }
+
+
     @Override
     @Transactional(readOnly = true)
     public UserDataResponseDTO getUserData(Integer userId) {

@@ -119,7 +119,7 @@ public class UserManagementController {
             @RequestParam(required = false) String search,
             Pageable pageable
     ) {
-        logger.debug("Request to get users with status: {}, search: {}", status, search);
+        logger.debug("Request to get users with search: {}", search);
 
         try {
             Page<User> users = userService.getUsersByFilters(status, search, pageable);
@@ -138,7 +138,6 @@ public class UserManagementController {
             return ResponseEntity.internalServerError().build();
         }
     }
-
 
 
     @PreAuthorize("isAuthenticated()")
