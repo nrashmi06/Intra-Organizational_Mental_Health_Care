@@ -7,6 +7,7 @@ import chatReducer from './chatSlice';
 import emergencyReducer from './emergencySlice'; 
 import detailedApplicationSlice from './detailedApplicationSlice'; 
 import applicationListSlice from './applicationListSlice';
+import appointmentReducer from './appointmentSlice'; 
 
 // Define  reducers
 const authPersistConfig = {
@@ -39,6 +40,12 @@ const applicationListPersistConfig = {
   storage,
 };
 
+const appointmentPersistConfig = {
+  key: 'appointments',
+  storage,
+};
+
+
 // Persist the auth and notification reducers separately
 const persistedAuthReducer = persistReducer(authPersistConfig, authReducer);
 const persistedNotificationReducer = persistReducer(notificationPersistConfig, notificationReducer);
@@ -46,6 +53,7 @@ const persistedChatReducer = persistReducer(chatPersistConfig, chatReducer);
 const persistedEmergencyReducer = persistReducer(emergencyPersistConfig, emergencyReducer);
 const persistedDetailedApplicationReducer = persistReducer(detailedApplicationPersistConfig, detailedApplicationSlice);
 const persistedApplicationListReducer = persistReducer(applicationListPersistConfig, applicationListSlice);
+const persistedAppointmentReducer = persistReducer(appointmentPersistConfig, appointmentReducer);
 
 // Create the Redux store
 const store = configureStore({
@@ -56,6 +64,7 @@ const store = configureStore({
     emergency: persistedEmergencyReducer, 
     detailedApplication: persistedDetailedApplicationReducer,
     applicationList: persistedApplicationListReducer,
+    appointments: persistedAppointmentReducer,
   },
   devTools: true, // Enable Redux DevTools in development
 });
