@@ -8,6 +8,7 @@ import emergencyReducer from './emergencySlice';
 import detailedApplicationSlice from './detailedApplicationSlice'; 
 import applicationListSlice from './applicationListSlice';
 import appointmentReducer from './appointmentSlice'; 
+import timeSlotReducer from './timeSlotSlice';
 
 // Define  reducers
 const authPersistConfig = {
@@ -45,6 +46,10 @@ const appointmentPersistConfig = {
   storage,
 };
 
+const timeSlotPersistConfig = {
+  key: 'timeSlots',
+  storage,
+};
 
 // Persist the auth and notification reducers separately
 const persistedAuthReducer = persistReducer(authPersistConfig, authReducer);
@@ -54,6 +59,7 @@ const persistedEmergencyReducer = persistReducer(emergencyPersistConfig, emergen
 const persistedDetailedApplicationReducer = persistReducer(detailedApplicationPersistConfig, detailedApplicationSlice);
 const persistedApplicationListReducer = persistReducer(applicationListPersistConfig, applicationListSlice);
 const persistedAppointmentReducer = persistReducer(appointmentPersistConfig, appointmentReducer);
+const persistedTimeSlotReducer = persistReducer(timeSlotPersistConfig, timeSlotReducer);
 
 // Create the Redux store
 const store = configureStore({
@@ -65,6 +71,7 @@ const store = configureStore({
     detailedApplication: persistedDetailedApplicationReducer,
     applicationList: persistedApplicationListReducer,
     appointments: persistedAppointmentReducer,
+    timeSlots: persistedTimeSlotReducer,
   },
   devTools: true, // Enable Redux DevTools in development
 });

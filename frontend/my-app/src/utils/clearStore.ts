@@ -1,6 +1,7 @@
 // useClearStore.ts
 import { useDispatch } from "react-redux";
 import { clearDetailedApplication } from "@/store/detailedApplicationSlice";
+import { clearAppointments } from "@/store/appointmentSlice";
 
 export default function useClearStore() {
   const dispatch = useDispatch();
@@ -8,6 +9,7 @@ export default function useClearStore() {
   // Dispatch action to clear the detailed application
   const clearStore = () => {
     dispatch(clearDetailedApplication());
+    dispatch(clearAppointments());
   };
 
   return clearStore;

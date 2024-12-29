@@ -6,8 +6,8 @@ import { Label } from "@/components/ui/label";
 import Badge from "@/components/ui/badge";
 import { Calendar, Clock, Plus } from "lucide-react";
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
-import { useSelector } from 'react-redux';
-import { RootState } from '@/store';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState, AppDispatch } from '@/store';
 import { confirmTimeSlots } from '@/service/timeslot/confirmTimeSlots';
 import { fetchTimeSlots } from '@/service/timeslot/fetchTimeSlots';
 import deleteTimeSlots from '@/service/timeslot/deleteTimeSlots';
@@ -16,6 +16,7 @@ import deleteTimeSlotsById from '@/service/timeslot/deleteTimeSlotById';
 import { TimeSelector } from '@/components/dashboard/timeslot/TimeSelector';
 
 const TimeSlotPage = () => {
+  const dispatch = useDispatch<AppDispatch>();
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
   const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedSlots, setSelectedSlots] = useState<Array<{ date: string; startTime: string; endTime: string; isAvailable: boolean }>>([]);
@@ -33,6 +34,7 @@ const TimeSlotPage = () => {
   
   const token = useSelector((state: RootState) => state.auth.accessToken);
   const userID = useSelector((state: RootState) => state.auth.userId);
+  const timeSlots = useSelector((state: RootState) => state.timeSlots.timeSlots);
 
   const getEndDate = () => {
     const today = new Date();
@@ -46,13 +48,44 @@ const TimeSlotPage = () => {
     return startDate.toISOString().split('T')[0];
   }
 
-  const handleUpdateTimeSlot = async (id: string , start : string , end : string) => {
+  useEffect(() => {
+    const today = new Date().toISOString().split('T')[0];
+    const end = getEndDate();
+    
+    if (token && userID) {
+      dispatch(fetchTimeSlots(token, userID, today, end, true, 0, 100))
+        .then(() => {
+          // Group the time slots by date after they're loaded from Redux
+          const groupedConfirmedSlots = timeSlots.reduce((acc: any, slot: any) => {
+            acc[slot.date] = acc[slot.date] || [];
+            acc[slot.date].push(slot);
+            return acc;
+          }, {});
+          setGroupedSlots(groupedConfirmedSlots);
+        })
+        .catch((error: any) => {
+          console.error('Error fetching time slots:', error);
+        });
+    }
+  }, [dispatch, token, userID, refreshKey]);
+
+  useEffect(() => {
+    const start = getStartDate();
+    const end = new Date();
+    end.setDate(end.getDate() - 1);
+    const formattedEnd = end.toISOString().split('T')[0];
+
+    if (token && userID) {
+      deleteTimeSlots(token, userID, start, formattedEnd);
+    }
+  }, [token, userID]);
+
+  const handleUpdateTimeSlot = async (id: string, start: string, end: string) => {
     try {
-      // Update logic
-      await updateTimeSlot(token,userID, id , start , end); // Make sure your API is set up for this
+      await updateTimeSlot(token, userID, id, start, end);
       alert('Time slot updated successfully!');
       setIsModalOpen(false);
-      setRefreshKey(prev => prev + 1); // Refresh the slots
+      setRefreshKey(prev => prev + 1);
     } catch (error) {
       console.error('Error updating time slot:', error);
     }
@@ -60,24 +93,24 @@ const TimeSlotPage = () => {
 
   const handleDeleteTimeSlot = async (id: string) => {
     try {
-      // Delete logic
-      await deleteTimeSlotsById(token , userID , id);
+      await deleteTimeSlotsById(token, userID, id);
       alert('Time slot deleted successfully!');
       setIsModalOpen(false);
-      setRefreshKey(prev => prev + 1); 
+      setRefreshKey(prev => prev + 1);
     } catch (error) {
       console.error('Error deleting time slot:', error);
     }
   };
+
 
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0];
     const end = getEndDate();
     const fetchData = async () => {
       try {
-        const confirmedData = await fetchTimeSlots(token,userID, today, end);
+        await dispatch(fetchTimeSlots(token, userID, today, end, true, 0, 100));
 
-        const groupedConfirmedSlots = confirmedData.reduce((acc: any, slot: any) => {
+        const groupedConfirmedSlots = timeSlots.reduce((acc: any, slot: any) => {
           acc[slot.date] = acc[slot.date] || [];
           acc[slot.date].push(slot);
           return acc;
