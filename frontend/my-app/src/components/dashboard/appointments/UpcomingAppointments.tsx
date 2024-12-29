@@ -21,7 +21,7 @@ export function UpcomingAppointments() {
 
   const dateRangeOptions = [
     { value: 'today', label: 'Today' },
-    { value: 'tomorrow', label: 'Tomorrow' },
+    { value: 'tomorrow', label: 'Until Tomorrow' },
     { value: 'week', label: 'Next 7 days' },
     { value: 'twoweeks', label: 'Next 14 days' },
     { value: 'month', label: 'Next 30 days' },
@@ -149,6 +149,7 @@ export function UpcomingAppointments() {
               setCurrentPage(1); // Reset to first page on size change
             }}
           >
+            <option value="2">2 per page</option>
             <option value="5">5 per page</option>
             <option value="10">10 per page</option>
             <option value="20">20 per page</option>
