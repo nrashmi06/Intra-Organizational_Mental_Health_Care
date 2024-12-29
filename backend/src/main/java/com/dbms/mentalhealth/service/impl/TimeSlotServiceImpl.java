@@ -14,6 +14,8 @@ import com.dbms.mentalhealth.repository.TimeSlotRepository;
 import com.dbms.mentalhealth.service.TimeSlotService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
@@ -131,22 +133,22 @@ public class TimeSlotServiceImpl implements TimeSlotService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<TimeSlotResponseDTO> getTimeSlotsByDateRangeAndAvailability(String idType, Integer id,
-                                                                            LocalDate startDate, LocalDate endDate,
-                                                                            Boolean isAvailable) {
-        logger.info("Fetching time slots for admin with {}: {}, from {} to {}, availability: {}", idType, id, startDate, endDate, isAvailable);
+    public Page<TimeSlotResponseDTO> getTimeSlotsByDateRangeAndAvailability(
+            String idType, Integer id, LocalDate startDate, LocalDate endDate,
+            Boolean isAvailable, Pageable pageable) {
+        logger.info("Fetching time slots for admin with {}: {}, from {} to {}, availability: {}",
+                idType, id, startDate, endDate, isAvailable);
         Admin admin = getAdmin(idType, id);
-        List<TimeSlot> timeSlots = isAvailable == null ?
-                timeSlotRepository.findByDateBetweenAndAdmin_AdminId(startDate, endDate, admin.getAdminId()) :
-                timeSlotRepository.findByDateBetweenAndAdmin_AdminIdAndIsAvailable(startDate, endDate,
-                        admin.getAdminId(), isAvailable);
 
-        List<TimeSlotResponseDTO> response = timeSlots.stream()
-                .map(timeSlotMapper::toTimeSlotResponseDTO)
-                .toList();
-        logger.info("Fetched time slots: {}", response);
-        return response;
+        Page<TimeSlot> timeSlots = isAvailable == null ?
+                timeSlotRepository.findByDateBetweenAndAdmin_AdminId(startDate, endDate, admin.getAdminId(), pageable) :
+                timeSlotRepository.findByDateBetweenAndAdmin_AdminIdAndIsAvailable(startDate, endDate,
+                        admin.getAdminId(), isAvailable, pageable);
+
+        return timeSlots.map(timeSlotMapper::toTimeSlotResponseDTO);
     }
+
+
 
     @Override
     public TimeSlotResponseDTO updateTimeSlot(String idType, Integer id, Integer timeSlotId,
@@ -197,16 +199,5 @@ public class TimeSlotServiceImpl implements TimeSlotService {
 
         timeSlotRepository.deleteAll(timeSlots);
         logger.info("Deleted time slots for admin with {}: {}, from {} to {}, availability: {}", idType, id, startDate, endDate, isAvailable);
-    }
-
-    @Transactional(readOnly = true)
-    public List<TimeSlotResponseDTO> getAllTimeSlots() {
-        logger.info("Fetching all time slots");
-        List<TimeSlot> timeSlots = timeSlotRepository.findAll();
-        List<TimeSlotResponseDTO> response = timeSlots.stream()
-                .map(timeSlotMapper::toTimeSlotResponseDTO)
-                .toList();
-        logger.info("Fetched all time slots: {}", response);
-        return response;
     }
 }

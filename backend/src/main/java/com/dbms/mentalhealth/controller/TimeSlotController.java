@@ -8,6 +8,8 @@ import com.dbms.mentalhealth.exception.timeslot.TimeSlotNotFoundException;
 import com.dbms.mentalhealth.service.TimeSlotService;
 import com.dbms.mentalhealth.urlMapper.TimeSlotUrlMapping;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -46,20 +48,23 @@ public class TimeSlotController {
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping(TimeSlotUrlMapping.GET_TIME_SLOTS_BY_ADMIN_IN_DATE_RANGE)
-    public ResponseEntity<List<TimeSlotResponseDTO>> getTimeSlotsByDateRange(
+    public ResponseEntity<Page<TimeSlotResponseDTO>> getTimeSlotsByDateRange(
             @PathVariable("Id") Integer id,
             @RequestParam("idType") String idType,
             @RequestParam("startDate") LocalDate startDate,
             @RequestParam("endDate") LocalDate endDate,
-            @RequestParam(value = "isAvailable", required = false) Boolean isAvailable
+            @RequestParam(value = "isAvailable", required = false) Boolean isAvailable,
+            Pageable pageable
     ) {
         try {
-            List<TimeSlotResponseDTO> response = timeSlotService.getTimeSlotsByDateRangeAndAvailability(idType, id, startDate, endDate, isAvailable);
+            Page<TimeSlotResponseDTO> response = timeSlotService.getTimeSlotsByDateRangeAndAvailability(
+                    idType, id, startDate, endDate, isAvailable, pageable);
             return ResponseEntity.ok(response);
         } catch (TimeSlotNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
     }
+
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @DeleteMapping(TimeSlotUrlMapping.DELETE_TIME_SLOTS_IN_DATE_RANGE)

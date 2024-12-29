@@ -130,21 +130,6 @@ public class CacheConfig {
                 .build();
     }
 
-    // Time slot and appointment caches
-    @Bean
-    public Cache<String, TimeSlotResponseDTO> individualTimeSlotCache() {
-        return createListBuilder()
-                .maximumSize(STANDARD_CACHE_SIZE)
-                .build();
-    }
-
-    @Bean
-    public Cache<String, List<TimeSlotResponseDTO>> timeSlotCache() {
-        return createListBuilder()
-                .maximumSize(STANDARD_CACHE_SIZE)
-                .build();
-    }
-
     @Bean
     public Cache<AppointmentCacheKey, AppointmentResponseDTO> appointmentCache() {
         return createListBuilder()
@@ -152,12 +137,6 @@ public class CacheConfig {
                 .build();
     }
 
-    @Bean
-    public Cache<AppointmentCacheKey, List<AppointmentSummaryResponseDTO>> appointmentListCache() {
-        return createListBuilder()
-                .maximumSize(STANDARD_CACHE_SIZE)
-                .build();
-    }
 
     // Emergency helpline caches
     @Bean
