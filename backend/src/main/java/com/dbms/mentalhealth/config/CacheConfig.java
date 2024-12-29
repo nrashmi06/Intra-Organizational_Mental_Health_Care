@@ -181,7 +181,7 @@ public class CacheConfig {
     @Bean
     public Cache<SessionCacheKey, String> metricsCache() {
         return createListBuilder()
-                .maximumSize(TINY_CACHE_SIZE)
+                .maximumSize(1)
                 .build();
     }
 

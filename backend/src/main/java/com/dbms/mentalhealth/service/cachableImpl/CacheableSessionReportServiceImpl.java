@@ -103,8 +103,9 @@ public class CacheableSessionReportServiceImpl implements SessionReportService {
     }
 
     public void logCacheStats() {
-        CacheUtils.logCacheStats(reportCache);
-        CacheUtils.logCacheStats(reportListCache);
-        CacheUtils.logCacheStats(reportSummaryCache);
+        logger.info("=== Session Report Cache Statistics ===");
+        CacheUtils.logCacheStats(reportCache, "Report Cache");
+        CacheUtils.logCacheStats(reportListCache, "Report List Cache");
+        CacheUtils.logCacheStats(reportSummaryCache, "Report Summary Cache");
     }
 }

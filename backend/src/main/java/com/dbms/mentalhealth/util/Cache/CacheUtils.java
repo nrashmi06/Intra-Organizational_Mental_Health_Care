@@ -33,7 +33,7 @@ public class CacheUtils {
         cache.invalidateAll();
     }
 
-    public static void logCacheStats(Cache<?, ?> cache) {
-        logger.info("Cache - status: {}", cache.stats());
+    public static void logCacheStats(Cache<?, ?> cache,String cacheName) {
+        logger.info(cacheName+" - status: {}", cache.stats());
     }
 }

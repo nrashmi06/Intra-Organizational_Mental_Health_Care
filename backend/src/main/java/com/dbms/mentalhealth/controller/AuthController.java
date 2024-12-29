@@ -32,16 +32,12 @@ import java.util.Map;
 @Slf4j
 public class AuthController {
 
-    private final JwtUtils jwtUtils;
     private final UserService userService;
     private final RefreshTokenServiceImpl refreshTokenService;
-    private final String baseUrl;
 
-    public AuthController(UserService userService, JwtUtils jwtUtils, RefreshTokenServiceImpl refreshTokenService, @Value("${spring.app.base-url}") String baseUrl) {
+    public AuthController(UserService userService, RefreshTokenServiceImpl refreshTokenService) {
         this.userService = userService;
-        this.jwtUtils = jwtUtils;
         this.refreshTokenService = refreshTokenService;
-        this.baseUrl = baseUrl;
     }
 
     @PostMapping(UserUrlMapping.USER_REGISTER)
@@ -77,32 +73,44 @@ public class AuthController {
 
     @PostMapping(UserUrlMapping.USER_LOGOUT)
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<String> logoutUser(@CookieValue(name = "refreshToken", required = false) String refreshToken) {
+    public ResponseEntity<String> logoutUser(@CookieValue(name = "refreshToken", required = false) String refreshToken,
+                                             HttpServletResponse response) {
         log.info("Logout request received");
 
         if (refreshToken == null) {
-            log.warn("No refresh token found in request");
-            return ResponseEntity.ok("User logged out successfully (no refresh token present).");
+            log.info("No refresh token found in request - user already logged out");
+            clearCookies(response);
+            return ResponseEntity.ok("User logged out successfully.");
         }
 
         try {
-            log.debug("Attempting to get email from refresh token");
+            // Try to get email and process logout
             String email = refreshTokenService.getEmailFromRefreshToken(refreshToken);
-            log.info("Retrieved email: {} from refresh token", email);
-
-            log.debug("Setting user active status to false");
             userService.setUserActiveStatus(email, false);
-
-            log.debug("Deleting refresh token");
             refreshTokenService.deleteRefreshToken(refreshToken);
 
             log.info("Logout successful for user: {}", email);
-            return ResponseEntity.ok("User logged out successfully.");
+        } catch (RefreshTokenException e) {
+            // Token is invalid/expired - this is okay during logout
+            log.warn("Invalid or expired refresh token during logout: {}", e.getMessage());
         } catch (Exception e) {
-            log.error("Error during logout process", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("An error occurred during logout: " + e.getMessage());
+            // Log other unexpected errors
+            log.error("Unexpected error during logout process", e);
+        } finally {
+            // Always clear cookies on logout attempt
+            clearCookies(response);
         }
+
+        return ResponseEntity.ok("User logged out successfully.");
+    }
+
+    private void clearCookies(HttpServletResponse response) {
+        Cookie refreshTokenCookie = new Cookie("refreshToken", null);
+        refreshTokenCookie.setMaxAge(0);
+        refreshTokenCookie.setPath("/mental-health/api/v1/users");
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setSecure(true);
+        response.addCookie(refreshTokenCookie);
     }
 
     @PostMapping(UserUrlMapping.VERIFY_EMAIL)

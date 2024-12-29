@@ -75,4 +75,10 @@ public class CacheableEmergencyHelplineServiceImpl implements EmergencyHelplineS
         CacheUtils.invalidateAllCache(emergencyHelplineListCache);
         logger.info("Emergency helpline removed and list cache invalidated for helpline ID: {}", helplineId);
     }
+
+    public void logCacheStats() {
+        logger.info("=== Emergency Helpline Cache Statistics ===");
+
+        CacheUtils.logCacheStats(emergencyHelplineListCache, "Emergency Helpline List Cache");
+    }
 }

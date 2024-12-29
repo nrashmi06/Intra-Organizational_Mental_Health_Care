@@ -146,52 +146,36 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
                 });
     }
 
-    @Override
     public void setSecureRefreshTokenCookie(HttpServletResponse response, String refreshToken) {
         log.debug("Setting secure refresh token cookie");
+
         boolean isSecure = !baseUrl.contains("localhost");
+        log.debug("isSecure: {}", isSecure);
+
         String domain = baseUrl.replaceAll("https?://", "")
                 .replaceAll("/.*$", "")
                 .trim();
-
-        log.debug("Base URL: {}", baseUrl);
-        log.debug("Calculated domain: {}", domain);
-        log.debug("isSecure: {}", isSecure);
+        log.debug("Initial domain: {}", domain);
 
         if (domain.contains("localhost")) {
             domain = "localhost";
             log.debug("Domain set to localhost");
         }
 
-        try {
-            Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
-            refreshTokenCookie.setHttpOnly(true);
-            refreshTokenCookie.setSecure(isSecure);
-            refreshTokenCookie.setPath("/mental-health/api/v1/users");
-            refreshTokenCookie.setMaxAge(24 * 60 * 60);
-            refreshTokenCookie.setDomain(domain);
+        log.debug("Creating refresh token cookie");
+        Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setSecure(isSecure);
+        refreshTokenCookie.setPath("/mental-health/api/v1/users");
+        refreshTokenCookie.setMaxAge(24 * 60 * 60);
+        refreshTokenCookie.setDomain(domain);
+        refreshTokenCookie.setAttribute("SameSite", "None");  // If needed for cross-origin
 
-            String cookieHeader = String.format(
-                    "refreshToken=%s; " +
-                            "HttpOnly; " +
-                            "Secure=%s; " +
-                            "Path=/mental-health/api/v1/users; " +
-                            "Domain=%s; " +
-                            "Max-Age=86400; " +
-                            "SameSite=None",
-                    refreshToken, isSecure, domain
-            );
+        log.debug("Adding refresh token cookie to response");
+        response.addCookie(refreshTokenCookie);
 
-            log.debug("Cookie settings - HttpOnly: true, Secure: {}, Path: {}, Domain: {}, SameSite: None",
-                    isSecure, "/mental-health/api/v1/users", domain);
-
-            response.addCookie(refreshTokenCookie);
-            response.addHeader("Set-Cookie", cookieHeader);
-            log.info("Successfully set refresh token cookie and header");
-        } catch (Exception e) {
-            log.error("Error setting refresh token cookie", e);
-            throw e;
-        }
+        log.info("Successfully set refresh token cookie with domain: {}, secure: {}, path: {}, maxAge: {}",
+                domain, isSecure, "/mental-health/api/v1/users", 24 * 60 * 60);
     }
 
 }

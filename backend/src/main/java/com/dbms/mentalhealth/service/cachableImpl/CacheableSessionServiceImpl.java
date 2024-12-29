@@ -123,9 +123,9 @@ public class CacheableSessionServiceImpl implements SessionService {
     }
 
     public void logCacheStats() {
-        logger.info("=== Cache Statistics ===");
-        CacheUtils.logCacheStats(sessionCache);
-        CacheUtils.logCacheStats(chatMessageCache);
-        CacheUtils.logCacheStats(metricsCache);
+        logger.info("=== Session Cache Statistics ===");
+        CacheUtils.logCacheStats(sessionCache, "Session Cache");
+        CacheUtils.logCacheStats(chatMessageCache, "Chat Message Cache");
+        CacheUtils.logCacheStats(metricsCache, "Metrics Cache");
     }
 }

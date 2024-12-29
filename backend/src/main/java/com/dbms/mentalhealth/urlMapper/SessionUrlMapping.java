@@ -17,6 +17,5 @@ public class SessionUrlMapping {
     public static final String GET_SESSION_BY_ID = BASE_API + SESSION_ID_PATH;
     public static final String GET_MESSAGES_BY_SESSION_ID = BASE_API + "/messages" + SESSION_ID_PATH;
     public static final String AVG_SESSION_DURATION = BASE_API + "/avg-duration";
-    public static final String GET_SESSIONS_BY_LISTENERS_USER_ID = BASE_API + "/listener" + USER_ID_PATH;
     public static final String GET_SESSIONS_BY_FILTERS = BASE_API + "/filter";
 }

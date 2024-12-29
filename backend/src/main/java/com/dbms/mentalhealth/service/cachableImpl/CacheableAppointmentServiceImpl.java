@@ -146,4 +146,11 @@ public class CacheableAppointmentServiceImpl implements AppointmentService {
         return appointmentServiceImpl.getAppointmentsForAdmin(timeFilter,appointmentStatus,pageable,userId,adminId );
     }
 
+    public void logCacheStats() {
+        logger.info("=== Appointment Cache Statistics ===");
+
+        CacheUtils.logCacheStats(appointmentCache,"Appointment Cache");
+        CacheUtils.logCacheStats(appointmentListCache,"Appointment List Cache");
+    }
+
 }

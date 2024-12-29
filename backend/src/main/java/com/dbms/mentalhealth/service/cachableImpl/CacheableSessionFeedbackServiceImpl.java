@@ -26,19 +26,16 @@ public class CacheableSessionFeedbackServiceImpl implements SessionFeedbackServi
     private final Cache<SessionFeedbackCacheKey, SessionFeedbackResponseDTO> feedbackCache;
     private final Cache<SessionFeedbackCacheKey, List<SessionFeedbackResponseDTO>> feedbackListCache;
     private final Cache<SessionFeedbackCacheKey, SessionFeedbackSummaryResponseDTO> feedbackSummaryCache;
-    private final ListenerRepository listenerRepository;
 
     public CacheableSessionFeedbackServiceImpl(
             SessionFeedbackServiceImpl sessionFeedbackServiceImpl,
             Cache<SessionFeedbackCacheKey, SessionFeedbackResponseDTO> feedbackCache,
             Cache<SessionFeedbackCacheKey, List<SessionFeedbackResponseDTO>> feedbackListCache,
-            Cache<SessionFeedbackCacheKey, SessionFeedbackSummaryResponseDTO> feedbackSummaryCache,
-            ListenerRepository listenerRepository) {
+            Cache<SessionFeedbackCacheKey, SessionFeedbackSummaryResponseDTO> feedbackSummaryCache) {
         this.sessionFeedbackServiceImpl = sessionFeedbackServiceImpl;
         this.feedbackCache = feedbackCache;
         this.feedbackListCache = feedbackListCache;
         this.feedbackSummaryCache = feedbackSummaryCache;
-        this.listenerRepository = listenerRepository;
         logger.info("CacheableSessionFeedbackServiceImpl initialized with cache stats enabled");
     }
 
@@ -112,8 +109,9 @@ public class CacheableSessionFeedbackServiceImpl implements SessionFeedbackServi
     }
 
     public void logCacheStats() {
-        CacheUtils.logCacheStats(feedbackCache);
-        CacheUtils.logCacheStats(feedbackListCache);
-        CacheUtils.logCacheStats(feedbackSummaryCache);
+        logger.info("=== Session Feedback Cache Statistics ===");
+        CacheUtils.logCacheStats(feedbackCache, "Feedback Cache");
+        CacheUtils.logCacheStats(feedbackListCache, "Feedback List Cache");
+        CacheUtils.logCacheStats(feedbackSummaryCache, "Feedback Summary Cache");
     }
 }

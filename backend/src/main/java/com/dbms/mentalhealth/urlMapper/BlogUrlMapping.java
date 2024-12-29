@@ -23,7 +23,5 @@ public class BlogUrlMapping {
     // Blog retrieval by user
     public static final String FILTER_BLOGS = BASE_API +"/filter"; // Get all blogs by user
     // Blog search
-    public static final String SEARCH_BLOGS_BY_PARTIAL_TITLE = BASE_API + "/search/title"; //
-
     public static final String GET_TRENDING_BLOGS =  BASE_API + "/trending";// Search blogs by partial title
 }

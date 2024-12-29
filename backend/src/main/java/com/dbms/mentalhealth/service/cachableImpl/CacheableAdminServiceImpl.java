@@ -141,7 +141,8 @@ public class CacheableAdminServiceImpl implements AdminService {
     }
 
     public void logCacheStats() {
-        CacheUtils.logCacheStats(adminCache);
-        CacheUtils.logCacheStats(adminListCache);
+        logger.info("=== Admin Cache Statistics ===");
+        CacheUtils.logCacheStats(adminCache,"admin Cache");
+        CacheUtils.logCacheStats(adminListCache,"admin List Cache");
     }
 }
