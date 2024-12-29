@@ -18,9 +18,8 @@ public class CacheScheduler {
     private final CacheableTimeSlotServiceImpl cacheableTimeSlotServiceImpl;
     private final CacheableAppointmentServiceImpl cacheableAppointmentServiceImpl;
     private final UserActivityServiceImpl userActivityServiceImpl;
-    private final ListenerApplicationServiceImpl listenerApplicationServiceImpl;
 
-    public CacheScheduler(CacheableAdminServiceImpl cacheableAdminServiceImpl,CacheableListenerServiceImpl cacheableListenerServiceImpl, CacheableSessionServiceImpl cacheableSessionServiceImpl, CacheableSessionFeedbackServiceImpl cacheableSessionFeedbackServiceImpl, CacheableSessionReportServiceImpl cacheableSessionReportServiceImpl, CacheableListenerApplicationServiceImpl cacheableListenerApplicationServiceImpl, CacheableTimeSlotServiceImpl cacheableTimeSlotServiceImpl, CacheableAppointmentServiceImpl cacheableAppointmentServiceImpl, UserActivityServiceImpl userActivityServiceImpl, ListenerApplicationServiceImpl listenerApplicationServiceImpl) {
+    public CacheScheduler(CacheableAdminServiceImpl cacheableAdminServiceImpl,CacheableListenerServiceImpl cacheableListenerServiceImpl, CacheableSessionServiceImpl cacheableSessionServiceImpl, CacheableSessionFeedbackServiceImpl cacheableSessionFeedbackServiceImpl, CacheableSessionReportServiceImpl cacheableSessionReportServiceImpl, CacheableListenerApplicationServiceImpl cacheableListenerApplicationServiceImpl, CacheableTimeSlotServiceImpl cacheableTimeSlotServiceImpl, CacheableAppointmentServiceImpl cacheableAppointmentServiceImpl, UserActivityServiceImpl userActivityServiceImpl) {
         this.cacheableAdminServiceImpl = cacheableAdminServiceImpl;
         this.cacheableSessionServiceImpl = cacheableSessionServiceImpl;
         this.cacheableSessionFeedbackServiceImpl = cacheableSessionFeedbackServiceImpl;
@@ -30,7 +29,6 @@ public class CacheScheduler {
         this.cacheableTimeSlotServiceImpl = cacheableTimeSlotServiceImpl;
         this.cacheableAppointmentServiceImpl = cacheableAppointmentServiceImpl;
         this.userActivityServiceImpl = userActivityServiceImpl;
-        this.listenerApplicationServiceImpl = listenerApplicationServiceImpl;
     }
 
     @Scheduled(fixedRateString = "${scheduler.user-activity-cleanup-interval}")
@@ -42,7 +40,6 @@ public class CacheScheduler {
         cacheableSessionReportServiceImpl.logCacheStats();
         cacheableAdminServiceImpl.logCacheStats();
         cacheableTimeSlotServiceImpl.logCacheStats();
-        cacheableAppointmentServiceImpl.logCacheStats();
         userActivityServiceImpl.logCacheStats();
         cacheableAdminServiceImpl.logCacheStats();
     }

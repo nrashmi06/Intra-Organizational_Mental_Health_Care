@@ -3,6 +3,8 @@ package com.dbms.mentalhealth.service.cachableImpl;
 import com.dbms.mentalhealth.dto.Appointment.request.AppointmentRequestDTO;
 import com.dbms.mentalhealth.dto.Appointment.response.AppointmentResponseDTO;
 import com.dbms.mentalhealth.dto.Appointment.response.AppointmentSummaryResponseDTO;
+import com.dbms.mentalhealth.enums.AppointmentStatus;
+import com.dbms.mentalhealth.enums.AppointmentTimeFilter;
 import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.service.AppointmentService;
 import com.dbms.mentalhealth.service.impl.AppointmentServiceImpl;
@@ -11,6 +13,8 @@ import com.dbms.mentalhealth.util.Cache.KeyEnum.AppointmentKeyType;
 import com.dbms.mentalhealth.util.Cache.CacheUtils;
 import com.github.benmanes.caffeine.cache.Cache;
 import org.springframework.context.annotation.Primary;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
@@ -78,27 +82,6 @@ public class CacheableAppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
-    public List<AppointmentSummaryResponseDTO> getAppointmentsByAdmin(Integer userId, Integer adminId) {
-        if (userId == null && adminId == null) {
-            userId = jwtUtils.getUserIdFromContext();
-        }
-
-        AppointmentCacheKey cacheKey;
-        if (adminId != null) {
-            cacheKey = new AppointmentCacheKey(adminId, AppointmentKeyType.ADMIN_APPOINTMENTS);
-        } else {
-            cacheKey = new AppointmentCacheKey(userId, AppointmentKeyType.USER_APPOINTMENTS);
-        }
-
-        logger.info("Cache lookup for appointments by admin ID: {} and user ID: {}", adminId, userId);
-        Integer finalUserId = userId;
-        return appointmentListCache.get(cacheKey, k -> {
-            logger.info("Cache MISS - Fetching appointments from database for admin ID: {} and user ID: {}", adminId, finalUserId);
-            return appointmentServiceImpl.getAppointmentsByAdmin(finalUserId, adminId);
-        });
-    }
-
-    @Override
     @Transactional(readOnly = true)
     public AppointmentResponseDTO getAppointmentById(Integer appointmentId) {
         AppointmentCacheKey cacheKey = new AppointmentCacheKey(appointmentId, AppointmentKeyType.APPOINTMENT);
@@ -153,31 +136,14 @@ public class CacheableAppointmentServiceImpl implements AppointmentService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<AppointmentSummaryResponseDTO> getAppointmentsByDateRange(LocalDate startDate, LocalDate endDate) {
+    public Page<AppointmentSummaryResponseDTO> getAppointmentsByDateRange(LocalDate startDate, LocalDate endDate, Pageable pageable) {
         logger.info("Fetching appointments between dates: {} and {}", startDate, endDate);
-        return appointmentServiceImpl.getAppointmentsByDateRange(startDate, endDate);
+        return appointmentServiceImpl.getAppointmentsByDateRange(startDate, endDate,pageable);
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public List<AppointmentSummaryResponseDTO> getUpcomingAppointmentsForAdmin() {
-        logger.info("Fetching upcoming appointments for admin");
-        return appointmentServiceImpl.getUpcomingAppointmentsForAdmin();
+    public Page<AppointmentSummaryResponseDTO> getAppointmentsForAdmin(AppointmentTimeFilter timeFilter,AppointmentStatus appointmentStatus, Pageable pageable,Integer userId,Integer adminId) {
+        return appointmentServiceImpl.getAppointmentsForAdmin(timeFilter,appointmentStatus,pageable,userId,adminId );
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<AppointmentSummaryResponseDTO> getAppointmentsByAdminStatus(String status) {
-        AppointmentCacheKey cacheKey = new AppointmentCacheKey(status, AppointmentKeyType.ADMIN_STATUS_APPOINTMENTS);
-        logger.info("Cache lookup for appointments with status: {}", status);
-        return appointmentListCache.get(cacheKey, k -> {
-            logger.info("Cache MISS - Fetching appointments from database for status: {}", status);
-            return appointmentServiceImpl.getAppointmentsByAdminStatus(status);
-        });
-    }
-
-    public void logCacheStats() {
-        CacheUtils.logCacheStats(appointmentCache);
-        CacheUtils.logCacheStats(appointmentListCache);
-    }
 }
