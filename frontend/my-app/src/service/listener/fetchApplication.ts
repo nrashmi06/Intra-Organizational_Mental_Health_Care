@@ -59,6 +59,5 @@ export const fetchApplication = (
     }
     // Log and return the error for further handling
     console.error("Error fetching application:", error);
-    return error; // Re-throw for higher-level error handling
   }
 };

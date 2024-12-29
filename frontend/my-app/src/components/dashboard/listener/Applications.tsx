@@ -10,6 +10,9 @@ import { ApplicationsGrid } from "./ApplicationGrid";
 import { Pagination } from "./Pagination";
 import { SuccessMessage } from "./SuccessMessage";
 import ListenerDetailsForAdmin from "@/components/dashboard/listener/ModalApplication";
+import { ListenerApplication } from "@/lib/types";
+import InlineLoader from "@/components/ui/inlineLoader";
+import Pagination3 from "@/components/ui/pagination3";
 
 export function ListenerApplicationsTable() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -20,21 +23,28 @@ export function ListenerApplicationsTable() {
   const [applicationModal, setApplicationModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [selectedApplication, setSelectedApplication] = useState<ListenerApplication | null>(null);
-  const itemsPerPage = 6;
   const [loading, setLoading] = useState(true);
-  const dispatch = useAppDispatch();
+  const itemsPerPage = 6;
 
   const fetchListenersByStatus = useCallback(
     async (status: "PENDING" | "APPROVED" | "REJECTED") => {
       try {
         setLoading(true);
         const response = await GetByApproval(accessToken, status);
-        setApplications(response?.data || []);
+        
+        // Handle null response
+        if (!response) {
+          setApplications([]);
+          setLoading(false);
+          return;
+        }
+
+        setApplications(response.data || []); // Ensure we always set an array
         setStatusFilter(status);
-        setLoading(false);
       } catch (error) {
         console.error("Error fetching listeners:", error);
-        setApplications([]);
+        setApplications([]); // Set empty array on error
+      } finally {
         setLoading(false);
       }
     },
@@ -46,6 +56,8 @@ export function ListenerApplicationsTable() {
   }, [fetchListenersByStatus]);
 
   const handleFilterChange = (status: string) => {
+    setSearchQuery(""); // Reset search when changing filters
+    setCurrentPage(1); // Reset pagination
     setStatusFilter(status);
     fetchListenersByStatus(status as "PENDING" | "APPROVED" | "REJECTED");
   };
@@ -56,55 +68,35 @@ export function ListenerApplicationsTable() {
   
   const handleApplicationModal = useCallback(async (applicationId: string) => {
     try {
-      // Set loading state while fetching
-      setLoading(true);
-      
-      // Fetch the application data
-      const response = await dispatch(fetchApplication(accessToken, applicationId));
-      
-      // Set the selected application first
-      if (response?.payload) {
-        setSelectedApplication(response.payload);
-      } else if (applicationDataFromStore) {
-        setSelectedApplication(applicationDataFromStore);
-      }
-      
-      // Only open modal after we have the data
-      setLoading(false);
+      const applicationData = await fetchApplication(accessToken, applicationId);
+      setSelectedApplication(applicationData);
       setApplicationModal(true);
       
     } catch (err) {
       console.error("Error fetching application details:", err);
-      // Handle error case
-      if (applicationDataFromStore) {
-        setSelectedApplication(applicationDataFromStore);
-        setLoading(false);
-        setApplicationModal(true);
-      } else {
-        setLoading(false);
-        // Optionally show an error message to the user
-      }
     }
-  }, [dispatch, accessToken, applicationDataFromStore]);
+  };
 
-  // Ensure applications is an array before filtering
-  const filteredApplications = (applications || []).filter((application) => {
-    const matchesSearch =
-      application.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      application.applicationId
-        .toString()
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase());
-    const matchesStatus =
-      statusFilter === "PENDING" ||
-      application.applicationStatus === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  // Only filter if we have applications
+  const filteredApplications = applications.length > 0 
+    ? applications.filter((application) => {
+        const matchesSearch =
+          application.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          application.applicationId.toString().toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesStatus =
+          statusFilter === "PENDING" ||
+          application.applicationStatus === statusFilter;
+        return matchesSearch && matchesStatus;
+      })
+    : [];
 
-  const paginatedApplications = filteredApplications.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  // Only paginate if we have filtered results
+  const paginatedApplications = filteredApplications.length > 0
+    ? filteredApplications.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+      )
+    : [];
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -117,30 +109,112 @@ export function ListenerApplicationsTable() {
     }
   };
 
+  // Render loading state
+  if (loading) {
+    return <InlineLoader />;
+  }
+
   return (
     <div className="space-y-6">
-      <SearchFilter
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        statusFilter={statusFilter}
-        handleFilterChange={handleFilterChange}
-      />
+      <div className="flex items-center gap-4">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search applications..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-8"
+          />
+        </div>
+        <Select value={statusFilter} onValueChange={handleFilterChange}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Filter by status" />
+          </SelectTrigger>
+          <SelectContent className="bg-white">
+            <SelectItem value="PENDING">Pending</SelectItem>
+            <SelectItem value="APPROVED">Approved</SelectItem>
+            <SelectItem value="REJECTED">Rejected</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
-      <ApplicationsGrid
-        loading={loading}
-        applications={paginatedApplications}
-        statusFilter={statusFilter}
-        onViewDetails={handleApplicationModal}
-        getStatusColor={getStatusColor}
-      />
+      {applications.length === 0 ? (
+        <div className="text-center py-12 bg-white rounded-lg">
+          <p className="text-gray-500">No applications found</p>
+        </div>
+      ) : paginatedApplications.length === 0 ? (
+        <div className="text-center py-12 bg-white rounded-lg">
+          <p className="text-gray-500">No matching applications found</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:min-h-[400]">
+          {paginatedApplications.map((application) => (
+            <Card
+              key={application.applicationId}
+              className="overflow-hidden hover:shadow-lg h-min transition-shadow duration-200"
+            >
+              <CardContent className="p-6">
+                <div className="space-y-4">
+                  <div className="flex justify-between items-start">
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-gray-500">
+                        Application ID
+                      </p>
+                      <p className="font-semibold">
+                        {application.applicationId}
+                      </p>
+                    </div>
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                        application.applicationStatus
+                      )}`}
+                    >
+                      {application.applicationStatus.charAt(0).toUpperCase() +
+                        application.applicationStatus.slice(1).toLowerCase()}
+                    </span>
+                  </div>
 
-      <Pagination
-        currentPage={currentPage}
-        setCurrentPage={setCurrentPage}
-        itemsPerPage={itemsPerPage}
-        totalItems={filteredApplications.length}
-      />
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-gray-500">
+                      Full Name
+                    </p>
+                    <p className="font-semibold">{application.fullName}</p>
+                  </div>
 
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-gray-500">
+                      Semester
+                    </p>
+                    <p className="font-semibold">{application.semester}</p>
+                  </div>
+
+                  <Button
+                    onClick={() => handleApplicationModal(application.applicationId)}
+                    className="w-full"
+                    variant="outline"
+                  >
+                    {statusFilter === "PENDING"
+                      ? "Review Application"
+                      : "View Details"}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {/* Only show pagination if we have applications */}
+      {applications.length > 0 && filteredApplications.length > 0 && (
+        <Pagination3
+          itemsPerPage={itemsPerPage}
+          currentPage={currentPage}
+          filteredElements={filteredApplications}
+          setCurrentPage={setCurrentPage}
+        />
+      )}
+
+      {/* Modal */}
       {applicationModal && selectedApplication && (
         <ListenerDetailsForAdmin
           data={selectedApplication}
