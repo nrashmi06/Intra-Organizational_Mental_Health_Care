@@ -93,4 +93,39 @@ public class TimeSlotController {
         timeSlotService.deleteTimeSlotsInDateRangeAndAvailability(idType, id, startDate, endDate, isAvailable);
         return ResponseEntity.noContent().build();
     }
+
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PutMapping(TimeSlotUrlMapping.UPDATE_TIME_SLOTS_BY_ID)
+    public ResponseEntity<TimeSlotResponseDTO> updateTimeSlot(
+            @PathVariable("Id") Integer id,
+            @RequestParam("idType") String idType,
+            @PathVariable("timeSlotId") Integer timeSlotId,
+            @RequestBody TimeSlotCreateRequestDTO.TimeSlotDTO timeSlotDTO
+    ) {
+        try {
+            TimeSlotResponseDTO response = timeSlotService.updateTimeSlot(idType, id, timeSlotId, timeSlotDTO);
+            return ResponseEntity.ok(response);
+        } catch (TimeSlotNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        } catch (InvalidTimeSlotException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        } catch (DuplicateTimeSlotException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
+        }
+    }
+
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @DeleteMapping(TimeSlotUrlMapping.DELETE_TIME_SLOT_BY_ID)
+    public ResponseEntity<Void> deleteTimeSlot(
+            @PathVariable("Id") Integer id,
+            @RequestParam("idType") String idType,
+            @PathVariable("timeSlotId") Integer timeSlotId
+    ) {
+        try {
+            timeSlotService.deleteTimeSlot(idType, id, timeSlotId);
+            return ResponseEntity.noContent().build();
+        } catch (TimeSlotNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
 }

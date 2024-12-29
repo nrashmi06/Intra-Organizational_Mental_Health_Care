@@ -6,9 +6,6 @@ import com.dbms.mentalhealth.repository.ChatMessageRepository;
 import com.dbms.mentalhealth.service.ChatMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 public class ChatMessageServiceImpl implements ChatMessageService {
@@ -25,9 +22,5 @@ public class ChatMessageServiceImpl implements ChatMessageService {
         return chatMessageRepository.save(chatMessage);
     }
 
-    @Override
-    public List<ChatMessage> getMessagesBySessionId(Integer sessionId) {
-        return chatMessageRepository.findBySession_SessionId(sessionId);
-    }
 
 }

@@ -1,7 +1,7 @@
 package com.dbms.mentalhealth.service.impl;
 
 import com.dbms.mentalhealth.config.TrendingScoreConfig;
-import com.dbms.mentalhealth.dto.blog.TrendingScoreDTO;
+import com.dbms.mentalhealth.dto.blog.trending.TrendingScoreDTO;
 import com.dbms.mentalhealth.mapper.TrendingScoreMapper;
 import com.dbms.mentalhealth.model.Blog;
 import com.dbms.mentalhealth.model.BlogTrendingScore;
@@ -20,7 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -31,7 +30,7 @@ public class BlogTrendingScoreServiceImpl implements BlogTrendingScoreService {
     private final TrendingScoreConfig properties;
 
     @Override
-    @Scheduled(fixedRate = 3000000) // Every 5 minutes
+    @Scheduled(fixedRate = 6000000) // Every 10 minutes
     @Transactional
     public void updateScores() {
         LocalDateTime cutoff = LocalDateTime.now().minusHours(properties.getDecayHours());

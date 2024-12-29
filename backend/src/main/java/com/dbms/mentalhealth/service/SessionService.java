@@ -17,7 +17,7 @@ public interface SessionService {
     List<ChatMessageDTO> getMessagesBySessionId(Integer sessionId);
     String getAverageSessionDuration();
     List<SessionSummaryDTO> broadcastFullSessionCache();
-    public boolean isUserInSession(Integer userId);
+    boolean isUserInSession(Integer userId);
     Page<SessionSummaryDTO> getSessionsByFilters(String status, Integer id, String idType, Pageable pageable);
 
 

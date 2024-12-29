@@ -1,4 +1,4 @@
-package com.dbms.mentalhealth.dto.blog;
+package com.dbms.mentalhealth.dto.blog.trending;
 import lombok.Builder;
 import lombok.Data;
 import java.time.LocalDateTime;

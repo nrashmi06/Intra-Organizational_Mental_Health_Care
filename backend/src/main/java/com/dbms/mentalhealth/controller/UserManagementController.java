@@ -10,7 +10,6 @@ import com.dbms.mentalhealth.exception.user.UserNotFoundException;
 import com.dbms.mentalhealth.exception.user.InvalidUserUpdateException;
 import com.dbms.mentalhealth.mapper.UserMapper;
 import com.dbms.mentalhealth.model.User;
-import com.dbms.mentalhealth.repository.UserRepository;
 import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.service.UserService;
 import com.dbms.mentalhealth.service.impl.UserServiceImpl;

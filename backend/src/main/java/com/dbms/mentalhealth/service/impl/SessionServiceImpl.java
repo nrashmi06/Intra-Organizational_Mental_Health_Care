@@ -209,8 +209,6 @@ public class SessionServiceImpl implements SessionService {
         return cachedSessions;
     }
 
-
-
     @Override
     @Transactional
     public List<ChatMessageDTO> getMessagesBySessionId(Integer sessionId) {

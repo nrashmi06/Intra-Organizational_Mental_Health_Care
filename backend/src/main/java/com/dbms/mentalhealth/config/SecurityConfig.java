@@ -2,6 +2,9 @@
 package com.dbms.mentalhealth.config;
 
 import com.dbms.mentalhealth.security.*;
+import com.dbms.mentalhealth.security.filter.RateLimitingFilter;
+import com.dbms.mentalhealth.security.filter.SseAuthenticationFilter;
+import com.dbms.mentalhealth.security.filter.WebSocketAuthenticationFilter;
 import com.dbms.mentalhealth.security.jwt.*;
 import com.dbms.mentalhealth.urlMapper.*;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +29,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
     private final AuthEntryPointJwt unauthorizedHandler;
     private final AuthTokenFilter authTokenFilter;
-    private final CustomAccessDeniedHandler accessDeniedHandler;
     private final SseAuthenticationFilter sseAuthenticationFilter;
     private final WebSocketAuthenticationFilter webSocketAuthenticationFilter;
     private final RateLimitingFilter rateLimitingFilter;
@@ -35,7 +37,6 @@ public class SecurityConfig {
     public SecurityConfig(
             AuthEntryPointJwt unauthorizedHandler,
             AuthTokenFilter authTokenFilter,
-            CustomAccessDeniedHandler accessDeniedHandler,
             SseAuthenticationFilter sseAuthenticationFilter,
             WebSocketAuthenticationFilter webSocketAuthenticationFilter,
             RateLimitingFilter rateLimitingFilter,
@@ -43,7 +44,6 @@ public class SecurityConfig {
     ) {
         this.unauthorizedHandler = unauthorizedHandler;
         this.authTokenFilter = authTokenFilter;
-        this.accessDeniedHandler = accessDeniedHandler;
         this.sseAuthenticationFilter = sseAuthenticationFilter;
         this.webSocketAuthenticationFilter = webSocketAuthenticationFilter;
         this.rateLimitingFilter = rateLimitingFilter;

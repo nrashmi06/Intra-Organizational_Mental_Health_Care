@@ -1,7 +1,7 @@
 package com.dbms.mentalhealth.mapper;
 
-import com.dbms.mentalhealth.dto.blog.TrendingBlogSummaryDTO;
-import com.dbms.mentalhealth.dto.blog.TrendingScoreDTO;
+import com.dbms.mentalhealth.dto.blog.trending.TrendingBlogSummaryDTO;
+import com.dbms.mentalhealth.dto.blog.trending.TrendingScoreDTO;
 import com.dbms.mentalhealth.model.Blog;
 import com.dbms.mentalhealth.model.BlogTrendingScore;
 

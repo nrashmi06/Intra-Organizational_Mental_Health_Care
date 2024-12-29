@@ -1,4 +1,4 @@
-package com.dbms.mentalhealth.security;
+package com.dbms.mentalhealth.security.filter;
 
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;

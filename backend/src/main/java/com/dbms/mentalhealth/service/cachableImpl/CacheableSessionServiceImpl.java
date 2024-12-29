@@ -57,7 +57,8 @@ public class CacheableSessionServiceImpl implements SessionService {
     @Override
     @Transactional(readOnly = true)
     public List<ChatMessageDTO> getMessagesBySessionId(Integer sessionId) {
-        SessionCacheKey cacheKey = new SessionCacheKey(METRICS_CACHE_KEY, SessionKeyType.SESSION_METRICS);        logger.debug("Cache lookup for session messages, ID: {}", sessionId);
+        SessionCacheKey cacheKey = new SessionCacheKey(sessionId.toString(), SessionKeyType.SESSION_METRICS);
+        logger.debug("Cache lookup for session messages, ID: {}", sessionId);
         return chatMessageCache.get(cacheKey, k -> {
             logger.info("Cache MISS - Fetching messages from database for session ID: {}", sessionId);
             List<ChatMessageDTO> messages = sessionServiceImpl.getMessagesBySessionId(sessionId);

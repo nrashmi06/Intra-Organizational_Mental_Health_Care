@@ -1,4 +1,4 @@
-package com.dbms.mentalhealth.security;
+package com.dbms.mentalhealth.security.filter;
 
 import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.service.UserService;

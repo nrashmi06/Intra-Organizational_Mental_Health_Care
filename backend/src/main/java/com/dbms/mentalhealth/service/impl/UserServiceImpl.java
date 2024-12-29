@@ -354,18 +354,6 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         emailVerificationRepository.save(emailVerification);
     }
 
-    public Integer getUserIdByUsername(String username) {
-        User user = userRepository.findByEmail(username);
-        return user != null ? user.getUserId() : null;
-    }
-
-    public String getUserNameFromAuthentication(Authentication authentication) {
-        return authentication.getName();
-    }
-
-    public User findByEmail(String email) {
-        return userRepository.findByEmail(email);
-    }
 
     @Override
     @Transactional

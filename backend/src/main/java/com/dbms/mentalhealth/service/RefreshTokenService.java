@@ -1,7 +1,5 @@
 // backend/src/main/java/com/dbms/mentalhealth/service/RefreshTokenService.java
 package com.dbms.mentalhealth.service;
-
-import com.dbms.mentalhealth.dto.user.response.UserLoginResponseDTO;
 import com.dbms.mentalhealth.model.RefreshToken;
 import jakarta.servlet.http.HttpServletResponse;
 
