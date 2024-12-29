@@ -22,7 +22,7 @@ export const getAppointmentsByFilter =
         APPOINTMENT_API_ENDPOINTS.GET_APPOINTMENTS_BY_FILTER,
         {
           params: {
-            timeFilter,
+            timeFilter : timeFilter === "ALL" ? undefined : timeFilter,
             status: status === "ALL" ? "CONFIRMED" : status,
             page,
             size,
