@@ -1,4 +1,5 @@
 package com.dbms.mentalhealth.controller;
+import com.dbms.mentalhealth.dto.Listener.response.FullListenerDetailsDTO;
 import com.dbms.mentalhealth.dto.Listener.response.ListenerDetailsResponseDTO;
 import com.dbms.mentalhealth.dto.UserActivity.UserActivityDTO;
 import com.dbms.mentalhealth.exception.appointment.InvalidRequestException;
@@ -32,7 +33,7 @@ public class ListenerController {
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping(ListenerUrlMapping.LISTENER_BY_ID)
-    public ResponseEntity<ListenerDetailsResponseDTO> getListenerDetails(
+    public ResponseEntity<FullListenerDetailsDTO> getListenerDetails(
             @RequestParam("type") String type,
             @RequestParam("id") Integer id,
             @RequestHeader(value = HttpHeaders.IF_NONE_MATCH, required = false) String ifNoneMatch) {
@@ -41,7 +42,7 @@ public class ListenerController {
             return ResponseEntity.badRequest().build();
         }
 
-        ListenerDetailsResponseDTO listener = listenerService.getListenerDetails(type, id);
+        FullListenerDetailsDTO listener = listenerService.getListenerDetails(type, id);
         if (listener == null) {
             return ResponseEntity.notFound().build();
         }

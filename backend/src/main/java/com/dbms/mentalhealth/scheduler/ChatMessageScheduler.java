@@ -3,6 +3,8 @@ package com.dbms.mentalhealth.scheduler;
 import com.dbms.mentalhealth.model.ChatMessage;
 import com.dbms.mentalhealth.service.ChatMessageService;
 import com.dbms.mentalhealth.service.ListenerService;
+import com.dbms.mentalhealth.service.UserMetricService;
+import com.dbms.mentalhealth.service.impl.UserMetricServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -25,11 +27,13 @@ public class ChatMessageScheduler {
     private final Map<String, Integer> messageCountBuffer = new ConcurrentHashMap<>();
 
     private static final int BATCH_SIZE = 100;
+    private final UserMetricService userMetricService;
     int batchSize = calculateDynamicBatchSize();
 
-    public ChatMessageScheduler(ChatMessageService chatMessageService, ListenerService listenerService) {
+    public ChatMessageScheduler(ChatMessageService chatMessageService, ListenerService listenerService, UserMetricService userMetricService) {
         this.chatMessageService = chatMessageService;
         this.listenerService = listenerService;
+        this.userMetricService = userMetricService;
     }
 
     public void queueMessage(ChatMessage message, String username) {
@@ -38,10 +42,10 @@ public class ChatMessageScheduler {
         log.info("Queued message from user: {}", username);
     }
 
-    @Scheduled(fixedDelay = 5000) // 5 seconds
+    @Scheduled(fixedDelay = 30000) // 5 seconds
     public void processBatchMessages() {
         List<ChatMessage> messageBatch = new ArrayList<>();
-        messageQueue.drainTo(messageBatch, BATCH_SIZE);
+        messageQueue.drainTo(messageBatch, batchSize);
 
         if (!messageBatch.isEmpty()) {
             try {
@@ -56,19 +60,28 @@ public class ChatMessageScheduler {
         }
     }
 
-    @Scheduled(fixedDelay = 10000)
+    @Scheduled(fixedDelay = 60000)
     public void processMessageCounts() {
         Map<String, Integer> countsToProcess = new HashMap<>(messageCountBuffer);
         messageCountBuffer.clear();
 
         countsToProcess.forEach((username, count) -> {
             if (count > 0) {
+                boolean listenerUpdated = false;
+                boolean metricsUpdated = false;
+
                 try {
                     listenerService.incrementMessageCount(username, count);
+                    listenerUpdated = true;
+                    userMetricService.incrementMessageCount(username, count);
+                    metricsUpdated = true;
                     log.info("Updated message count for user {}: +{}", username, count);
                 } catch (Exception e) {
                     log.error("Error updating message count for user {}", username, e);
-                    messageCountBuffer.compute(username, (k, v) -> (v == null) ? count : v + count);
+                    // Only requeue the counts that failed to update
+                    if (!listenerUpdated || !metricsUpdated) {
+                        messageCountBuffer.compute(username, (k, v) -> (v == null) ? count : v + count);
+                    }
                 }
             }
         });

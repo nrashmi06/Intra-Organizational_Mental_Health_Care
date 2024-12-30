@@ -10,16 +10,10 @@ import com.dbms.mentalhealth.exception.token.UnauthorizedException;
 import com.dbms.mentalhealth.exception.user.UserNotFoundException;
 import com.dbms.mentalhealth.mapper.BlogMapper;
 import com.dbms.mentalhealth.mapper.TrendingScoreMapper;
-import com.dbms.mentalhealth.model.Admin;
-import com.dbms.mentalhealth.model.Blog;
-import com.dbms.mentalhealth.model.BlogLike;
-import com.dbms.mentalhealth.model.BlogTrendingScore;
+import com.dbms.mentalhealth.model.*;
 import com.dbms.mentalhealth.repository.*;
 import com.dbms.mentalhealth.security.jwt.JwtUtils;
-import com.dbms.mentalhealth.service.BlogService;
-import com.dbms.mentalhealth.service.EmailService;
-import com.dbms.mentalhealth.service.ImageStorageService;
-import com.dbms.mentalhealth.service.UserService;
+import com.dbms.mentalhealth.service.*;
 import com.github.benmanes.caffeine.cache.Cache;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -48,9 +42,20 @@ public class BlogServiceImpl implements BlogService {
     private final AdminRepository adminRepository;
     private final BlogTrendingScoreRepository blogTrendingScoreRepository;
     private final Cache<String, LocalDateTime> blogViewCache;
+    private final UserMetricService userMetricService;
 
     @Autowired
-    public BlogServiceImpl(UserRepository userRepository, ImageStorageService imageStorageService, BlogRepository blogRepository, BlogLikeRepository blogLikeRepository, UserService userService, JwtUtils jwtUtils, EmailService emailService, AdminRepository adminRepository, BlogTrendingScoreRepository blogTrendingScoreRepository, Cache<String, LocalDateTime> blogViewCache) {
+    public BlogServiceImpl(UserRepository userRepository,
+                           ImageStorageService imageStorageService,
+                           BlogRepository blogRepository,
+                           BlogLikeRepository blogLikeRepository,
+                           UserService userService,
+                           JwtUtils jwtUtils,
+                           EmailService emailService,
+                           AdminRepository adminRepository,
+                           BlogTrendingScoreRepository blogTrendingScoreRepository,
+                           Cache<String, LocalDateTime> blogViewCache,
+                           UserMetricService userMetricService) {
         this.blogRepository = blogRepository;
         this.blogLikeRepository = blogLikeRepository;
         this.userService = userService;
@@ -61,6 +66,7 @@ public class BlogServiceImpl implements BlogService {
         this.adminRepository = adminRepository;
         this.blogTrendingScoreRepository = blogTrendingScoreRepository;
         this.blogViewCache = blogViewCache;
+        this.userMetricService = userMetricService;
     }
 
     @Transactional
@@ -116,6 +122,7 @@ public class BlogServiceImpl implements BlogService {
         if (blogViewCache.getIfPresent(cacheKey) == null) {
             // No recent view found, increment view count and update cache
             blog.setViewCount(blog.getViewCount() + 1);
+            userMetricService.incrementViewCount(userRepository.findById(blog.getUserId()).orElseThrow(() -> new UserNotFoundException("User not found")));
             blogRepository.save(blog);
             blogViewCache.put(cacheKey, LocalDateTime.now());
         }
@@ -170,13 +177,16 @@ public class BlogServiceImpl implements BlogService {
     public BlogResponseDTO updateBlogApprovalStatus(Integer blogId, boolean isApproved) {
         Blog blog = blogRepository.findById(blogId).orElseThrow(() -> new BlogNotFoundException("Blog not found"));
         blog.setBlogApprovalStatus(isApproved ? BlogApprovalStatus.APPROVED : BlogApprovalStatus.REJECTED);
+        User user = userRepository.findById(blog.getUserId()).orElseThrow(() -> new UserNotFoundException("User not found"));
 
         if (isApproved) {
             blog.setApprovedBy(jwtUtils.getUserIdFromContext().toString());
             blog.setPublishDate(LocalDateTime.now());
+            userMetricService.updateBlogCount(user,1);
         } else {
             blog.setApprovedBy(null);
             blog.setPublishDate(null);
+            userMetricService.updateBlogCount(user,-1);
         }
 
         Blog updatedBlog = blogRepository.save(blog);
@@ -207,6 +217,7 @@ public class BlogServiceImpl implements BlogService {
         }
         BlogLike blogLike = new BlogLike();
         blogLike.setBlog(blog);
+        userMetricService.updateBlogCount(userRepository.findById(blog.getUserId()).orElseThrow(() -> new UserNotFoundException("User not found")),1);
         blogLike.setUser(userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found")));
         blog.setLikeCount(blog.getLikeCount() + 1);
         blogLike.setCreatedAt(LocalDateTime.now());
@@ -222,7 +233,7 @@ public class BlogServiceImpl implements BlogService {
 
         Blog blog = blogRepository.findById(blogId).orElseThrow(() -> new BlogNotFoundException("Blog not found"));
         BlogLike blogLike = blogLikeRepository.findByBlogIdAndUserUserId(blogId, userId).orElseThrow(() -> new UserNotFoundException("Like not found"));
-
+        userMetricService.updateBlogCount(userRepository.findById(blog.getUserId()).orElseThrow(() -> new UserNotFoundException("User not found")),-1);
         blogLikeRepository.delete(blogLike);
 
         blog.setLikeCount(blog.getLikeCount() - 1);

@@ -15,6 +15,7 @@ import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.service.NotificationService;
 import com.dbms.mentalhealth.service.SessionService;
 import com.dbms.mentalhealth.service.UserActivityService;
+import com.dbms.mentalhealth.service.UserMetricService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -47,7 +48,7 @@ public class SessionServiceImpl implements SessionService {
     private final UserActivityService userActivityService;
     private final Cache<Integer, Integer> currentlyInSessionCache;
     private static SessionServiceImpl instance;
-
+    private final UserMetricService userMetricService;
     @Autowired
     public SessionServiceImpl(NotificationService notificationService,
                               JwtUtils jwtUtils,
@@ -58,6 +59,7 @@ public class SessionServiceImpl implements SessionService {
                               ChatMessageRepository chatMessageRepository,
                               Cache<Integer, Session> ongoingSessionsCache,
                               Cache<Integer, Integer> currentlyInSessionCache,
+                                UserMetricService userMetricService,
                               @Lazy UserActivityService userActivityService) {
         this.notificationService = notificationService;
         this.jwtUtils = jwtUtils;
@@ -69,6 +71,7 @@ public class SessionServiceImpl implements SessionService {
         this.ongoingSessionsCache = ongoingSessionsCache;
         this.currentlyInSessionCache = currentlyInSessionCache;
         this.userActivityService = userActivityService;
+        this.userMetricService = userMetricService;
         instance = this;
     }
 
@@ -118,6 +121,8 @@ public class SessionServiceImpl implements SessionService {
             session.setSessionStatus(SessionStatus.ONGOING);
             session.setSessionStart(LocalDateTime.now());
             sessionRepository.save(session);
+            userMetricService.incrementSessionCount(user);
+            userMetricService.setLastSessionDate(user, LocalDateTime.now());
 
             ongoingSessionsCache.put(session.getSessionId(), session);
             currentlyInSessionCache.put(user.getUserId(), listener.getUser().getUserId());

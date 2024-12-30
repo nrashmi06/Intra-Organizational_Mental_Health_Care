@@ -1,6 +1,6 @@
 package com.dbms.mentalhealth.controller;
 
-import com.dbms.mentalhealth.config.ChatWebSocketHandler;
+import com.dbms.mentalhealth.websocket.ChatWebSocketHandler;
 import com.dbms.mentalhealth.dto.chatMessage.ChatMessageDTO;
 import com.dbms.mentalhealth.dto.session.response.SessionResponseDTO;
 import com.dbms.mentalhealth.dto.session.response.SessionSummaryDTO;

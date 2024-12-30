@@ -2,24 +2,15 @@ package com.dbms.mentalhealth.service.impl;
 import com.dbms.mentalhealth.dto.user.request.UserLoginRequestDTO;
 import com.dbms.mentalhealth.dto.user.request.UserRegistrationRequestDTO;
 import com.dbms.mentalhealth.dto.user.request.UserUpdateRequestDTO;
-import com.dbms.mentalhealth.dto.user.response.UserDataResponseDTO;
-import com.dbms.mentalhealth.dto.user.response.UserLoginResponseDTO;
-import com.dbms.mentalhealth.dto.user.response.UserRegistrationResponseDTO;
-import com.dbms.mentalhealth.dto.user.response.UserInfoResponseDTO;
+import com.dbms.mentalhealth.dto.user.response.*;
 import com.dbms.mentalhealth.enums.ProfileStatus;
 import com.dbms.mentalhealth.enums.Role;
 import com.dbms.mentalhealth.exception.appointment.InvalidRequestException;
 import com.dbms.mentalhealth.exception.user.*;
 import com.dbms.mentalhealth.mapper.UserMapper;
-import com.dbms.mentalhealth.model.Appointment;
-import com.dbms.mentalhealth.model.EmailVerification;
-import com.dbms.mentalhealth.model.Session;
-import com.dbms.mentalhealth.repository.AppointmentRepository;
-import com.dbms.mentalhealth.repository.EmailVerificationRepository;
-import com.dbms.mentalhealth.repository.SessionRepository;
+import com.dbms.mentalhealth.model.*;
+import com.dbms.mentalhealth.repository.*;
 import com.dbms.mentalhealth.security.jwt.JwtUtils;
-import com.dbms.mentalhealth.model.User;
-import com.dbms.mentalhealth.repository.UserRepository;
 import com.dbms.mentalhealth.service.EmailService;
 import com.dbms.mentalhealth.service.RefreshTokenService;
 import com.dbms.mentalhealth.service.UserActivityService;
@@ -60,8 +51,9 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     private final UserActivityService userActivityService;
     private final SessionRepository sessionRepository;
     private final AppointmentRepository appointmentRepository;
+    private final UserMetricsRepository userMetricsRepository;
 
-    public UserServiceImpl(UserRepository userRepository, UserActivityService userActivityService, RefreshTokenService refreshTokenService, JwtUtils jwtUtils, @Lazy AuthenticationManager authenticationManager, PasswordEncoder passwordEncoder, EmailVerificationRepository emailVerificationRepository, EmailService emailService, SessionRepository sessionRepository, AppointmentRepository appointmentRepository) {
+    public UserServiceImpl(UserRepository userRepository, UserActivityService userActivityService, RefreshTokenService refreshTokenService, JwtUtils jwtUtils, @Lazy AuthenticationManager authenticationManager, PasswordEncoder passwordEncoder, EmailVerificationRepository emailVerificationRepository, EmailService emailService, SessionRepository sessionRepository, AppointmentRepository appointmentRepository, UserMetricsRepository userMetricsRepository) {
         this.userRepository = userRepository;
         this.jwtUtils = jwtUtils;
         this.authenticationManager = authenticationManager;
@@ -72,6 +64,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         this.userActivityService = userActivityService;
         this.sessionRepository = sessionRepository;
         this.appointmentRepository = appointmentRepository;
+        this.userMetricsRepository = userMetricsRepository;
     }
 
     @Override
@@ -154,6 +147,18 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         try {
             User user = UserMapper.toEntity(userRegistrationDTO, passwordEncoder.encode(userRegistrationDTO.getPassword()));
             userRepository.save(user);
+
+            // Create and save UserMetrics for the new user
+            UserMetrics userMetrics = new UserMetrics();
+            userMetrics.setUser(user);
+            userMetrics.setTotalSessionsAttended(0);
+            userMetrics.setTotalAppointments(0);
+            userMetrics.setTotalMessagesSent(0);
+            userMetrics.setTotalBlogsPublished(0);
+            userMetrics.setTotalLikesReceived(0);
+            userMetrics.setTotalViewsReceived(0);
+            userMetricsRepository.save(userMetrics);
+
             return UserMapper.toRegistrationResponseDTO(user);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "An error occurred while registering the user", e);
@@ -180,12 +185,22 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         userRepository.deleteById(userId);
     }
 
-    public UserInfoResponseDTO getUserById(Integer userId) {
+    @Override
+    public FullUserDetailsDTO getFullUserDetailsById(Integer userId) {
         Integer loggedInUserId = jwtUtils.getUserIdFromContext();
         boolean isAdmin = jwtUtils.isAdminFromContext();
-        if(!isAdmin && !userId.equals(loggedInUserId)){
+        if (!isAdmin && !userId.equals(loggedInUserId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not authorized to view this user");
         }
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + userId));
+        UserMetrics userMetrics = userMetricsRepository.findByUser_UserId(userId)
+                .orElseThrow(() -> new UserNotFoundException("UserMetrics not found for user: " + userId));
+        return UserMapper.toFullUserDetailsDTO(user, userMetrics);
+    }
+
+    @Override
+    public UserInfoResponseDTO getUserInfoById(Integer userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + userId));
         return UserMapper.toInfoResponseDTO(user);

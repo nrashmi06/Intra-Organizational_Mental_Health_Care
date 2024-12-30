@@ -1,5 +1,6 @@
 package com.dbms.mentalhealth.service.impl;
 
+import com.dbms.mentalhealth.dto.Listener.response.FullListenerDetailsDTO;
 import com.dbms.mentalhealth.dto.Listener.response.ListenerDetailsResponseDTO;
 import com.dbms.mentalhealth.dto.UserActivity.UserActivityDTO;
 import com.dbms.mentalhealth.enums.ProfileStatus;
@@ -11,7 +12,9 @@ import com.dbms.mentalhealth.mapper.ListenerDetailsMapper;
 import com.dbms.mentalhealth.mapper.UserActivityMapper;
 import com.dbms.mentalhealth.model.Listener;
 import com.dbms.mentalhealth.model.User;
+import com.dbms.mentalhealth.model.UserMetrics;
 import com.dbms.mentalhealth.repository.ListenerRepository;
+import com.dbms.mentalhealth.repository.UserMetricsRepository;
 import com.dbms.mentalhealth.repository.UserRepository;
 import com.dbms.mentalhealth.service.ListenerService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,28 +29,37 @@ public class ListenerServiceImpl implements ListenerService {
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ListenerServiceImpl.class);
     private final ListenerRepository listenerRepository;
     private final UserRepository userRepository;
+    private final UserMetricsRepository userMetricsRepository;
 
     @Autowired
-    public ListenerServiceImpl(ListenerRepository listenerRepository, UserRepository userRepository) {
+    public ListenerServiceImpl(ListenerRepository listenerRepository, UserRepository userRepository, UserMetricsRepository userMetricsRepository) {
         this.listenerRepository = listenerRepository;
         this.userRepository = userRepository;
+        this.userMetricsRepository = userMetricsRepository;
     }
 
-    @Override
     @Transactional(readOnly = true)
-    public ListenerDetailsResponseDTO getListenerDetails(String type, Integer id) {
+    public FullListenerDetailsDTO getListenerDetails(String type, Integer id) {
+        Listener listener;
+        User user;
+
         if ("userId".equalsIgnoreCase(type)) {
-            User user = userRepository.findById(id)
-                    .orElseThrow(() -> new UserNotFoundException("User not found for ID: " + id));
-            return ListenerDetailsMapper.toResponseDTO(listenerRepository.findByUser(user)
-                    .orElseThrow(() -> new ListenerNotFoundException("Listener not found for User ID: " + id)));
+            user = userRepository.findById(id)
+                    .orElseThrow(() -> new UserNotFoundException("User not found: " + id));
+            listener = listenerRepository.findByUser(user)
+                    .orElseThrow(() -> new ListenerNotFoundException("Listener not found: " + id));
         } else if ("listenerId".equalsIgnoreCase(type)) {
-            Listener listener = listenerRepository.findById(id)
-                    .orElseThrow(() -> new ListenerNotFoundException("Listener not found for ID: " + id));
-            return ListenerDetailsMapper.toResponseDTO(listener);
+            listener = listenerRepository.findById(id)
+                    .orElseThrow(() -> new ListenerNotFoundException("Listener not found: " + id));
+            user = listener.getUser();
         } else {
             throw new IllegalArgumentException("Invalid type: " + type);
         }
+
+        UserMetrics metrics = userMetricsRepository.findByUser(user)
+                .orElseThrow(() -> new RuntimeException("UserMetrics not found: " + id));
+
+        return ListenerDetailsMapper.toFullListenerDetailsDTO(listener, metrics);
     }
 
     @Override
