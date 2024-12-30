@@ -204,3 +204,13 @@ export interface Helpline {
   emergencyType: string;
   priority: number;
 }
+
+
+export interface Application {
+  applicationId: number;
+  fullName: string;
+  branch: string;
+  semester: number;
+  applicationStatus: string;
+  certificateUrl: string;
+}

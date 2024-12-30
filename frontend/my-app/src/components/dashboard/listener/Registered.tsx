@@ -1,9 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import {
-  CheckCircle2,
-  Search,
-  X,
-} from "lucide-react";
+import { CheckCircle2, Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -17,18 +13,17 @@ import { useSelector } from "react-redux";
 import { useAppDispatch } from '@/hooks/useAppDispatch';
 import Details from "./ModalDetails";
 import ListenerDetailsForAdmin from "@/components/dashboard/listener/ModalApplication";
-import { ListenerApplication, Listener } from "@/lib/types";
+import { ListenerApplication } from "@/lib/types";
 import { getApplicationByListenerUserId } from "@/service/listener/getApplicationByListenerUserId";
 import { useRouter } from "next/router";
 import InlineLoader from "@/components/ui/inlineLoader";
-import Pagination3 from "@/components/ui/pagination3";
+import Pagination from "@/components/ui/PaginationComponent";
 import ListenerCard from "./ListenerCard";
 import { RootState } from "@/store";
 
 export function RegisteredListenersTable() {
   const dispatch = useAppDispatch();
   const [searchQuery, setSearchQuery] = useState("");
-  const [groupedListener, setGroupedListener] = useState<Listener[]>([]);
   const [statusFilter, setStatusFilter] = useState<"ACTIVE" | "SUSPENDED">("ACTIVE");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
@@ -40,46 +35,39 @@ export function RegisteredListenersTable() {
   const [selectedListener, setSelectedListener] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [isMounted, setIsMounted] = useState(false); // Track component mount state
   const listeners = useSelector((state: RootState) => state.listeners.listeners);
-
+  const totalPages = useSelector((state: RootState) => state.listeners.page?.totalPages ?? 0);
+  
   // Fetch listeners by profile status
   const fetchListenersByProfileStatus = useCallback(
     async (status: "ACTIVE" | "SUSPENDED") => {
       try {
         setLoading(true);
-        // Assuming accessToken is needed, add other params as necessary (page, itemsPerPage, etc.)
+        
         await dispatch(getListenersByProfileStatus({
           status,
           page: currentPage - 1,
           size: itemsPerPage,
-          userId: accessToken, // Assuming the userId is tied to the accessToken
+          userId: accessToken,
         }));
-        // Ensure you set grouped listeners based on the response data
-        setGroupedListener(listeners);
-        setStatusFilter(status);
       } catch (error) {
         console.error("Error fetching listeners:", error);
       } finally {
         setLoading(false);
       }
     },
-    [accessToken, currentPage, itemsPerPage, dispatch, listeners]
+    [accessToken, currentPage, itemsPerPage, dispatch]
   );
 
   useEffect(() => {
-    setIsMounted(true); // Set to true once the component is mounted
-    fetchListenersByProfileStatus("ACTIVE");
+    fetchListenersByProfileStatus(statusFilter);
+  }, [statusFilter, currentPage]); // Only re-fetch when status filter or page changes
 
-    return () => {
-      setIsMounted(false); // Cleanup on unmount to prevent state updates after unmount
-    };
-  }, [fetchListenersByProfileStatus]);
-
-  // Loader component or indication
-  if (!isMounted || loading) {
-    return <InlineLoader />; // Display loader until component is mounted
-  }
+  const handleStatusFilterChange = (value: string) => {
+    setStatusFilter(value as "ACTIVE" | "SUSPENDED");
+    setCurrentPage(1); // Reset to first page when filter changes
+    setSearchQuery(""); // Optional: clear search when filter changes
+  };
 
   const fetchApplicationData = async (userId: string) => {
     try {
@@ -97,7 +85,7 @@ export function RegisteredListenersTable() {
     setDetailsModal(true);
   };
 
-  const filteredListeners = groupedListener.filter(
+  const filteredListeners = listeners.filter(
     (listener) =>
       listener.anonymousName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       listener.userId.toString().includes(searchQuery)
@@ -107,6 +95,10 @@ export function RegisteredListenersTable() {
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
+
+  if (loading) {
+    return <InlineLoader />;
+  }
 
   return (
     <div className="space-y-6">
@@ -122,7 +114,7 @@ export function RegisteredListenersTable() {
         </div>
         <Select
           value={statusFilter}
-          onValueChange={(value) => fetchListenersByProfileStatus(value as "ACTIVE" | "SUSPENDED")}
+          onValueChange={handleStatusFilterChange}
         >
           <SelectTrigger className="w-[160px] bg-white">
             <SelectValue placeholder="Filter by status" />
@@ -134,39 +126,32 @@ export function RegisteredListenersTable() {
         </Select>
       </div>
 
-      {loading && <InlineLoader/>}
-
-      {!loading && (
-        <>
-          {paginatedListeners.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              No {statusFilter.toLowerCase()} listeners found.
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {paginatedListeners.map((listener) => (
-                <ListenerCard
-                  key={listener.userId}
-                  listener={listener}
-                  statusFilter={statusFilter}
-                  onFirstButtonClick={handleDetailsModal}
-                  firstButtonLabel="Suspend"
-                  firstButtonIcon={<X className="h-4 w-4 text-red-600" />}
-                  onViewSessions={(userId) => router.push(`/dashboard/listener/sessions/${userId}`)}
-                  onViewApplication={(userId) => fetchApplicationData(userId)}
-                  onViewFeedback={(userId) => router.push(`/dashboard/listener/feedbacks/${userId}`)}
-                />
-              ))}
-            </div>
-          )}
-        </>
+      {paginatedListeners.length === 0 ? (
+        <div className="text-center py-8 text-muted-foreground">
+          No {statusFilter.toLowerCase()} listeners found.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {paginatedListeners.map((listener) => (
+            <ListenerCard
+              key={listener.userId}
+              listener={listener}
+              statusFilter={statusFilter}
+              onFirstButtonClick={handleDetailsModal}
+              firstButtonLabel="Suspend"
+              firstButtonIcon={<X className="h-4 w-4 text-red-600" />}
+              onViewSessions={(userId) => router.push(`/dashboard/listener/sessions/${userId}`)}
+              onViewApplication={(userId) => fetchApplicationData(userId)}
+              onViewFeedback={(userId) => router.push(`/dashboard/listener/feedbacks/${userId}`)}
+            />
+          ))}
+        </div>
       )}
 
-      <Pagination3
+      <Pagination
         currentPage={currentPage}
-        itemsPerPage={itemsPerPage}
-        setCurrentPage={setCurrentPage}
-        filteredElements={filteredListeners}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
       />
 
       {successMessage && (

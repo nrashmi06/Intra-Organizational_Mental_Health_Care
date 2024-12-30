@@ -1,11 +1,11 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ListenerApplication } from "@/lib/types";
+import { Application } from "@/lib/types";
 
 interface ApplicationCardProps {
-  application: ListenerApplication;
+  application: Application;
   statusFilter: string;
-  onViewDetails: (applicationId: string) => void;
+  onViewDetails: (applicationId: number) => void;
   getStatusColor: (status: string) => string;
 }
 
