@@ -7,6 +7,9 @@ import {
   Star,
   Shield,
   X,
+  Book,
+  Eye,
+  ThumbsUp,
 } from "lucide-react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
@@ -175,6 +178,33 @@ const DetailsModal: React.FC<DetailsProps> = ({
                 <p className="text-sm">
                   {listener.canApproveBlogs ? "Yes" : "No"}
                 </p>
+              </div>
+              <div className="flex items-center p-4 rounded-lg border">
+                <Book className="mr-2 text-rose-500" />
+                <div>
+                  <p className="text-sm font-medium text-gray-500">
+                    Total Blogs Published
+                  </p>
+                  <p className="text-sm">{listener.totalBlogsPublished}</p>
+                </div>
+              </div>
+              <div className="flex items-center p-4 rounded-lg border">
+                <ThumbsUp className="mr-2 text-amber-500" />
+                <div>
+                  <p className="text-sm font-medium text-gray-500">
+                    Total Likes Received
+                  </p>
+                  <p className="text-sm">{listener.totalLikesReceived}</p>
+                </div>
+              </div>
+              <div className="flex items-center p-4 rounded-lg border">
+                <Eye className="mr-2 text-violet-500" />
+                <div>
+                  <p className="text-sm font-medium text-gray-500">
+                    Total Views Received
+                  </p>
+                  <p className="text-sm">{listener.totalViewsReceived}</p>
+                </div>
               </div>
 
               {statusFilter && (

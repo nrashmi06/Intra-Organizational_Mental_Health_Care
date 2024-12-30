@@ -2,10 +2,10 @@ import router from "next/router";
 import { useState } from "react";
 import EditProfileModal from "./EditProfileModal";
 import ProfileView from "./ProfileView";
-import { ListenerDetails, UserCompleteProfile } from "@/lib/types";
+import { ListenerDetails, UserDetails } from "@/lib/types";
 import { UpdateUserResponse } from "@/service/user/UpdateUser";
 interface UserProfileProps {
-  user: UserCompleteProfile;
+  user: UserDetails;
   token: string;
   listener?: ListenerDetails;
   onUpdate: (params: {
@@ -34,7 +34,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({
 
     try {
       const response = await onUpdate({
-        userId: user.id,
+        userId: user.userId,
         token,
         anonymousName: anonymousName.trim(),
       });

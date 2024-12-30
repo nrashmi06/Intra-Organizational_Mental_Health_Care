@@ -45,19 +45,6 @@ export interface User {
   inASession?: boolean;
 }
 
-export interface UserCompleteProfile {
-    id: string;
-    email: string;
-    anonymousName: string;
-    role: 'ADMIN' | 'USER' | 'LISTENER'; // Adjust roles as needed
-    profileStatus: 'ACTIVE' | 'INACTIVE'; // Enum for profile statuses
-    createdAt: string; // ISO 8601 date string
-    updatedAt: string; // ISO 8601 date string
-    lastSeen: string; // ISO 8601 date string
-    error: string | null;
-    active: boolean;
-}
-
 export interface UserSummary {
   userId: string;
   anonymousName: string;
@@ -75,18 +62,29 @@ export interface ListenerDetails {
   averageRating: number;
   joinedAt: string;
   approvedBy: string;
+  totalBlogsPublished: number;
+  totalLikesReceived: number;
+  totalViewsReceived: number;
 }
 
 export interface UserDetails {
-  id: string;
+  userId: string;
   email: string;
   anonymousName: string;
   role: string;
+  isActive: boolean;
   profileStatus: string;
-  createdAt: string;
-  updatedAt: string;
-  lastSeen: string;
-  active: boolean;
+  createdAt: string; // ISO 8601 date string
+  updatedAt: string; // ISO 8601 date string
+  lastSeen: string; // ISO 8601 date string
+  totalSessionsAttended: number;
+  lastSessionDate: string; // ISO 8601 date string
+  totalAppointments: number;
+  lastAppointmentDate: string; // ISO 8601 date string
+  totalMessagesSent: number;
+  totalBlogsPublished: number;
+  totalLikesReceived: number;
+  totalViewsReceived: number;
 }
 
 export interface Session {
