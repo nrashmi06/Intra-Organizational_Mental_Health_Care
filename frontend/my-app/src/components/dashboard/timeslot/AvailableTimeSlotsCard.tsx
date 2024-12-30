@@ -17,6 +17,7 @@ const AvailableTimeSlotsCard: React.FC<AvailableTimeSlotsCardProps> = ({
   handleDeleteTimeSlot,
   setRefreshKey,
 }) => {
+  console.log("inside component : ",groupedSlots);
   const [selectedSlot, setSelectedSlot] = useState<any>(null);
   const [newStartTime, setNewStartTime] = useState("");
   const [newEndTime, setNewEndTime] = useState("");

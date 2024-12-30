@@ -10,6 +10,8 @@ import deleteTimeSlotsById from '@/service/timeslot/deleteTimeSlotById';
 import { TimeSlotManager } from '@/components/dashboard/timeslot/TimeSlotManager';
 import { SelectedTimeSlots } from '@/components/dashboard/timeslot/SelectedTimeSlot';
 import AvailableTimeSlotsCard from '@/components/dashboard/timeslot/AvailableTimeSlotsCard';
+import Pagination from '@/components/ui/PaginationComponent';
+import { Loader2 } from 'lucide-react';
 
 const TimeSlotPage = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -19,10 +21,15 @@ const TimeSlotPage = () => {
   const [newStartTime, setNewStartTime] = useState('');
   const [newEndTime, setNewEndTime] = useState('');
   const [refreshKey, setRefreshKey] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
   const [groupedSlots, setGroupedSlots] = useState<any>({});
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
   const token = useSelector((state: RootState) => state.auth.accessToken);
   const userID = useSelector((state: RootState) => state.auth.userId);
   const timeSlots = useSelector((state: RootState) => state.timeSlots.timeSlots);
+  const totalPages = useSelector((state: RootState) => state.timeSlots.page?.totalPages ?? 0);
 
   const getEndDate = () => {
     const today = new Date();
@@ -34,38 +41,70 @@ const TimeSlotPage = () => {
     const today = new Date();
     const startDate = new Date(today.setMonth(today.getMonth() - 1));
     return startDate.toISOString().split('T')[0];
-  }
+  };
 
   useEffect(() => {
-    const today = new Date().toISOString().split('T')[0];
-    const end = getEndDate();
-    
-    if (token && userID) {
-      dispatch(fetchTimeSlots(token, userID, today, end, true, 0, 100))
-        .then(() => {
-          // Group the time slots by date after they're loaded from Redux
+    let isMounted = true;
+
+    const fetchAndGroupSlots = async () => {
+      if (!token || !userID) {
+        setIsLoading(false);
+        setError('Authentication required');
+        return;
+      }
+      
+      setIsLoading(true);
+      setError(null);
+      
+      const today = new Date().toISOString().split('T')[0];
+      const end = getEndDate();
+      
+      try {
+        await dispatch(fetchTimeSlots(token, userID, today, end, true, currentPage-1, 5));
+        
+        if (isMounted && timeSlots) {
           const groupedConfirmedSlots = timeSlots.reduce((acc: any, slot: any) => {
             acc[slot.date] = acc[slot.date] || [];
             acc[slot.date].push(slot);
             return acc;
           }, {});
+          
           setGroupedSlots(groupedConfirmedSlots);
-        })
-        .catch((error: any) => {
-          console.error('Error fetching time slots:', error);
-        });
-    }
-  }, [dispatch, token, userID, refreshKey]);
+          setIsLoading(false);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setError('Error fetching time slots. Please try again.');
+          setIsLoading(false);
+        }
+        console.error('Error fetching time slots:', error);
+      }
+    };
+  
+    fetchAndGroupSlots();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [dispatch, token, userID, refreshKey, currentPage, timeSlots]); 
 
   useEffect(() => {
-    const start = getStartDate();
-    const end = new Date();
-    end.setDate(end.getDate() - 1);
-    const formattedEnd = end.toISOString().split('T')[0];
+    const cleanupOldSlots = async () => {
+      if (!token || !userID) return;
 
-    if (token && userID) {
-      deleteTimeSlots(token, userID, start, formattedEnd);
-    }
+      const start = getStartDate();
+      const end = new Date();
+      end.setDate(end.getDate() - 1);
+      const formattedEnd = end.toISOString().split('T')[0];
+
+      try {
+        await deleteTimeSlots(token, userID, start, formattedEnd);
+      } catch (error) {
+        console.error('Error cleaning up old slots:', error);
+      }
+    };
+
+    cleanupOldSlots();
   }, [token, userID]);
 
   const handleUpdateTimeSlot = async (id: string, start: string, end: string) => {
@@ -87,36 +126,6 @@ const TimeSlotPage = () => {
       console.error('Error deleting time slot:', error);
     }
   };
-
-
-  useEffect(() => {
-    const today = new Date().toISOString().split('T')[0];
-    const end = getEndDate();
-    const fetchData = async () => {
-      try {
-        await dispatch(fetchTimeSlots(token, userID, today, end, true, 0, 100));
-
-        const groupedConfirmedSlots = timeSlots.reduce((acc: any, slot: any) => {
-          acc[slot.date] = acc[slot.date] || [];
-          acc[slot.date].push(slot);
-          return acc;
-        }, {});
-        setGroupedSlots(groupedConfirmedSlots);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    };
-    fetchData();
-  }, [refreshKey]);
-
-  useEffect(() => {
-    const start = getStartDate();
-    const end = new Date();
-    end.setDate(end.getDate() - 1);
-    const formattedEnd = end.toISOString().split('T')[0];
-
-    deleteTimeSlots(token,userID, start, formattedEnd); // Delete old slots
-  }, []);
 
   const handleAddTimeSlot = () => {
     if (newStartTime && newEndTime) {
@@ -156,6 +165,21 @@ const TimeSlotPage = () => {
       console.error('Error confirming time slots:', error);
     }
   };
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-red-500 text-center">
+          <p className="text-lg font-semibold">{error}</p>
+          <button 
+            onClick={() => setRefreshKey(prev => prev + 1)}
+            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -171,19 +195,32 @@ const TimeSlotPage = () => {
         onAddTimeSlot={handleAddTimeSlot}
       />
 
-<SelectedTimeSlots
+      <SelectedTimeSlots
         selectedSlots={selectedSlots}
         onSlotSelection={handleSlotSelection}
         onConfirmSlots={handleConfirmSelectedSlots}
         onClearSlots={handleClearSelectedSlots}
       />
 
-<AvailableTimeSlotsCard
-      groupedSlots={groupedSlots}
-      handleUpdateTimeSlot={handleUpdateTimeSlot}
-      handleDeleteTimeSlot={handleDeleteTimeSlot}
-      setRefreshKey={setRefreshKey}
-    />
+      {isLoading ? (
+        <div className="flex items-center justify-center p-8">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+        </div>
+      ) : (
+        <AvailableTimeSlotsCard
+          key={JSON.stringify(groupedSlots)}
+          groupedSlots={{...groupedSlots}}
+          handleUpdateTimeSlot={handleUpdateTimeSlot}
+          handleDeleteTimeSlot={handleDeleteTimeSlot}
+          setRefreshKey={setRefreshKey}
+        />
+      )}
+
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+      />
     </div>
   );
 };
@@ -191,4 +228,5 @@ const TimeSlotPage = () => {
 TimeSlotPage.getLayout = (page: any) => (
   <DashboardLayout>{page}</DashboardLayout>
 );
+
 export default TimeSlotPage;

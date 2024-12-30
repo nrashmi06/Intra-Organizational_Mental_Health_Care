@@ -7,65 +7,15 @@ type TimeSelectorProps = {
   label: string;
 };
 
-export const TimeSelector: React.FC<TimeSelectorProps> = ({
-  selectedTime,
-  onChange,
-  label,
-}) => {
-  const hours: number[] = Array.from({ length: 18 }, (_, i) => i + 5);
-  const minutes: number[] = Array.from({ length: 60 }, (_, i) => i);
-
-  const [selectedHour, setSelectedHour] = useState<number | null>(
-    selectedTime ? parseInt(selectedTime.split(':')[0]) : null
-  );
-  const [selectedMinute, setSelectedMinute] = useState<number | null>(
-    selectedTime ? parseInt(selectedTime.split(':')[1]) : null
-  );
-
-  const [hoursOpen, setHoursOpen] = useState(false);
-  const [minutesOpen, setMinutesOpen] = useState(false);
-
-  const hoursRef = useRef<HTMLDivElement>(null);
-  const minutesRef = useRef<HTMLDivElement>(null);
-
-  const handleTimeChange = (hour: number | null, minute: number | null): void => {
-    if (hour !== null && minute !== null) {
-      const formattedHour = hour.toString().padStart(2, '0');
-      const formattedMinute = minute.toString().padStart(2, '0');
-      const newTime = `${formattedHour}:${formattedMinute}`;
-      onChange(newTime);
-    }
-  };
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (hoursRef.current && !hoursRef.current.contains(event.target as Node)) {
-        setHoursOpen(false);
-      }
-      if (minutesRef.current && !minutesRef.current.contains(event.target as Node)) {
-        setMinutesOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  const Dropdown = ({
-    values,
-    selected,
-    onSelect,
-    isOpen,
-    setIsOpen,
-    ref,
-  }: {
-    values: number[];
-    selected: number | null;
-    onSelect: (val: number) => void;
-    isOpen: boolean;
-    setIsOpen: (open: boolean) => void;
-    ref: React.RefObject<HTMLDivElement>;
-  }) => (
+// Dropdown component wrapped with forwardRef
+const Dropdown = React.forwardRef<HTMLDivElement, {
+  values: number[];
+  selected: number | null;
+  onSelect: (val: number) => void;
+  isOpen: boolean;
+  setIsOpen: (open: boolean) => void;
+}>(
+  ({ values, selected, onSelect, isOpen, setIsOpen }, ref) => (
     <div ref={ref} className="relative w-full">
       <div
         onClick={() => setIsOpen(!isOpen)}
@@ -113,7 +63,54 @@ export const TimeSelector: React.FC<TimeSelectorProps> = ({
         </div>
       )}
     </div>
+  )
+);
+
+Dropdown.displayName = 'Dropdown'; // Needed for debugging purposes
+
+export const TimeSelector: React.FC<TimeSelectorProps> = ({
+  selectedTime,
+  onChange,
+  label,
+}) => {
+  const hours: number[] = Array.from({ length: 18 }, (_, i) => i + 5);
+  const minutes: number[] = Array.from({ length: 60 }, (_, i) => i);
+
+  const [selectedHour, setSelectedHour] = useState<number | null>(
+    selectedTime ? parseInt(selectedTime.split(':')[0]) : null
   );
+  const [selectedMinute, setSelectedMinute] = useState<number | null>(
+    selectedTime ? parseInt(selectedTime.split(':')[1]) : null
+  );
+
+  const [hoursOpen, setHoursOpen] = useState(false);
+  const [minutesOpen, setMinutesOpen] = useState(false);
+
+  const hoursRef = useRef<HTMLDivElement>(null);
+  const minutesRef = useRef<HTMLDivElement>(null);
+
+  const handleTimeChange = (hour: number | null, minute: number | null): void => {
+    if (hour !== null && minute !== null) {
+      const formattedHour = hour.toString().padStart(2, '0');
+      const formattedMinute = minute.toString().padStart(2, '0');
+      const newTime = `${formattedHour}:${formattedMinute}`;
+      onChange(newTime);
+    }
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (hoursRef.current && !hoursRef.current.contains(event.target as Node)) {
+        setHoursOpen(false);
+      }
+      if (minutesRef.current && !minutesRef.current.contains(event.target as Node)) {
+        setMinutesOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   return (
     <div className="w-full">

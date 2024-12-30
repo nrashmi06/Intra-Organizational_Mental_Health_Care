@@ -57,7 +57,12 @@ export const fetchTimeSlots = (
     dispatch(
       setTimeSlots({
         timeSlots: response.data.content,
-        page: response.data.page,
+        page: {
+          size: response.data.page.size,
+          number: response.data.page.number,
+          totalElements: response.data.page.totalElements,
+          totalPages: response.data.page.totalPages,
+        },
         etag: response.headers["etag"] || null, // Get the ETag from response headers
       })
     );

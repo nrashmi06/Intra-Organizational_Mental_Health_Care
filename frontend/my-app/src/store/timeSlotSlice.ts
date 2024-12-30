@@ -18,7 +18,7 @@ interface Page {
 
 interface TimeSlotState {
   timeSlots: TimeSlot[];
-  page: null,
+  page: Page | null,
   etag: string | null;
 }
 
@@ -37,6 +37,7 @@ const timeSlotSlice = createSlice({
       action: PayloadAction<{ timeSlots: TimeSlot[]; page : Page; etag: string | null }>
     ) => {
       state.timeSlots = action.payload.timeSlots;
+      state.page = action.payload.page;
       state.etag = action.payload.etag;
     },
     clearTimeSlots: (state) => {
