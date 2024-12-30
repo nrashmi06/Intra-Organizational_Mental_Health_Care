@@ -66,23 +66,30 @@ const ModalDetails: React.FC<DetailsProps> = ({
     });
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-opacity-50 backdrop-blur-sm">
-      <div className="relative w-full max-w-4xl bg-white rounded-lg shadow-lg max-h-[90vh] overflow-y-auto">
-        <button
-          onClick={handleClose}
-          className="absolute top-4 right-4 text-gray-500 hover:text-gray-800"
-        >
-          <X className="w-6 h-6" />
-        </button>
+  const InfoCard = ({ icon: Icon, title, value, color }: { icon: any, title: string, value: string | number, color: string }) => (
+    <div className="flex items-center p-3 sm:p-4 rounded-lg border hover:shadow-sm transition-shadow">
+      <Icon className={`mr-2 ${color}} size={20} `}/>
+      <div className="min-w-0 flex-1">
+        <p className="text-xs sm:text-sm font-medium text-gray-500 truncate">{title}</p>
+        <p className="text-xs sm:text-sm truncate">{value}</p>
+      </div>
+    </div>
+  );
 
-        <div className="p-6 pb-0">
-          <h2 className="text-xl font-semibold text-center border-b pb-4">
-            User Details
-          </h2>
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-opacity-50 backdrop-blur-sm p-4">
+      <div className="relative w-full max-w-4xl bg-white rounded-lg shadow-lg max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-white z-10 p-4 border-b flex justify-between items-center">
+          <h2 className="text-lg sm:text-xl font-semibold">User Details</h2>
+          <button
+            onClick={handleClose}
+            className="text-gray-500 hover:text-gray-800"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
-        <div className="min-h-96 p-6 pt-4">
+        <div className="p-4">
           {isLoading ? (
             <InlineLoader height="h-80"/>
           ) : error ? (
@@ -94,134 +101,43 @@ const ModalDetails: React.FC<DetailsProps> = ({
               No details available.
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-4">
-              {/* Basic Information */}
-              <div className="flex items-center p-4 rounded-lg border">
-                <Mail className="mr-2 text-blue-500" />
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Email</p>
-                  <p className="text-sm">{user.email}</p>
-                </div>
-              </div>
-              <div className="flex items-center p-4 rounded-lg border">
-                <User className="mr-2 text-indigo-500" />
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Anonymous Name</p>
-                  <p className="text-sm">{user.anonymousName}</p>
-                </div>
-              </div>
-              <div className="flex items-center p-4 rounded-lg border">
-                <CheckCircle className="mr-2 text-purple-500" />
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Role</p>
-                  <p className="text-sm">{user.role}</p>
-                </div>
-              </div>
-              <div className="flex items-center p-4 rounded-lg border">
-                <Shield className="mr-2 text-teal-500" />
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Status</p>
-                  <p className="text-sm">{user.profileStatus}</p>
-                </div>
-              </div>
-
-              {/* Dates */}
-              <div className="flex items-center p-4 rounded-lg border">
-                <Calendar className="mr-2 text-green-500" />
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Created At</p>
-                  <p className="text-sm">{formatDate(user.createdAt)}</p>
-                </div>
-              </div>
-              <div className="flex items-center p-4 rounded-lg border">
-                <Calendar className="mr-2 text-yellow-500" />
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Updated At</p>
-                  <p className="text-sm">{formatDate(user.updatedAt)}</p>
-                </div>
-              </div>
-              <div className="flex items-center p-4 rounded-lg border">
-                <Calendar className="mr-2 text-orange-500" />
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Last Seen</p>
-                  <p className="text-sm">{formatDate(user.lastSeen)}</p>
-                </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <InfoCard icon={Mail} title="Email" value={user.email} color="text-blue-500" />
+              <InfoCard icon={User} title="Anonymous Name" value={user.anonymousName} color="text-indigo-500" />
+              <InfoCard icon={CheckCircle} title="Role" value={user.role} color="text-purple-500" />
+              <InfoCard icon={Shield} title="Status" value={user.profileStatus} color="text-teal-500" />
+              <InfoCard icon={Calendar} title="Created At" value={formatDate(user.createdAt)} color="text-green-500" />
+              <InfoCard icon={Calendar} title="Updated At" value={formatDate(user.updatedAt)} color="text-yellow-500" />
+              <InfoCard icon={Calendar} title="Last Seen" value={formatDate(user.lastSeen)} color="text-orange-500" />
+              <InfoCard icon={Users} title="Total Sessions Attended" value={user.totalSessionsAttended} color="text-purple-500" />
+              <InfoCard 
+                icon={Calendar} 
+                title="Last Session Date" 
+                value={user.lastSessionDate ? formatDate(user.lastSessionDate) : 'N/A'} 
+                color="text-indigo-500" 
+              />
+              <InfoCard icon={Calendar} title="Total Appointments" value={user.totalAppointments} color="text-blue-500" />
+              <InfoCard 
+                icon={Calendar} 
+                title="Last Appointment Date" 
+                value={user.lastAppointmentDate ? formatDate(user.lastAppointmentDate) : 'N/A'} 
+                color="text-cyan-500" 
+              />
+              <InfoCard icon={MessageSquare} title="Total Messages Sent" value={user.totalMessagesSent} color="text-green-500" />
+              <InfoCard icon={Book} title="Total Blogs Published" value={user.totalBlogsPublished} color="text-rose-500" />
+              <InfoCard icon={ThumbsUp} title="Total Likes Received" value={user.totalLikesReceived} color="text-amber-500" />
+              <InfoCard icon={Eye} title="Total Views Received" value={user.totalViewsReceived} color="text-violet-500" />
+              
+              <div className="p-3 sm:p-4 rounded-lg border">
+                <p className="text-xs sm:text-sm font-medium text-gray-500">Active</p>
+                <p className="text-xs sm:text-sm">{user.isActive ? "Yes" : "No"}</p>
               </div>
 
-              {/* Session Information */}
-              <div className="flex items-center p-4 rounded-lg border">
-                <Users className="mr-2 text-purple-500" />
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Total Sessions Attended</p>
-                  <p className="text-sm">{user.totalSessionsAttended}</p>
-                </div>
-              </div>
-              <div className="flex items-center p-4 rounded-lg border">
-                <Calendar className="mr-2 text-indigo-500" />
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Last Session Date</p>
-                  <p className="text-sm">{user.lastSessionDate ? formatDate(user.lastSessionDate) : 'N/A'}</p>
-                </div>
-              </div>
-
-              {/* Appointment Information */}
-              <div className="flex items-center p-4 rounded-lg border">
-                <Calendar className="mr-2 text-blue-500" />
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Total Appointments</p>
-                  <p className="text-sm">{user.totalAppointments}</p>
-                </div>
-              </div>
-              <div className="flex items-center p-4 rounded-lg border">
-                <Calendar className="mr-2 text-cyan-500" />
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Last Appointment Date</p>
-                  <p className="text-sm">{user.lastAppointmentDate ? formatDate(user.lastAppointmentDate) : 'N/A'}</p>
-                </div>
-              </div>
-
-              {/* Activity Metrics */}
-              <div className="flex items-center p-4 rounded-lg border">
-                <MessageSquare className="mr-2 text-green-500" />
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Total Messages Sent</p>
-                  <p className="text-sm">{user.totalMessagesSent}</p>
-                </div>
-              </div>
-              <div className="flex items-center p-4 rounded-lg border">
-                <Book className="mr-2 text-rose-500" />
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Total Blogs Published</p>
-                  <p className="text-sm">{user.totalBlogsPublished}</p>
-                </div>
-              </div>
-              <div className="flex items-center p-4 rounded-lg border">
-                <ThumbsUp className="mr-2 text-amber-500" />
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Total Likes Received</p>
-                  <p className="text-sm">{user.totalLikesReceived}</p>
-                </div>
-              </div>
-              <div className="flex items-center p-4 rounded-lg border">
-                <Eye className="mr-2 text-violet-500" />
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Total Views Received</p>
-                  <p className="text-sm">{user.totalViewsReceived}</p>
-                </div>
-              </div>
-
-              {/* Active Status */}
-              <div className="p-4 rounded-lg border">
-                <p className="text-sm font-medium text-gray-500">Active</p>
-                <p className="text-sm">{user.isActive ? "Yes" : "No"}</p>
-              </div>
-
-              {/* Action Buttons */}
-              {statusFilter && (
-                <div className="p-4 flex justify-end">
+              <div className="sm:col-span-2 flex flex-col sm:flex-row gap-2 justify-end p-3 sm:p-4">
+                {statusFilter && (
                   <Button
                     variant="outline"
-                    className={`${
+                    className={`w-full sm:w-auto ${
                       statusFilter === "ACTIVE"
                         ? "text-red-500 bg-red-100"
                         : "text-green-500 bg-green-100"
@@ -230,19 +146,17 @@ const ModalDetails: React.FC<DetailsProps> = ({
                   >
                     {statusFilter === "ACTIVE" ? "Suspend" : "Activate"} User
                   </Button>
-                </div>
-              )}
-              {viewSession && (
-                <div className="p-4 flex justify-end">
+                )}
+                {viewSession && (
                   <Button
                     variant="outline"
-                    className="text-blue-500 bg-blue-100"
+                    className="w-full sm:w-auto text-blue-500 bg-blue-100"
                     onClick={() => router.push(`/dashboard/user/sessions/${userId}`)}
                   >
                     View Sessions
                   </Button>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           )}
         </div>

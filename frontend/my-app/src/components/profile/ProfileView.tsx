@@ -1,23 +1,43 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, MessageSquare, Star, Users } from "lucide-react";
-import { UserCompleteProfile, ListenerDetails } from "@/lib/types";
+import {
+  Calendar,
+  CheckCircle2,
+  MessageSquareText,
+  Users2,
+  Clock3,
+  UserCircle2,
+  ShieldCheck,
+  CalendarDays,
+  BookOpen,
+  HeartHandshake,
+  MessageCircle,
+  CalendarCheck,
+  Medal,
+  CalendarClock,
+  Eye,
+} from "lucide-react";
+import { UserDetails, ListenerDetails } from "@/lib/types";
 
 interface ProfileViewProps {
-  user: UserCompleteProfile;
+  user: UserDetails;
   listener?: ListenerDetails;
   onEdit: () => void;
 }
 
-const ProfileView: React.FC<ProfileViewProps> = ({ user, listener, onEdit }) => {
+const ProfileView: React.FC<ProfileViewProps> = ({
+  user,
+  listener,
+  onEdit,
+}) => {
   const initials = user.anonymousName.slice(0, 2).toUpperCase();
 
   const UserCard = (
     <Card>
-      <CardContent className="pt-6">
+      <CardContent>
         <div className="flex items-center space-x-6 mb-8">
-          <div className="w-20 h-20 rounded-full bg-blue-500 flex items-center justify-center">
+          <div className="w-20 h-20 rounded-full bg-emerald-600 flex items-center justify-center">
             <span className="text-2xl font-bold text-white">{initials}</span>
           </div>
           <div>
@@ -26,27 +46,96 @@ const ProfileView: React.FC<ProfileViewProps> = ({ user, listener, onEdit }) => 
           </div>
         </div>
 
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            {[
-              { label: "User ID", value: user.id },
-              { label: "Status", value: user.profileStatus },
-              { label: "Role", value: user.role },
-              {
-                label: "Last Seen",
-                value: new Date(user.lastSeen).toLocaleDateString(),
-              },
-            ].map(({ label, value }) => (
-              <div key={label} className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-600">{label}</p>
-                <p className="font-medium">{value}</p>
-              </div>
-            ))}
-          </div>
-          <Button onClick={onEdit} className="w-full mt-4" variant="outline">
-            Edit Profile
-          </Button>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          {[
+            {
+              icon: UserCircle2,
+              label: "User ID",
+              value: user.userId,
+            },
+            {
+              icon: ShieldCheck,
+              label: "Role",
+              value: user.role,
+            },
+            {
+              icon: CheckCircle2,
+              label: "Status",
+              value: user.profileStatus,
+            },
+            {
+              icon: Clock3,
+              label: "Last Seen",
+              value: new Date(user.lastSeen).toLocaleDateString(),
+            },
+            {
+              icon: CalendarDays,
+              label: "Created At",
+              value: new Date(user.createdAt).toLocaleDateString(),
+            },
+            {
+              icon: CalendarCheck,
+              label: "Updated At",
+              value: new Date(user.updatedAt).toLocaleDateString(),
+            },
+            {
+              icon: Users2,
+              label: "Total Sessions",
+              value: user.totalSessionsAttended,
+            },
+            {
+              icon: CalendarClock,
+              label: "Last Session",
+              value: new Date(user.lastSessionDate).toLocaleDateString(),
+            },
+            {
+              icon: Calendar,
+              label: "Total Appointments",
+              value: user.totalAppointments,
+            },
+            {
+              icon: CalendarCheck,
+              label: "Last Appointment",
+              value: new Date(user.lastAppointmentDate).toLocaleDateString(),
+            },
+            {
+              icon: MessageSquareText,
+              label: "Messages Sent",
+              value: user.totalMessagesSent,
+            },
+            {
+              icon: BookOpen,
+              label: "Blogs Published",
+              value: user.totalBlogsPublished,
+            },
+            {
+              icon: HeartHandshake,
+              label: "Total Likes",
+              value: user.totalLikesReceived,
+            },
+            {
+              icon: Eye,
+              label: "Total Views",
+              value: user.totalViewsReceived,
+            },
+          ].map(({ icon: Icon, label, value }) => (
+            <div
+              key={label}
+              className="flex flex-col items-center p-4 bg-emerald-50 rounded-lg hover:bg-emerald-100 transition-colors duration-200"
+            >
+              <Icon className="w-6 h-6 mb-2 text-emerald-600 stroke-2" />
+              <p className="text-sm text-emerald-700">{label}</p>
+              <p className="font-bold text-lg text-emerald-900">{value}</p>
+            </div>
+          ))}
         </div>
+        <Button
+          onClick={onEdit}
+          className="w-full mt-4 bg-emerald-600 hover:bg-emerald-700 text-white"
+          variant="outline"
+        >
+          Change Anonymous Name
+        </Button>
       </CardContent>
     </Card>
   );
@@ -60,33 +149,43 @@ const ProfileView: React.FC<ProfileViewProps> = ({ user, listener, onEdit }) => 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           {[
             {
-              icon: Users,
+              icon: Users2,
               label: "Total Sessions",
               value: listener.totalSessions,
             },
             {
-              icon: MessageSquare,
-              label: "Feedback Count",
-              value: listener.feedbackCount,
+              icon: MessageCircle,
+              label: "Messages Sent",
+              value: listener.totalMessagesSent || 0,
             },
             {
-              icon: Star,
+              icon: Medal,
               label: "Average Rating",
               value: `${listener.averageRating} / 5`,
             },
             {
-              icon: Calendar,
+              icon: CalendarDays,
               label: "Joined Date",
               value: new Date(listener.joinedAt).toLocaleDateString(),
+            },
+            {
+              icon: MessageSquareText,
+              label: "Feedback Count",
+              value: listener.feedbackCount,
+            },
+            {
+              icon: ShieldCheck,
+              label: "Approved By",
+              value: listener.approvedBy,
             },
           ].map(({ icon: Icon, label, value }) => (
             <div
               key={label}
-              className="flex flex-col items-center p-4 bg-gray-50 rounded-lg"
+              className="flex flex-col items-center p-4 bg-emerald-50 rounded-lg hover:bg-emerald-100 transition-colors duration-200"
             >
-              <Icon className="w-6 h-6 mb-2 text-blue-500" />
-              <p className="text-sm text-gray-600">{label}</p>
-              <p className="font-bold text-lg">{value}</p>
+              <Icon className="w-6 h-6 mb-2 text-emerald-600 stroke-2" />
+              <p className="text-sm text-emerald-700">{label}</p>
+              <p className="font-bold text-lg text-emerald-900">{value}</p>
             </div>
           ))}
         </div>

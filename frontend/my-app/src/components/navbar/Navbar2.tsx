@@ -274,16 +274,12 @@ export default function Navbar() {
                   </Link>
                 </>
               ) : (
-                <button
-                  onClick={() => router.push("/profile")}
-                  className="text-sm font-medium text-white bg-black px-4 py-2 rounded-full hover:bg-gray-800 transition-colors flex items-center justify-center"
+                <Link
+                  href="/profile"
+                  className="bg-black text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-800 transition-colors"
                 >
-                  <div className="w-10 h-10 rounded-full bg-green-600 flex items-center justify-center">
-                    <span className="text-xl font-bold text-white">
-                      {anonymousName.charAt(0)}
-                    </span>
-                  </div>
-                </button>
+                  Profile
+                </Link>
               )}
             </div>
           </nav>

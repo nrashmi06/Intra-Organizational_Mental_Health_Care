@@ -14,7 +14,7 @@ import BlogCard from "@/components/blog/BlogCard";
 import Pagination from "@/components/dashboard/Pagination";
 import { BlogPost } from "@/lib/types";
 
-const PAGE_SIZE_OPTIONS = [3, 6];
+const PAGE_SIZE_OPTIONS = [3, 6, 9, 12];
 const DEFAULT_FILTERS = {
   pageSize: 3,
   filterType: "TRENDING",

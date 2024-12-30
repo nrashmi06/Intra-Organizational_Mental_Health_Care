@@ -6,14 +6,14 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { UserCompleteProfile } from "@/lib/types";
+import { UserDetails } from "@/lib/types";
 import { AlertCircle } from "lucide-react";
 import { Button } from "../ui/button";
 
 interface EditProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
-  user: UserCompleteProfile;
+  user: UserDetails;
   anonymousName: string;
   onAnonymousNameChange: (value: string) => void;
   onSubmit: (e: React.FormEvent) => Promise<void>;
@@ -53,20 +53,6 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
             required
           />
         </div>
-
-        {["email", "userId", "role"].map((field) => (
-          <div key={field} className="space-y-2">
-            <Label htmlFor={field}>
-              {field.charAt(0).toUpperCase() + field.slice(1)}
-            </Label>
-            <Input
-              id={field}
-              value={user[field as keyof UserCompleteProfile] as string}
-              disabled
-              className="bg-gray-100"
-            />
-          </div>
-        ))}
 
         {user.role !== "LISTENER" && (
           <p className="text-sm text-gray-600 mt-1 flex items-center gap-1">

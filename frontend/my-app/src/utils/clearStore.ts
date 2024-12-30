@@ -1,17 +1,30 @@
-// useClearStore.ts
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { clearDetailedApplication } from "@/store/detailedApplicationSlice";
 import { clearAppointments } from "@/store/appointmentSlice";
 import { clearTimeSlots } from "@/store/timeSlotSlice";
+import { clearNotifications } from "@/store/notificationSlice";
+import { clearUser } from "@/store/authSlice";
+import { clearHelplines } from "@/store/emergencySlice";
+import { clearEventSources } from "@/store/eventsourceSlice";
+import type { RootState } from "@/store";
 
 export default function useClearStore() {
   const dispatch = useDispatch();
+  const eventSourceConnections = useSelector((state: RootState) => state.Source.connections);
 
-  // Dispatch action to clear the detailed application
   const clearStore = () => {
     dispatch(clearDetailedApplication());
     dispatch(clearAppointments());
     dispatch(clearTimeSlots());
+    
+    if (eventSourceConnections.length > 0) {
+      console.log("EVNET SOURCES:",eventSourceConnections.length)
+      dispatch(clearEventSources());
+    }
+    
+    dispatch(clearNotifications());
+    dispatch(clearUser());
+    dispatch(clearHelplines());
   };
 
   return clearStore;

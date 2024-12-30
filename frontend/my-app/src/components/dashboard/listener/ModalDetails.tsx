@@ -194,7 +194,7 @@ const DetailsModal: React.FC<DetailsProps> = ({
                   <p className="text-sm font-medium text-gray-500">
                     Total Likes Received
                   </p>
-                  <p className="text-sm">{listener.totalLikesReceived}</p>
+                  <p className="text-sm">{listener.totalBlogLikesReceived}</p>
                 </div>
               </div>
               <div className="flex items-center p-4 rounded-lg border">
@@ -203,7 +203,7 @@ const DetailsModal: React.FC<DetailsProps> = ({
                   <p className="text-sm font-medium text-gray-500">
                     Total Views Received
                   </p>
-                  <p className="text-sm">{listener.totalViewsReceived}</p>
+                  <p className="text-sm">{listener.totalBlogViewsReceived}</p>
                 </div>
               </div>
 

@@ -1,4 +1,5 @@
 "use client";
+
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { useSelector } from "react-redux";
@@ -33,25 +34,28 @@ export default function Layout({ children }: LayoutProps) {
   }
 
   return (
-    <div className="flex h-screen">
-      {/* Sidebar */}
+    <div className="min-h-screen bg-gray-100">
+      {/* Sidebar - width matches the ml-72 offset in navbar */}
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      {/* Main content */}
-      <div className="flex flex-1 flex-col md:ml-64">
+      {/* Main content wrapper */}
+      <div className="flex flex-col md:pl-72"> {/* Changed from ml-64 to pl-72 to match sidebar width */}
         {/* Navbar */}
         <Navbar>
           <Button
-            className="md:hidden text-gray-600"
+            className="md:hidden text-gray-600 hover:text-gray-900"
             onClick={() => setSidebarOpen(true)}
-            variant="link"
+            variant="ghost"
+            size="icon"
           >
             <Menu className="h-6 w-6" />
           </Button>
         </Navbar>
 
-        {/* Content */}
-        <main className="flex-1 overflow-y-auto bg-gray-100">{children}</main>
+        {/* Main content area */}
+        <main className="flex-1 p-4 md:p-6 min-h-[calc(100vh-4rem)]"> {/* Added padding and min-height */}
+          {children}
+        </main>
       </div>
     </div>
   );

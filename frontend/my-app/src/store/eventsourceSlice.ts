@@ -28,9 +28,13 @@ const eventsourceSlice = createSlice({
       );
     },
     clearEventSources(state) {
-      // Close and remove all EventSource connections
       state.connections.forEach((connection) => {
-        connection.eventSource.close();
+        if (
+          connection?.eventSource &&
+          typeof connection.eventSource.close === "function"
+        ) {
+          connection.eventSource.close();
+        }
       });
       state.connections = [];
     },

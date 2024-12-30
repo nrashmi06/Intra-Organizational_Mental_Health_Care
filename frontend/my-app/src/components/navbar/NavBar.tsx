@@ -87,12 +87,6 @@ export default function Navbar() {
                 {isServicesDropdownOpen && (
                   <div className="absolute z-50 left-0 w-48 mt-2 bg-white text-black opacity-100 isolate rounded-md shadow-lg">
                     <Link
-                      href="/listener-application"
-                      className="block px-4 py-2 text-sm hover:bg-gray-100"
-                    >
-                      Listener Application
-                    </Link>
-                    <Link
                       href="/appointment"
                       className="block px-4 py-2 text-sm hover:bg-gray-100"
                     >
@@ -103,12 +97,6 @@ export default function Navbar() {
                       className="block px-4 py-2 text-sm hover:bg-gray-100"
                     >
                       Match a Listener
-                    </Link>
-                    <Link
-                      href="/download"
-                      className="block px-4 py-2 text-sm hover:bg-gray-100"
-                    >
-                      Download My Data
                     </Link>
                   </div>
                 )}
@@ -221,12 +209,6 @@ export default function Navbar() {
               {isServicesDropdownOpen && (
                 <div className="absolute z-50 left-0 w-48 mt-2 bg-white text-black opacity-100 isolate rounded-md shadow-lg">
                   <Link
-                    href="/listener-application"
-                    className="block px-4 py-2 text-sm hover:bg-gray-100"
-                  >
-                    Listener Application
-                  </Link>
-                  <Link
                     href="/appointment"
                     className="block px-4 py-2 text-sm hover:bg-gray-100"
                   >
@@ -237,12 +219,6 @@ export default function Navbar() {
                     className="block px-4 py-2 text-sm hover:bg-gray-100"
                   >
                     Match a Listener
-                  </Link>
-                  <Link
-                    href="/download"
-                    className="block px-4 py-2 text-sm hover:bg-gray-100"
-                  >
-                    Download My Data
                   </Link>
                 </div>
               )}

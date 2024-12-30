@@ -2,14 +2,14 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
-import { ProfileLayout } from "@/components/profile/profilepageLayout";
+import ProfileLayout from "@/components/profile/profilepageLayout";
 import { UserProfile } from "@/components/profile/UserProfile";
 import { getUserDetails } from "@/service/user/getUserDetails";
 import { getListenerDetails } from "@/service/listener/getListenerDetails";
 import { updateUser } from "@/service/user/UpdateUser";
 import InlineLoader from "@/components/ui/inlineLoader";
 
-export default function ProfilePage() {
+const ProfilePage = () => {
   const router = useRouter();
   const { accessToken, userId, role } = useSelector(
     (state: RootState) => state.auth
@@ -69,31 +69,25 @@ export default function ProfilePage() {
   };
 
   if (loading) {
-    return (
-      <ProfileLayout>
-        <InlineLoader />
-      </ProfileLayout>
-    );
+    return <InlineLoader />;
   }
 
   if (!userData) {
     return (
-      <ProfileLayout>
-        <div className="text-center text-gray-500">
-          Failed to load user data.
-        </div>
-      </ProfileLayout>
+      <div className="text-center text-gray-500">Failed to load user data.</div>
     );
   }
 
   return (
-    <ProfileLayout>
-      <UserProfile
-        user={userData}
-        onUpdate={updateUser}
-        token={accessToken}
-        listener={listenerData}
-      />
-    </ProfileLayout>
+    <UserProfile
+      user={userData}
+      onUpdate={updateUser}
+      token={accessToken}
+      listener={listenerData}
+    />
   );
 }
+
+ProfilePage.getLayout = (page: any) => <ProfileLayout>{page}</ProfileLayout>;
+
+export default ProfilePage;
