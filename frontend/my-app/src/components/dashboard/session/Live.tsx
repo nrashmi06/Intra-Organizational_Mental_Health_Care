@@ -161,7 +161,7 @@ export const LiveSessions = () => {
         <div className="w-full lg:w-2/3 bg-gray-100 min-h-full overflow-y-auto">
           <SessionDetailView
             type={null}
-            sessionId={selectedSession?.sessionId || null}
+            sessionId={selectedSession?.sessionId ?? "" }
             token={token}
           />
         </div>
