@@ -44,7 +44,6 @@ const TimeSlotPage = () => {
   };
 
   useEffect(() => {
-    let isMounted = true;
 
     const fetchAndGroupSlots = async () => {
       if (!token || !userID) {
@@ -62,7 +61,7 @@ const TimeSlotPage = () => {
       try {
         await dispatch(fetchTimeSlots(token, userID, today, end, true, currentPage-1, 5));
         
-        if (isMounted && timeSlots) {
+        if (timeSlots) {
           const groupedConfirmedSlots = timeSlots.reduce((acc: any, slot: any) => {
             acc[slot.date] = acc[slot.date] || [];
             acc[slot.date].push(slot);
@@ -73,7 +72,7 @@ const TimeSlotPage = () => {
           setIsLoading(false);
         }
       } catch (error) {
-        if (isMounted) {
+        if (!groupedSlots) {
           setError('Error fetching time slots. Please try again.');
           setIsLoading(false);
         }
@@ -83,9 +82,6 @@ const TimeSlotPage = () => {
   
     fetchAndGroupSlots();
 
-    return () => {
-      isMounted = false;
-    };
   }, [dispatch, token, userID, refreshKey, currentPage, timeSlots]); 
 
   useEffect(() => {
