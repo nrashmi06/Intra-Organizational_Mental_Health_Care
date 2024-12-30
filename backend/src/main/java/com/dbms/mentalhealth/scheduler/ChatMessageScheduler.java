@@ -42,7 +42,7 @@ public class ChatMessageScheduler {
         log.info("Queued message from user: {}", username);
     }
 
-    @Scheduled(fixedDelay = 5000) // 5 seconds
+    @Scheduled(fixedDelay = 30000) // 5 seconds
     public void processBatchMessages() {
         List<ChatMessage> messageBatch = new ArrayList<>();
         messageQueue.drainTo(messageBatch, batchSize);
@@ -60,20 +60,28 @@ public class ChatMessageScheduler {
         }
     }
 
-    @Scheduled(fixedDelay = 10000)
+    @Scheduled(fixedDelay = 60000)
     public void processMessageCounts() {
         Map<String, Integer> countsToProcess = new HashMap<>(messageCountBuffer);
         messageCountBuffer.clear();
 
         countsToProcess.forEach((username, count) -> {
             if (count > 0) {
+                boolean listenerUpdated = false;
+                boolean metricsUpdated = false;
+
                 try {
                     listenerService.incrementMessageCount(username, count);
+                    listenerUpdated = true;
                     userMetricService.incrementMessageCount(username, count);
+                    metricsUpdated = true;
                     log.info("Updated message count for user {}: +{}", username, count);
                 } catch (Exception e) {
                     log.error("Error updating message count for user {}", username, e);
-                    messageCountBuffer.compute(username, (k, v) -> (v == null) ? count : v + count);
+                    // Only requeue the counts that failed to update
+                    if (!listenerUpdated || !metricsUpdated) {
+                        messageCountBuffer.compute(username, (k, v) -> (v == null) ? count : v + count);
+                    }
                 }
             }
         });

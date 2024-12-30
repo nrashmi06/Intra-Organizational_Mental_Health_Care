@@ -20,9 +20,7 @@ public class UserMetricServiceImpl implements UserMetricService {
 
     @Override
     public void incrementMessageCount(String username, Integer count) {
-        UserMetrics userMetrics = userMetricsRepository.findByUser_AnonymousName(username)
-                .orElseThrow(() -> new IllegalArgumentException("UserMetrics not found for user: " + username));
-        userMetrics.setTotalMessagesSent(userMetrics.getTotalMessagesSent() + count);
+        userMetricsRepository.incrementMessageCount(username, count);
     }
 
     @Override
