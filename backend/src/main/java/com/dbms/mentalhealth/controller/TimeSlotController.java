@@ -1,5 +1,6 @@
 package com.dbms.mentalhealth.controller;
-
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import com.dbms.mentalhealth.dto.TimeSlot.request.TimeSlotCreateRequestDTO;
 import com.dbms.mentalhealth.dto.TimeSlot.response.TimeSlotResponseDTO;
 import com.dbms.mentalhealth.exception.timeslot.DuplicateTimeSlotException;
@@ -11,6 +12,7 @@ import com.dbms.mentalhealth.util.Etags.TimeSlotETagGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
+
 
 @RestController
 public class TimeSlotController {
@@ -63,11 +66,21 @@ public class TimeSlotController {
             @RequestParam("endDate") LocalDate endDate,
             @RequestParam(value = "isAvailable", required = false) Boolean isAvailable,
             @RequestHeader(value = HttpHeaders.IF_NONE_MATCH, required = false) String ifNoneMatch,
-            Pageable pageable
+            @PageableDefault(size = 10) Pageable pageable,
+            @RequestParam(value = "sortDirection", defaultValue = "ASC") Sort.Direction direction
     ) {
+        Sort sort = Sort.by(direction, "date", "startTime","endTime");
+        Pageable pageableWithSort = PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                sort
+        );
+
         try {
-            Page<TimeSlotResponseDTO> response = timeSlotService.getTimeSlotsByDateRangeAndAvailability(idType, id, startDate, endDate, isAvailable, pageable);
+            Page<TimeSlotResponseDTO> response = timeSlotService.getTimeSlotsByDateRangeAndAvailability(
+                    idType, id, startDate, endDate, isAvailable, pageableWithSort);
             String eTag = timeSlotETagGenerator.generatePageETag(response);
+
             if (ifNoneMatch != null && !ifNoneMatch.trim().isEmpty() && eTag.equals(ifNoneMatch)) {
                 return ResponseEntity.status(HttpStatus.NOT_MODIFIED)
                         .header(HttpHeaders.ETAG, eTag)

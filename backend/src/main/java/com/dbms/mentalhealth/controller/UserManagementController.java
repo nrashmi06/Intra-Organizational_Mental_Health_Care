@@ -53,7 +53,7 @@ public class UserManagementController {
     }
 
     @GetMapping(UserUrlMapping.GET_USER_BY_ID)
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<UserInfoResponseDTO> getUserById(@PathVariable Integer userId) {
         try {
             UserInfoResponseDTO userDTO = userService.getUserById(userId);

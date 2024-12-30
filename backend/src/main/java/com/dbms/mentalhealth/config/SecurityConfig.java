@@ -1,4 +1,3 @@
-// SecurityConfig.java
 package com.dbms.mentalhealth.config;
 
 import com.dbms.mentalhealth.security.*;
@@ -52,8 +51,6 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, CustomAccessDeniedHandler customAccessDeniedHandler) throws Exception {
-        log.debug("Configuring SecurityFilterChain");
-
         SecurityFilterChain chain = http
                 .cors(cors -> {
                     log.debug("Configuring CORS");
@@ -75,11 +72,9 @@ public class SecurityConfig {
                             .anyRequest().authenticated();
                 })
                 .sessionManagement(session -> {
-                    log.debug("Configuring session management");
                     session.sessionCreationPolicy(SessionCreationPolicy.STATELESS);
                 })
                 .exceptionHandling(exception -> {
-                    log.debug("Configuring exception handling");
                     exception
                             .authenticationEntryPoint(unauthorizedHandler)
                             .accessDeniedHandler(customAccessDeniedHandler);
