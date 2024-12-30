@@ -15,7 +15,6 @@ export const GetByApproval = async (
         },
       }
     );
-    console.log("Response from server: isssssssssssssssss:", response);
     return response;
   } catch (error) {
     console.error("Error fetching listeners by approval status:", error);

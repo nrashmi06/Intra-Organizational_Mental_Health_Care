@@ -11,7 +11,7 @@ import { TimeSlotManager } from '@/components/dashboard/timeslot/TimeSlotManager
 import { SelectedTimeSlots } from '@/components/dashboard/timeslot/SelectedTimeSlot';
 import AvailableTimeSlotsCard from '@/components/dashboard/timeslot/AvailableTimeSlotsCard';
 import Pagination from '@/components/ui/PaginationComponent';
-import { Loader2 } from 'lucide-react';
+import InlineLoader from "@/components/ui/inlineLoader";
 
 const TimeSlotPage = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -200,7 +200,7 @@ const TimeSlotPage = () => {
 
       {isLoading ? (
         <div className="flex items-center justify-center p-8">
-          <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+          <InlineLoader  />
         </div>
       ) : (
         <AvailableTimeSlotsCard

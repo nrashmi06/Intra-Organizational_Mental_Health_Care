@@ -21,7 +21,7 @@ import ListenerCard from "./ListenerCard";
 export function OnlineListenersTable() {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6; // Adjusted to match admin table
+  const itemsPerPage = 6; 
   const [listeners, setListeners] = useState<Listener[]>([]);
   const [eventSource, setEventSource] = useState<EventSource | null>(null);
   const token = useSelector((state: RootState) => state.auth.accessToken);

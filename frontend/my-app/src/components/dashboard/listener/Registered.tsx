@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/select";
 import { getListenersByProfileStatus } from "@/service/listener/getListenersByProfileStatus";
 import { useSelector } from "react-redux";
-import { RootState } from "@/store";
+import { useAppDispatch } from '@/hooks/useAppDispatch';
 import Details from "./ModalDetails";
 import ListenerDetailsForAdmin from "@/components/dashboard/listener/ModalApplication";
 import { ListenerApplication, Listener } from "@/lib/types";
@@ -23,10 +23,12 @@ import { useRouter } from "next/router";
 import InlineLoader from "@/components/ui/inlineLoader";
 import Pagination3 from "@/components/ui/pagination3";
 import ListenerCard from "./ListenerCard";
+import { RootState } from "@/store";
 
 export function RegisteredListenersTable() {
+  const dispatch = useAppDispatch();
   const [searchQuery, setSearchQuery] = useState("");
-  const [listeners, setListeners] = useState<Listener[]>([]);
+  const [groupedListener, setGroupedListener] = useState<Listener[]>([]);
   const [statusFilter, setStatusFilter] = useState<"ACTIVE" | "SUSPENDED">("ACTIVE");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
@@ -34,19 +36,27 @@ export function RegisteredListenersTable() {
   const accessToken = useSelector((state: RootState) => state.auth.accessToken);
   const [detailsModal, setDetailsModal] = useState(false);
   const [applicationModal, setApplicationModal] = useState(false);
-  const [application, setApplication] = useState<ListenerApplication | null>(
-    null
-  );
+  const [application, setApplication] = useState<ListenerApplication | null>(null);
   const [selectedListener, setSelectedListener] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [isMounted, setIsMounted] = useState(false); // Track component mount state
+  const listeners = useSelector((state: RootState) => state.listeners.listeners);
 
+  // Fetch listeners by profile status
   const fetchListenersByProfileStatus = useCallback(
     async (status: "ACTIVE" | "SUSPENDED") => {
       try {
         setLoading(true);
-        const response = await getListenersByProfileStatus(accessToken, status);
-        setListeners(response);
+        // Assuming accessToken is needed, add other params as necessary (page, itemsPerPage, etc.)
+        await dispatch(getListenersByProfileStatus({
+          status,
+          page: currentPage - 1,
+          size: itemsPerPage,
+          userId: accessToken, // Assuming the userId is tied to the accessToken
+        }));
+        // Ensure you set grouped listeners based on the response data
+        setGroupedListener(listeners);
         setStatusFilter(status);
       } catch (error) {
         console.error("Error fetching listeners:", error);
@@ -54,20 +64,27 @@ export function RegisteredListenersTable() {
         setLoading(false);
       }
     },
-    [accessToken]
+    [accessToken, currentPage, itemsPerPage, dispatch, listeners]
   );
 
   useEffect(() => {
+    setIsMounted(true); // Set to true once the component is mounted
     fetchListenersByProfileStatus("ACTIVE");
+
+    return () => {
+      setIsMounted(false); // Cleanup on unmount to prevent state updates after unmount
+    };
   }, [fetchListenersByProfileStatus]);
+
+  // Loader component or indication
+  if (!isMounted || loading) {
+    return <InlineLoader />; // Display loader until component is mounted
+  }
 
   const fetchApplicationData = async (userId: string) => {
     try {
       setSelectedListener(userId);
-      const fetchedApplication = await getApplicationByListenerUserId(
-        userId,
-        accessToken
-      );
+      const fetchedApplication = await getApplicationByListenerUserId(userId, accessToken);
       setApplication(fetchedApplication);
       setApplicationModal(true);
     } catch (error) {
@@ -80,11 +97,9 @@ export function RegisteredListenersTable() {
     setDetailsModal(true);
   };
 
-  const filteredListeners = listeners.filter(
+  const filteredListeners = groupedListener.filter(
     (listener) =>
-      listener.anonymousName
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase()) ||
+      listener.anonymousName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       listener.userId.toString().includes(searchQuery)
   );
 
@@ -107,9 +122,7 @@ export function RegisteredListenersTable() {
         </div>
         <Select
           value={statusFilter}
-          onValueChange={(value) =>
-            fetchListenersByProfileStatus(value as "ACTIVE" | "SUSPENDED")
-          }
+          onValueChange={(value) => fetchListenersByProfileStatus(value as "ACTIVE" | "SUSPENDED")}
         >
           <SelectTrigger className="w-[160px] bg-white">
             <SelectValue placeholder="Filter by status" />
@@ -120,7 +133,9 @@ export function RegisteredListenersTable() {
           </SelectContent>
         </Select>
       </div>
-      {loading && <InlineLoader />}
+
+      {loading && <InlineLoader/>}
+
       {!loading && (
         <>
           {paginatedListeners.length === 0 ? (
@@ -137,25 +152,23 @@ export function RegisteredListenersTable() {
                   onFirstButtonClick={handleDetailsModal}
                   firstButtonLabel="Suspend"
                   firstButtonIcon={<X className="h-4 w-4 text-red-600" />}
-                  onViewSessions={(userId) =>
-                    router.push(`/dashboard/listener/sessions/${userId}`)
-                  }
+                  onViewSessions={(userId) => router.push(`/dashboard/listener/sessions/${userId}`)}
                   onViewApplication={(userId) => fetchApplicationData(userId)}
-                  onViewFeedback={(userId) =>
-                    router.push(`/dashboard/listener/feedbacks/${userId}`)
-                  }
+                  onViewFeedback={(userId) => router.push(`/dashboard/listener/feedbacks/${userId}`)}
                 />
               ))}
             </div>
           )}
         </>
       )}
+
       <Pagination3
         currentPage={currentPage}
         itemsPerPage={itemsPerPage}
         setCurrentPage={setCurrentPage}
         filteredElements={filteredListeners}
       />
+
       {successMessage && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/20 backdrop-blur-sm">
           <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full mx-4">
@@ -169,6 +182,7 @@ export function RegisteredListenersTable() {
           </div>
         </div>
       )}
+
       {detailsModal && selectedListener && (
         <Details
           id={selectedListener}
@@ -181,6 +195,7 @@ export function RegisteredListenersTable() {
           setSuccessMessage={setSuccessMessage}
         />
       )}
+
       {applicationModal && selectedListener && application && (
         <ListenerDetailsForAdmin
           data={application}
