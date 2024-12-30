@@ -21,6 +21,7 @@ import com.dbms.mentalhealth.repository.AdminRepository;
 import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.service.AppointmentService;
 import com.dbms.mentalhealth.enums.AppointmentStatus;
+import com.dbms.mentalhealth.service.UserMetricService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -43,13 +44,20 @@ public class AppointmentServiceImpl implements AppointmentService {
     private final UserRepository userRepository;
     private final AdminRepository adminRepository;
     public final JwtUtils jwtUtils;
+    public final UserMetricService userMetricsService;
 
-    public AppointmentServiceImpl(AppointmentRepository appointmentRepository, JwtUtils jwtUtils, TimeSlotRepository timeSlotRepository, UserRepository userRepository, AdminRepository adminRepository) {
+    public AppointmentServiceImpl(AppointmentRepository appointmentRepository,
+                                  JwtUtils jwtUtils,
+                                  TimeSlotRepository timeSlotRepository,
+                                  UserRepository userRepository,
+                                  AdminRepository adminRepository,
+                                    UserMetricService userMetricsService) {
         this.appointmentRepository = appointmentRepository;
         this.timeSlotRepository = timeSlotRepository;
         this.userRepository = userRepository;
         this.adminRepository = adminRepository;
         this.jwtUtils = jwtUtils;
+        this.userMetricsService = userMetricsService;
     }
 
     @Override
@@ -143,6 +151,8 @@ public class AppointmentServiceImpl implements AppointmentService {
             appointment.setStatus(AppointmentStatus.CONFIRMED);
             timeSlot.setIsAvailable(false);
             timeSlotRepository.save(timeSlot);
+            userMetricsService.incrementAppointmentCount(appointment.getUser());
+            userMetricsService.setLastAppointmentDate(appointment.getUser(), appointment.getTimeSlot().getDate().atTime(appointment.getTimeSlot().getStartTime()));
         } else if (newStatus == AppointmentStatus.CANCELLED) {
             timeSlot.setIsAvailable(true);
             timeSlotRepository.save(timeSlot);

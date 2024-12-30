@@ -2,6 +2,7 @@ package com.dbms.mentalhealth.controller;
 
 import com.dbms.mentalhealth.dto.user.request.ChangePasswordRequestDTO;
 import com.dbms.mentalhealth.dto.user.request.UserUpdateRequestDTO;
+import com.dbms.mentalhealth.dto.user.response.FullUserDetailsDTO;
 import com.dbms.mentalhealth.dto.user.response.UserDataResponseDTO;
 import com.dbms.mentalhealth.dto.user.response.UserDetailsSummaryResponseDTO;
 import com.dbms.mentalhealth.dto.user.response.UserInfoResponseDTO;
@@ -54,9 +55,9 @@ public class UserManagementController {
 
     @GetMapping(UserUrlMapping.GET_USER_BY_ID)
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<UserInfoResponseDTO> getUserById(@PathVariable Integer userId) {
+    public ResponseEntity<FullUserDetailsDTO> getUserById(@PathVariable Integer userId) {
         try {
-            UserInfoResponseDTO userDTO = userService.getUserById(userId);
+            FullUserDetailsDTO userDTO = userService.getFullUserDetailsById(userId);
             return ResponseEntity.ok(userDTO);
         } catch (UserNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
@@ -135,7 +136,7 @@ public class UserManagementController {
     @PostMapping(UserUrlMapping.REQUEST_VERIFICATION_CODE)
     public ResponseEntity<String> requestVerificationCode() {
         Integer userId = jwtUtils.getUserIdFromContext();
-        UserInfoResponseDTO user = userService.getUserById(userId);
+        UserInfoResponseDTO user = userService.getUserInfoById(userId);
         userService.sendDataRequestVerificationEmail(user.getEmail());
         return ResponseEntity.ok("Verification code sent to your email.");
     }

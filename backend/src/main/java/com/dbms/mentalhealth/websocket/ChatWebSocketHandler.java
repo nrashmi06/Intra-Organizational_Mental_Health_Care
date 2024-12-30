@@ -1,4 +1,4 @@
-package com.dbms.mentalhealth.config;
+package com.dbms.mentalhealth.websocket;
 
 import com.dbms.mentalhealth.model.ChatMessage;
 import com.dbms.mentalhealth.model.Session;
@@ -26,9 +26,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     private final SessionRepository sessionRepository;
-    private final UserService userService;
-    private final ListenerService listenerService;
-    private final ChatMessageService chatMessageService;
     private final UserRepository userRepository;
     private final ChatMessageScheduler chatMessageScheduler;
 
@@ -37,15 +34,9 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     private final Map<String, User> userCache = new ConcurrentHashMap<>();
 
     public ChatWebSocketHandler(SessionRepository sessionRepository,
-                                UserService userService,
-                                ListenerService listenerService,
-                                ChatMessageService chatMessageService,
                                 UserRepository userRepository,
                                 ChatMessageScheduler chatMessageScheduler) {
         this.sessionRepository = sessionRepository;
-        this.userService = userService;
-        this.listenerService = listenerService;
-        this.chatMessageService = chatMessageService;
         this.userRepository = userRepository;
         this.chatMessageScheduler = chatMessageScheduler;
     }

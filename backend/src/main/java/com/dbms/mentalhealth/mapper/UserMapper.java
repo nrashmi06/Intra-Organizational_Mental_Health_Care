@@ -4,17 +4,11 @@ import com.dbms.mentalhealth.dto.user.request.UserRegistrationRequestDTO;
 import com.dbms.mentalhealth.dto.user.response.*;
 import com.dbms.mentalhealth.enums.ProfileStatus;
 import com.dbms.mentalhealth.enums.Role;
-import com.dbms.mentalhealth.model.Appointment;
-import com.dbms.mentalhealth.model.ChatMessage;
-import com.dbms.mentalhealth.model.Session;
-import com.dbms.mentalhealth.model.User;
+import com.dbms.mentalhealth.model.*;
 import org.springframework.stereotype.Component;
-
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 public class UserMapper {
@@ -123,5 +117,27 @@ public class UserMapper {
         }).toList());
 
         return dto;
+    }
+
+    public static FullUserDetailsDTO toFullUserDetailsDTO(User user, UserMetrics userMetrics) {
+        return new FullUserDetailsDTO(
+                user.getUserId(),
+                user.getEmail(),
+                user.getAnonymousName(),
+                user.getRole(),
+                user.getIsActive(),
+                user.getProfileStatus(),
+                user.getCreatedAt(),
+                user.getUpdatedAt(),
+                user.getLastSeen(),
+                userMetrics.getTotalSessionsAttended(),
+                userMetrics.getLastSessionDate(),
+                userMetrics.getTotalAppointments(),
+                userMetrics.getLastAppointmentDate(),
+                userMetrics.getTotalMessagesSent(),
+                userMetrics.getTotalBlogsPublished(),
+                userMetrics.getTotalLikesReceived(),
+                userMetrics.getTotalViewsReceived()
+        );
     }
 }

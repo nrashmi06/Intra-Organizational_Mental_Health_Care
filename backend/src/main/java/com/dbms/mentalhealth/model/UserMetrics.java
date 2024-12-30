@@ -35,15 +35,17 @@ public class UserMetrics {
     @Column(name = "last_appointment_date")
     private LocalDateTime lastAppointmentDate;
 
-    @Column(name = "total_feedback_given", nullable = false)
-    private int totalFeedbackGiven;
-
-    @Column(name = "last_feedback_date")
-    private LocalDateTime lastFeedbackDate;
-
     @Column(name = "total_messages_sent", nullable = false)
     private int totalMessagesSent;
 
-    @Column(name = "last_message_sent_date")
-    private LocalDateTime lastMessageSentDate;
+    @Column(name = "total_blogs_published", nullable = false)
+    private int totalBlogsPublished;
+
+    @Column(name = "total_blog_likes_received", nullable = false)
+    private int totalLikesReceived;
+
+    @Column(name = "total_blog_views_received", nullable = false)
+    private int totalViewsReceived;
+
+
 }
