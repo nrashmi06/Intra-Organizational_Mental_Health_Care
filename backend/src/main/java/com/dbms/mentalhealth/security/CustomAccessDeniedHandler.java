@@ -7,11 +7,8 @@ import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.stereotype.Component;
-
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,19 +23,38 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
 
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response,
-                       AccessDeniedException accessDeniedException) throws IOException {
+                       AccessDeniedException accessDeniedException) {
+        try {
+            // Most important change: Check if response is already committed
+            if (response.isCommitted()) {
+                logger.debug("Response already committed, skipping access denied handling for path: {}",
+                        request.getServletPath());
+                return;  // Exit early if response is committed
+            }
 
-        logger.error("Access denied error: {}", accessDeniedException.getMessage());
+            // Reset buffer and headers if anything was written
+            response.resetBuffer();
+            response.reset();
 
-        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            // Set response headers
+            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
 
-        Map<String, Object> body = new HashMap<>();
-        body.put("status", HttpServletResponse.SC_FORBIDDEN);
-        body.put("error", "Forbidden");
-        body.put("message", "You don't have permission to access this resource");
-        body.put("path", request.getServletPath());
+            Map<String, Object> body = new HashMap<>();
+            body.put("status", HttpServletResponse.SC_FORBIDDEN);
+            body.put("error", "Forbidden");
+            body.put("message", "Access denied: Insufficient permissions");
+            body.put("path", request.getServletPath());
+            body.put("timestamp", System.currentTimeMillis());
 
-        objectMapper.writeValue(response.getOutputStream(), body);
+            objectMapper.writeValue(response.getOutputStream(), body);
+            response.flushBuffer();  // Ensure everything is written
+
+        } catch (Exception ex) {
+            // Log at debug level to avoid stack trace spam
+            logger.debug("Could not handle access denied for path {}: {}",
+                    request.getServletPath(),
+                    ex.getMessage());
+        }
     }
 }

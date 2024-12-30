@@ -48,6 +48,21 @@ public class ListenerApplicationETagGenerator {
         return String.format(APPLICATION_TAG_FORMAT, contentHash);
     }
 
+    public String generatePageETag(Page<ListenerApplicationSummaryResponseDTO> page) {
+        if (page == null) {
+            throw new IllegalArgumentException("Page cannot be null");
+        }
+
+        String contentFingerprint = page.getContent().stream()
+                .filter(Objects::nonNull)
+                .map(this::generateApplicationFingerprint)
+                .sorted()
+                .collect(Collectors.joining());
+
+        int contentHash = Objects.hash(contentFingerprint);
+
+        return String.format(PAGE_TAG_FORMAT, page.getNumber(), page.getSize(), page.getTotalElements(), contentHash);
+    }
     public String generateListETag(Iterable<ListenerApplicationSummaryResponseDTO> applicationList) {
         if (applicationList == null) {
             throw new IllegalArgumentException("Application list cannot be null");

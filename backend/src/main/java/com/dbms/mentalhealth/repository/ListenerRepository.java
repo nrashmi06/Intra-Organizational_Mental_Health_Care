@@ -40,6 +40,7 @@ public interface ListenerRepository extends JpaRepository<Listener, Integer> {
 
     @Modifying
     @Transactional
-    @Query("UPDATE Listener l SET l.totalMessagesSent = l.totalMessagesSent + 1 WHERE l.user.anonymousName = :anonymousName")
-    void incrementMessageCount(@Param("anonymousName") String anonymousName);
+    @Query("UPDATE Listener l SET l.totalMessagesSent = l.totalMessagesSent + :count WHERE l.user.anonymousName = :anonymousName")
+    void incrementMessageCount(@Param("anonymousName") String anonymousName, @Param("count") Integer count);
+
 }

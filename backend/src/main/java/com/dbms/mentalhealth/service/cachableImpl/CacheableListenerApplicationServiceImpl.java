@@ -17,6 +17,8 @@ import com.github.benmanes.caffeine.cache.Cache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Primary;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -87,16 +89,6 @@ public class CacheableListenerApplicationServiceImpl implements ListenerApplicat
         });
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<ListenerApplicationSummaryResponseDTO> getAllApplications() {
-        ListenerApplicationCacheKey key = new ListenerApplicationCacheKey("all", ListenerRelatedKeyType.ALL_APPLICATIONS);
-        logger.info("Cache lookup for all applications");
-        return applicationListCache.get(key, k -> {
-            logger.info("Cache MISS - Fetching all applications from database");
-            return listenerApplicationServiceImpl.getAllApplications();
-        });
-    }
 
     @Override
     @Transactional
@@ -130,16 +122,6 @@ public class CacheableListenerApplicationServiceImpl implements ListenerApplicat
         return response;
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<ListenerApplicationSummaryResponseDTO> getApplicationByApprovalStatus(String status) {
-        ListenerApplicationCacheKey key = new ListenerApplicationCacheKey(status, ListenerRelatedKeyType.STATUS_APPLICATIONS);
-        logger.info("Cache lookup for applications with status: {}", status);
-        return applicationListCache.get(key, k -> {
-            logger.info("Cache MISS - Fetching applications with status {} from database", status);
-            return listenerApplicationServiceImpl.getApplicationByApprovalStatus(status);
-        });
-    }
 
     @Override
     @Transactional(readOnly = true)
@@ -150,6 +132,11 @@ public class CacheableListenerApplicationServiceImpl implements ListenerApplicat
             logger.info("Cache MISS - Fetching application for user ID {} from database", userId);
             return listenerApplicationServiceImpl.getApplicationsByUserId(userId);
         });
+    }
+
+    @Override
+    public Page<ListenerApplicationSummaryResponseDTO> getApplications(String status, Pageable pageable) {
+        return listenerApplicationServiceImpl.getApplications(status, pageable);
     }
 
     private void invalidateApplicationCaches(Integer applicationId) {

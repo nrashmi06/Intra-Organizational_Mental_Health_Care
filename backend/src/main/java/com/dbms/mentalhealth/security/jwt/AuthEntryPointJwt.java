@@ -27,29 +27,45 @@ public class AuthEntryPointJwt implements AuthenticationEntryPoint {
 
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException)
-            throws IOException, ServletException {
-        logger.error("Unauthorized error: {}", authException.getMessage());
+            throws IOException {
+        // Log at debug level instead of error since this might be expected behavior
+        logger.debug("Auth entry point triggered for path: {}", request.getServletPath());
 
-        if (!response.isCommitted()) {
-            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        try {
+            if (!response.isCommitted()) {
+                response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 
-            final Map<String, Object> body = new HashMap<>();
-            body.put("status", HttpServletResponse.SC_UNAUTHORIZED);
-            body.put("error", "Unauthorized");
-            body.put("path", request.getServletPath());
+                Map<String, Object> body = new HashMap<>();
+                body.put("status", HttpServletResponse.SC_UNAUTHORIZED);
+                body.put("error", "Unauthorized");
+                body.put("path", request.getServletPath());
 
-            if (authException.getCause() instanceof JwtTokenExpiredException ||
-                    (request.getAttribute("expired") != null && (Boolean)request.getAttribute("expired"))) {
-                body.put("message", "JWT token has expired. Please renew your token.");
+                // More specific error message handling
+                String message;
+                if (request.getAttribute("expired") != null && (Boolean)request.getAttribute("expired")) {
+                    message = "JWT token has expired. Please renew your token.";
+                    logger.debug("JWT token expired for request: {}", request.getServletPath());
+                } else if (authException.getCause() instanceof JwtTokenExpiredException) {
+                    message = "JWT token has expired. Please renew your token.";
+                    logger.debug("JWT token expired exception for request: {}", request.getServletPath());
+                } else {
+                    String customMessage = (String) request.getAttribute("auth_error_message");
+                    message = customMessage != null ? customMessage : "Authentication failed";
+                    logger.debug("Authentication failed for request: {} - {}",
+                            request.getServletPath(), message);
+                }
+
+                body.put("message", message);
+
+                objectMapper.writeValue(response.getOutputStream(), body);
             } else {
-                String message = (String) request.getAttribute("auth_error_message");
-                body.put("message", message != null ? message : authException.getMessage());
+                logger.debug("Response already committed for path: {}", request.getServletPath());
             }
-
-            objectMapper.writeValue(response.getOutputStream(), body);
-        } else {
-            logger.warn("Response already committed. Unable to send error response.");
+        } catch (Exception e) {
+            // Prevent exception stack trace from being logged
+            logger.warn("Error while handling authentication failure for path {}: {}",
+                    request.getServletPath(), e.getMessage());
         }
     }
 }

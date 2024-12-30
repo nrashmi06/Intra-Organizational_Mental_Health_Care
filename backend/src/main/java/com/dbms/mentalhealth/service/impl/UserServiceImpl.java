@@ -1,5 +1,4 @@
 package com.dbms.mentalhealth.service.impl;
-
 import com.dbms.mentalhealth.dto.user.request.UserLoginRequestDTO;
 import com.dbms.mentalhealth.dto.user.request.UserRegistrationRequestDTO;
 import com.dbms.mentalhealth.dto.user.request.UserUpdateRequestDTO;
@@ -28,9 +27,7 @@ import com.dbms.mentalhealth.service.UserService;
 import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Profile;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.context.annotation.Lazy;
@@ -46,10 +43,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService, UserDetailsService {
@@ -186,25 +181,24 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     public UserInfoResponseDTO getUserById(Integer userId) {
-        Optional<User> user = userRepository.findById(userId);
-        if (user.isEmpty()) {
-            return new UserInfoResponseDTO("User not found with ID: " + userId);
+        Integer loggedInUserId = jwtUtils.getUserIdFromContext();
+        boolean isAdmin = jwtUtils.isAdminFromContext();
+        if(!isAdmin && !userId.equals(loggedInUserId)){
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You are not authorized to view this user");
         }
-
-        return UserMapper.toInfoResponseDTO(user.get());
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + userId));
+        return UserMapper.toInfoResponseDTO(user);
     }
 
     public void updateUserBasedOnRole(Integer userId, UserUpdateRequestDTO userUpdateDTO, Authentication authentication) {
         // Fetch authenticated user's role
-        String authenticatedUserRole = authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Unable to determine authenticated user role."));
+        String authenticatedUserRole = jwtUtils.getRoleFromContext();
 
         if (authenticatedUserRole.equals("ROLE_ADMIN")) {
             // Admin update
             updateUserAsAdmin(userId, userUpdateDTO);
-        } else if (authenticatedUserRole.equals("ROLE_USER") && userUpdateDTO.getAnonymousName() != null) {
+        } else if ((authenticatedUserRole.equals("ROLE_USER")||(authenticatedUserRole.equals("ROLE_LISTENER"))) && userUpdateDTO.getAnonymousName() != null) {
             // User update
             updateAnonymousName(userId, userUpdateDTO.getAnonymousName());
         } else {
@@ -226,7 +220,14 @@ public class UserServiceImpl implements UserService, UserDetailsService {
             }
             userToUpdate.setRole(Role.valueOf(userUpdateDTO.getRole()));
         }
-        userToUpdate.setAnonymousName(userUpdateDTO.getAnonymousName());
+
+        // Check if anonymous name is unique
+        if (userUpdateDTO.getAnonymousName() != null && !userUpdateDTO.getAnonymousName().equals(userToUpdate.getAnonymousName())) {
+            if (userRepository.existsByAnonymousName(userUpdateDTO.getAnonymousName())) {
+                throw new AnonymousNameAlreadyInUseException("Anonymous name is already in use: " + userUpdateDTO.getAnonymousName());
+            }
+            userToUpdate.setAnonymousName(userUpdateDTO.getAnonymousName());
+        }
 
         // Update profile status
         if (userUpdateDTO.getProfileStatus() != null) {
@@ -239,6 +240,12 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     private void updateAnonymousName(Integer userId, String anonymousName) {
         User userToUpdate = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found with ID: " + userId));
+
+        // Check if anonymous name is unique
+        if (!anonymousName.equals(userToUpdate.getAnonymousName()) && userRepository.existsByAnonymousName(anonymousName)) {
+            throw new AnonymousNameAlreadyInUseException("Anonymous name is already in use: " + anonymousName);
+        }
+
         userToUpdate.setAnonymousName(anonymousName);
         userRepository.save(userToUpdate);
     }

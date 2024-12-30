@@ -44,7 +44,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
             UserRepository userRepository,
             JwtUtils jwtUtils,
             @Lazy UserService userService,
-             @Value("${spring.app.base-url}") String baseUrl
+            @Value("${spring.app.base-url}") String baseUrl
     ) {
         this.refreshTokenRepository = refreshTokenRepository;
         this.userRepository = userRepository;
@@ -90,6 +90,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
             throw e;
         }
     }
+
     @Override
     public boolean verifyRefreshToken(String token) {
         return refreshTokenRepository.findByToken(token)
@@ -134,15 +135,20 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 
     private RefreshToken validateRefreshTokenAndGet(String token) {
         log.debug("Validating refresh token: {}", token.substring(0, 6) + "...");
+
         return refreshTokenRepository.findByToken(token)
-                .filter(rt -> {
+                .map(rt -> {
                     boolean isValid = rt.getExpiry().isAfter(Instant.now());
                     log.debug("Token valid: {}, Expiry: {}", isValid, rt.getExpiry());
-                    return isValid;
+                    if (!isValid) {
+                        log.warn("Refresh token has expired: {}", token.substring(0, 6) + "...");
+                        throw new RefreshTokenException("Expired refresh token");
+                    }
+                    return rt;
                 })
                 .orElseThrow(() -> {
-                    log.warn("Invalid or expired refresh token");
-                    return new RefreshTokenException("Invalid or expired refresh token");
+                    log.warn("Refresh token not found: {}", token.substring(0, 6) + "...");
+                    return new RefreshTokenException("Invalid refresh token");
                 });
     }
 
@@ -150,32 +156,36 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         log.debug("Setting secure refresh token cookie");
 
         boolean isSecure = !baseUrl.contains("localhost");
-        log.debug("isSecure: {}", isSecure);
 
-        String domain = baseUrl.replaceAll("https?://", "")
-                .replaceAll("/.*$", "")
-                .trim();
-        log.debug("Initial domain: {}", domain);
-
-        if (domain.contains("localhost")) {
-            domain = "localhost";
-            log.debug("Domain set to localhost");
-        }
-
-        log.debug("Creating refresh token cookie");
         Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
         refreshTokenCookie.setHttpOnly(true);
         refreshTokenCookie.setSecure(isSecure);
-        refreshTokenCookie.setPath("/mental-health/api/v1/users");
-        refreshTokenCookie.setMaxAge(24 * 60 * 60);
-        refreshTokenCookie.setDomain(domain);
-        refreshTokenCookie.setAttribute("SameSite", "None");  // If needed for cross-origin
+        refreshTokenCookie.setPath("/");
 
-        log.debug("Adding refresh token cookie to response");
+        // Important: Set max age for persistence
+        refreshTokenCookie.setMaxAge(24 * 60 * 60); // 24 hours in seconds
+
+        // Don't set domain for localhost
+        if (!baseUrl.contains("localhost")) {
+            String domain = baseUrl.replaceAll("https?://", "")
+                    .replaceAll("/.*$", "")
+                    .split(":")[0]
+                    .trim();
+            refreshTokenCookie.setDomain(domain);
+        }
+
+        // Set SameSite attribute
+        String cookieString = String.format(
+                "refreshToken=%s; Path=/; HttpOnly; Max-Age=%d; SameSite=None%s",
+                refreshToken,
+                24 * 60 * 60,
+                isSecure ? "; Secure" : ""
+        );
+
+        response.setHeader("Set-Cookie", cookieString);
         response.addCookie(refreshTokenCookie);
 
-        log.info("Successfully set refresh token cookie with domain: {}, secure: {}, path: {}, maxAge: {}",
-                domain, isSecure, "/mental-health/api/v1/users", 24 * 60 * 60);
+        log.debug("Cookie settings - Path: /, MaxAge: {}, Secure: {}, SameSite: None",
+                24 * 60 * 60, isSecure);
     }
-
 }

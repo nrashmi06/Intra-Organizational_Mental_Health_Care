@@ -8,6 +8,10 @@ import com.dbms.mentalhealth.exception.listener.InvalidListenerApplicationExcept
 import com.dbms.mentalhealth.service.ListenerApplicationService;
 import com.dbms.mentalhealth.urlMapper.ListenerApplicationUrlMapping;
 import com.dbms.mentalhealth.util.Etags.ListenerApplicationETagGenerator;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -81,29 +85,6 @@ public class ListenerApplicationController {
         }
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @GetMapping(ListenerApplicationUrlMapping.GET_ALL_APPLICATIONS)
-    public ResponseEntity<List<ListenerApplicationSummaryResponseDTO>> getAllApplications(
-            @RequestHeader(value = HttpHeaders.IF_NONE_MATCH, required = false) String ifNoneMatch) {
-        List<ListenerApplicationSummaryResponseDTO> responseDTO = listenerApplicationService.getAllApplications();
-
-        if (responseDTO.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-
-        String eTag = eTagGenerator.generateListETag(responseDTO);
-
-        if (ifNoneMatch != null && !ifNoneMatch.trim().isEmpty() && eTag.equals(ifNoneMatch)) {
-            return ResponseEntity.status(HttpStatus.NOT_MODIFIED)
-                    .header(HttpHeaders.ETAG, eTag)
-                    .build();
-        }
-
-        return ResponseEntity.ok()
-                .header(HttpHeaders.ETAG, eTag)
-                .body(responseDTO);
-    }
-
     @PreAuthorize("isAuthenticated()")
     @PutMapping(value = ListenerApplicationUrlMapping.UPDATE_APPLICATION, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ListenerApplicationResponseDTO> updateApplication(
@@ -136,29 +117,6 @@ public class ListenerApplicationController {
         }
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @GetMapping(ListenerApplicationUrlMapping.GET_APPLICATION_BY_APPROVAL_STATUS)
-    public ResponseEntity<List<ListenerApplicationSummaryResponseDTO>> getApplicationByApprovalStatus(
-            @RequestParam("status") String status,
-            @RequestHeader(value = HttpHeaders.IF_NONE_MATCH, required = false) String ifNoneMatch) {
-        List<ListenerApplicationSummaryResponseDTO> responseDTO = listenerApplicationService.getApplicationByApprovalStatus(status);
-
-        if (responseDTO.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-
-        String eTag = eTagGenerator.generateListETag(responseDTO);
-
-        if (ifNoneMatch != null && !ifNoneMatch.trim().isEmpty() && eTag.equals(ifNoneMatch)) {
-            return ResponseEntity.status(HttpStatus.NOT_MODIFIED)
-                    .header(HttpHeaders.ETAG, eTag)
-                    .build();
-        }
-
-        return ResponseEntity.ok()
-                .header(HttpHeaders.ETAG, eTag)
-                .body(responseDTO);
-    }
 
     @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_LISTENER')")
     @GetMapping(ListenerApplicationUrlMapping.GET_APPLICATION_BY_LISTENERS_USER_ID)
@@ -182,5 +140,27 @@ public class ListenerApplicationController {
         return ResponseEntity.ok()
                 .header(HttpHeaders.ETAG, eTag)
                 .body(application);
+    }
+
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @GetMapping(ListenerApplicationUrlMapping.GET_APPLICATIONS)
+    public ResponseEntity<Page<ListenerApplicationSummaryResponseDTO>> getApplications(
+            @RequestParam(value = "status", required = false) String status,
+            @PageableDefault(size = 10, sort = "applicationId", direction = Sort.Direction.DESC) Pageable pageable,
+            @RequestHeader(value = HttpHeaders.IF_NONE_MATCH, required = false) String ifNoneMatch) {
+
+        Page<ListenerApplicationSummaryResponseDTO> responseDTO = listenerApplicationService.getApplications(status, pageable);
+
+        String eTag = eTagGenerator.generatePageETag(responseDTO);
+
+        if (ifNoneMatch != null && !ifNoneMatch.trim().isEmpty() && eTag.equals(ifNoneMatch)) {
+            return ResponseEntity.status(HttpStatus.NOT_MODIFIED)
+                    .header(HttpHeaders.ETAG, eTag)
+                    .build();
+        }
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.ETAG, eTag)
+                .body(responseDTO);
     }
 }
