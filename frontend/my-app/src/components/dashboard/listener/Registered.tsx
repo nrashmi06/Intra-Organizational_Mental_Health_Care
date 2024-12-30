@@ -21,8 +21,6 @@ import Pagination from "@/components/ui/PaginationComponent";
 import ListenerCard from "./ListenerCard";
 import { RootState } from "@/store";
 
-const DEBOUNCE_DELAY = 750;
-const PAGE_SIZE = 1;
 
 export function RegisteredListenersTable() {
   const dispatch = useAppDispatch();
