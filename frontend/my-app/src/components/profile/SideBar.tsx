@@ -10,6 +10,10 @@ import {
 } from "lucide-react";
 import { useDispatch } from "react-redux";
 import { clearUser } from "@/store/authSlice";
+import { clearHelplines } from "@/store/emergencySlice";
+import { clearEventSources } from "@/store/eventsourceSlice";
+import { clearNotifications } from "@/store/notificationSlice";
+import clearStore from "@/utils/clearStore";
 
 interface SidebarItem {
   label: string;
@@ -22,7 +26,11 @@ export const ProfileSidebar: React.FC = () => {
   const dispatch = useDispatch();
 
   const handleLogout = () => {
+    dispatch(clearEventSources());
+    dispatch(clearNotifications());
     dispatch(clearUser());
+    dispatch(clearHelplines());
+    clearStore();
     router.replace("/signin");
   };
 

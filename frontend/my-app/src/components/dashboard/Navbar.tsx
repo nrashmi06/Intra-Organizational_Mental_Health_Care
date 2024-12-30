@@ -9,6 +9,8 @@ import { logout } from "@/service/user/Logout";
 import { RootState } from "@/store";
 import { clearEventSources } from "@/store/eventsourceSlice";
 import { clearNotifications } from "@/store/notificationSlice";
+import useClearStore from "@/utils/clearStore";
+import { clearHelplines } from "@/store/emergencySlice";
 
 type NavbarProps = {
   children?: React.ReactNode;
