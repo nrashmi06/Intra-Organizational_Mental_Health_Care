@@ -1,6 +1,6 @@
 import { REPORT_API_ENDPOINTS } from "@/mapper/reportMapper";
 
-export const getSessionReport = async (sessionId: string, token: string) => {
+export const getSessionReport = async (sessionId: string, token: string, signal?: AbortSignal) => {
   try {
     const response = await fetch(REPORT_API_ENDPOINTS.GET_REPORT_BY_SESSION_ID(sessionId), {
       method: "GET",
@@ -8,6 +8,7 @@ export const getSessionReport = async (sessionId: string, token: string) => {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
+      signal
     });
     return response.json();
   } catch (error) {

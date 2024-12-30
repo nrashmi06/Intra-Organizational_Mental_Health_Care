@@ -2,15 +2,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/router";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { RootState } from "@/store";
-import { clearUser } from "@/store/authSlice";
-import { logout } from "@/service/user/Logout";
-import { clearHelplines } from "@/store/emergencySlice";
 
 export default function Navbar() {
   const router = useRouter();
-  const dispatch = useDispatch();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isServicesDropdownOpen, setIsServicesDropdownOpen] = useState(false);
   const user = useSelector((state: RootState) => state.auth);
@@ -18,13 +14,9 @@ export default function Navbar() {
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
   const toggleServicesDropdown = () =>
     setIsServicesDropdownOpen(!isServicesDropdownOpen);
-
-  const handleLogout = () => {
-    router.push("/signin");
-    logout(user.accessToken);
-    dispatch(clearUser() );
-    dispatch(clearHelplines()); 
-  };
+  const anonymousName = useSelector(
+    (state: RootState) => state.auth.anonymousName
+  );
 
   return (
     <header className="z-50 relative">
@@ -150,10 +142,14 @@ export default function Navbar() {
                   </>
                 ) : (
                   <button
-                    onClick={handleLogout}
-                    className="text-sm font-medium text-white bg-black px-4 py-2 rounded-full hover:bg-gray-800 transition-colors"
+                    onClick={() => router.push("/profile")}
+                    className="text-sm font-medium text-white rounded-full hover:bg-gray-800 transition-colors flex items-center justify-center"
                   >
-                    Logout
+                    <div className="w-10 h-10 rounded-full bg-green-600 flex items-center justify-center">
+                      <span className="text-xl font-bold text-white">
+                        {anonymousName.charAt(0)}
+                      </span>
+                    </div>
                   </button>
                 )}
               </div>

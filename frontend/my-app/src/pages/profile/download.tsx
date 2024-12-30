@@ -4,14 +4,13 @@ import Image from "next/image";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
-import Footer from "@/components/footer/Footer";
-import Navbar from "@/components/navbar/NavBar";
 import { Button } from "@/components/ui/button";
 import requestVerificationCode from "@/service/user/Requst_Verification_Code";
 import verifyOtpForDownload from "@/service/user/Verify_Otp_For_Download";
 import "@/styles/global.css";
 import { RootState } from "@/store";
 import { useSelector } from "react-redux";
+import { ProfileLayout } from "@/components/profile/profilepageLayout";
 
 export default function VerifyAndDownload() {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
@@ -23,21 +22,18 @@ export default function VerifyAndDownload() {
   const router = useRouter();
   const accesstoken = useSelector((state: RootState) => state.auth.accessToken);
 
-  // Handle OTP input change
   const handleOtpChange = (index: number, value: string) => {
     if (value.length <= 1) {
       const newOtp = [...otp];
       newOtp[index] = value;
       setOtp(newOtp);
 
-      // Automatically move to the next input box if a digit is entered
       if (value && index < otp.length - 1) {
         document.getElementById(`otp-${index + 1}`)?.focus();
       }
     }
   };
 
-  // Request OTP for session and appointment data
   const handleRequestOtp = async () => {
     setIsRequestingOtp(true);
     setErrorMessage("");
@@ -60,13 +56,10 @@ export default function VerifyAndDownload() {
     }
   };
 
-  // Handle OTP submission and download
   const handleSubmitOtp = async () => {
     setIsSubmittingOtp(true);
     try {
       const enteredOtp = otp.join("");
-
-      // Verify OTP first before attempting to download
       const response = await verifyOtpForDownload(enteredOtp, accesstoken);
       if (response?.status !== 200) {
         setErrorMessage("Invalid OTP. Please try again.");
@@ -76,7 +69,7 @@ export default function VerifyAndDownload() {
         }, 2000);
       } else {
         const fileBlob = response?.data;
-        // Create a download link for the PDF
+
         const url = window.URL.createObjectURL(
           new Blob([fileBlob], { type: "application/pdf" })
         );
@@ -85,17 +78,13 @@ export default function VerifyAndDownload() {
         link.setAttribute("download", "UserDataReport.pdf"); // Set file name
         document.body.appendChild(link);
 
-        // Trigger the file download
         link.click();
 
-        // Clean up
         window.URL.revokeObjectURL(url);
         document.body.removeChild(link);
 
-        // Set success message
         setSuccessMessage("PDF downloaded successfully!");
 
-        // Redirect to home page
         setTimeout(() => {
           router.push("/");
         }, 2000);
@@ -109,7 +98,6 @@ export default function VerifyAndDownload() {
     }
   };
 
-  // Reset messages after a delay
   useEffect(() => {
     if (!accesstoken) {
       router.push("/signin");
@@ -127,10 +115,8 @@ export default function VerifyAndDownload() {
   }, [errorMessage, successMessage]);
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
-      <Navbar />
-
-      <main className="flex flex-1 justify-center items-center pb-32">
+    <ProfileLayout>
+      <main className="flex flex-1 justify-center items-center min-h-screen pb-32">
         <div className="w-full max-w-md">
           <div className="bg-white rounded-3xl shadow-xl p-8">
             <div className="flex justify-center mb-6">
@@ -156,7 +142,6 @@ export default function VerifyAndDownload() {
                 : "Please enter the 6-digit OTP sent to your email"}
             </h2>
 
-            {/* Request OTP Section */}
             {!isOtpRequested && (
               <Button
                 className="w-full mt-4 bg-black text-white hover:bg-black/90 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -167,7 +152,6 @@ export default function VerifyAndDownload() {
               </Button>
             )}
 
-            {/* OTP Input Section */}
             {isOtpRequested && (
               <>
                 <div className="flex justify-center space-x-4 mb-4">
@@ -196,7 +180,6 @@ export default function VerifyAndDownload() {
               </>
             )}
 
-            {/* Message Display */}
             {errorMessage && (
               <p className="text-red-500 text-center mt-4">{errorMessage}</p>
             )}
@@ -208,8 +191,6 @@ export default function VerifyAndDownload() {
           </div>
         </div>
       </main>
-
-      <Footer />
-    </div>
+    </ProfileLayout>
   );
 }

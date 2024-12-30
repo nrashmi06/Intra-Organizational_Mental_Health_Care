@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { CheckCircle2, Search, X } from "lucide-react";
+import { CheckCircle2, Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -108,7 +109,10 @@ export function RegisteredListenersTable() {
           <Input
             placeholder="Search by name or ID..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setPaginationInfo((prev) => ({ ...prev, pageNumber: 0 }));
+            }}
             className="pl-8"
           />
         </div>
@@ -168,6 +172,7 @@ export function RegisteredListenersTable() {
         </div>
       )}
 
+
       {detailsModal && selectedListener && (
         <Details
           id={selectedListener}
@@ -180,6 +185,7 @@ export function RegisteredListenersTable() {
           setSuccessMessage={setSuccessMessage}
         />
       )}
+
 
       {applicationModal && selectedListener && application && (
         <ListenerDetailsForAdmin

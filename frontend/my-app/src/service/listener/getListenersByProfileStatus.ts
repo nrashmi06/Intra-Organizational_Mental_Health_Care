@@ -1,4 +1,3 @@
-import axios from "axios";
 import { LISTENER_API_ENDPOINTS } from "@/mapper/listenerProfileMapper";
 import { setListeners } from "@/store/listenerSlice";
 import { RootState, AppDispatch } from "@/store";

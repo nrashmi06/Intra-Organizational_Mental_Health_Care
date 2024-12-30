@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
-import { RootState } from "@/store";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/store";
 import { Search, Menu, X, Eye, User } from "lucide-react";
 import SessionDetailView from "@/components/dashboard/SessionDetailView";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import { getActiveSessions } from "@/service/SSE/getActiveSessions";
 import InlineLoader from "@/components/ui/inlineLoader";
 import UserDetails from "@/components/dashboard/user/ModalDetails";
 import ListenerDetails from "@/components/dashboard/listener/ModalDetails";
+import { addEventSource, clearEventSources, removeEventSource } from "@/store/eventsourceSlice";
 
 export const LiveSessions = () => {
   const token = useSelector((state: RootState) => state.auth.accessToken);
@@ -19,23 +20,41 @@ export const LiveSessions = () => {
   const [loading, setLoading] = useState(true);
   const [userModal, setUserModal] = useState(false);
   const [listenerModal, setListenerModal] = useState(false);
+  const dispatch = useDispatch<AppDispatch>();
 
   useEffect(() => {
     setLoading(true);
-    const newEventSource = getActiveSessions(token, (data) => {
+    const eventSource = getActiveSessions(token, (data) => {
       setSessions(data);
       setLoading(false);
     });
 
-    newEventSource.onerror = () => {
+    eventSource.onerror = () => {
       console.error("Error with EventSource");
       setLoading(false);
     };
+    
+    if (eventSource) {
+      const eventSourceEntry = {
+        id: "onlineSessions",
+        eventSource,
+      };
+      dispatch(addEventSource(eventSourceEntry));
+    }
 
     return () => {
-      newEventSource.close();
+      dispatch(removeEventSource("onlineSessions"));
+      if (eventSource) {
+        eventSource.close();
+      }
     };
-  }, [token]);
+  }, [token, dispatch]);
+
+  useEffect(() => {
+    return () => {
+      dispatch(clearEventSources());
+    };
+  }, [dispatch]);
 
   const handleUserModal = (session: Session) => {
     setSelectedSession(session);
@@ -83,7 +102,6 @@ export const LiveSessions = () => {
 
   return (
     <div className="h-[calc(100vh-64px)]">
-      {/* Mobile Menu Toggle */}
       <div className="lg:hidden fixed top-16 right-4 z-50">
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -94,7 +112,6 @@ export const LiveSessions = () => {
       </div>
 
       <div className="flex flex-col lg:flex-row h-full">
-        {/* Mobile Menu Overlay */}
         <div
           className={`fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity lg:hidden ${
             isMobileMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
@@ -102,7 +119,6 @@ export const LiveSessions = () => {
           onClick={() => setIsMobileMenuOpen(false)}
         />
 
-        {/* Sessions List Section */}
         <div
           className={`w-full lg:w-1/3 bg-gray-50 border-r border-gray-200 overflow-y-auto 
                      fixed lg:relative z-40 transition-transform duration-300 ease-in-out
@@ -142,7 +158,6 @@ export const LiveSessions = () => {
           </div>
         </div>
 
-        {/* Session Detail View Section */}
         <div className="w-full lg:w-2/3 bg-gray-100 min-h-full overflow-y-auto">
           <SessionDetailView
             type={null}

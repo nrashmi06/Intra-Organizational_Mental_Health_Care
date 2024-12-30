@@ -13,11 +13,11 @@ import {
   Building2,
 } from "lucide-react";
 import Image from "next/image";
-import Navbar from "@/components/navbar/Navbar2";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ListenerApplication } from "@/lib/types";
 import { EditApplicationModal } from "./EditApplicationModal";
+import { ProfileLayout } from "../profile/profilepageLayout";
 
 interface ApplicationDetailsProps {
   applicationData: ListenerApplication;
@@ -37,8 +37,7 @@ const ApplicationDetails: React.FC<ApplicationDetailsProps> = ({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      <main className="container mx-auto py-6 px-4">
+      <ProfileLayout>
         <div className="relative mb-8">
           <div className="bg-white rounded-xl shadow-sm overflow-hidden">
             <div className="px-6 py-8">
@@ -164,7 +163,7 @@ const ApplicationDetails: React.FC<ApplicationDetailsProps> = ({
               </div>
             </div>
           </div>
-          
+
           <div className="col-span-12 md:col-span-7 space-y-1">
             {applicationData.certificateUrl && (
               <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
@@ -209,7 +208,7 @@ const ApplicationDetails: React.FC<ApplicationDetailsProps> = ({
           applicationData={applicationData}
           onEdit={onEdit}
         />
-      </main>
+      </ProfileLayout>
     </div>
   );
 };

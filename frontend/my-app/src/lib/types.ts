@@ -62,18 +62,29 @@ export interface ListenerDetails {
   averageRating: number;
   joinedAt: string;
   approvedBy: string;
+  totalBlogsPublished: number;
+  totalLikesReceived: number;
+  totalViewsReceived: number;
 }
 
 export interface UserDetails {
-  id: string;
+  userId: string;
   email: string;
   anonymousName: string;
   role: string;
+  isActive: boolean;
   profileStatus: string;
-  createdAt: string;
-  updatedAt: string;
-  lastSeen: string;
-  active: boolean;
+  createdAt: string; // ISO 8601 date string
+  updatedAt: string; // ISO 8601 date string
+  lastSeen: string; // ISO 8601 date string
+  totalSessionsAttended: number;
+  lastSessionDate: string; // ISO 8601 date string
+  totalAppointments: number;
+  lastAppointmentDate: string; // ISO 8601 date string
+  totalMessagesSent: number;
+  totalBlogsPublished: number;
+  totalLikesReceived: number;
+  totalViewsReceived: number;
 }
 
 export interface Session {
@@ -149,14 +160,14 @@ export interface BlogPost {
   likedByCurrentUser: boolean;
 }
 
-export interface PaginationInfo {
-  pageNumber: number;
-  pageSize: number;
-  totalPages: number;
-  totalElements: number;
-  last: boolean;
-  first: boolean;
-}
+// export interface PaginationInfo {
+//   pageNumber: number;
+//   pageSize: number;
+//   totalPages: number;
+//   totalElements: number;
+//   last: boolean;
+//   first: boolean;
+// }
 export interface Article {
   id: number;
   title: string;
@@ -204,6 +215,13 @@ export interface Helpline {
   emergencyType: string;
   priority: number;
 }
+
+export type PaginationInfo = {
+  pageNumber: number;
+  pageSize: number;
+  totalElements: number;
+  totalPages: number;
+};
 
 export interface Application {
   applicationId: number;
