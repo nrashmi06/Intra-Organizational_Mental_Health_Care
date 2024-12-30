@@ -222,3 +222,28 @@ export type PaginationInfo = {
   totalElements: number;
   totalPages: number;
 };
+
+export interface Application {
+  applicationId: number;
+  fullName: string;
+  branch: string;
+  semester: number;
+  applicationStatus: string;
+  certificateUrl: string;
+}
+export interface FormData {
+  adminId?: string;
+  timeSlotId?: string;
+  fullName?: string;
+  severityLevel?: string;
+  phoneNumber?: string;
+  appointmentReason?: string;
+}
+
+export interface Slot {
+  timeSlotId: number;
+  date: string;
+  startTime: string;
+  endTime: string;
+  isAvailable: boolean;
+}

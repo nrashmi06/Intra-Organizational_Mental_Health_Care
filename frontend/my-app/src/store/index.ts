@@ -10,7 +10,7 @@ import timeSlotReducer from "./timeSlotSlice";
 import authReducer from "./authSlice";
 import notificationReducer from "./notificationSlice";
 import eventSourceReducer from "./eventsourceSlice";
-
+import listenerReducer from './listenerSlice';
 // Define  reducers
 const authPersistConfig = {
   key: "auth",
@@ -57,7 +57,15 @@ const eventSourcePersistConfig = {
   storage,
 };
 
-// Persist reducers
+const listenerPersistConfig = {
+  key: 'listeners',
+  storage,
+};
+
+
+
+
+// Persist reducers 
 const persistedAuthReducer = persistReducer(authPersistConfig, authReducer);
 const persistedNotificationReducer = persistReducer(
   notificationPersistConfig,
@@ -88,6 +96,7 @@ const persistedEventSourceReducer = persistReducer(
   eventSourcePersistConfig,
   eventSourceReducer
 );
+const persistedListenerReducer = persistReducer(listenerPersistConfig, listenerReducer);
 
 // Create the Redux store
 const store = configureStore({
@@ -101,6 +110,7 @@ const store = configureStore({
     appointments: persistedAppointmentReducer,
     timeSlots: persistedTimeSlotReducer,
     Source: persistedEventSourceReducer,
+    listeners: persistedListenerReducer,
   },
   devTools: process.env.NODE_ENV !== "production", // Enable Redux DevTools in development mode only
 });

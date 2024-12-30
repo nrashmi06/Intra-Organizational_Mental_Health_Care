@@ -12,7 +12,7 @@ interface SearchFilterProps {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   statusFilter: string;
-  handleFilterChange: (status: string) => void;
+  handleFilterChange: (status: "PENDING" | "APPROVED" | "REJECTED") => void;
 }
 
 export function SearchFilter({

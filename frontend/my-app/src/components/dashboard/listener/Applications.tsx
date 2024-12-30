@@ -4,78 +4,70 @@ import { useAppDispatch } from "@/hooks/useAppDispatch";
 import { RootState } from "@/store";
 import { ListenerApplication } from "@/lib/types";
 import { fetchApplication } from "@/service/listener/fetchApplication";
-import { GetByApproval } from "@/service/listener/getByStatus";
+import { getApplicationsByApprovalStatus } from "@/service/listener/getByStatus";
 import { SearchFilter } from "./SearchFilter";
 import { ApplicationsGrid } from "./ApplicationGrid";
-import { Pagination } from "./Pagination";
+import Pagination from "@/components/ui/PaginationComponent"
 import { SuccessMessage } from "./SuccessMessage";
 import ListenerDetailsForAdmin from "@/components/dashboard/listener/ModalApplication";
+import InlineLoader from "@/components/ui/inlineLoader";
 
 export function ListenerApplicationsTable() {
+  const dispatch = useAppDispatch();
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("PENDING");
+  const [statusFilter, setStatusFilter] = useState<"PENDING" | "APPROVED" | "REJECTED">("PENDING");
   const [currentPage, setCurrentPage] = useState(1);
-  const [applications, setApplications] = useState<ListenerApplication[]>([]);
-  const accessToken = useSelector((state: RootState) => state.auth.accessToken);
+  const itemsPerPage = 6;
   const [applicationModal, setApplicationModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [selectedApplication, setSelectedApplication] = useState<ListenerApplication | null>(null);
-  const [selectedApplicationId, setSelectedApplicationId] = useState<string | null>(null);
+  const [selectedApplicationId, setSelectedApplicationId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
-  const itemsPerPage = 6;
-  const dispatch = useAppDispatch();
 
-  const applicationDataFromStore = useSelector(
-    (state: RootState) => state.detailedApplication.applicationData
-  );
+  const accessToken = useSelector((state: RootState) => state.auth.accessToken);
+  const applications = useSelector((state: RootState) => state.applicationList.applications);
+  const applicationDataFromStore = useSelector((state: RootState) => state.detailedApplication.applicationData);
+  const totalPages = useSelector((state: RootState) => state.applicationList.page?.totalPages ?? 0);
 
-  const fetchListenersByStatus = useCallback(
-    async (status: "PENDING" | "APPROVED" | "REJECTED") => {
-      try {
-        setLoading(true);
-        const response = await GetByApproval(accessToken, status);
-        
-        if (!response) {
-          setApplications([]);
-          return;
-        }
-
-        setApplications(response.data || []);
-        setStatusFilter(status);
-      } catch (error) {
-        console.error("Error fetching listeners:", error);
-        setApplications([]);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [accessToken]
-  );
+  const fetchListenersByStatus = useCallback(async () => {
+    try {
+      setLoading(true);
+      await dispatch(
+        getApplicationsByApprovalStatus({
+          token: accessToken,
+          status: statusFilter,
+          size: itemsPerPage,
+          page: currentPage - 1,
+        })
+      );
+    } catch (error) {
+      console.error("Error fetching applications:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [accessToken, statusFilter, currentPage, itemsPerPage, dispatch]);
 
   useEffect(() => {
-    fetchListenersByStatus("PENDING");
-  }, [fetchListenersByStatus]);
+    fetchListenersByStatus();
+  }, [fetchListenersByStatus, statusFilter, currentPage]);
 
-  const handleFilterChange = (status: string) => {
+  const handleFilterChange = (status: "PENDING" | "APPROVED" | "REJECTED") => {
     setSearchQuery("");
     setCurrentPage(1);
     setStatusFilter(status);
-    fetchListenersByStatus(status as "PENDING" | "APPROVED" | "REJECTED");
   };
 
-  // Handle modal opening and data fetching
-  const handleApplicationModal = useCallback(async (applicationId: string) => {
+  const handleApplicationModal = useCallback(async (applicationId: number) => {
     setSelectedApplicationId(applicationId);
   }, []);
 
-  // Effect for fetching application details
   useEffect(() => {
     async function fetchApplicationData() {
       if (!selectedApplicationId) return;
 
       try {
         setLoading(true);
-        const response = await dispatch(fetchApplication(accessToken, selectedApplicationId));
+        const response = await dispatch(fetchApplication(accessToken, selectedApplicationId.toString()));
         
         if (response?.payload) {
           setSelectedApplication(response.payload);
@@ -96,31 +88,18 @@ export function ListenerApplicationsTable() {
     fetchApplicationData();
   }, [selectedApplicationId, dispatch, accessToken, applicationDataFromStore]);
 
-  // Handle modal closing
   const handleCloseModal = useCallback(() => {
     setApplicationModal(false);
     setSelectedApplication(null);
     setSelectedApplicationId(null);
   }, []);
 
-  const filteredApplications = applications.length > 0 
-    ? applications.filter((application) => {
-        const matchesSearch =
-          application.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          application.applicationId.toString().toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesStatus =
-          statusFilter === "PENDING" ||
-          application.applicationStatus === statusFilter;
-        return matchesSearch && matchesStatus;
-      })
-    : [];
-
-  const paginatedApplications = filteredApplications.length > 0
-    ? filteredApplications.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-      )
-    : [];
+  const filteredApplications = applications.filter((application) => {
+    return (
+      application.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      application.applicationId.toString().toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  });
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -133,6 +112,10 @@ export function ListenerApplicationsTable() {
     }
   };
 
+  if (loading) {
+    return <InlineLoader />;
+  }
+
   return (
     <div className="space-y-6">
       <SearchFilter
@@ -144,7 +127,7 @@ export function ListenerApplicationsTable() {
 
       <ApplicationsGrid
         loading={loading}
-        applications={paginatedApplications}
+        applications={filteredApplications}
         statusFilter={statusFilter}
         onViewDetails={handleApplicationModal}
         getStatusColor={getStatusColor}
@@ -152,11 +135,10 @@ export function ListenerApplicationsTable() {
 
       {applications.length > 0 && filteredApplications.length > 0 && (
         <Pagination
-          currentPage={currentPage}
-          setCurrentPage={setCurrentPage}
-          itemsPerPage={itemsPerPage}
-          totalItems={filteredApplications.length}
-        />
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+      />
       )}
 
       {applicationModal && selectedApplication && (

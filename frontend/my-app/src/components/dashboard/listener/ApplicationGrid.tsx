@@ -1,12 +1,12 @@
-import { ListenerApplication } from "@/lib/types";
+import { Application } from "@/lib/types";
 import { ApplicationCard } from "./ApplicationCard";
 import InlineLoader from "@/components/ui/inlineLoader";
 
 interface ApplicationsGridProps {
   loading: boolean;
-  applications: ListenerApplication[];
+  applications: Application[];
   statusFilter: string;
-  onViewDetails: (applicationId: string) => void;
+  onViewDetails: (applicationId: number) => void;
   getStatusColor: (status: string) => string;
 }
 
