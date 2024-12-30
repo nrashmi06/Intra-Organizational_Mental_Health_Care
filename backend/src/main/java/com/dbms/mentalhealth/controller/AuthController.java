@@ -24,6 +24,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -31,13 +32,17 @@ import java.util.Map;
 @RestController
 @Slf4j
 public class AuthController {
-
+    private final String baseUrl;
     private final UserService userService;
     private final RefreshTokenServiceImpl refreshTokenService;
 
-    public AuthController(UserService userService, RefreshTokenServiceImpl refreshTokenService) {
+    public AuthController(UserService userService,
+                          RefreshTokenServiceImpl refreshTokenService,
+                          @Value("${spring.app.base-url}") String baseUrl
+    ) {
         this.userService = userService;
         this.refreshTokenService = refreshTokenService;
+        this.baseUrl = baseUrl;
     }
 
     @PostMapping(UserUrlMapping.USER_REGISTER)
@@ -72,45 +77,70 @@ public class AuthController {
     }
 
     @PostMapping(UserUrlMapping.USER_LOGOUT)
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<String> logoutUser(@CookieValue(name = "refreshToken", required = false) String refreshToken,
-                                             HttpServletResponse response) {
-        log.info("Logout request received");
+    public ResponseEntity<String> logoutUser(
+            @CookieValue(name = "refreshToken", required = false) String refreshToken,
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
+            HttpServletResponse response) {
 
-        if (refreshToken == null) {
-            log.info("No refresh token found in request - user already logged out");
+        log.info("Logout request received");
+        log.debug("RefreshToken from cookie: {}", refreshToken != null ? "present" : "null");
+        log.debug("Auth header: {}", authHeader != null ? "present" : "null");
+
+        if (refreshToken == null && authHeader == null) {
+            log.info("No tokens found in request - user already logged out");
             clearCookies(response);
             return ResponseEntity.ok("User logged out successfully.");
         }
 
         try {
-            // Try to get email and process logout
-            String email = refreshTokenService.getEmailFromRefreshToken(refreshToken);
-            userService.setUserActiveStatus(email, false);
-            refreshTokenService.deleteRefreshToken(refreshToken);
+            // Handle refresh token if present
+            if (refreshToken != null) {
+                String email = refreshTokenService.getEmailFromRefreshToken(refreshToken);
+                userService.setUserActiveStatus(email, false);
+                refreshTokenService.deleteRefreshToken(refreshToken);
+                log.info("Logout successful for user: {}", email);
+            }
 
-            log.info("Logout successful for user: {}", email);
+            // Handle auth token if present
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                SecurityContextHolder.clearContext();
+            }
+
         } catch (RefreshTokenException e) {
-            // Token is invalid/expired - this is okay during logout
             log.warn("Invalid or expired refresh token during logout: {}", e.getMessage());
         } catch (Exception e) {
-            // Log other unexpected errors
             log.error("Unexpected error during logout process", e);
         } finally {
-            // Always clear cookies on logout attempt
             clearCookies(response);
+            // Clear auth header if needed
+            response.setHeader("Authorization", "");
         }
 
         return ResponseEntity.ok("User logged out successfully.");
     }
 
     private void clearCookies(HttpServletResponse response) {
-        Cookie refreshTokenCookie = new Cookie("refreshToken", null);
+        Cookie refreshTokenCookie = new Cookie("refreshToken", "");
         refreshTokenCookie.setMaxAge(0);
-        refreshTokenCookie.setPath("/mental-health/api/v1/users");
+        refreshTokenCookie.setPath("/");  // Use root path to match the setting
         refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setSecure(true);
+        refreshTokenCookie.setSecure(!baseUrl.contains("localhost"));
+
+        // Don't set domain for localhost
+        if (!baseUrl.contains("localhost")) {
+            String domain = baseUrl.replaceAll("https?://", "")
+                    .replaceAll("/.*$", "")
+                    .split(":")[0]
+                    .trim();
+            refreshTokenCookie.setDomain(domain);
+        }
+
         response.addCookie(refreshTokenCookie);
+
+        // Update header-based cookie clearing to use root path
+        response.setHeader("Set-Cookie",
+                "refreshToken=; Path=/; HttpOnly; Max-Age=0; SameSite=None" +
+                        (!baseUrl.contains("localhost") ? "; Secure" : ""));
     }
 
     @PostMapping(UserUrlMapping.VERIFY_EMAIL)

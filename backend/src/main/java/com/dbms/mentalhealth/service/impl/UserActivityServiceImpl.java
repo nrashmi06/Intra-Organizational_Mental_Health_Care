@@ -11,6 +11,7 @@ import com.dbms.mentalhealth.repository.UserRepository;
 import com.dbms.mentalhealth.service.SessionService;
 import com.dbms.mentalhealth.service.UserActivityService;
 import com.github.benmanes.caffeine.cache.Cache;
+import org.apache.catalina.connector.ClientAbortException;
 import org.slf4j.Logger;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -104,10 +105,15 @@ public class UserActivityServiceImpl implements UserActivityService {
         emitter.onError(e -> emitterList.remove(emitter));
     }
 
+
     @Override
     public void addAllUsersEmitter(SseEmitter emitter) {
-        addEmitterToList(emitter, allUserEmitters);
+        emitter.onTimeout(() -> removeEmitterSafely(emitter, allUserEmitters));
+        emitter.onCompletion(() -> removeEmitterSafely(emitter, allUserEmitters));
+        emitter.onError(e -> removeEmitterSafely(emitter, allUserEmitters));
+        allUserEmitters.add(emitter);
     }
+
 
     @Override
     public void addRoleCountEmitter(SseEmitter emitter) {
@@ -223,18 +229,45 @@ public class UserActivityServiceImpl implements UserActivityService {
                 userDetailsCache.asMap(), roleBasedDetailsCache.asMap(), lastSeenCache.asMap());
     }
 
-    @Async
     @Override
     public void broadcastSessionDetails(List<SessionSummaryDTO> sessionSummaryDTOs) {
+        if (sessionDetailsEmitters.isEmpty()) {
+            return; // Skip if no active listeners
+        }
+
+        List<SseEmitter> deadEmitters = new ArrayList<>();
+
         sessionDetailsEmitters.forEach(emitter -> {
             try {
-                emitter.send(SseEmitter.event().name("sessionDetails").data(sessionSummaryDTOs));
-            } catch (IOException e) {
-                log.error("Error broadcasting session details", e);
-                sessionDetailsEmitters.remove(emitter);
+                if (emitter != null) {
+                    emitter.send(SseEmitter.event()
+                            .name("sessionDetails")
+                            .data(sessionSummaryDTOs));
+                }
+            } catch (Exception e) {
+                if (e instanceof ClientAbortException ||
+                        (e.getMessage() != null && e.getMessage().contains("Broken pipe"))) {
+                    log.debug("Client disconnected from session details: {}", e.getMessage());
+                } else {
+                    log.warn("Error broadcasting session details: {}", e.getMessage());
+                }
+                deadEmitters.add(emitter);
             }
         });
 
+        // Clean up dead emitters
+        if (!deadEmitters.isEmpty()) {
+            sessionDetailsEmitters.removeAll(deadEmitters);
+            deadEmitters.forEach(emitter -> {
+                try {
+                    emitter.complete();
+                } catch (Exception e) {
+                    log.debug("Error while completing session emitter: {}", e.getMessage());
+                }
+            });
+        }
+
+        // Continue with other broadcasts
         updateAllCaches();
         broadcastAllUsers();
         broadcastAdminDetails();
@@ -255,23 +288,63 @@ public class UserActivityServiceImpl implements UserActivityService {
             roleBasedDetailsCache.put(role, updatedDtos);
         });
     }
+    private void removeEmitterSafely(SseEmitter emitter, CopyOnWriteArrayList<SseEmitter> emitterList) {
+        try {
+            emitterList.remove(emitter);
+            emitter.complete();
+        } catch (Exception e) {
+            log.debug("Error while removing emitter: {}", e.getMessage());
+        }
+    }
 
     private <T> void broadcastData(CacheKey cacheKey, CopyOnWriteArrayList<SseEmitter> emitterList) {
+        if (emitterList.isEmpty()) {
+            return; // Skip broadcasting if there are no active emitters
+        }
+
         List<UserActivityDTO> data = fetchUserActivityDataForKey(cacheKey);
         List<UserActivityDTO> updatedData = data.stream()
                 .map(UserActivityMapper::toUserActivityDTO)
                 .collect(Collectors.toList());
 
+        List<SseEmitter> deadEmitters = new ArrayList<>();
+
         emitterList.forEach(emitter -> {
             try {
-                emitter.send(SseEmitter.event()
-                        .name(cacheKey.getEventName())
-                        .data(updatedData));
+                if (emitter != null) {
+                    emitter.send(SseEmitter.event()
+                            .name(cacheKey.getEventName())
+                            .data(updatedData));
+                }
+            } catch (ClientAbortException e) {
+                log.debug("Client disconnected gracefully: {}", e.getMessage());
+                deadEmitters.add(emitter);
             } catch (IOException e) {
-                log.error("Error broadcasting data for key: {}", cacheKey, e);
-                emitterList.remove(emitter);
+                if (e.getMessage() != null &&
+                        (e.getMessage().contains("Broken pipe") ||
+                                e.getMessage().contains("Connection reset by peer"))) {
+                    log.debug("Client connection closed: {}", e.getMessage());
+                } else {
+                    log.warn("Error broadcasting data for key {}: {}", cacheKey, e.getMessage());
+                }
+                deadEmitters.add(emitter);
+            } catch (Exception e) {
+                log.warn("Unexpected error while broadcasting: {}", e.getMessage());
+                deadEmitters.add(emitter);
             }
         });
+
+        // Clean up dead emitters outside the loop
+        if (!deadEmitters.isEmpty()) {
+            emitterList.removeAll(deadEmitters);
+            deadEmitters.forEach(emitter -> {
+                try {
+                    emitter.complete();
+                } catch (Exception e) {
+                    log.debug("Error while completing emitter: {}", e.getMessage());
+                }
+            });
+        }
     }
 
     @Override
@@ -303,20 +376,46 @@ public class UserActivityServiceImpl implements UserActivityService {
     }
 
     @Override
-    @Async
     public void broadcastRoleCounts() {
+        if (roleEmitters.isEmpty()) {
+            return;
+        }
+
         List<UserRoleCountDTO> roleCounts = getOnlineUsersCountByRole();
+        List<SseEmitter> deadEmitters = new ArrayList<>();
+
         roleEmitters.forEach(emitter -> {
             try {
-                emitter.send(SseEmitter.event().name("roleCounts").data(roleCounts));
-            } catch (IOException e) {
-                log.error("Error broadcasting role counts", e);
-                roleEmitters.remove(emitter);
+                if (emitter != null) {
+                    emitter.send(SseEmitter.event()
+                            .name("roleCounts")
+                            .data(roleCounts));
+                }
+            } catch (Exception e) {
+                if (e instanceof ClientAbortException ||
+                        (e.getMessage() != null && e.getMessage().contains("Broken pipe"))) {
+                    log.debug("Client disconnected from role counts: {}", e.getMessage());
+                } else {
+                    log.warn("Error broadcasting role counts: {}", e.getMessage());
+                }
+                deadEmitters.add(emitter);
             }
         });
+
+        // Clean up dead emitters
+        if (!deadEmitters.isEmpty()) {
+            roleEmitters.removeAll(deadEmitters);
+            deadEmitters.forEach(emitter -> {
+                try {
+                    emitter.complete();
+                } catch (Exception e) {
+                    log.debug("Error while completing role emitter: {}", e.getMessage());
+                }
+            });
+        }
+
         broadcastFullCacheDetails();
     }
-
 
     private void broadcastFullCacheDetails() {
         logMapContents();
@@ -410,14 +509,11 @@ public class UserActivityServiceImpl implements UserActivityService {
         if (user != null && user.getIsActive()) {
             user.setIsActive(false);
             userRepository.save(user);
-
-            // Clear from caches
             lastSeenCache.invalidate(email);
             userDetailsCache.invalidate(email);
             roleBasedDetailsCache.asMap().values().forEach(list ->
                     list.removeIf(dto -> dto.getUserId().equals(user.getUserId())));
-
-            // Don't broadcast here - let checkInactiveUsers handle it
+            broadcastUpdates();
         }
     }
     @Override

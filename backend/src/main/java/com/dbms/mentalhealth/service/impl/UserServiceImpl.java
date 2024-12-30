@@ -196,15 +196,12 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     public void updateUserBasedOnRole(Integer userId, UserUpdateRequestDTO userUpdateDTO, Authentication authentication) {
         // Fetch authenticated user's role
-        String authenticatedUserRole = authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Unable to determine authenticated user role."));
+        String authenticatedUserRole = jwtUtils.getRoleFromContext();
 
         if (authenticatedUserRole.equals("ROLE_ADMIN")) {
             // Admin update
             updateUserAsAdmin(userId, userUpdateDTO);
-        } else if (authenticatedUserRole.equals("ROLE_USER") && userUpdateDTO.getAnonymousName() != null) {
+        } else if ((authenticatedUserRole.equals("ROLE_USER")||(authenticatedUserRole.equals("ROLE_LISTENER"))) && userUpdateDTO.getAnonymousName() != null) {
             // User update
             updateAnonymousName(userId, userUpdateDTO.getAnonymousName());
         } else {
