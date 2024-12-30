@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { LISTENER_API_ENDPOINTS } from "@/mapper/listenerProfileMapper";
 import { setListeners } from "@/store/listenerSlice";
 import { RootState, AppDispatch } from "@/store";
@@ -18,7 +19,7 @@ export const getListenersByProfileStatus =
       const headers = cachedEtag ? { "If-None-Match": cachedEtag } : {};
 
       const response = await axios.get(
-        LISTENER_API_ENDPOINTS.GET_ALL_LISTENERS_BY_STATUS(status),
+        LISTENER_API_ENDPOINTS.GET_ALL_LISTENERS_BY_STATUS,
         {
           params: {
             status: status === "ALL" ? "active" : status, // default to 'active' if status is 'ALL'

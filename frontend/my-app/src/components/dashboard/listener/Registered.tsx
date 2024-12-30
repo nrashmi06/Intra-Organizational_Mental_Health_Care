@@ -1,6 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
 import { CheckCircle2, Search, X } from "lucide-react";
-import { CheckCircle2, Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -21,6 +20,9 @@ import InlineLoader from "@/components/ui/inlineLoader";
 import Pagination from "@/components/ui/PaginationComponent";
 import ListenerCard from "./ListenerCard";
 import { RootState } from "@/store";
+
+const DEBOUNCE_DELAY = 750;
+const PAGE_SIZE = 1;
 
 export function RegisteredListenersTable() {
   const dispatch = useAppDispatch();
@@ -111,7 +113,6 @@ export function RegisteredListenersTable() {
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);
-              setPaginationInfo((prev) => ({ ...prev, pageNumber: 0 }));
             }}
             className="pl-8"
           />
@@ -172,7 +173,6 @@ export function RegisteredListenersTable() {
         </div>
       )}
 
-
       {detailsModal && selectedListener && (
         <Details
           id={selectedListener}
@@ -185,7 +185,6 @@ export function RegisteredListenersTable() {
           setSuccessMessage={setSuccessMessage}
         />
       )}
-
 
       {applicationModal && selectedListener && application && (
         <ListenerDetailsForAdmin
