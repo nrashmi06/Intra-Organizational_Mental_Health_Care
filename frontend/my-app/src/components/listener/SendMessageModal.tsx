@@ -25,14 +25,14 @@ const SendMessageModal: React.FC<{
     try {
       const response = await initiateSession(userId, message, token);
       if (response) {
+        setMessage("Message sent successfully!");
         setAlert("Message sent successfully!");
-        setMessage("");
         setTimeout(() => {
           setAlert("");
           closeModal();
         }, 3000);
       } else {
-        setAlert("Unfortunately, the listener went offline. Please try again.");
+        setAlert("Failed to send message. Please try again.");
       }
     } catch (error) {
       console.error("Error sending message:", error);

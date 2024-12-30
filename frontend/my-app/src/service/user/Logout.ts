@@ -16,9 +16,8 @@ export const logout = async (accessToken: string) => {
       }
     );
 
-    return response.data; // Return the response data
+    console.log(response) // Return the response data
   } catch (error) {
     console.error("Error logging out the user:", error);
-    throw error; // Rethrow to handle in the calling function
   }
 };

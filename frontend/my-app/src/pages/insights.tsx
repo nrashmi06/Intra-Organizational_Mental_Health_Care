@@ -28,8 +28,6 @@ const DashboardPage = () => {
     pageSize: 4,
     totalPages: 0,
     totalElements: 0,
-    last: false,
-    first: true,
   });
 
   const loadBlogs = async () => {
@@ -62,12 +60,7 @@ const DashboardPage = () => {
     setLoading(true);
     setPaginationInfo((prev) => ({ ...prev, pageNumber: 0 }));
     loadBlogs();
-  }, [token, statusFilter]);
-
-  useEffect(() => {
-    setLoading(true);
-    loadBlogs();
-  }, [paginationInfo.pageNumber]);
+  }, [token, statusFilter, paginationInfo.pageNumber, paginationInfo.pageSize]);
 
   const handlePageClick = (pageNum: number) => {
     setPaginationInfo((prev) => ({ ...prev, pageNumber: pageNum }));
@@ -112,7 +105,7 @@ const DashboardPage = () => {
   return (
     <div className="md:p-6 space-y-8">
       <UserCountGrid />
-      <div className="grid gap-8 md:grid-cols-3">
+      <div className="grid gap-8 grid-cols-1 xl:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <CardTitle>Listener Summary</CardTitle>

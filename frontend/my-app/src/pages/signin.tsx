@@ -35,7 +35,6 @@ export default function SignIn() {
     setLoading(true);
     setError(null);
 
-    // Call login function and handle the response
     const response = await loginUser(email, password)(dispatch);
     
     if (response.success) {
@@ -48,12 +47,12 @@ export default function SignIn() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="bg-white flex flex-col relative">
       <Navbar />
 
-      <main className="flex flex-1 justify-center items-center pb-32">
-        <div className="w-full max-w-md">
-          <div className="bg-white rounded-3xl shadow-xl p-8">
+      <main className="w-full flex justify-center px-4">
+        <div className="w-full max-w-md absolute top-[140px] z-50">
+          <div className="bg-white rounded-3xl shadow-xl p-8 w-full">
             <div className="flex justify-center mb-6">
               <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
                 <Image
@@ -104,7 +103,6 @@ export default function SignIn() {
                   </button>
                 </div>
               </div>
-              
 
               <Button 
                 type="submit" 
@@ -126,7 +124,9 @@ export default function SignIn() {
         </div>
       </main>
 
-      <Footer />
+      <div className="relative lg:mt-96 mt-[620px]">
+        <Footer />
+      </div>
     </div>
   );
 }

@@ -5,9 +5,14 @@ interface ForgotPasswordResponse {
   message: string;
 }
 
-const forgotPassword = async (email: string): Promise<string> => {
+const forgotPassword = async (email: string, token: string): Promise<string> => {
   try {
-    const response = await axios.post<ForgotPasswordResponse>(API_ENDPOINTS.FORGOT_PASSWORD, { email });
+    const response = await axios.post<ForgotPasswordResponse>(API_ENDPOINTS.FORGOT_PASSWORD, { email }, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
     // Assuming the response structure matches the example provided
     return response.data.message;
   } catch (error: any) {

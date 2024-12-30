@@ -2,17 +2,16 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/router";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { RootState } from "@/store"; // Import RootState to access Redux state
-import { clearUser } from "@/store/authSlice";
-import { logout } from "@/service/user/Logout";
 
 export default function Navbar() {
   const router = useRouter();
-  const dispatch = useDispatch();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isServicesDropdownOpen, setIsServicesDropdownOpen] = useState(false);
-
+  const anonymousName = useSelector(
+    (state: RootState) => state.auth.anonymousName
+  );
   const user = useSelector((state: RootState) => state.auth); // Access user data from Redux state
   const role = user.role;
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
@@ -20,16 +19,10 @@ export default function Navbar() {
   const toggleServicesDropdown = () =>
     setIsServicesDropdownOpen(!isServicesDropdownOpen);
 
-  const handleLogout = async () => {
-    dispatch(clearUser()); // Clear user data from Redux state
-    await logout(user.accessToken); // Call the logout API
-    router.push("/signin"); // Redirect to the sign-in page
-  };
-
   return (
-    <header className="border-b z-50 relative">
+    <header className="z-20 relative">
       <div className="header">
-        <div className="mx-auto px-4 py-4 flex items-center justify-between w-full h-16">
+        <div className="mx-auto px-4 py-4 flex items-center justify-between w-full h-[3.7rem]">
           {/* Logo Section */}
           <div className="flex items-center gap-2">
             <Image
@@ -57,9 +50,9 @@ export default function Navbar() {
               </Link>
               {role === "ADMIN" && (
                 <Link
-                  href="/dashboard"
+                  href="/insights"
                   className={`text-sm font-medium text-white ${
-                    router.pathname === "/dashboard" ? "underline" : ""
+                    router.pathname === "/insights" ? "underline" : ""
                   }`}
                 >
                   Dashboard
@@ -95,7 +88,7 @@ export default function Navbar() {
                 {isServicesDropdownOpen && (
                   <div
                     className="absolute left-0 w-48 mt-2 bg-white text-black rounded-md shadow-lg"
-                    style={{ zIndex: 1000 }}
+                    style={{ zIndex: 20 }}
                   >
                     <Link
                       href="/listener-application"
@@ -153,10 +146,14 @@ export default function Navbar() {
                   </>
                 ) : (
                   <button
-                    onClick={handleLogout}
-                    className="text-sm font-medium text-white bg-black px-4 py-2 rounded-full hover:bg-gray-800 transition-colors"
+                    onClick={() => router.push("/profile")}
+                    className="text-sm font-medium text-white rounded-full hover:bg-gray-800 transition-colors flex items-center justify-center"
                   >
-                    Logout
+                    <div className="w-10 h-10 rounded-full bg-green-600 flex items-center justify-center">
+                      <span className="text-xl font-bold text-white">
+                        {anonymousName.charAt(0)}
+                      </span>
+                    </div>
                   </button>
                 )}
               </div>
@@ -235,7 +232,7 @@ export default function Navbar() {
               {isServicesDropdownOpen && (
                 <div
                   className="absolute left-0 w-48 mt-2 bg-white text-black rounded-md shadow-lg"
-                  style={{ zIndex: 1000 }}
+                  style={{ zIndex: 20 }}
                 >
                   <Link
                     href="/listener-application"
@@ -278,10 +275,14 @@ export default function Navbar() {
                 </>
               ) : (
                 <button
-                  onClick={handleLogout}
-                  className="text-sm font-medium text-white bg-black px-4 py-2 rounded-full hover:bg-gray-800 transition-colors"
+                  onClick={() => router.push("/profile")}
+                  className="text-sm font-medium text-white bg-black px-4 py-2 rounded-full hover:bg-gray-800 transition-colors flex items-center justify-center"
                 >
-                  Logout
+                  <div className="w-10 h-10 rounded-full bg-green-600 flex items-center justify-center">
+                    <span className="text-xl font-bold text-white">
+                      {anonymousName.charAt(0)}
+                    </span>
+                  </div>
                 </button>
               )}
             </div>

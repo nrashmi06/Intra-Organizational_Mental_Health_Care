@@ -8,6 +8,7 @@ export const APPOINTMENT_API_ENDPOINTS = {
   UPDATE_APPOINTMENT_STATUS: (appointmentId: string) => `${BASE_API}/${appointmentId}/status`, // Update appointment status (e.g., confirm/cancel)
   CANCEL_APPOINTMENT: (appointmentId: string) => `${BASE_API}/${appointmentId}/cancel`, // Cancel an appointment with a reason
   GET_APPOINTMENTS_BY_DATE_RANGE: `${BASE_API}/date`, // Get all appointments within a date range
-  GET_CURRENT_ADMIN_UPCOMING_APPOINTMENTS: `${BASE_API}/upcoming`, // Get all upcoming appointments for the current admin
-  GET_CURRENT_ADMIN_UPCOMING_APPOINTMENTS_BY_STATUS: `${BASE_API}/status`, // Get all upcoming appointments for the current admin by status
+  GET_CURRENT_ADMIN_UPCOMING_APPOINTMENTS: `${BASE_API}/upcoming`, // to be removed
+  GET_CURRENT_ADMIN_UPCOMING_APPOINTMENTS_BY_STATUS: `${BASE_API}/status`, // to be removed
+  GET_APPOINTMENTS_BY_FILTER: `${BASE_API}/filter`, // FETCH APPOINTMENTS BY FILTER
 };

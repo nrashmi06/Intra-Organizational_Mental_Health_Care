@@ -85,9 +85,9 @@ export default function SignIn() {
       <Navbar />
 
       {/* Main Content */}
-      <main className="flex flex-1 justify-center items-center pb-32">
-        <div className="w-full max-w-md">
-          <div className="bg-white rounded-3xl shadow-xl p-8">
+      <main className="w-full flex justify-center px-4">
+        <div className="w-full max-w-md absolute top-[140px] z-50">
+          <div className="bg-white md:rounded-3xl md:shadow-xl p-8 w-full">
             {/* Icon */}
             <div className="flex justify-center mb-6">
               <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center">
@@ -175,7 +175,7 @@ export default function SignIn() {
 
       {/* Success Popup */}
       {isSubmitted && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-10">
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg text-center">
             <h3 className="text-lg font-semibold text-green-600">
               Check Your Email!
@@ -193,7 +193,7 @@ export default function SignIn() {
 
       {/* Error Message */}
       {errorMessage && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-10">
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg text-center">
             <h3 className="text-lg font-semibold text-red-600">Error</h3>
             <p className="text-sm text-gray-600">{errorMessage}</p>
@@ -207,8 +207,9 @@ export default function SignIn() {
         </div>
       )}
 
-      {/* Footer */}
-      <Footer />
+      <div className="relative lg:mt-[500px] mt-[660px]">
+        <Footer />
+      </div>
     </div>
   );
 }

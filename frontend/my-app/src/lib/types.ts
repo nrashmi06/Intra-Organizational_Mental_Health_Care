@@ -38,7 +38,7 @@ export interface Listener {
 }
 
 export interface User {
-  id: string;
+  userId: string;
   anonymousName: string;
   email: string;
   active: boolean;
@@ -62,18 +62,29 @@ export interface ListenerDetails {
   averageRating: number;
   joinedAt: string;
   approvedBy: string;
+  totalBlogsPublished: number;
+  totalLikesReceived: number;
+  totalViewsReceived: number;
 }
 
 export interface UserDetails {
-  id: string;
+  userId: string;
   email: string;
   anonymousName: string;
   role: string;
+  isActive: boolean;
   profileStatus: string;
-  createdAt: string;
-  updatedAt: string;
-  lastSeen: string;
-  active: boolean;
+  createdAt: string; // ISO 8601 date string
+  updatedAt: string; // ISO 8601 date string
+  lastSeen: string; // ISO 8601 date string
+  totalSessionsAttended: number;
+  lastSessionDate: string; // ISO 8601 date string
+  totalAppointments: number;
+  lastAppointmentDate: string; // ISO 8601 date string
+  totalMessagesSent: number;
+  totalBlogsPublished: number;
+  totalLikesReceived: number;
+  totalViewsReceived: number;
 }
 
 export interface Session {
@@ -149,13 +160,25 @@ export interface BlogPost {
   likedByCurrentUser: boolean;
 }
 
-export interface PaginationInfo {
-  pageNumber: number;
-  pageSize: number;
-  totalPages: number;
-  totalElements: number;
-  last: boolean;
-  first: boolean;
+// export interface PaginationInfo {
+//   pageNumber: number;
+//   pageSize: number;
+//   totalPages: number;
+//   totalElements: number;
+//   last: boolean;
+//   first: boolean;
+// }
+export interface Article {
+  id: number;
+  title: string;
+  publishDate: string;
+  viewCount: number;
+  userId: number;
+  imageUrl: string;
+  content: string;
+  summary: string;
+  likedByCurrentUser: boolean;
+  likeCount: number;
 }
 export interface CalendarDayProps {
   day: Date;
@@ -184,4 +207,43 @@ export interface TimeSlotProps {
   appointments: Appointment[];
   isToday: boolean;
   onSelectSlot: (date: Date, hour: number) => void;
+}
+export interface Helpline {
+  name: string;
+  phoneNumber: string;
+  countryCode: string;
+  emergencyType: string;
+  priority: number;
+}
+
+export type PaginationInfo = {
+  pageNumber: number;
+  pageSize: number;
+  totalElements: number;
+  totalPages: number;
+};
+
+export interface Application {
+  applicationId: number;
+  fullName: string;
+  branch: string;
+  semester: number;
+  applicationStatus: string;
+  certificateUrl: string;
+}
+export interface FormData {
+  adminId?: string;
+  timeSlotId?: string;
+  fullName?: string;
+  severityLevel?: string;
+  phoneNumber?: string;
+  appointmentReason?: string;
+}
+
+export interface Slot {
+  timeSlotId: number;
+  date: string;
+  startTime: string;
+  endTime: string;
+  isAvailable: boolean;
 }

@@ -17,7 +17,7 @@ import {
 import Image from "next/image";
 
 const routes = [
-  { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
+  { label: "Insights", icon: LayoutDashboard, href: "/insights" },
   { label: "Calendar", icon: Calendar, href: "/dashboard/calendar" },
   { label: "Listener", icon: Headphones, href: "/dashboard/listener" },
   { label: "User", icon: Users, href: "/dashboard/user" },
@@ -78,7 +78,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
             href={route.href}
             className={cn(
               "group flex items-center px-3 py-2 text-sm font-medium rounded-md",
-              pathname === route.href
+             pathname?.includes(route.href)
                 ? "bg-teal-900 text-white"
                 : "text-white hover:bg-teal-800 hover:text-white"
             )}
