@@ -9,7 +9,7 @@ export const SESSION_API_ENDPOINTS = {
   GET_SESSION_BY_ID: (sessionId: string) => `${BASE_API}/${sessionId}`,
   GET_SESSIONS_BY_USER_ID_OR_LISTENER_ID: (userId: string) =>
     `${BASE_API}/user/${userId}`,
-  GET_SESSIONS_BY_STATUS: `${BASE_API}/status`,
+  GET_SESSIONS_BY_STATUS: `${BASE_API}/filter`,
   GET_ALL_SESSIONS: BASE_API,
   GET_MESSAGES_BY_SESSION_ID: (sessionId: string) => `${BASE_API}/messages/${sessionId}`,
   AVG_SESSION_DURATION: `${BASE_API}/avg-duration`,

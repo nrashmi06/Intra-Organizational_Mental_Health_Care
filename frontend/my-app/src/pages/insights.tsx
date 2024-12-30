@@ -28,8 +28,6 @@ const DashboardPage = () => {
     pageSize: 4,
     totalPages: 0,
     totalElements: 0,
-    last: false,
-    first: true,
   });
 
   const loadBlogs = async () => {
@@ -62,12 +60,7 @@ const DashboardPage = () => {
     setLoading(true);
     setPaginationInfo((prev) => ({ ...prev, pageNumber: 0 }));
     loadBlogs();
-  }, [token, statusFilter]);
-
-  useEffect(() => {
-    setLoading(true);
-    loadBlogs();
-  }, [paginationInfo.pageNumber]);
+  }, [token, statusFilter, paginationInfo.pageNumber, paginationInfo.pageSize]);
 
   const handlePageClick = (pageNum: number) => {
     setPaginationInfo((prev) => ({ ...prev, pageNumber: pageNum }));

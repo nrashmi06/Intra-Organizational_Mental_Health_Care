@@ -1,9 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import {
-  CheckCircle2,
-  Search,
-  X,
-} from "lucide-react";
+import { CheckCircle2, Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -21,15 +17,17 @@ import { ListenerApplication, Listener } from "@/lib/types";
 import { getApplicationByListenerUserId } from "@/service/listener/getApplicationByListenerUserId";
 import { useRouter } from "next/router";
 import InlineLoader from "@/components/ui/inlineLoader";
-import Pagination3 from "@/components/ui/pagination3";
+import Pagination from "@/components/dashboard/Pagination";
 import ListenerCard from "./ListenerCard";
 
+const DEBOUNCE_DELAY = 750;
+const PAGE_SIZE = 1;
+
 export function RegisteredListenersTable() {
-  const [searchQuery, setSearchQuery] = useState("");
   const [listeners, setListeners] = useState<Listener[]>([]);
-  const [statusFilter, setStatusFilter] = useState<"ACTIVE" | "SUSPENDED">("ACTIVE");
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6;
+  const [statusFilter, setStatusFilter] = useState<"ACTIVE" | "SUSPENDED">(
+    "ACTIVE"
+  );
   const router = useRouter();
   const accessToken = useSelector((state: RootState) => state.auth.accessToken);
   const [detailsModal, setDetailsModal] = useState(false);
@@ -41,25 +39,68 @@ export function RegisteredListenersTable() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  // Search state with debouncing
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+  const [paginationInfo, setPaginationInfo] = useState({
+    pageNumber: 0,
+    pageSize: PAGE_SIZE,
+    totalElements: 0,
+    totalPages: 0,
+  });
+
+  // Implement debouncing for search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, DEBOUNCE_DELAY);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   const fetchListenersByProfileStatus = useCallback(
     async (status: "ACTIVE" | "SUSPENDED") => {
       try {
         setLoading(true);
-        const response = await getListenersByProfileStatus(accessToken, status);
-        setListeners(response);
-        setStatusFilter(status);
+        const response = await getListenersByProfileStatus({
+          status,
+          token: accessToken,
+          page: paginationInfo.pageNumber,
+          size: paginationInfo.pageSize,
+          search: debouncedSearchQuery,
+        });
+
+        if (response && response.content) {
+          setListeners(response.content);
+          setPaginationInfo((prev) => ({
+            ...prev,
+            totalElements: response.page.totalElements,
+            totalPages: response.page.totalPages,
+          }));
+          setStatusFilter(status);
+        }
       } catch (error) {
         console.error("Error fetching listeners:", error);
       } finally {
         setLoading(false);
       }
     },
-    [accessToken]
+    [
+      accessToken,
+      paginationInfo.pageNumber,
+      paginationInfo.pageSize,
+      debouncedSearchQuery,
+    ]
   );
 
   useEffect(() => {
-    fetchListenersByProfileStatus("ACTIVE");
-  }, [fetchListenersByProfileStatus]);
+    fetchListenersByProfileStatus(statusFilter);
+  }, [
+    fetchListenersByProfileStatus,
+    paginationInfo.pageNumber,
+    paginationInfo.pageSize,
+    debouncedSearchQuery,
+  ]);
 
   const fetchApplicationData = async (userId: string) => {
     try {
@@ -80,18 +121,13 @@ export function RegisteredListenersTable() {
     setDetailsModal(true);
   };
 
-  const filteredListeners = listeners.filter(
-    (listener) =>
-      listener.anonymousName
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase()) ||
-      listener.userId.toString().includes(searchQuery)
-  );
-
-  const paginatedListeners = filteredListeners.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  const handlePageChange = (page: number) => {
+    setPaginationInfo((prev) => ({
+      ...prev,
+      pageNumber: page - 1, // Convert to 0-based index for the API
+    }));
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   return (
     <div className="space-y-6">
@@ -101,15 +137,19 @@ export function RegisteredListenersTable() {
           <Input
             placeholder="Search by name or ID..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setPaginationInfo((prev) => ({ ...prev, pageNumber: 0 }));
+            }}
             className="pl-8"
           />
         </div>
         <Select
           value={statusFilter}
-          onValueChange={(value) =>
-            fetchListenersByProfileStatus(value as "ACTIVE" | "SUSPENDED")
-          }
+          onValueChange={(value) => {
+            setPaginationInfo((prev) => ({ ...prev, pageNumber: 0 }));
+            fetchListenersByProfileStatus(value as "ACTIVE" | "SUSPENDED");
+          }}
         >
           <SelectTrigger className="w-[160px] bg-white">
             <SelectValue placeholder="Filter by status" />
@@ -120,16 +160,18 @@ export function RegisteredListenersTable() {
           </SelectContent>
         </Select>
       </div>
+
       {loading && <InlineLoader />}
+
       {!loading && (
         <>
-          {paginatedListeners.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              No {statusFilter.toLowerCase()} listeners found.
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {paginatedListeners.map((listener) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {listeners.length === 0 ? (
+              <div className="col-span-full text-center py-8 text-muted-foreground">
+                No {statusFilter.toLowerCase()} listeners found.
+              </div>
+            ) : (
+              listeners.map((listener) => (
                 <ListenerCard
                   key={listener.userId}
                   listener={listener}
@@ -145,17 +187,20 @@ export function RegisteredListenersTable() {
                     router.push(`/dashboard/listener/feedbacks/${userId}`)
                   }
                 />
-              ))}
-            </div>
+              ))
+            )}
+          </div>
+
+          {listeners.length > 0 && (
+            <Pagination
+              currentPage={paginationInfo.pageNumber + 1}
+              totalPages={paginationInfo.totalPages}
+              onPageChange={handlePageChange}
+            />
           )}
         </>
       )}
-      <Pagination3
-        currentPage={currentPage}
-        itemsPerPage={itemsPerPage}
-        setCurrentPage={setCurrentPage}
-        filteredElements={filteredListeners}
-      />
+
       {successMessage && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/20 backdrop-blur-sm">
           <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full mx-4">
@@ -169,6 +214,7 @@ export function RegisteredListenersTable() {
           </div>
         </div>
       )}
+
       {detailsModal && selectedListener && (
         <Details
           id={selectedListener}
@@ -181,6 +227,7 @@ export function RegisteredListenersTable() {
           setSuccessMessage={setSuccessMessage}
         />
       )}
+
       {applicationModal && selectedListener && application && (
         <ListenerDetailsForAdmin
           data={application}

@@ -1,7 +1,7 @@
 // src/service/session/getSessionFeedback.ts
 import { FEEDBACK_API_ENDPOINTS } from "@/mapper/feedbackMapper"; // Import the feedback mapper
 
-export const getSessionFeedback = async (sessionId: string, token: string) => {
+export const getSessionFeedback = async (sessionId: string, token: string, signal?: AbortSignal) => {
   try {
     const url = FEEDBACK_API_ENDPOINTS.GET_FEEDBACK_BY_SESSION(sessionId); // Use the mapped endpoint
 
@@ -11,6 +11,7 @@ export const getSessionFeedback = async (sessionId: string, token: string) => {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
+      signal
     });
 
     const data = await response.json();

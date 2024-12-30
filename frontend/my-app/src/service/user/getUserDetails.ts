@@ -23,7 +23,7 @@ export const getUserDetails = async (userId: string, token: string) => {
         throw new Error(`Error: ${response.statusText || "Unknown error occurred."}`);
       }
     }
-
+    console.log("DATA:", response);
     // Parse the JSON response
     const data = await response.json();
     return data;

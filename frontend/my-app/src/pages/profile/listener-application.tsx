@@ -33,9 +33,7 @@ export default function ListenerApplication() {
 
     const checkApplication = async () => {
       try {
-        console.log("Checking application");
         const response = await fetchApplication(accessToken);
-        console.log("Response:", response);
         setApplicationData(response);
         setApplicationExists(response !== null);
       } catch (error) {
@@ -100,7 +98,6 @@ export default function ListenerApplication() {
         <ApplicationForm />
       )}
 
-      {/* Confirmation Popup */}
       {confirmationPopupVisible && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-10">
           <div className="bg-white p-6 rounded-lg shadow-lg text-center">

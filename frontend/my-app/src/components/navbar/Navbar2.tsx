@@ -2,35 +2,22 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/router";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { RootState } from "@/store"; // Import RootState to access Redux state
-import { clearUser } from "@/store/authSlice";
-import { logout } from "@/service/user/Logout";
-import {
-  clearNotifications,
-  clearStoredRequest,
-} from "@/store/notificationSlice";
 
 export default function Navbar() {
   const router = useRouter();
-  const dispatch = useDispatch();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isServicesDropdownOpen, setIsServicesDropdownOpen] = useState(false);
-
+  const anonymousName = useSelector(
+    (state: RootState) => state.auth.anonymousName
+  );
   const user = useSelector((state: RootState) => state.auth); // Access user data from Redux state
   const role = user.role;
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
   const toggleServicesDropdown = () =>
     setIsServicesDropdownOpen(!isServicesDropdownOpen);
-
-  const handleLogout = async () => {
-    await router.push("/signin");
-    dispatch(clearUser()); // Clear user data from Redux state
-    logout(user.accessToken); // Call the logout API
-    dispatch(clearNotifications());
-    dispatch(clearStoredRequest());
-  };
 
   return (
     <header className="z-20 relative">
@@ -159,10 +146,14 @@ export default function Navbar() {
                   </>
                 ) : (
                   <button
-                    onClick={handleLogout}
-                    className="text-sm font-medium text-white bg-black px-4 py-2 rounded-full hover:bg-gray-800 transition-colors"
+                    onClick={() => router.push("/profile")}
+                    className="text-sm font-medium text-white rounded-full hover:bg-gray-800 transition-colors flex items-center justify-center"
                   >
-                    Logout
+                    <div className="w-10 h-10 rounded-full bg-green-600 flex items-center justify-center">
+                      <span className="text-xl font-bold text-white">
+                        {anonymousName.charAt(0)}
+                      </span>
+                    </div>
                   </button>
                 )}
               </div>
@@ -284,10 +275,14 @@ export default function Navbar() {
                 </>
               ) : (
                 <button
-                  onClick={handleLogout}
-                  className="text-sm font-medium text-white bg-black px-4 py-2 rounded-full hover:bg-gray-800 transition-colors"
+                  onClick={() => router.push("/profile")}
+                  className="text-sm font-medium text-white bg-black px-4 py-2 rounded-full hover:bg-gray-800 transition-colors flex items-center justify-center"
                 >
-                  Logout
+                  <div className="w-10 h-10 rounded-full bg-green-600 flex items-center justify-center">
+                    <span className="text-xl font-bold text-white">
+                      {anonymousName.charAt(0)}
+                    </span>
+                  </div>
                 </button>
               )}
             </div>

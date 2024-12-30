@@ -17,12 +17,13 @@ export const fetchApplication = async (
         Authorization: `Bearer ${accessToken}`,
       },
     });
-
+    if (response.status !== 200) {
+      return null;
+    }
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response?.status === 404) {
       return null;
     }
-    console.error("Error fetching application:", error);
   }
 };

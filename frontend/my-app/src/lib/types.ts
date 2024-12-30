@@ -45,6 +45,19 @@ export interface User {
   inASession?: boolean;
 }
 
+export interface UserCompleteProfile {
+    id: string;
+    email: string;
+    anonymousName: string;
+    role: 'ADMIN' | 'USER' | 'LISTENER'; // Adjust roles as needed
+    profileStatus: 'ACTIVE' | 'INACTIVE'; // Enum for profile statuses
+    createdAt: string; // ISO 8601 date string
+    updatedAt: string; // ISO 8601 date string
+    lastSeen: string; // ISO 8601 date string
+    error: string | null;
+    active: boolean;
+}
+
 export interface UserSummary {
   userId: string;
   anonymousName: string;
@@ -149,14 +162,14 @@ export interface BlogPost {
   likedByCurrentUser: boolean;
 }
 
-export interface PaginationInfo {
-  pageNumber: number;
-  pageSize: number;
-  totalPages: number;
-  totalElements: number;
-  last: boolean;
-  first: boolean;
-}
+// export interface PaginationInfo {
+//   pageNumber: number;
+//   pageSize: number;
+//   totalPages: number;
+//   totalElements: number;
+//   last: boolean;
+//   first: boolean;
+// }
 export interface Article {
   id: number;
   title: string;
@@ -197,3 +210,10 @@ export interface TimeSlotProps {
   isToday: boolean;
   onSelectSlot: (date: Date, hour: number) => void;
 }
+
+export type PaginationInfo = {
+  pageNumber: number;
+  pageSize: number;
+  totalElements: number;
+  totalPages: number;
+};
