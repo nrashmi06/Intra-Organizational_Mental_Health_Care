@@ -9,5 +9,5 @@ public interface ListenerService {
     ListenerDetailsResponseDTO getListenerDetails(String type, Integer id);
     Page<UserActivityDTO> getListenersByFilters(String status, String searchTerm, Pageable pageable);
     String suspendOrUnsuspendListener(Integer listenerId, String action);
-    void incrementMessageCount(String username);
+    void incrementMessageCount(String username, Integer count);
 }

@@ -199,6 +199,8 @@ public class SessionServiceImpl implements SessionService {
         log.info("Session ended - Session ID: {}", sessionId);
         return "Session ended successfully";
     }
+
+
     @Override
     public List<SessionSummaryDTO> broadcastFullSessionCache() {
         List<SessionSummaryDTO> cachedSessions = new ArrayList<>();

@@ -5,6 +5,7 @@ import com.dbms.mentalhealth.model.Session;
 import com.dbms.mentalhealth.model.User;
 import com.dbms.mentalhealth.repository.SessionRepository;
 import com.dbms.mentalhealth.repository.UserRepository;
+import com.dbms.mentalhealth.scheduler.ChatMessageScheduler;
 import com.dbms.mentalhealth.service.ChatMessageService;
 import com.dbms.mentalhealth.service.UserService;
 import com.dbms.mentalhealth.service.ListenerService;
@@ -28,16 +29,25 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     private final UserService userService;
     private final ListenerService listenerService;
     private final ChatMessageService chatMessageService;
+    private final UserRepository userRepository;
+    private final ChatMessageScheduler chatMessageScheduler;
 
     private static final Map<String, Map<String, WebSocketSession>> chatSessions = new ConcurrentHashMap<>();
-    private final UserRepository userRepository;
+    private final Map<String, Session> sessionCache = new ConcurrentHashMap<>();
+    private final Map<String, User> userCache = new ConcurrentHashMap<>();
 
-    public ChatWebSocketHandler(SessionRepository sessionRepository, UserService userService, ListenerService listenerService, ChatMessageService chatMessageService, UserRepository userRepository) {
+    public ChatWebSocketHandler(SessionRepository sessionRepository,
+                                UserService userService,
+                                ListenerService listenerService,
+                                ChatMessageService chatMessageService,
+                                UserRepository userRepository,
+                                ChatMessageScheduler chatMessageScheduler) {
         this.sessionRepository = sessionRepository;
         this.userService = userService;
         this.listenerService = listenerService;
         this.chatMessageService = chatMessageService;
         this.userRepository = userRepository;
+        this.chatMessageScheduler = chatMessageScheduler;
     }
 
     @Override
@@ -65,51 +75,27 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             String sessionId = getPathParam(session, "sessionId");
             String username = getPathParam(session, "username");
 
-            log.info("Received message from {} in session {}: {}", username, sessionId, message.getPayload());
-
-            if (message.getPayload().trim().isEmpty()) {
-                log.warn("Empty message received from {}", username);
+            if (!isValidMessage(message, sessionId, username)) {
                 return;
             }
 
-            if (sessionId == null || username == null) {
-                log.error("Invalid session parameters: sessionId={}, username={}", sessionId, username);
-                return;
-            }
+            Session chatSession = getSessionFromCache(sessionId);
+            User sender = getUserFromCache(username);
 
-            int parsedSessionId;
-            try {
-                parsedSessionId = Integer.parseInt(sessionId);
-            } catch (NumberFormatException e) {
-                log.error("Invalid session ID format: {}", sessionId);
-                return;
-            }
-
-            Session foundSession = sessionRepository.findById(parsedSessionId).orElse(null);
-            User sender = userRepository.findByAnonymousName(username);
-
-            if (foundSession == null) {
-                log.error("Session not found for ID: {}", parsedSessionId);
-                return;
-            }
-
-            if (sender == null) {
-                log.error("User not found with username: {}", username);
+            if (chatSession == null || sender == null) {
+                log.error("Session or user not found in cache");
                 return;
             }
 
             ChatMessage chatMessage = new ChatMessage();
-            chatMessage.setSession(foundSession);
+            chatMessage.setSession(chatSession);
             chatMessage.setSender(sender);
             chatMessage.setMessageContent(message.getPayload());
             chatMessage.setSentAt(LocalDateTime.now());
 
-            chatMessageService.saveMessage(chatMessage);
-            log.info("Saved chat message from {} in session {}", username, sessionId);
+            chatMessageScheduler.queueMessage(chatMessage, username);
 
-            listenerService.incrementMessageCount(username);
-            log.info("Incremented message count for user: {}", username);
-
+            log.info("Queued message from {} in session {}: {}", username, sessionId, message.getPayload());
             broadcastMessage(sessionId, username + ": " + message.getPayload(), username);
 
         } catch (Exception e) {
@@ -129,11 +115,28 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
             if (sessionsForId.isEmpty()) {
                 chatSessions.remove(sessionId);
+                sessionCache.remove(sessionId);
                 log.info("Session {} removed from chatSessions", sessionId);
             } else {
                 broadcastMessage(sessionId, createSystemMessage(username + " has left the chat"), null);
             }
         }
+    }
+
+    private Session getSessionFromCache(String sessionId) {
+        return sessionCache.computeIfAbsent(sessionId, id -> {
+            try {
+                return sessionRepository.findById(Integer.parseInt(id)).orElse(null);
+            } catch (NumberFormatException e) {
+                log.error("Invalid session ID format: {}", id);
+                return null;
+            }
+        });
+    }
+
+    private User getUserFromCache(String username) {
+        return userCache.computeIfAbsent(username,
+                name -> userRepository.findByAnonymousName(name));
     }
 
     private String getPathParam(WebSocketSession session, String paramName) {
@@ -147,6 +150,20 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         return null;
     }
 
+    private boolean isValidMessage(TextMessage message, String sessionId, String username) {
+        if (message.getPayload().trim().isEmpty()) {
+            log.warn("Empty message received from {}", username);
+            return false;
+        }
+
+        if (sessionId == null || username == null) {
+            log.error("Invalid session parameters: sessionId={}, username={}", sessionId, username);
+            return false;
+        }
+
+        return true;
+    }
+
     private void broadcastMessage(String sessionId, String message, String excludeUser) {
         Map<String, WebSocketSession> sessionsForId = chatSessions.get(sessionId);
         if (sessionsForId != null) {
@@ -155,11 +172,9 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
                     synchronized (wsSession) {
                         try {
                             wsSession.sendMessage(new TextMessage(message));
-                            log.info("Broadcasted message to user {} in session {}: {}", username, sessionId, message);
+                            log.info("Broadcasted message to user {} in session {}", username, sessionId);
                         } catch (IOException e) {
                             log.error("Error broadcasting message to user {} in session {}", username, sessionId, e);
-                        } catch (IllegalStateException e) {
-                            log.error("WebSocket session in invalid state for sending message to user {} in session {}", username, sessionId, e);
                         }
                     }
                 }
@@ -180,6 +195,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
                     }
                 }
             });
+            sessionCache.remove(sessionId);
             log.info("Session {} ended and removed from chatSessions", sessionId);
             return true;
         } else {

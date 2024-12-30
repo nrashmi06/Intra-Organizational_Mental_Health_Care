@@ -1,25 +1,19 @@
 package com.dbms.mentalhealth.service.impl;
 
-import com.dbms.mentalhealth.config.TrendingScoreConfig;
 import com.dbms.mentalhealth.dto.blog.trending.TrendingScoreDTO;
 import com.dbms.mentalhealth.mapper.TrendingScoreMapper;
 import com.dbms.mentalhealth.model.Blog;
 import com.dbms.mentalhealth.model.BlogTrendingScore;
 import com.dbms.mentalhealth.repository.BlogRepository;
 import com.dbms.mentalhealth.repository.BlogTrendingScoreRepository;
+import com.dbms.mentalhealth.scheduler.TrendingScoreScheduler;
 import com.dbms.mentalhealth.service.BlogTrendingScoreService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.List;
 
 @Slf4j
 @Service
@@ -27,53 +21,7 @@ import java.util.List;
 public class BlogTrendingScoreServiceImpl implements BlogTrendingScoreService {
     private final BlogRepository blogRepository;
     private final BlogTrendingScoreRepository trendingScoreRepository;
-    private final TrendingScoreConfig properties;
-
-    @Override
-    @Scheduled(fixedRate = 6000000) // Every 10 minutes
-    @Transactional
-    public void updateScores() {
-        LocalDateTime cutoff = LocalDateTime.now().minusHours(properties.getDecayHours());
-
-        try {
-            Page<Blog> blogs = blogRepository.findRecentlyActiveBlogs(
-                    cutoff,
-                    PageRequest.of(0, properties.getBatchSize())
-            );
-
-            while (blogs.hasContent()) {
-                List<BlogTrendingScore> scores = blogs.getContent().stream()
-                        .map(this::calculateScore)
-                        .toList();
-                for (BlogTrendingScore score : scores) {
-                    trendingScoreRepository.findById(score.getBlogId())
-                            .ifPresentOrElse(
-                                    existingScore -> {
-                                        existingScore.setTrendingScore(score.getTrendingScore());
-                                        existingScore.setViewCount(score.getViewCount());
-                                        existingScore.setLikeCount(score.getLikeCount());
-                                        existingScore.setLastCalculated(score.getLastCalculated());
-                                        trendingScoreRepository.save(existingScore);
-                                    },
-                                    () -> trendingScoreRepository.save(score)
-                            );
-                }
-
-                if (blogs.hasNext()) {
-                    blogs = blogRepository.findRecentlyActiveBlogs(
-                            cutoff,
-                            blogs.nextPageable()
-                    );
-                } else {
-                    break;
-                }
-            }
-
-            log.info("Successfully updated trending scores");
-        } catch (Exception e) {
-            log.error("Error updating trending scores", e);
-        }
-    }
+    private final TrendingScoreScheduler trendingScoreScheduler;
 
     @Override
     @Transactional
@@ -81,10 +29,7 @@ public class BlogTrendingScoreServiceImpl implements BlogTrendingScoreService {
         try {
             Blog blog = blogRepository.findById(blogId)
                     .orElseThrow(() -> new RuntimeException("Blog not found: " + blogId));
-
-            BlogTrendingScore score = calculateScore(blog);
-            trendingScoreRepository.save(score);
-
+            trendingScoreScheduler.updateTrendingScores();
             log.debug("Updated trending score for blog {}", blogId);
         } catch (Exception e) {
             log.error("Error updating trending score for blog {}", blogId, e);
@@ -107,25 +52,5 @@ public class BlogTrendingScoreServiceImpl implements BlogTrendingScoreService {
     @Override
     public void handleBlogLike(Integer blogId) {
         updateScore(blogId);
-    }
-
-    private BlogTrendingScore calculateScore(Blog blog) {
-        double hoursAge = ChronoUnit.HOURS.between(
-                blog.getCreatedAt(),
-                LocalDateTime.now()
-        ) + 2; // +2 to avoid division by zero
-
-        double score = (blog.getViewCount() * properties.getViewWeight() +
-                blog.getLikeCount() * properties.getLikeWeight()) /
-                Math.pow(hoursAge, properties.getDecayFactor());
-
-        return new BlogTrendingScore(
-                blog.getId(),
-                score,
-                blog.getViewCount(),
-                blog.getLikeCount(),
-                LocalDateTime.now(),
-                null  // version will be handled by JPA
-        );
     }
 }
