@@ -8,7 +8,6 @@ const fetchTimeSlots = async (
   isAvailable: boolean,
   token: string
 ) => {
-  // Use the mapper to construct the URL
   const url = TIME_SLOT_API_ENDPOINTS.GET_TIME_SLOTS_BY_ADMIN_IN_DATE_RANGE(adminId);
 
   try {
@@ -25,7 +24,7 @@ const fetchTimeSlots = async (
     });
 
     console.log('Time Slots:', response.data);
-    return response.data; // Return the time slots data
+    return response.data.content; // Return the time slots data
   } catch (error) {
     if (axios.isAxiosError(error)) {
       console.error('Error fetching time slots:', error.response?.data || error.message);

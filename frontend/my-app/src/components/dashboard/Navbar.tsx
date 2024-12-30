@@ -19,13 +19,18 @@ export default function Navbar({ children }: NavbarProps) {
   const dispatch = useDispatch();
   const token = useSelector((state: RootState) => state.auth.accessToken);
 
+  const clearStore = useClearStore();
+
   const handleLogout = async () => {
     try {
+      console.log("Logging out... with token : ", token);
       await router.push("/signin");
       await logout(token);
       dispatch(clearEventSources());
       dispatch(clearNotifications());
       dispatch(clearUser());
+      dispatch(clearHelplines());
+      clearStore(); // Properly call the clearStore function
 
       // Only clear the user state after navigation is complete
     } catch (error) {

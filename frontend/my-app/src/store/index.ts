@@ -1,16 +1,17 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { persistReducer, persistStore } from 'redux-persist';
-import storage from 'redux-persist/lib/storage/session'; // Using sessionStorage for persistence
+import storage from 'redux-persist/lib/storage/session'; // Using sessionStorage
+import chatReducer from './chatSlice';
+import emergencyReducer from './emergencySlice'; 
+import detailedApplicationSlice from './detailedApplicationSlice'; 
+import applicationListSlice from './applicationListSlice';
+import appointmentReducer from './appointmentSlice'; 
+import timeSlotReducer from './timeSlotSlice';
 
-import authReducer from './authSlice'; // Auth reducer
-import notificationReducer from './notificationSlice'; // Notification reducer
-import chatReducer from './chatSlice'; // Chat reducer
-import eventSourceReducer from './eventsourceSlice'; // EventSource reducer
-
-// Define individual persist configs
+// Define  reducers
 const authPersistConfig = {
-  key: 'auth', // Key for auth storage
-  storage,     // Using sessionStorage
+  key: 'auth',  
+  storage,      
 };
 
 const notificationPersistConfig = {
@@ -19,28 +20,56 @@ const notificationPersistConfig = {
 };
 
 const chatPersistConfig = {
-  key: 'chat', // Key for chat storage
-  storage,     // Using sessionStorage
+  key: 'chat', 
+  storage,     
 };
 
-const eventSourcePersistConfig = {
-  key: 'eventSource', // Key for eventSource storage
-  storage,            // Using sessionStorage
+const emergencyPersistConfig = {
+  key: 'emergency', 
+  storage,      
+};
+
+const detailedApplicationPersistConfig = {
+  key: 'detailedApplication',
+  storage,
+};
+
+const applicationListPersistConfig = {
+  key: 'applicationList',
+  storage,
+};
+
+const appointmentPersistConfig = {
+  key: 'appointments',
+  storage,
+};
+
+const timeSlotPersistConfig = {
+  key: 'timeSlots',
+  storage,
 };
 
 // Persist reducers
 const persistedAuthReducer = persistReducer(authPersistConfig, authReducer);
 const persistedNotificationReducer = persistReducer(notificationPersistConfig, notificationReducer);
 const persistedChatReducer = persistReducer(chatPersistConfig, chatReducer);
-const persistedEventSourceReducer = persistReducer(eventSourcePersistConfig, eventSourceReducer);
+const persistedEmergencyReducer = persistReducer(emergencyPersistConfig, emergencyReducer);
+const persistedDetailedApplicationReducer = persistReducer(detailedApplicationPersistConfig, detailedApplicationSlice);
+const persistedApplicationListReducer = persistReducer(applicationListPersistConfig, applicationListSlice);
+const persistedAppointmentReducer = persistReducer(appointmentPersistConfig, appointmentReducer);
+const persistedTimeSlotReducer = persistReducer(timeSlotPersistConfig, timeSlotReducer);
 
 // Create the Redux store
 const store = configureStore({
   reducer: {
-    auth: persistedAuthReducer,         // Persisted auth reducer
-    notification: persistedNotificationReducer, // Persisted notification reducer
-    chat: persistedChatReducer,         // Persisted chat reducer
-    eventSource: persistedEventSourceReducer,    // EventSource reducer (not persisted)
+    auth: persistedAuthReducer,  // Use the persisted auth reducer
+    notification: persistedNotificationReducer, // Add your notification reducer
+    chat: persistedChatReducer, // Add your chat reducer
+    emergency: persistedEmergencyReducer, 
+    detailedApplication: persistedDetailedApplicationReducer,
+    applicationList: persistedApplicationListReducer,
+    appointments: persistedAppointmentReducer,
+    timeSlots: persistedTimeSlotReducer,
   },
   devTools: process.env.NODE_ENV !== 'production', // Enable Redux DevTools in development mode only
 });

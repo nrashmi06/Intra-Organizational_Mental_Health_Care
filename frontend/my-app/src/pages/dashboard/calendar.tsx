@@ -4,31 +4,46 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import DailySchedule from '@/components/dashboard/schedule/DailySchedule'
 import WeeklySchedule from '@/components/dashboard/schedule/WeeklySchedule'
 import MonthlySchedule from '@/components/dashboard/schedule/MonthlySchedule'
-import { Appointment } from '@/lib/types'
 import { useEffect, useState } from 'react'
 import { RootState } from '@/store'
 import { useSelector } from 'react-redux'
 import DashboardLayout from '@/components/dashboard/DashboardLayout'
 import DatePicker from '@/components/dashboard/schedule/DatePicker'
-import { getAppointmentByAdmin } from '@/service/appointment/getAppointmentByAdmin'
+import { getAppointmentsByFilter } from '@/service/appointment/getAppointmentsByFilter'
+import { useAppDispatch } from '@/hooks/useAppDispatch'
 
 const SchedulePage = () => {
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const dispatch = useAppDispatch();
   const [date, setDate] = useState<Date>(new Date());
+  
+  const appointments = useSelector((state: RootState) => state.appointments.appointments);
   const token = useSelector((state: RootState) => state.auth.accessToken);
+  const userId = useSelector((state: RootState) => state.auth.userId);
 
   useEffect(() => {
     const fetchAppointments = async () => {
+      if (!token || !userId) {
+        console.error("No auth token or user ID found.");
+        return;
+      }
+
       try {
-        const response = await getAppointmentByAdmin(token);
-        const data = response.data;
-        setAppointments(data);
+        await dispatch(
+          getAppointmentsByFilter({
+            timeFilter: 'ALL', // You might want to make this dynamic based on selected tab
+            status: 'ALL',
+            page: 0,
+            size: 100, // Adjust size as needed
+            userId,
+          })
+        );
       } catch (error) {
         console.error("Error fetching appointments:", error);
       }
     };
+
     fetchAppointments();
-  }, [token]);
+  }, [token, dispatch, userId]);
 
   const handleDateSelect = (newDate: Date | undefined) => {
     if (newDate) {
@@ -47,7 +62,11 @@ const SchedulePage = () => {
               <TabsTrigger value="month">Month</TabsTrigger>
             </TabsList>
 
-            <DatePicker date = {date} onDateChange = {handleDateSelect} className="w-[240px] justify-start text-left font-normal" />
+            <DatePicker 
+              date={date} 
+              onDateChange={handleDateSelect} 
+              className="w-[240px] justify-start text-left font-normal" 
+            />
           </div>
 
           {/* Day Schedule Tab */}
