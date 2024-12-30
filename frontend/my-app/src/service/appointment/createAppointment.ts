@@ -1,32 +1,27 @@
 import axios from 'axios';
-import {APPOINTMENT_API_ENDPOINTS} from '@/mapper/appointmentMapper';  // Import the appointment API endpoint mappings
-interface FormData {
-  adminId: string;
-  timeSlotId: string;
-  fullName: string;
-  severityLevel: string;
-  phoneNumber: string;
-  appointmentReason: string;
-}
+import { APPOINTMENT_API_ENDPOINTS } from '@/mapper/appointmentMapper'; 
+import { FormData } from '@/lib/types'; 
 
-// Create an Axios instance with default configurations
-const createAppointment = async (token: string, formData: FormData) => {
+const createAppointment = async (token: string, formData: FormData): Promise<number | null> => {
   try {
     const response = await axios.post(
-      APPOINTMENT_API_ENDPOINTS.BOOK_APPOINTMENT, // Use the mapped URL
-      formData, // Pass the form data
+      APPOINTMENT_API_ENDPOINTS.BOOK_APPOINTMENT,
+      formData,
       {
         headers: {
           'Content-Type': 'application/json',
-          Authorization: token ? `Bearer ${token}` : '', // Add token dynamically if available
+          Authorization: token ? `Bearer ${token}` : '',
         },
       }
     );
-    
-    return response; // Return response on success
+    return response.status; // Return response status
   } catch (error: any) {
-    console.error('Error creating appointment:', error.response?.data || error.message || error);
-    throw error; // Throw error to be handled by the component
+    if (axios.isAxiosError(error)) {
+      console.error('Error creating appointment:', error.response?.data || error.message);
+      return error.response?.status || null; // Return specific status code for further handling
+    }
+    console.error('Unexpected error:', error.message || error);
+    return null; // Handle non-Axios errors
   }
 };
 

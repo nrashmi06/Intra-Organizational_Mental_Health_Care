@@ -12,7 +12,6 @@ const AppointmentPage = () => {
                 <TabsList>
                     <TabsTrigger value="requests">Appointment Requests</TabsTrigger>
                     <TabsTrigger value="all">All Appointments</TabsTrigger>
-                    <TabsTrigger value="upcoming">Upcoming Appointments</TabsTrigger>
                 </TabsList>
                 <TabsContent value="requests" className="space-y-4">
                     <AppointmentRequests />
