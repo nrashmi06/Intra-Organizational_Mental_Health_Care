@@ -1,9 +1,8 @@
 package com.dbms.mentalhealth.controller;
 
 import com.dbms.mentalhealth.dto.Admin.request.AdminProfileRequestDTO;
-import com.dbms.mentalhealth.dto.Admin.response.AdminProfileResponseDTO;
-import com.dbms.mentalhealth.dto.Admin.response.AdminProfileSummaryResponseDTO;
 import com.dbms.mentalhealth.dto.Admin.response.FullAdminProfileResponseDTO;
+import com.dbms.mentalhealth.dto.Admin.response.AdminProfileSummaryResponseDTO;
 import com.dbms.mentalhealth.service.AdminService;
 import com.dbms.mentalhealth.urlMapper.AdminUrlMapping;
 import com.dbms.mentalhealth.util.Etags.AdminETagGenerator;
@@ -32,15 +31,15 @@ public class AdminController {
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PostMapping(AdminUrlMapping.CREATE_ADMIN_PROFILE)
-    public ResponseEntity<AdminProfileResponseDTO> createAdminProfile(
+    public ResponseEntity<FullAdminProfileResponseDTO> createAdminProfile(
             @RequestPart("adminProfile") AdminProfileRequestDTO adminProfileRequestDTO,
             @RequestPart("profilePicture") MultipartFile profilePicture) throws Exception {
         if (adminProfileRequestDTO == null || profilePicture == null || profilePicture.isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
 
-        AdminProfileResponseDTO responseDTO = adminService.createAdminProfile(adminProfileRequestDTO, profilePicture);
-        String eTag = eTagGenerator.generateProfileETag(responseDTO);
+        FullAdminProfileResponseDTO responseDTO = adminService.createAdminProfile(adminProfileRequestDTO, profilePicture);
+        String eTag = eTagGenerator.generateFullProfileETag(responseDTO);
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.ETAG, eTag)
@@ -70,15 +69,15 @@ public class AdminController {
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PutMapping(AdminUrlMapping.UPDATE_ADMIN_PROFILE)
-    public ResponseEntity<AdminProfileResponseDTO> updateAdminProfile(
+    public ResponseEntity<FullAdminProfileResponseDTO> updateAdminProfile(
             @RequestPart("adminProfile") AdminProfileRequestDTO adminProfileRequestDTO,
             @RequestPart(value = "profilePicture", required = false) MultipartFile profilePicture) throws Exception {
         if (adminProfileRequestDTO == null) {
             return ResponseEntity.badRequest().build();
         }
 
-        AdminProfileResponseDTO responseDTO = adminService.updateAdminProfile(adminProfileRequestDTO, profilePicture);
-        String eTag = eTagGenerator.generateProfileETag(responseDTO);
+        FullAdminProfileResponseDTO responseDTO = adminService.updateAdminProfile(adminProfileRequestDTO, profilePicture);
+        String eTag = eTagGenerator.generateFullProfileETag(responseDTO);
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.ETAG, eTag)

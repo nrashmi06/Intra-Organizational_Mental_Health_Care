@@ -49,16 +49,16 @@ public class CacheableAdminServiceImpl implements AdminService {
 
     @Override
     @Transactional
-    public AdminProfileResponseDTO createAdminProfile(AdminProfileRequestDTO adminProfileRequestDTO, MultipartFile profilePicture) throws Exception {
-        AdminProfileResponseDTO response = adminServiceImpl.createAdminProfile(adminProfileRequestDTO, profilePicture);
+    public FullAdminProfileResponseDTO createAdminProfile(AdminProfileRequestDTO adminProfileRequestDTO, MultipartFile profilePicture) throws Exception {
+        FullAdminProfileResponseDTO response = adminServiceImpl.createAdminProfile(adminProfileRequestDTO, profilePicture);
         CacheUtils.invalidateAllCache(adminListCache);
         return response;
     }
 
     @Override
     @Transactional
-    public AdminProfileResponseDTO updateAdminProfile(AdminProfileRequestDTO adminProfileRequestDTO, MultipartFile profilePicture) throws Exception {
-        AdminProfileResponseDTO response = adminServiceImpl.updateAdminProfile(adminProfileRequestDTO, profilePicture);
+    public FullAdminProfileResponseDTO updateAdminProfile(AdminProfileRequestDTO adminProfileRequestDTO, MultipartFile profilePicture) throws Exception {
+        FullAdminProfileResponseDTO response = adminServiceImpl.updateAdminProfile(adminProfileRequestDTO, profilePicture);
         CacheUtils.invalidateAllCache(adminListCache);
         return response;
     }

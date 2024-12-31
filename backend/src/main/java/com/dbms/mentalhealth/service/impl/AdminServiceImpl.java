@@ -1,9 +1,8 @@
 package com.dbms.mentalhealth.service.impl;
 
 import com.dbms.mentalhealth.dto.Admin.request.AdminProfileRequestDTO;
-import com.dbms.mentalhealth.dto.Admin.response.AdminProfileResponseDTO;
-import com.dbms.mentalhealth.dto.Admin.response.AdminProfileSummaryResponseDTO;
 import com.dbms.mentalhealth.dto.Admin.response.FullAdminProfileResponseDTO;
+import com.dbms.mentalhealth.dto.Admin.response.AdminProfileSummaryResponseDTO;
 import com.dbms.mentalhealth.enums.Role;
 import com.dbms.mentalhealth.exception.admin.AdminNotFoundException;
 import com.dbms.mentalhealth.mapper.AdminMapper;
@@ -16,13 +15,12 @@ import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.service.AdminService;
 import com.dbms.mentalhealth.service.ImageStorageService;
 import com.dbms.mentalhealth.service.UserMetricService;
-import org.springframework.context.annotation.Primary;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -53,7 +51,7 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     @Transactional
-    public AdminProfileResponseDTO createAdminProfile(AdminProfileRequestDTO adminProfileRequestDTO, MultipartFile profilePicture) throws Exception {
+    public FullAdminProfileResponseDTO createAdminProfile(AdminProfileRequestDTO adminProfileRequestDTO, MultipartFile profilePicture) throws Exception {
         String email = getCurrentUserEmail();
         User user = userRepository.findByEmail(email);
         if (user == null) {
@@ -76,7 +74,7 @@ public class AdminServiceImpl implements AdminService {
 
         Admin savedAdmin = adminRepository.save(admin);
 
-        return adminMapper.toResponseDTO(savedAdmin);
+        return adminMapper.toFullResponseDTO(savedAdmin, userMetricsRepository.findByUser(user).orElseThrow(() -> new AdminNotFoundException("User metrics not found for the given user")));
     }
 
     @Override
@@ -100,13 +98,12 @@ public class AdminServiceImpl implements AdminService {
             user = admin.getUser();
         }
 
-
         return adminMapper.toFullResponseDTO(admin, userMetricsRepository.findByUser(user).orElseThrow(() -> new AdminNotFoundException("User metrics not found for the given user")));
     }
 
     @Override
     @Transactional
-    public AdminProfileResponseDTO updateAdminProfile(AdminProfileRequestDTO adminProfileRequestDTO, MultipartFile profilePicture) throws Exception {
+    public FullAdminProfileResponseDTO updateAdminProfile(AdminProfileRequestDTO adminProfileRequestDTO, MultipartFile profilePicture) throws Exception {
         Integer userId = jwtUtils.getUserIdFromContext();
         Admin admin = adminRepository.findByUser_UserId(userId)
                 .orElseThrow(() -> new AdminNotFoundException("Admin profile not found"));
@@ -130,7 +127,7 @@ public class AdminServiceImpl implements AdminService {
         admin.setProfilePictureUrl(profilePictureUrl);
         Admin savedAdmin = adminRepository.save(admin);
 
-        return adminMapper.toResponseDTO(savedAdmin);
+        return adminMapper.toFullResponseDTO(savedAdmin, userMetricsRepository.findByUser(admin.getUser()).orElseThrow(() -> new AdminNotFoundException("User metrics not found for the given user")));
     }
 
     @Override
