@@ -17,24 +17,24 @@ export default function SignUp() {
   const [password, setPassword] = useState("");
   const [anonymousName, setAnonymousName] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<{ type: 'error' | 'success'; text: string } | null>(null);
   const router = useRouter();
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!email || !password || !anonymousName) {
-      setError("Please fill in all fields.");
+      setMessage({ type: 'error', text: "Please fill in all fields." });
       return;
     }
 
     if(!email.match(/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/)) {
-      setError("Please enter a valid email address.");
+      setMessage({ type: 'error', text: "Please enter a valid email address." });
       return;
     }
     
     setLoading(true);
-    setError(null);
+    setMessage(null);
 
     try {
       // Register user
@@ -44,16 +44,22 @@ export default function SignUp() {
       // Trigger email verification
       await verifyEmail(email);
       
-      setError(null);
-      // Show success message and redirect
-      const successMessage = "A verification email has been sent. Please verify your email before signing in.";
-      alert(successMessage);
-      router.push("/signin");
+      // Show success message
+      setMessage({ 
+        type: 'success', 
+        text: "A verification email has been sent. Please verify your email before signing in." 
+      });
+      
+      // Redirect after a short delay
+      setTimeout(() => {
+        router.push("/signin");
+      }, 3000);
+      
     } catch (error) {
       if (error instanceof Error) {
-        setError(error.message);
+        setMessage({ type: 'error', text: error.message });
       } else {
-        setError("An unexpected error occurred.");
+        setMessage({ type: 'error', text: "An unexpected error occurred." });
       }
     } finally {
       setLoading(false);
@@ -158,10 +164,18 @@ export default function SignUp() {
                 {loading ? "Creating Account..." : "Sign Up"}
               </Button>
 
-              {error && (
-                <Alert className="mt-4 border-red-200 bg-red-50/90 backdrop-blur-sm">
-                  <AlertDescription className="text-red-800">
-                    {error}
+              {message && (
+                <Alert 
+                  className={`mt-4 backdrop-blur-sm ${
+                    message.type === 'error' 
+                      ? 'border-red-200 bg-red-50/90' 
+                      : 'border-emerald-200 bg-emerald-50/90'
+                  }`}
+                >
+                  <AlertDescription 
+                    className={message.type === 'error' ? 'text-red-800' : 'text-emerald-800'}
+                  >
+                    {message.text}
                   </AlertDescription>
                 </Alert>
               )}

@@ -24,7 +24,8 @@ const handleDeleteTimeSlot = async (
     });
 
     if (response.status !== 200) {
-      throw new Error(`Failed to delete the time slot. Status: ${response.status}`);
+      console.error("Error deleting time slot:", response.data);
+      return
     }
 
     return { message: "Time slot deleted successfully." };

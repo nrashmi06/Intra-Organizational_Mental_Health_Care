@@ -9,7 +9,8 @@ const deleteTimeSlots = async (
 ) => {
   try {
     if (!userID) {
-      throw new Error("User ID is required to delete time slots.");
+      console.error("User ID is required to delete time slots."); 
+      return;
     }
 
     // Construct the URL using the mapper

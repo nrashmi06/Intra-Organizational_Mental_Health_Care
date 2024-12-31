@@ -6,6 +6,9 @@ const DailySchedule: React.FC<{
   appointments: Appointment[]; 
   date: Date; 
 }> = ({ appointments, date }) => {
+  if(appointments.length === 0) {
+    return <div>No appointments yet!</div>;
+  }
   // Generate time slots for each hour from 5 AM to 10 PM
   const timeSlots = Array.from({ length: 18 }, (_, i) => {
     const hour = i + 5; // Start from 5 AM
