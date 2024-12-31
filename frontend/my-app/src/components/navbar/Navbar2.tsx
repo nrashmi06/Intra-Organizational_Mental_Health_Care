@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/router";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
-import { Menu, X } from "lucide-react";
+import { Menu, X, ChevronDown, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import ServiceDropdown from "./ServiceDropdown";
@@ -13,9 +13,8 @@ import { cn } from "@/lib/utils";
 export default function Navbar() {
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const anonymousName = useSelector(
-    (state: RootState) => state.auth.anonymousName
-  );
+  const [isServicesOpen, setIsServicesOpen] = useState(false);
+  const anonymousName = useSelector((state: RootState) => state.auth.anonymousName);
   const user = useSelector((state: RootState) => state.auth);
   const role = user.role;
 
@@ -24,6 +23,11 @@ export default function Navbar() {
     { href: "/blog/all", label: "Blog" },
     { href: "/helpline", label: "Helpline" },
     { href: "/about", label: "About" },
+  ];
+
+  const serviceLinks = [
+    { href: "/match-a-listener", label: "Match with a Listener" },
+    { href: "/appointment", label: "Book an Appointment" },
   ];
 
   if (role === "ADMIN") {
@@ -64,7 +68,7 @@ export default function Navbar() {
   );
 
   return (
-    <header className="sticky top-0 left-0 right-0 z-50 bg-gradient-to-r from-gray-900 to-gray-800 border-b border-gray-800">
+    <header className="sticky top-0 left-0 right-0 z-50 bg-gradient-to-r from-gray-900 to-gray-800">
       <nav className="mx-auto px-4">
         <div className="h-16 flex items-center justify-between gap-8">
           {/* Logo Section */}
@@ -150,8 +154,47 @@ export default function Navbar() {
                 </Link>
               ))}
 
+              {/* Services Section in Mobile */}
+              <div className="border-t border-gray-800 pt-4">
+                <button
+                  onClick={() => setIsServicesOpen(!isServicesOpen)}
+                  className="w-full flex items-center justify-between text-white py-2 hover:text-gray-300"
+                >
+                  <span>Services</span>
+                  {isServicesOpen ? (
+                    <ChevronDown className="h-5 w-5" />
+                  ) : (
+                    <ChevronRight className="h-5 w-5" />
+                  )}
+                </button>
+                <AnimatePresence>
+                  {isServicesOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="pl-4 space-y-2"
+                    >
+                      {serviceLinks.map((service) => (
+                        <Link
+                          key={service.href}
+                          href={service.href}
+                          className="block text-gray-300 py-2 hover:text-white transition-colors duration-200 border-l-2 border-gray-700 pl-4"
+                          onClick={() => {
+                            setIsServicesOpen(false);
+                            setIsMenuOpen(false);
+                          }}
+                        >
+                          {service.label}
+                        </Link>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
               {!user.accessToken ? (
-                <div className="pt-4 space-y-3">
+                <div className="pt-4 space-y-3 border-t border-gray-800">
                   <Button
                     variant="ghost"
                     className="w-full text-white hover:bg-white/10"
@@ -173,7 +216,7 @@ export default function Navbar() {
                   </Button>
                 </div>
               ) : (
-                <div className="pt-4">
+                <div className="pt-4 border-t border-gray-800">
                   <Button
                     className="w-full text-white hover:bg-white/10"
                     onClick={() => {

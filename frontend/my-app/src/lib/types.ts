@@ -129,6 +129,11 @@ export interface AdminDetails {
   profilePictureUrl: string;
   createdAt: string;
   updatedAt: string;
+  totalAppointments: number;
+  lastAppointmentDate: string; // Use `string` for ISO format if working with JSON APIs.
+  totalBlogsPublished: number;
+  totalLikesReceived: number;
+  totalViewsReceived: number;
 }
 
 export interface UserReport {
@@ -160,14 +165,6 @@ export interface BlogPost {
   likedByCurrentUser: boolean;
 }
 
-// export interface PaginationInfo {
-//   pageNumber: number;
-//   pageSize: number;
-//   totalPages: number;
-//   totalElements: number;
-//   last: boolean;
-//   first: boolean;
-// }
 export interface Article {
   id: number;
   title: string;

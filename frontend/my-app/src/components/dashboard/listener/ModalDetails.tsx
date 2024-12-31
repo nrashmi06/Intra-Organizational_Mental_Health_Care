@@ -98,7 +98,7 @@ const DetailsModal: React.FC<DetailsProps> = ({
   );
 
   return (
-    <div className="fixed inset-0 z-30 overflow-hidden">
+    <div className="fixed inset-0 z-50 overflow-hidden">
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={handleClose} />
       <div className="fixed inset-0 flex items-center justify-center p-4">
         <div className="relative w-full max-w-3xl bg-white rounded-lg shadow-lg flex flex-col max-h-[90vh]">

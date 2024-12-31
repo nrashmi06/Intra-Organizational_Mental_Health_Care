@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Pencil, Phone, Mail, Book, X } from "lucide-react";
+import { X } from "lucide-react";
 import "@/styles/global.css";
-import Image from "next/image";
 import { createAdminProfile } from "@/service/adminProfile/CreateAdminProfile";
 import { fetchAdminProfile } from "@/service/adminProfile/GetAdminProfile";
 import { updateAdminProfile } from "@/service/adminProfile/UpdateAdminProfile";
@@ -9,12 +8,13 @@ import { RootState } from "@/store";
 import { Input } from "@/components/ui/input";
 import { useSelector } from "react-redux";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
-import dynamic from "next/dynamic"; 
+import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import "react-quill/dist/quill.snow.css";
+import ProfileCard from "@/components/dashboard/admin/ProfileCard";
 const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
 
-interface AdminProfile {
+export interface AdminProfile {
   fullName: string;
   adminNotes: string;
   qualifications: string;
@@ -22,6 +22,11 @@ interface AdminProfile {
   email: string;
   profilePicture?: File | null;
   profilePictureUrl?: string;
+  totalAppointments?: number;
+  lastAppointmentDate?: string; // Use `string` for ISO format if working with JSON APIs.
+  totalBlogsPublished?: number;
+  totalLikesReceived?: number;
+  totalViewsReceived?: number;
 }
 
 export default function AdminProfile() {
@@ -57,11 +62,17 @@ export default function AdminProfile() {
     try {
       const { profilePicture = null, ...profileData } = profile;
       if (isCreating) {
-        const createdProfile = await createAdminProfile({ ...profileData, profilePicture }, token);
+        const createdProfile = await createAdminProfile(
+          { ...profileData, profilePicture },
+          token
+        );
         setProfile(createdProfile);
         setIsCreating(false);
       } else {
-        await updateAdminProfile({ ...profile, profilePicture: profile.profilePicture ?? null }, token);
+        await updateAdminProfile(
+          { ...profile, profilePicture: profile.profilePicture ?? null },
+          token
+        );
         await fetchProfile();
       }
       setIsEditing(false);
@@ -120,9 +131,9 @@ export default function AdminProfile() {
                 {isCreating ? "Create Your Profile" : "Edit Your Profile"}
               </h2>
               <div className="flex items-center space-x-2">
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={handleCancel}
                   className="text-white hover:bg-white/20"
                 >
@@ -132,36 +143,38 @@ export default function AdminProfile() {
             </div>
             <div className="p-8 space-y-6">
               <div className="grid md:grid-cols-2 gap-4">
-                <Field 
-                  label="Full Name" 
-                  name="fullName" 
-                  value={profile?.fullName || ""} 
-                  onChange={handleInputChange} 
+                <Field
+                  label="Full Name"
+                  name="fullName"
+                  value={profile?.fullName || ""}
+                  onChange={handleInputChange}
                 />
-                <Field 
-                  label="Qualifications" 
-                  name="qualifications" 
-                  value={profile?.qualifications || ""} 
-                  onChange={handleInputChange} 
+                <Field
+                  label="Qualifications"
+                  name="qualifications"
+                  value={profile?.qualifications || ""}
+                  onChange={handleInputChange}
                 />
               </div>
               <div className="grid md:grid-cols-2 gap-4">
-                <Field 
-                  label="Contact Number" 
-                  name="contactNumber" 
-                  value={profile?.contactNumber || ""} 
-                  onChange={handleInputChange} 
+                <Field
+                  label="Contact Number"
+                  name="contactNumber"
+                  value={profile?.contactNumber || ""}
+                  onChange={handleInputChange}
                 />
-                <Field 
-                  label="Email" 
-                  name="email" 
-                  type="email" 
-                  value={profile?.email || ""} 
-                  onChange={handleInputChange} 
+                <Field
+                  label="Email"
+                  name="email"
+                  type="email"
+                  value={profile?.email || ""}
+                  onChange={handleInputChange}
                 />
               </div>
               <div>
-                <label className="block text-teal-700 font-semibold mb-2">About You</label>
+                <label className="block text-teal-700 font-semibold mb-2">
+                  About You
+                </label>
 
                 <ReactQuill
                   value={profile?.adminNotes || ""}
@@ -171,7 +184,9 @@ export default function AdminProfile() {
                 />
               </div>
               <div className="space-y-2">
-                <label className="block text-teal-700 font-semibold mb-2">Profile Picture</label>
+                <label className="block text-teal-700 font-semibold mb-2">
+                  Profile Picture
+                </label>
                 <Input
                   type="file"
                   accept="image/*"
@@ -180,14 +195,14 @@ export default function AdminProfile() {
                 />
               </div>
               <div className="flex justify-end space-x-4 pt-4">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={handleCancel}
                   className="px-6 py-3 text-teal-700 border-teal-700 hover:bg-teal-700 hover:text-white"
                 >
                   Cancel
                 </Button>
-                <Button 
+                <Button
                   onClick={handleSave}
                   className="px-6 py-3 bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-700 hover:to-teal-600"
                 >
@@ -197,67 +212,7 @@ export default function AdminProfile() {
             </div>
           </div>
         ) : profile ? (
-          <div className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-teal-100/50 overflow-hidden max-w-4xl mx-auto">
-            <div className="p-8 space-y-6">
-              <div className="flex flex-col md:flex-row space-y-6 items-center md:space-x-6 mb-6">
-                {profile.profilePictureUrl && (
-                  <Image
-                    src={profile.profilePictureUrl}
-                    alt="Profile Picture"
-                    width={250}
-                    height={250}
-                    className="rounded-full border-4 border-teal-600 shadow-lg object-cover"
-                  />
-                )}
-                <div>
-                  <h2 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-lime-500 mb-2">
-                    {profile.fullName}
-                  </h2>
-                  <p className="text-gray-600 text-lg flex items-center">
-                    <Book className="mr-2 text-teal-700" />
-                    {profile.qualifications}
-                  </p>
-                </div>
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="bg-teal-50 p-4 rounded-xl shadow-md">
-                  <div className="flex items-center text-teal-600 mb-2">
-                    <Phone className="mr-3" />
-                    <span className="font-semibold">Contact Number</span>
-                  </div>
-                  <p className="text-gray-900">{profile.contactNumber}</p>
-                </div>
-                <div className="bg-lime-50 p-4 rounded-xl shadow-md">
-                  <div className="flex items-center text-lime-600 mb-2">
-                    <Mail className="mr-3" />
-                    <span className="font-semibold">Email Address</span>
-                  </div>
-                  <p className="text-gray-900">{profile.email}</p>
-                </div>
-              </div>
-
-              <div className="bg-green-50 p-4 rounded-xl shadow-md">
-                <div className="flex items-center text-lime-600 mb-2">
-                  <Book className="mr-3" />
-                  <span className="font-semibold">About Me</span>
-                </div>
-                <div
-                  className="text-gray-900"
-                  dangerouslySetInnerHTML={{ __html: profile.adminNotes }}
-                />
-              </div>
-
-              <div className="flex justify-end mt-6">
-                <Button 
-                  onClick={() => setIsEditing(true)}
-                  className="px-6 py-3 bg-gradient-to-r from-teal-600 to-lime-500 hover:from-teal-700 hover:to-lime-600 flex items-center"
-                >
-                  <Pencil className="mr-2" /> Edit Profile
-                </Button>
-              </div>
-            </div>
-          </div>
+          <ProfileCard profile={profile} setIsEditing={setIsEditing} />
         ) : null}
       </main>
     </div>
@@ -267,11 +222,13 @@ export default function AdminProfile() {
 const Field = ({ label, ...props }: { label: string; [key: string]: any }) => (
   <div>
     <label className="block text-teal-700 font-semibold mb-2">{label}</label>
-    <Input 
-      {...props} 
+    <Input
+      {...props}
       className="focus:ring-2 focus:ring-lime-500 focus:border-transparent"
     />
   </div>
 );
 
-AdminProfile.getLayout = (page: React.ReactNode) => <DashboardLayout>{page}</DashboardLayout>;
+AdminProfile.getLayout = (page: React.ReactNode) => (
+  <DashboardLayout>{page}</DashboardLayout>
+);

@@ -131,7 +131,7 @@ export const CompletedSessions = () => {
           </div>
 
           <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-0">
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col">
               <SessionGrid
                 loading={loading}
                 sessions={sessions}

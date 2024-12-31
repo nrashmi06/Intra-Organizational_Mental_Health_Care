@@ -1,14 +1,13 @@
-//to display the listener details in the match-a-listener page
-
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { getListenerDetails } from "@/service/listener/getListenerDetails";
-import { Star, X, MessageCircle, Calendar, Shield, Headphones } from "lucide-react";
+import { Star, X, MessageCircle, Calendar, Shield, Headphones, ThumbsUp, Eye, BookOpen } from "lucide-react";
 import { ListenerDetails } from "@/lib/types";
 import "@/styles/global.css";
 import InlineLoader from "../ui/inlineLoader";
 import SendMessageModal from "./SendMessageModal";
+
 interface ListenerModalProps {
   closeModal: () => void;
   userId: string;
@@ -18,8 +17,7 @@ const ListenerModal: React.FC<ListenerModalProps> = ({
   closeModal,
   userId,
 }) => {
-  const [detailedListener, setDetailedListener] =
-    useState<ListenerDetails | null>(null);
+  const [detailedListener, setDetailedListener] = useState<ListenerDetails | null>(null);
   const token = useSelector((state: RootState) => state.auth.accessToken);
   const [sendMessage, setSendMessage] = useState(false);
 
@@ -27,10 +25,8 @@ const ListenerModal: React.FC<ListenerModalProps> = ({
     if (detailedListener) return;
     const fetchListenerDetails = async () => {
       try {
-        console.log("Fetching listener details for:", userId);
         const details = await getListenerDetails(userId, token, "userId");
         setDetailedListener(details);
-        console.log("Listener details:", details);
       } catch (error) {
         console.error("Error fetching listener details:", error);
       }
@@ -68,11 +64,11 @@ const ListenerModal: React.FC<ListenerModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50"
+      className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50 p-4 overflow-y-auto"
       onClick={closeModal}
     >
       <div
-        className="bg-white max-w-xl w-full rounded-xl shadow-xl p-6 relative"
+        className="bg-white max-w-xl w-full rounded-xl shadow-xl p-4 md:p-6 relative my-8"
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -86,54 +82,81 @@ const ListenerModal: React.FC<ListenerModalProps> = ({
           <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center">
             <Headphones className="w-6 h-6 text-blue-500" />
           </div>
-          <h2 className="text-2xl font-semibold text-gray-800">
+          <h2 className="text-xl md:text-2xl font-semibold text-gray-800">
             Listener Details
           </h2>
         </div>
 
         {detailedListener ? (
           <div className="space-y-4">
-            {[
-              { label: "User Email", value: detailedListener.userEmail },
-              {
-                label: "Total Sessions",
-                value: detailedListener.totalSessions,
-                icon: <MessageCircle className="w-4 h-4 text-blue-500" />,
-              },
-              {
-                label: "Total Messages Sent",
-                value: detailedListener.totalMessagesSent ?? "N/A",
-                icon: <MessageCircle className="w-4 h-4 text-blue-500" />,
-              },
-              {
-                label: "Joined At",
-                value: new Date(detailedListener.joinedAt).toLocaleDateString(
-                  undefined,
-                  {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  }
-                ),
-                icon: <Calendar className="w-4 h-4 text-blue-500" />,
-              },
-              {
-                label: "Approved By",
-                value: detailedListener.approvedBy,
-                icon: <Shield className="w-4 h-4 text-blue-500" />,
-              },
-            ].map((item, index) => (
-              <div
-                key={index}
-                className="flex justify-between items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-              >
-                <div className="flex items-center space-x-2">
-                  {item.icon}
-                  <p className="font-medium text-gray-900">{item.label}</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {[
+                { 
+                  label: "Email",
+                  value: "*******@gmail.com",
+                  icon: <MessageCircle className="w-4 h-4 text-blue-500" />
+                },
+                {
+                  label: "Total Sessions",
+                  value: detailedListener.totalSessions,
+                  icon: <MessageCircle className="w-4 h-4 text-blue-500" />
+                },
+                {
+                  label: "Messages Sent",
+                  value: detailedListener.totalMessagesSent ?? "N/A",
+                  icon: <MessageCircle className="w-4 h-4 text-blue-500" />
+                },
+                {
+                  label: "Feedback Count",
+                  value: detailedListener.feedbackCount,
+                  icon: <MessageCircle className="w-4 h-4 text-blue-500" />
+                },
+                {
+                  label: "Joined At",
+                  value: new Date(detailedListener.joinedAt).toLocaleDateString(
+                    undefined,
+                    { year: "numeric", month: "long", day: "numeric" }
+                  ),
+                  icon: <Calendar className="w-4 h-4 text-blue-500" />
+                },
+                {
+                  label: "Approved By",
+                  value: detailedListener.approvedBy,
+                  icon: <Shield className="w-4 h-4 text-blue-500" />
+                },
+                {
+                  label: "Blogs Published",
+                  value: detailedListener.totalBlogsPublished,
+                  icon: <BookOpen className="w-4 h-4 text-blue-500" />
+                },
+                {
+                  label: "Blog Likes",
+                  value: detailedListener.totalBlogLikesReceived,
+                  icon: <ThumbsUp className="w-4 h-4 text-blue-500" />
+                },
+                {
+                  label: "Blog Views",
+                  value: detailedListener.totalBlogViewsReceived,
+                  icon: <Eye className="w-4 h-4 text-blue-500" />
+                },
+                {
+                  label: "Can Approve Blogs",
+                  value: detailedListener.canApproveBlogs ? "Yes" : "No",
+                  icon: <Shield className="w-4 h-4 text-blue-500" />
+                }
+              ].map((item, index) => (
+                <div
+                  key={index}
+                  className="flex justify-between items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  <div className="flex items-center space-x-2">
+                    {item.icon}
+                    <p className="font-medium text-gray-900 text-sm md:text-base">{item.label}</p>
+                  </div>
+                  <p className="text-gray-700 text-sm md:text-base">{item.value}</p>
                 </div>
-                <p className="text-gray-700">{item.value}</p>
-              </div>
-            ))}
+              ))}
+            </div>
 
             <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
               <p className="font-medium text-gray-900">Average Rating:</p>
@@ -147,9 +170,7 @@ const ListenerModal: React.FC<ListenerModalProps> = ({
         )}
 
         <button
-          onClick={() => {
-            setSendMessage(true);
-          }}
+          onClick={() => setSendMessage(true)}
           className="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-xl font-medium transition-all duration-200 flex items-center justify-center space-x-2"
         >
           <MessageCircle className="w-5 h-5" />

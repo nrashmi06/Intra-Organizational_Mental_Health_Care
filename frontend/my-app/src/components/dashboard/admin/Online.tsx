@@ -12,6 +12,7 @@ import InlineLoader from "@/components/ui/inlineLoader";
 import { addEventSource, clearEventSources, removeEventSource } from "@/store/eventsourceSlice";
 import { AppDispatch, RootState } from "@/store";
 import { useDispatch, useSelector } from "react-redux";
+import { createPortal } from "react-dom";
 
 export function OnlineAdminsTable() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -174,13 +175,13 @@ export function OnlineAdminsTable() {
       </div>
 
       {detailsModal && (
-        <ModalDetails
+        createPortal(<ModalDetails
           userId={selectedUserId}
           handleClose={() => {
             setDetailsModal(false);
             setSelectedUserId("");
           }}
-        />
+        />, document.body)
       )}
     </div>
   );

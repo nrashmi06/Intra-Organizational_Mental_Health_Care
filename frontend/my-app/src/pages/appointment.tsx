@@ -1,33 +1,35 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import Navbar from "@/components/navbar/Navbar2";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Checkbox from "@/components/ui/checkbox";
 import Link from "next/link";
-import { useSelector } from 'react-redux';
-import { fetchAdmins } from '@/service/adminProfile/getAllAdmin';
-import { RootState } from '@/store';
-import axios from 'axios';
-import createAppointment from '@/service/appointment/createAppointment';
-import fetchTimeSlots from '@/service/timeslot/fetchTimeSlotsTrue';
-import router from 'next/router';
-import { PersonalInfo } from '@/components/bookAppointments/PersonalInfo';
-import { AdminSelect } from '@/components/bookAppointments/AdminSelect';
-import { DateTimeSelect } from '@/components/bookAppointments/DateTimeSelect';
-import { AppointmentReason } from '@/components/bookAppointments/AppointmentReason';
-import { PrioritySelect } from '@/components/bookAppointments/PrioritySelect';
-import { FormData, Slot } from '@/lib/types'; 
-import SuccessMessage from '@/components/bookAppointments/SuccessMessage';
-
+import { useSelector } from "react-redux";
+import { fetchAdmins } from "@/service/adminProfile/getAllAdmin";
+import { RootState } from "@/store";
+import axios from "axios";
+import createAppointment from "@/service/appointment/createAppointment";
+import fetchTimeSlots from "@/service/timeslot/fetchTimeSlotsTrue";
+import router from "next/router";
+import { PersonalInfo } from "@/components/bookAppointments/PersonalInfo";
+import { AdminSelect } from "@/components/bookAppointments/AdminSelect";
+import { DateTimeSelect } from "@/components/bookAppointments/DateTimeSelect";
+import { AppointmentReason } from "@/components/bookAppointments/AppointmentReason";
+import { PrioritySelect } from "@/components/bookAppointments/PrioritySelect";
+import { FormData, Slot } from "@/lib/types";
+import SuccessMessage from "@/components/bookAppointments/SuccessMessage";
 export default function BookAppointment() {
   const [showTooltip, setShowTooltip] = useState(false);
   const [admins, setAdmins] = useState([]);
   const [selectedAdminId, setSelectedAdminId] = useState<string | null>(null);
   const [availableSlots, setAvailableSlots] = useState<Slot[]>([]);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [availableTimes, setAvailableTimes] = useState<{ id: number; time: string }[]>([]);
+  const [availableTimes, setAvailableTimes] = useState<
+    { id: number; time: string }[]
+  >([]);
   const [formData, setFormData] = useState<FormData>({} as FormData);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const token = useSelector((state: RootState) => state.auth.accessToken);
 
@@ -38,42 +40,49 @@ export default function BookAppointment() {
     }));
   };
 
-  // Fetch admins data
   useEffect(() => {
     async function loadAdmins() {
       if (!token) {
-        router.push('/signin');
+        router.push("/signin");
         return;
       }
       try {
         const response = await fetchAdmins(token);
         setAdmins(response);
       } catch (err) {
-        console.error('Error fetching admins:', err);
+        console.error("Error fetching admins:", err);
       }
     }
     loadAdmins();
   }, [token]);
 
-  // Fetch available slots
   useEffect(() => {
     const fetchSlots = async () => {
       if (!selectedAdminId || !token) return;
-      const startDate = new Date().toISOString().split('T')[0];
+      const startDate = new Date().toISOString().split("T")[0];
       const oneMonthLater = new Date();
       oneMonthLater.setMonth(oneMonthLater.getMonth() + 1);
-      const endDate = oneMonthLater.toISOString().split('T')[0];
+      const endDate = oneMonthLater.toISOString().split("T")[0];
       const isAvailable = true;
       try {
-        const timeSlots = await fetchTimeSlots(selectedAdminId.toString(), startDate, endDate, isAvailable, token);
+        const timeSlots = await fetchTimeSlots(
+          selectedAdminId.toString(),
+          startDate,
+          endDate,
+          isAvailable,
+          token
+        );
         setAvailableSlots(timeSlots);
       } catch (error) {
         if (axios.isAxiosError(error)) {
-          console.error('Error fetching time slots:', error.response?.data || error.message);
+          console.error(
+            "Error fetching time slots:",
+            error.response?.data || error.message
+          );
         } else if (error instanceof Error) {
-          console.error('Error fetching time slots:', error.message);
+          console.error("Error fetching time slots:", error.message);
         } else {
-          console.error('Error fetching time slots:', error);
+          console.error("Error fetching time slots:", error);
         }
       }
     };
@@ -81,22 +90,21 @@ export default function BookAppointment() {
     fetchSlots();
   }, [selectedAdminId, token]);
 
-  // Get unique dates from available slots
-  const uniqueDates = [...new Set(availableSlots.map((slot: Slot) => slot.date))];
+  const uniqueDates = [
+    ...new Set(availableSlots.map((slot: Slot) => slot.date)),
+  ];
 
-  // Update available times when a date is selected
   const handleDateSelect = (date: string) => {
     setSelectedDate(date);
     const timesForDate = availableSlots
-      .filter(slot => slot.date === date && slot.isAvailable)
-      .map(slot => ({
+      .filter((slot) => slot.date === date && slot.isAvailable)
+      .map((slot) => ({
         id: slot.timeSlotId,
-        time: `${slot.startTime.slice(0, 5)} - ${slot.endTime.slice(0, 5)}`
+        time: `${slot.startTime.slice(0, 5)} - ${slot.endTime.slice(0, 5)}`,
       }));
     setAvailableTimes(timesForDate);
   };
 
-  // Update formData when time is selected
   const handleTimeSelect = (timeSlotId: string) => {
     setFormData((prevFormData) => ({
       ...prevFormData,
@@ -112,21 +120,24 @@ export default function BookAppointment() {
       return;
     }
 
+    setIsSubmitting(true);
     try {
       const response = await createAppointment(token, formData);
 
       if (response === 409) {
         alert("Error: Appointment already exists");
-        router.push('/');
+        router.push("/");
         return;
       }
       setShowSuccess(true);
       setTimeout(() => {
         setShowSuccess(false);
-        router.push('/');
+        router.push("/");
       }, 3000);
     } catch (err) {
-      console.error('Error creating appointment:', err);
+      console.error("Error creating appointment:", err);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -137,11 +148,16 @@ export default function BookAppointment() {
         <Card className="mx-auto max-w-4xl backdrop-blur-sm bg-white/80 shadow-xl rounded-2xl">
           <CardHeader className="text-center space-y-2">
             <CardTitle>Book an Appointment</CardTitle>
-            <p className="text-gray-600">Fill out the details below to schedule your appointment</p>
+            <p className="text-gray-600">
+              Fill out the details below to schedule your appointment
+            </p>
           </CardHeader>
           <CardContent className="p-8">
             <form className="space-y-8" onSubmit={handleSubmit}>
-              <PersonalInfo formData={formData} handleInputChange={handleInputChange} />
+              <PersonalInfo
+                formData={formData}
+                handleInputChange={handleInputChange}
+              />
               <AppointmentReason
                 formData={formData}
                 handleInputChange={handleInputChange}
@@ -162,14 +178,23 @@ export default function BookAppointment() {
                 onDateSelect={handleDateSelect}
                 onTimeSelect={handleTimeSelect}
               />
-              
-              <PrioritySelect formData={formData} handleInputChange={handleInputChange} />
+              <PrioritySelect
+                formData={formData}
+                handleInputChange={handleInputChange}
+              />
 
               <div className="flex items-center space-x-3">
-                <Checkbox required id="terms" className="rounded border-gray-300" />
+                <Checkbox
+                  required
+                  id="terms"
+                  className="rounded border-gray-300"
+                />
                 <label htmlFor="terms" className="text-sm text-gray-600">
                   I agree to the{" "}
-                  <Link href="/t&c" className="text-purple-600 hover:text-purple-800 font-medium">
+                  <Link
+                    href="/t&c"
+                    className="text-purple-600 hover:text-purple-800 font-medium"
+                  >
                     Terms of Service and Privacy Policy
                   </Link>
                 </label>
@@ -177,18 +202,21 @@ export default function BookAppointment() {
 
               <Button
                 type="submit"
-                className="w-full h-14 text-lg bg-purple-600 hover:bg-purple-700 rounded-xl transition-all duration-200 transform hover:scale-[1.02]"
+                disabled={isSubmitting}
+                className="w-full h-14 text-lg bg-purple-600 hover:bg-purple-700 rounded-xl transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Book Appointment
+                {isSubmitting ? "Submitting..." : "Book Appointment"}
               </Button>
             </form>
           </CardContent>
         </Card>
-        <SuccessMessage show={showSuccess} />
+
         <p className="mt-8 text-center text-red-500 font-medium text-lg">
-          If you are in urgent need of help, please dial 100 for immediate assistance.
+          If you are in urgent need of help, please dial 100 for immediate
+          assistance.
         </p>
       </main>
+      <SuccessMessage show={showSuccess} />
     </div>
   );
 }

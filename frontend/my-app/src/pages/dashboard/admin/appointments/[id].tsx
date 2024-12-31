@@ -1,222 +1,248 @@
-import React, { useEffect, useState } from "react";
-import { useRouter } from "next/router";
+import React, { useState, useEffect, useMemo } from "react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import InlineLoader from "@/components/ui/inlineLoader";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
-import {
-  User,
-  UserCog,
-  Calendar,
-  Clock,
-  MessageSquare,
-  Menu,
-  X,
-} from "lucide-react";
+import { getAppointmentsByFilter } from "@/service/appointment/getAppointmentsByFilter";
+import { CalendarDays, Search } from "lucide-react";
+import AppointmentCard from "@/components/dashboard/appointments/AppointmentCard";
+import { useAppDispatch } from "@/hooks/useAppDispatch";
+import { useRouter } from "next/router";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
-import AppointmentDetailView from "@/components/dashboard/AppointmentDetailView";
-import StackNavbar from "@/components/ui/stackNavbar";
-import { Appointment } from "@/lib/types";
-import { getAppointments } from "@/service/adminProfile/GetAppointments";
 
-const AdminAppointments = () => {
+const AllAppointments = () => {
+  const dispatch = useAppDispatch();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("ALL");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [loading, setLoading] = useState(false);
+  const [timeFilter, setTimeFilter] = useState("PAST");
+  const [parsedId, setParsedId] = useState<string | null>(null);
   const router = useRouter();
-  const { id, req } = router.query;
-  const token = useSelector((state: RootState) => state.auth.accessToken);
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [adminId, setAdminId] = useState<string | null>(null);
-  const [selectedAppointment, setSelectedAppointment] = useState<string | null>(
-    null
+  const { id } = router.query;
+
+  const appointments = useSelector(
+    (state: RootState) => state.appointments.appointments
   );
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const totalElements = useSelector(
+    (state: RootState) => state.appointments.page?.totalElements
+  );
+  const totalPages = useSelector(
+    (state: RootState) => state.appointments.page?.totalPages
+  );
+  const token = useSelector((state: RootState) => state.auth.accessToken);
+  const timeFilterOptions = [
+    { value: "PAST", label: "Past" },
+    { value: "UPCOMING", label: "Upcoming" },
+  ];
+
+  const filteredAppointments = useMemo(() => {
+    if (!searchTerm.trim()) return appointments;
+
+    const searchLower = searchTerm.toLowerCase().trim();
+    return appointments.filter((appointment) => {
+      const searchableFields = [
+        appointment.userName,
+        appointment.appointmentReason,
+        appointment.adminName,
+        appointment.status,
+      ].filter(Boolean);
+
+      return searchableFields.some((field) =>
+        String(field).toLowerCase().includes(searchLower)
+      );
+    });
+  }, [appointments, searchTerm]);
 
   useEffect(() => {
+    const fetchAppointments = async () => {
+      if (!token || !parsedId) {
+        console.error("No auth token or user ID found.");
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const backendPage = currentPage - 1;
+        await dispatch(
+          getAppointmentsByFilter({
+            timeFilter,
+            status: statusFilter,
+            page: backendPage,
+            size: pageSize,
+            userId: parsedId,
+          })
+        );
+      } catch (error) {
+        console.error("Error fetching appointments:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     if (id) {
       const parsedId = id as string;
       if (parsedId) {
-        setAdminId(parsedId);
-        fetchAppointments(parsedId, req as string);
+        setParsedId(parsedId);
+        fetchAppointments();
       }
     }
-  }, [id, req]);
+  }, [
+    token,
+    dispatch,
+    statusFilter,
+    currentPage,
+    pageSize,
+    timeFilter,
+    parsedId,
+  ]);
 
-  const fetchAppointments = async (parsedId: string, req: string) => {
-    try {
-      const params =
-        req === "onlineAdmins" ? { userId: parsedId } : { adminId: parsedId };
-      const response = await getAppointments({ token, ...params });
-      if (response.status === 200) {
-        setAppointments(response.data);
-      }
-    } catch (error) {
-      console.error("Error fetching appointments:", error);
-    }
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
-
-  const handleDetailView = (appointmentId: string) => {
-    setSelectedAppointment(appointmentId);
-    setIsMobileMenuOpen(false); // Close mobile menu when viewing details
-  };
-
-  const formatTime = (time: string) => {
-    return new Date(`2000-01-01T${time}`).toLocaleTimeString("en-US", {
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true,
-    });
-  };
-
-  const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString("en-US", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
-
-  const stackItems = [
-    { label: "Admin Dashboard", href: "/dashboard/admin" },
-    {
-      label: "Admin Appointments",
-      href: `/dashboard/admin/appointments/${id}`,
-    },
-  ];
-
-  if (appointments.length === 0) {
-    return (
-      <>
-        <StackNavbar items={stackItems} />
-        <div className="text-gray-500 flex items-center justify-center h-full p-4">
-          No appointments found for Admin Id {id}
-        </div>
-      </>
-    );
-  }
-
-  const AppointmentCard = ({ appointment }: { appointment: Appointment }) => (
-    <div
-      className="bg-white shadow-sm rounded-lg p-6 border border-gray-100 hover:shadow-md transition-all duration-200 cursor-pointer"
-      onClick={() => handleDetailView(appointment.appointmentId)}
-    >
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-semibold text-gray-800">
-          #{appointment.appointmentId}
-        </h3>
-        <span
-          className={`px-3 py-1 rounded-full text-sm font-medium ${
-            appointment.status === "CONFIRMED"
-              ? "bg-green-100 text-green-800"
-              : appointment.status === "REQUESTED"
-              ? "bg-yellow-100 text-yellow-800"
-              : "bg-red-100 text-red-800"
-          }`}
-        >
-          {appointment.status}
-        </span>
-      </div>
-
-      <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 mb-4">
-        <div className="flex items-center gap-2">
-          <User size={18} className="text-blue-600 shrink-0" />
-          <span className="text-sm text-gray-600">{appointment.userName}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <UserCog size={18} className="text-purple-600 shrink-0" />
-          <span className="text-sm text-gray-600">{appointment.adminName}</span>
-        </div>
-      </div>
-
-      <div className="space-y-2 mb-4">
-        <div className="flex items-center gap-2">
-          <Calendar size={18} className="text-gray-500 shrink-0" />
-          <span className="text-sm text-gray-600">
-            {formatDate(appointment.date)}
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
-          <Clock size={18} className="text-gray-500 shrink-0" />
-          <span className="text-sm text-gray-600">
-            {formatTime(appointment.startTime)} -{" "}
-            {formatTime(appointment.endTime)}
-          </span>
-        </div>
-      </div>
-
-      <div className="flex items-start gap-2">
-        <MessageSquare size={18} className="text-gray-500 mt-1 shrink-0" />
-        <p className="text-sm text-gray-600">{appointment.appointmentReason}</p>
-      </div>
-
-      <button
-        className="w-full mt-4 text-center py-2 bg-purple-50 text-purple-600 rounded-md hover:bg-purple-100 transition-colors text-sm font-medium"
-        onClick={() => handleDetailView(appointment.appointmentId)}
-      >
-        View Details
-      </button>
-    </div>
-  );
 
   return (
-    <>
-      <StackNavbar items={stackItems} />
-      <div className="lg:hidden fixed top-16 right-4 z-50">
-        <button
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="p-2 bg-white rounded-full shadow-md"
-        >
-          {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br p-4 sm:p-8">
+      <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
+        {/* Header Section */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="space-y-1">
+            <h1 className="text-2xl sm:text-4xl font-bold text-gray-900">
+              Appointments
+            </h1>
+            <p className="text-sm sm:text-base text-gray-500">
+              View and manage all appointment records
+            </p>
+          </div>
 
-      <div className="flex flex-col lg:flex-row h-[calc(100vh-64px)]">
-        <div
-          className={`fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity lg:hidden ${
-            isMobileMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-          }`}
-          onClick={() => setIsMobileMenuOpen(false)}
-        />
-        <div
-          className={`w-full lg:w-1/3 bg-gray-50 border-r border-gray-200 overflow-y-auto 
-                     fixed lg:relative z-40 transition-transform duration-300 ease-in-out
-                     ${
-                       isMobileMenuOpen
-                         ? "translate-x-0"
-                         : "-translate-x-full lg:translate-x-0"
-                     }
-                     h-[calc(100vh-64px)] lg:h-auto`}
-        >
-          {adminId && (
-            <div className="space-y-4 p-4">
-              {appointments.map((appointment) => (
+          <div className="w-full sm:w-auto">
+            <div className="bg-white rounded-full px-4 py-2 shadow-sm border border-gray-200">
+              <div className="flex items-center gap-2">
+                <CalendarDays className="w-5 h-5 text-blue-500" />
+                <span className="text-gray-700 font-medium">
+                  {totalElements} Total
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Filters Section */}
+        <div className="bg-white p-4 rounded-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row gap-4 mb-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Input
+                placeholder="Search by name or reason..."
+                className="pl-10 bg-gray-50 border-gray-200 w-full"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+
+            <select
+              className="border rounded-md p-2"
+              value={timeFilter}
+              onChange={(e) => {
+                setTimeFilter(e.target.value);
+                setCurrentPage(1);
+              }}
+            >
+              {timeFilterOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+
+            <select
+              className="border rounded-md p-2"
+              value={pageSize}
+              onChange={(e) => {
+                setPageSize(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+            >
+              <option value={5}>5 per page</option>
+              <option value={10}>10 per page</option>
+              <option value={20}>20 per page</option>
+            </select>
+          </div>
+
+          <div className="flex flex-wrap gap-2 mb-4">
+            {["ALL", "REQUESTED", "CONFIRMED", "CANCELLED"].map((status) => (
+              <Button
+                key={status}
+                onClick={() => {
+                  setStatusFilter(status);
+                  setCurrentPage(1);
+                }}
+                variant={statusFilter === status ? "default" : "outline"}
+                className={`text-sm flex-1 sm:flex-none ${
+                  statusFilter === status
+                    ? "bg-blue-600 text-white"
+                    : "text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                {status.charAt(0) + status.slice(1).toLowerCase()}
+              </Button>
+            ))}
+          </div>
+
+          {/* Appointments List */}
+          {loading ? (
+            <div className="flex justify-center py-8">
+              <InlineLoader />
+            </div>
+          ) : filteredAppointments.length > 0 ? (
+            <div className="space-y-4">
+              {filteredAppointments.map((appointment) => (
                 <AppointmentCard
                   key={appointment.appointmentId}
                   appointment={appointment}
                 />
               ))}
+
+              {/* Pagination */}
+              <div className="mt-6 flex justify-center gap-2">
+                <button
+                  className="px-4 py-2 border rounded-md disabled:opacity-50"
+                  onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                  disabled={currentPage === 1 || loading}
+                >
+                  Previous
+                </button>
+                <span className="px-4 py-2">
+                  {currentPage} of {totalPages || 1}
+                </span>
+                <button
+                  className="px-4 py-2 border rounded-md disabled:opacity-50"
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages || loading}
+                >
+                  Next
+                </button>
+              </div>
             </div>
-          )}
-          {!adminId && (
-            <p className="text-gray-500 p-4">Loading user information...</p>
-          )}
-        </div>
-        <div className="w-full lg:w-2/3 bg-gray-100 min-h-[calc(100vh-64px)]">
-          {selectedAppointment ? (
-            <AppointmentDetailView
-              appointmentId={selectedAppointment}
-              token={token}
-            />
           ) : (
-            <div className="h-full flex items-center justify-center text-gray-500 p-4 text-center">
-              Select an appointment to view details
+            <div className="flex flex-col items-center justify-center py-12">
+              <h3 className="text-lg font-semibold text-gray-900">
+                No appointments found
+              </h3>
+              <p className="text-gray-500 mt-1">
+                Try adjusting your search or filter criteria
+              </p>
             </div>
           )}
         </div>
       </div>
-    </>
+    </div>
   );
-};
+}
 
-AdminAppointments.getLayout = (page: any) => (
-  <DashboardLayout>{page}</DashboardLayout>
-);
+AllAppointments.getLayout = (page: any) => <DashboardLayout>{page}</DashboardLayout>;
 
-export default AdminAppointments;
+export default AllAppointments;

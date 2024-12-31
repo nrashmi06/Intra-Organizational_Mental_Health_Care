@@ -37,7 +37,7 @@ export default function Navbar({ children }: NavbarProps) {
   };
 
   return (
-    <header className="sticky top-0 z-10 bg-white border-b border-gray-200 shadow-sm">
+    <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
       <div className="flex h-14 items-center gap-4 px-4 md:px-6">
         {children}
         
@@ -65,7 +65,7 @@ export default function Navbar({ children }: NavbarProps) {
             Log out
           </Button>
           <div className="flex items-center">
-            <Button variant="ghost" size="icon" href="/adminprofile">
+            <Button variant="ghost" size="icon" href="/dashboard/adminprofile">
               <Avatar className="h-8 w-8" name="Admin" />
             </Button>
           </div>
