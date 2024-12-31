@@ -1,6 +1,5 @@
-
-import axiosInstance from '@/utils/axios'; 
-import { FEEDBACK_API_ENDPOINTS } from "@/mapper/feedbackMapper"; 
+import axiosInstance from "@/utils/axios";
+import { FEEDBACK_API_ENDPOINTS } from "@/mapper/feedbackMapper";
 
 export const getSessionFeedback = async (
   sessionId: string,
@@ -18,7 +17,9 @@ export const getSessionFeedback = async (
       signal, // Pass the abort signal, Axios supports it via options
     });
 
-    console.log(response.data);
+    if (response.status === 404) {
+      return response;
+    }
     return response.data; // Return the response data
   } catch (error) {
     console.error("Error fetching session feedback:", error);

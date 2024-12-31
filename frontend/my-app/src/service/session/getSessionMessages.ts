@@ -1,5 +1,5 @@
 // src/service/session/getSessionMessages.ts
-import axiosInstance from '@/utils/axios' // Import the Axios instance
+import axiosInstance from "@/utils/axios"; // Import the Axios instance
 import { SESSION_API_ENDPOINTS } from "@/mapper/sessionMapper"; // Import the session mapper
 
 export const getSessionMessages = async (
@@ -18,6 +18,9 @@ export const getSessionMessages = async (
       signal, // Pass the abort signal for request cancellation
     });
 
+    if (response.status === 404) {
+      return response;
+    }
     return response.data; // Return the response data
   } catch (error) {
     console.error("Error fetching session messages:", error);

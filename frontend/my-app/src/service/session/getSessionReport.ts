@@ -1,5 +1,5 @@
 // src/service/report/getSessionReport.ts
-import axiosInstance from '@/utils/axios' // Import the Axios instance
+import axiosInstance from "@/utils/axios"; // Import the Axios instance
 import { REPORT_API_ENDPOINTS } from "@/mapper/reportMapper"; // Import the report mapper
 
 export const getSessionReport = async (
@@ -17,7 +17,9 @@ export const getSessionReport = async (
       },
       signal, // Include signal for request cancellation
     });
-
+    if (response.status === 404) {
+      return response;
+    }
     return response.data; // Return the response data
   } catch (error) {
     console.error("Error fetching session report:", error);
