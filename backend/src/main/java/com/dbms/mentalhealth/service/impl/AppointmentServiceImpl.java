@@ -151,8 +151,11 @@ public class AppointmentServiceImpl implements AppointmentService {
             appointment.setStatus(AppointmentStatus.CONFIRMED);
             timeSlot.setIsAvailable(false);
             timeSlotRepository.save(timeSlot);
-            userMetricsService.incrementAppointmentCount(appointment.getUser());
+            User userAdmin = appointment.getAdmin().getUser();
+            userMetricsService.setLastAppointmentDate(userAdmin, appointment.getTimeSlot().getDate().atTime(appointment.getTimeSlot().getStartTime()));
             userMetricsService.setLastAppointmentDate(appointment.getUser(), appointment.getTimeSlot().getDate().atTime(appointment.getTimeSlot().getStartTime()));
+            userMetricsService.incrementAppointmentCount(appointment.getUser());
+            userMetricsService.incrementAppointmentCount(userAdmin);
         } else if (newStatus == AppointmentStatus.CANCELLED) {
             timeSlot.setIsAvailable(true);
             timeSlotRepository.save(timeSlot);
