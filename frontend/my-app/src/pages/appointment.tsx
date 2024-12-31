@@ -164,13 +164,17 @@ export default function BookAppointment() {
                 showTooltip={showTooltip}
                 setShowTooltip={setShowTooltip}
               />
-              <AdminSelect
-                admins={admins}
-                onAdminSelect={(value: string) => {
-                  setSelectedAdminId(value);
-                  handleInputChange("adminId", value);
-                }}
-              />
+              {admins.length > 0 ? (
+                <AdminSelect
+                  admins={admins}
+                  onAdminSelect={(value: string) => {
+                    setSelectedAdminId(value);
+                    handleInputChange("adminId", value);
+                  }}
+                />
+              ) : (
+                <div>No admins available</div>
+              )}
               <DateTimeSelect
                 uniqueDates={uniqueDates}
                 selectedDate={selectedDate}

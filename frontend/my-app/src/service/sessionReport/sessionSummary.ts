@@ -12,16 +12,11 @@ export const getSessionFeedbackSummary = async (token: string) => {
       }
     );
 
-    if (!response.data) {
-      throw new Error("API response does not contain data.");
-    }
-
-    console.log("Listener details:", response.data);
     return response.data; // Return the expected feedback summary
   } catch (error: any) {
-    console.error("Error fetching session feedback summary:", error.message || error);
-    throw new Error(
-      `Failed to fetch session feedback summary: ${error.response?.data?.message || error.message || "Unknown error"}`
+    console.error(
+      "Error fetching session feedback summary:",
+      error.message || error
     );
   }
 };

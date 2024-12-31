@@ -22,7 +22,7 @@ export const getAppointmentsByFilter =
         APPOINTMENT_API_ENDPOINTS.GET_APPOINTMENTS_BY_FILTER,
         {
           params: {
-            timeFilter : timeFilter === "ALL" ? undefined : timeFilter,
+            timeFilter: timeFilter === "ALL" ? undefined : timeFilter,
             status: status === "ALL" ? "CONFIRMED" : status,
             page,
             size,
@@ -36,6 +36,12 @@ export const getAppointmentsByFilter =
           validateStatus: (status) => status >= 200 && status < 400,
         }
       );
+
+      if(response.status === 404)
+      {
+        console.log("No appointments found");
+        return;
+      }
 
       if (response.status === 304) {
         console.log("Using cached appointment data");
@@ -55,6 +61,5 @@ export const getAppointmentsByFilter =
       return response.data;
     } catch (error: any) {
       console.error("Error fetching appointments:", error);
-      throw error;
     }
   };

@@ -23,10 +23,16 @@ export const loginUser =
         ? response.headers["authorization"].slice(7)
         : null;
 
-      if (!accessToken) {
+      if (response.status === 401) {
         return {
           success: false,
           error: "Wrong credentials. Please try again.",
+        };
+      }
+      else if (response.status === 403) {
+        return {
+          success: false,
+          error: "Please verify your email address and try again.",
         };
       }
 

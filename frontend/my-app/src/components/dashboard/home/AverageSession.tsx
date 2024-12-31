@@ -11,7 +11,6 @@ export default function AverageSession() {
   useEffect(() => {
     const fetchListenerDetails = async () => {
       try {
-        console.log("Fetching average session details...");
         const details = await getAverageSessionDetails(token);
         setDetails(details);
       } catch (error) {
@@ -21,14 +20,18 @@ export default function AverageSession() {
 
     fetchListenerDetails();
   }, [token]);
+
+  if(!data) {
+    return <div>No reports data.</div>
+  }
   return (
     <div>
-        <div className="text-3xl flex items-center justify-center font-bold">
-          {data}
-        </div>
-        <div className="mt-4 h-2 bg-muted rounded-full overflow-hidden">
-          <div className="h-full bg-primary" style={{ width: "65%" }}></div>
-        </div>
+      <div className="text-3xl flex items-center justify-center font-bold">
+        {data}
+      </div>
+      <div className="mt-4 h-2 bg-muted rounded-full overflow-hidden">
+        <div className="h-full bg-primary" style={{ width: "65%" }}></div>
+      </div>
     </div>
   );
 }

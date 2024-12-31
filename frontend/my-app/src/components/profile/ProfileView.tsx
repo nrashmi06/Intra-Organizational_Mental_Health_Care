@@ -47,78 +47,78 @@ const ProfileView: React.FC<ProfileViewProps> = ({
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          {[
+            {[
             {
               icon: UserCircle2,
               label: "User ID",
-              value: user.userId,
+              value: user.userId || "N/A",
             },
             {
               icon: ShieldCheck,
               label: "Role",
-              value: user.role,
+              value: user.role || "N/A",
             },
             {
               icon: CheckCircle2,
               label: "Status",
-              value: user.profileStatus,
+              value: user.profileStatus || "N/A",
             },
             {
               icon: Clock3,
               label: "Last Seen",
-              value: new Date(user.lastSeen).toLocaleDateString(),
+              value: user.lastSeen ? new Date(user.lastSeen).toLocaleDateString() : "N/A",
             },
             {
               icon: CalendarDays,
               label: "Created At",
-              value: new Date(user.createdAt).toLocaleDateString(),
+              value: user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "N/A",
             },
             {
               icon: CalendarCheck,
               label: "Updated At",
-              value: new Date(user.updatedAt).toLocaleDateString(),
+              value: user.updatedAt ? new Date(user.updatedAt).toLocaleDateString() : "N/A",
             },
             {
               icon: Users2,
               label: "Total Sessions",
-              value: user.totalSessionsAttended,
+              value: user.totalSessionsAttended || "N/A",
             },
             {
               icon: CalendarClock,
               label: "Last Session",
-              value: new Date(user.lastSessionDate).toLocaleDateString(),
+              value: user.lastSessionDate ? new Date(user.lastSessionDate).toLocaleDateString() : "N/A",
             },
             {
               icon: Calendar,
               label: "Total Appointments",
-              value: user.totalAppointments,
+              value: user.totalAppointments || "N/A",
             },
             {
               icon: CalendarCheck,
               label: "Last Appointment",
-              value: new Date(user.lastAppointmentDate).toLocaleDateString(),
+              value: user.lastAppointmentDate ? new Date(user.lastAppointmentDate).toLocaleDateString() : "N/A",
             },
             {
               icon: MessageSquareText,
               label: "Messages Sent",
-              value: user.totalMessagesSent,
+              value: user.totalMessagesSent || "N/A",
             },
             {
               icon: BookOpen,
               label: "Blogs Published",
-              value: user.totalBlogsPublished,
+              value: user.totalBlogsPublished || "N/A",
             },
             {
               icon: HeartHandshake,
               label: "Total Likes",
-              value: user.totalLikesReceived,
+              value: user.totalLikesReceived || "N/A",
             },
             {
               icon: Eye,
               label: "Total Views",
-              value: user.totalViewsReceived,
+              value: user.totalViewsReceived || "N/A",
             },
-          ].map(({ icon: Icon, label, value }) => (
+            ].map(({ icon: Icon, label, value }) => (
             <div
               key={label}
               className="flex flex-col items-center p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors duration-200"
@@ -127,7 +127,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({
               <p className="text-sm text-slate-700">{label}</p>
               <p className="font-bold text-lg text-slate-900">{value}</p>
             </div>
-          ))}
+            ))}
         </div>
         <Button
           onClick={onEdit}

@@ -124,12 +124,18 @@ export default function AllBlogsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       <Head>
         <title>Blog | Explore All Articles</title>
       </Head>
       <Navbar1 />
-      <div className="w-full bg-white py-8 md:py-10 border-b">
+      <div
+        className="w-full py-8 md:py-10 border-b "
+        style={{
+          background:
+            "linear-gradient(90deg, rgb(179, 245, 220) 0%, rgb(182, 230, 200) 3%, rgb(209, 224, 230) 18%, rgba(202, 206, 156, 0.64) 41%, rgb(210, 235, 214) 95%)",
+        }}
+      >
         <div className="container mx-auto px-4 max-w-7xl">
           <h1 className="text-3xl md:text-4xl font-bold text-center text-gray-800 mb-2">
             All Blogs
@@ -139,8 +145,8 @@ export default function AllBlogsPage() {
           </p>
         </div>
       </div>
-      <div className="w-full bg-white border-b py-4">
-        <div className="container mx-auto px-4 max-w-7xl">
+      <div className="w-full bg-transparent  py-4">
+        <div className="container mx-auto px-4 max-w-7xl ">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
             <div className="relative">
               <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">

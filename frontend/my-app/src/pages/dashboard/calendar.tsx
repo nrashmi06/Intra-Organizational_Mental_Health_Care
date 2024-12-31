@@ -1,20 +1,22 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import DailySchedule from '@/components/dashboard/schedule/DailySchedule';
-import WeeklySchedule from '@/components/dashboard/schedule/WeeklySchedule';
-import MonthlySchedule from '@/components/dashboard/schedule/MonthlySchedule';
-import { useEffect, useState } from 'react';
-import { RootState } from '@/store';
-import { useSelector } from 'react-redux';
-import DashboardLayout from '@/components/dashboard/DashboardLayout';
-import DatePicker from '@/components/dashboard/schedule/DatePicker';
-import { getAppointmentsByFilter } from '@/service/appointment/getAppointmentsByFilter';
-import { useAppDispatch } from '@/hooks/useAppDispatch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import DailySchedule from "@/components/dashboard/schedule/DailySchedule";
+import WeeklySchedule from "@/components/dashboard/schedule/WeeklySchedule";
+import MonthlySchedule from "@/components/dashboard/schedule/MonthlySchedule";
+import { useEffect, useState } from "react";
+import { RootState } from "@/store";
+import { useSelector } from "react-redux";
+import DashboardLayout from "@/components/dashboard/DashboardLayout";
+import DatePicker from "@/components/dashboard/schedule/DatePicker";
+import { getAppointmentsByFilter } from "@/service/appointment/getAppointmentsByFilter";
+import { useAppDispatch } from "@/hooks/useAppDispatch";
 
 const SchedulePage = () => {
   const dispatch = useAppDispatch();
   const [date, setDate] = useState<Date>(new Date());
-  
-  const appointments = useSelector((state: RootState) => state.appointments.appointments);
+
+  const appointments = useSelector(
+    (state: RootState) => state.appointments.appointments
+  );
   const token = useSelector((state: RootState) => state.auth.accessToken);
   const userId = useSelector((state: RootState) => state.auth.userId);
 
@@ -28,8 +30,8 @@ const SchedulePage = () => {
       try {
         await dispatch(
           getAppointmentsByFilter({
-            timeFilter: 'ALL',
-            status: 'ALL',
+            timeFilter: "ALL",
+            status: "ALL",
             page: 0,
             size: 100,
             userId,
@@ -42,6 +44,9 @@ const SchedulePage = () => {
 
     fetchAppointments();
   }, [token, dispatch, userId]);
+  if (appointments.length === 0) {
+    return <div>No appointments yet!</div>;
+  }
 
   const handleDateSelect = (newDate: Date | undefined) => {
     if (newDate) {
@@ -59,7 +64,7 @@ const SchedulePage = () => {
               <TabsTrigger value="week">Week</TabsTrigger>
               <TabsTrigger value="month">Month</TabsTrigger>
             </TabsList>
-            
+
             <DatePicker
               date={date}
               onDateChange={handleDateSelect}
@@ -67,12 +72,15 @@ const SchedulePage = () => {
             />
           </div>
 
-          <TabsContent value="day" className="space-y-4 text-teal-800 dark:text-teal-300">
-            <DailySchedule appointments={appointments} date={date}/>
+          <TabsContent
+            value="day"
+            className="space-y-4 text-teal-800 dark:text-teal-300"
+          >
+            <DailySchedule appointments={appointments} date={date} />
           </TabsContent>
 
           <TabsContent value="week" className="space-y-4">
-            <WeeklySchedule appointments={appointments} date={date}/>
+            <WeeklySchedule appointments={appointments} date={date} />
           </TabsContent>
 
           <TabsContent value="month" className="space-y-4">
@@ -84,6 +92,8 @@ const SchedulePage = () => {
   );
 };
 
-SchedulePage.getLayout = (page: any) => <DashboardLayout>{page}</DashboardLayout>;
+SchedulePage.getLayout = (page: any) => (
+  <DashboardLayout>{page}</DashboardLayout>
+);
 
 export default SchedulePage;

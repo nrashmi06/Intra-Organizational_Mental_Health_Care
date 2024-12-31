@@ -168,7 +168,15 @@ const TimeSlotPage = () => {
       </div>
     );
   }
-
+  if(timeSlots.length === 0) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-muted-foreground text-center">
+          <p className="text-lg font-semibold">No time slots available.</p>
+        </div>
+      </div>
+    );
+  }
   const groupedSlots = timeSlots ? groupSlots(timeSlots) : {};
 
   return (
