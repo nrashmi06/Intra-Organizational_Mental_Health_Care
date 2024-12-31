@@ -7,7 +7,7 @@ import {
   removeEventSource,
   clearEventSources,
 } from "@/store/eventsourceSlice";
-import Navbar from "@/components/navbar/NavBar";
+import Navbar from "@/components/navbar/Navbar2";
 import ListenerDetails from "@/components/listener/ListenerDetails";
 import { getActiveListeners } from "@/service/SSE/getActiveListeners";
 import { Listener } from "@/lib/types";

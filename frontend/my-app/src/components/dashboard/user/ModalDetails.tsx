@@ -66,185 +66,107 @@ const ModalDetails: React.FC<DetailsProps> = ({
     });
   };
 
+  const InfoCard = ({ icon: Icon, title, value, color }: { icon: any; title: string; value: string | number; color: string }) => (
+    <div className="flex items-center p-2 sm:p-3 rounded-lg border hover:shadow-sm transition-shadow bg-white">
+      <Icon className={`mr-2 ${color} w-4 h-4 sm:w-5 sm:h-5`} />
+      <div className="min-w-0 flex-1">
+        <p className="text-xs font-medium text-gray-500 truncate">{title}</p>
+        <p className="text-xs sm:text-sm truncate">{value}</p>
+      </div>
+    </div>
+  );
+
+  // Add styles to prevent body scrolling when modal is open
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, []);
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-opacity-50 backdrop-blur-sm">
-      <div className="relative w-full max-w-4xl bg-white rounded-lg shadow-lg max-h-[90vh] overflow-y-auto">
-        <button
-          onClick={handleClose}
-          className="absolute top-4 right-4 text-gray-500 hover:text-gray-800"
-        >
-          <X className="w-6 h-6" />
-        </button>
+    <div className="fixed inset-0 z-30 overflow-hidden">
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={handleClose} />
+      <div className="fixed inset-0 flex items-center justify-center p-4">
+        <div className="relative w-full max-w-3xl bg-white rounded-lg shadow-lg flex flex-col max-h-[90vh]">
+          <div className="flex-none p-3 border-b flex justify-between items-center">
+            <h2 className="text-lg font-semibold">User Details</h2>
+            <button
+              onClick={handleClose}
+              className="text-gray-500 hover:text-gray-800 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
 
-        <div className="p-6 pb-0">
-          <h2 className="text-xl font-semibold text-center border-b pb-4">
-            User Details
-          </h2>
-        </div>
+          <div className="flex-1 p-4 overflow-y-auto">
+            {isLoading ? (
+              <InlineLoader height="h-60" />
+            ) : error ? (
+              <div className="flex items-center justify-center h-60 text-red-500 text-center">
+                {error}
+              </div>
+            ) : !user ? (
+              <div className="flex items-center justify-center h-60 text-center">
+                No details available.
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  <InfoCard icon={Mail} title="Email" value={user.email} color="text-blue-500" />
+                  <InfoCard icon={User} title="Anonymous Name" value={user.anonymousName} color="text-indigo-500" />
+                  <InfoCard icon={CheckCircle} title="Role" value={user.role} color="text-purple-500" />
+                  <InfoCard icon={Shield} title="Status" value={user.profileStatus} color="text-teal-500" />
+                  <InfoCard icon={Calendar} title="Created At" value={formatDate(user.createdAt)} color="text-green-500" />
+                  <InfoCard icon={Calendar} title="Updated At" value={formatDate(user.updatedAt)} color="text-yellow-500" />
+                  <InfoCard icon={Calendar} title="Last Seen" value={formatDate(user.lastSeen)} color="text-orange-500" />
+                  <InfoCard icon={Users} title="Total Sessions" value={user.totalSessionsAttended} color="text-purple-500" />
+                  <InfoCard
+                    icon={Calendar}
+                    title="Last Session"
+                    value={user.lastSessionDate ? formatDate(user.lastSessionDate) : 'N/A'}
+                    color="text-indigo-500"
+                  />
+                  <InfoCard icon={Calendar} title="Total Appointments" value={user.totalAppointments} color="text-blue-500" />
+                  <InfoCard
+                    icon={Calendar}
+                    title="Last Appointment"
+                    value={user.lastAppointmentDate ? formatDate(user.lastAppointmentDate) : 'N/A'}
+                    color="text-cyan-500"
+                  />
+                  <InfoCard icon={MessageSquare} title="Messages Sent" value={user.totalMessagesSent} color="text-green-500" />
+                  <InfoCard icon={Book} title="Blogs Published" value={user.totalBlogsPublished} color="text-rose-500" />
+                  <InfoCard icon={ThumbsUp} title="Likes Received" value={user.totalLikesReceived} color="text-amber-500" />
+                  <InfoCard icon={Eye} title="Views Received" value={user.totalViewsReceived} color="text-violet-500" />
+                </div>
 
-        <div className="min-h-96 p-6 pt-4">
-          {isLoading ? (
-            <InlineLoader height="h-80"/>
-          ) : error ? (
-            <div className="flex items-center justify-center h-[400px] text-red-500 text-center">
-              {error}
-            </div>
-          ) : !user ? (
-            <div className="flex items-center justify-center h-[400px] text-center">
-              No details available.
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 gap-4">
-              {/* Basic Information */}
-              <div className="flex items-center p-4 rounded-lg border">
-                <Mail className="mr-2 text-blue-500" />
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Email</p>
-                  <p className="text-sm">{user.email}</p>
+                <div className="mt-4 flex flex-col sm:flex-row gap-2 justify-end">
+                  {statusFilter && (
+                    <Button
+                      variant="outline"
+                      className={`${
+                        statusFilter === "ACTIVE"
+                          ? "text-red-500 hover:bg-red-50"
+                          : "text-green-500 hover:bg-green-50"
+                      }`}
+                      onClick={() => handleAction(user.userId, statusFilter)}
+                    >
+                      {statusFilter === "ACTIVE" ? "Suspend" : "Activate"} User
+                    </Button>
+                  )}
+                  {viewSession && (
+                    <Button
+                      variant="outline"
+                      className="text-blue-500 hover:bg-blue-50"
+                      onClick={() => router.push(`/dashboard/user/sessions/${userId}`)}
+                    >
+                      View Sessions
+                    </Button>
+                  )}
                 </div>
-              </div>
-              <div className="flex items-center p-4 rounded-lg border">
-                <User className="mr-2 text-indigo-500" />
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Anonymous Name</p>
-                  <p className="text-sm">{user.anonymousName}</p>
-                </div>
-              </div>
-              <div className="flex items-center p-4 rounded-lg border">
-                <CheckCircle className="mr-2 text-purple-500" />
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Role</p>
-                  <p className="text-sm">{user.role}</p>
-                </div>
-              </div>
-              <div className="flex items-center p-4 rounded-lg border">
-                <Shield className="mr-2 text-teal-500" />
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Status</p>
-                  <p className="text-sm">{user.profileStatus}</p>
-                </div>
-              </div>
-
-              {/* Dates */}
-              <div className="flex items-center p-4 rounded-lg border">
-                <Calendar className="mr-2 text-green-500" />
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Created At</p>
-                  <p className="text-sm">{formatDate(user.createdAt)}</p>
-                </div>
-              </div>
-              <div className="flex items-center p-4 rounded-lg border">
-                <Calendar className="mr-2 text-yellow-500" />
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Updated At</p>
-                  <p className="text-sm">{formatDate(user.updatedAt)}</p>
-                </div>
-              </div>
-              <div className="flex items-center p-4 rounded-lg border">
-                <Calendar className="mr-2 text-orange-500" />
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Last Seen</p>
-                  <p className="text-sm">{formatDate(user.lastSeen)}</p>
-                </div>
-              </div>
-
-              {/* Session Information */}
-              <div className="flex items-center p-4 rounded-lg border">
-                <Users className="mr-2 text-purple-500" />
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Total Sessions Attended</p>
-                  <p className="text-sm">{user.totalSessionsAttended}</p>
-                </div>
-              </div>
-              <div className="flex items-center p-4 rounded-lg border">
-                <Calendar className="mr-2 text-indigo-500" />
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Last Session Date</p>
-                  <p className="text-sm">{user.lastSessionDate ? formatDate(user.lastSessionDate) : 'N/A'}</p>
-                </div>
-              </div>
-
-              {/* Appointment Information */}
-              <div className="flex items-center p-4 rounded-lg border">
-                <Calendar className="mr-2 text-blue-500" />
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Total Appointments</p>
-                  <p className="text-sm">{user.totalAppointments}</p>
-                </div>
-              </div>
-              <div className="flex items-center p-4 rounded-lg border">
-                <Calendar className="mr-2 text-cyan-500" />
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Last Appointment Date</p>
-                  <p className="text-sm">{user.lastAppointmentDate ? formatDate(user.lastAppointmentDate) : 'N/A'}</p>
-                </div>
-              </div>
-
-              {/* Activity Metrics */}
-              <div className="flex items-center p-4 rounded-lg border">
-                <MessageSquare className="mr-2 text-green-500" />
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Total Messages Sent</p>
-                  <p className="text-sm">{user.totalMessagesSent}</p>
-                </div>
-              </div>
-              <div className="flex items-center p-4 rounded-lg border">
-                <Book className="mr-2 text-rose-500" />
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Total Blogs Published</p>
-                  <p className="text-sm">{user.totalBlogsPublished}</p>
-                </div>
-              </div>
-              <div className="flex items-center p-4 rounded-lg border">
-                <ThumbsUp className="mr-2 text-amber-500" />
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Total Likes Received</p>
-                  <p className="text-sm">{user.totalLikesReceived}</p>
-                </div>
-              </div>
-              <div className="flex items-center p-4 rounded-lg border">
-                <Eye className="mr-2 text-violet-500" />
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Total Views Received</p>
-                  <p className="text-sm">{user.totalViewsReceived}</p>
-                </div>
-              </div>
-
-              {/* Active Status */}
-              <div className="p-4 rounded-lg border">
-                <p className="text-sm font-medium text-gray-500">Active</p>
-                <p className="text-sm">{user.isActive ? "Yes" : "No"}</p>
-              </div>
-
-              {/* Action Buttons */}
-              {statusFilter && (
-                <div className="p-4 flex justify-end">
-                  <Button
-                    variant="outline"
-                    className={`${
-                      statusFilter === "ACTIVE"
-                        ? "text-red-500 bg-red-100"
-                        : "text-green-500 bg-green-100"
-                    }`}
-                    onClick={() => handleAction(user.userId, statusFilter)}
-                  >
-                    {statusFilter === "ACTIVE" ? "Suspend" : "Activate"} User
-                  </Button>
-                </div>
-              )}
-              {viewSession && (
-                <div className="p-4 flex justify-end">
-                  <Button
-                    variant="outline"
-                    className="text-blue-500 bg-blue-100"
-                    onClick={() => router.push(`/dashboard/user/sessions/${userId}`)}
-                  >
-                    View Sessions
-                  </Button>
-                </div>
-              )}
-            </div>
-          )}
+              </>
+            )}
+          </div>
         </div>
       </div>
     </div>

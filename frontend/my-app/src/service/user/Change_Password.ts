@@ -1,5 +1,6 @@
-import axios from "axios";
+import axiosInstance from "@/utils/axios";
 import { API_ENDPOINTS } from "@/mapper/userMapper"; // Import the userMapper
+import axios from "axios";
 
 interface ChangePasswordParams {
   userId: string;
@@ -19,7 +20,7 @@ const changePassword = async ({
   token,
 }: ChangePasswordParams): Promise<string> => {
   try {
-    const response = await axios.put<ChangePasswordResponse>(
+    const response = await axiosInstance.put<ChangePasswordResponse>(
       API_ENDPOINTS.CHANGE_PASSWORD(userId),
       {
         oldPassword,

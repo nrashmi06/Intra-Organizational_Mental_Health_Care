@@ -1,9 +1,9 @@
 import { SESSION_API_ENDPOINTS } from "@/mapper/sessionMapper";
-import axios from "axios";
+import axiosInstance from "@/utils/axios";
 
 interface GetSessionsByStatusParams {
   accessToken: string;
-  status: string;
+  status?: string;
   page?: number;
   size?: number;
   idType?: string;
@@ -29,7 +29,7 @@ export const getSessionsByStatus = async ({
     if (id) {
       url.searchParams.append('id', id.toString());
     }
-    const response = await axios.get(url.toString(), {
+    const response = await axiosInstance.get(url.toString(), {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },

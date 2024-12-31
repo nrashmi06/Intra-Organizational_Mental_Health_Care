@@ -1,4 +1,4 @@
-import axios from "axios";
+import axiosInstance from "@/utils/axios";
 import { API_ENDPOINTS } from "@/mapper/userMapper";
 
 // Define the interface for the request parameters
@@ -10,7 +10,7 @@ interface ResetPasswordParams {
 // Service to reset the password
 const resetPassword = async ({ token, newPassword }: ResetPasswordParams): Promise<string> => {
   try {
-    const response = await axios.post(API_ENDPOINTS.RESET_PASSWORD, {
+    const response = await axiosInstance.post(API_ENDPOINTS.RESET_PASSWORD, {
       token,
       newPassword,
     });

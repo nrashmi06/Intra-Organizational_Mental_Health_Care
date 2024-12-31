@@ -182,7 +182,7 @@ const NotificationPopup: React.FC = () => {
                 <p>{details}</p>
                 <div className="mt-2 flex items-start space-x-2">
                   <MessageCircle className="text-gray-600" size={20} />
-                  <p className="italic">{message}</p>
+                  <p className="italic line-clamp-1">{message}</p>
                 </div>
               </div>
 

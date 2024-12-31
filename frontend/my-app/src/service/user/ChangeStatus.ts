@@ -1,7 +1,6 @@
-//to suspend or unsuspend
-
-import axios from "axios";
+import axiosInstance from "@/utils/axios";
 import { API_ENDPOINTS } from "@/mapper/userMapper";
+import axios from "axios";
 
 export const changeStatus = async (
   userId: string,
@@ -9,7 +8,7 @@ export const changeStatus = async (
   action: string
 ) => {
   try {
-    const response = await axios.put(
+    const response = await axiosInstance.put(
       `${API_ENDPOINTS.SUSPEND_USER(userId)}?action=${action}`,
       {},
       {

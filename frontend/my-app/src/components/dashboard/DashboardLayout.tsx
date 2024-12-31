@@ -1,4 +1,5 @@
 "use client";
+
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { useSelector } from "react-redux";
@@ -19,7 +20,6 @@ export default function Layout({ children }: LayoutProps) {
   const [isAuthorized, setIsAuthorized] = useState(false);
 
   useEffect(() => {
-    // Check authorization when component mounts or role changes
     if (role !== "ADMIN") {
       router.push("/unauthorized");
     } else {
@@ -27,31 +27,29 @@ export default function Layout({ children }: LayoutProps) {
     }
   }, [role, router]);
 
-  // Don't render anything while checking authorization
   if (!isAuthorized) {
     return null;
   }
 
   return (
-    <div className="flex h-screen">
-      {/* Sidebar */}
+    <div className="min-h-screen bg-gray-50">
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-
-      {/* Main content */}
-      <div className="flex flex-1 flex-col md:ml-64">
-        {/* Navbar */}
+      
+      <div className="flex flex-col md:pl-64">
         <Navbar>
           <Button
-            className="md:hidden text-gray-600"
+            className="md:hidden text-gray-600 hover:text-gray-900"
             onClick={() => setSidebarOpen(true)}
-            variant="link"
+            variant="ghost"
+            size="icon"
           >
-            <Menu className="h-6 w-6" />
+            <Menu className="h-5 w-5" />
           </Button>
         </Navbar>
-
-        {/* Content */}
-        <main className="flex-1 overflow-y-auto bg-gray-100">{children}</main>
+        
+        <main className="flex-1 p-6 mx-auto w-full max-w-7xl min-h-[calc(100vh-4rem)]">
+          {children}
+        </main>
       </div>
     </div>
   );

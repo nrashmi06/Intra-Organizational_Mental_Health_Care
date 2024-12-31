@@ -1,7 +1,6 @@
 import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
   Calendar,
@@ -15,6 +14,7 @@ import {
   MessageCircle,
 } from "lucide-react";
 import Image from "next/image";
+import { cn } from "@/lib/utils";
 
 const routes = [
   { label: "Insights", icon: LayoutDashboard, href: "/insights" },
@@ -23,10 +23,10 @@ const routes = [
   { label: "User", icon: Users, href: "/dashboard/user" },
   { label: "Admin", icon: ShieldCheck, href: "/dashboard/admin" },
   { label: "Sessions", icon: MessageCircle, href: "/dashboard/sessions" },
-  { label : "Timeslot", icon: Calendar, href: "/dashboard/timeslot"}, 
+  { label: "Timeslot", icon: Calendar, href: "/dashboard/timeslot" },
   { label: "Appointments", icon: Pin, href: "/dashboard/appointments" },
   { label: "Helpline", icon: PhoneCall, href: "/dashboard/helpline" },
-  { label: "Send Mass Email", icon: Mail, href: "/dashboard/sendemail" }
+  { label: "Send Mass Email", icon: Mail, href: "/dashboard/sendemail" },
 ];
 
 type SidebarProps = {
@@ -46,76 +46,70 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
   }, [pathname, onClose]);
 
   const sidebarContent = (
-    <>
-      {/* Header with Logo */}
-      <div className="flex items-center justify-between gap-2 p-4 md:p-0">
-        <div className="flex items-center gap-2">
+    <div className="flex flex-col h-full">
+      <div className="flex items-center justify-between p-3 border-b border-emerald-600/10">
+        <div className="flex items-center gap-3">
           <Image
             src="/images/logo/logo.png"
             alt="SerenitySphere Logo"
             width={40}
             height={40}
-            className="rounded-full"
+            className="rounded-full ring-emerald-100/10"
           />
-          <span className="text-sm md:text-xl font-semibold text-white">
+          <span className="text-base font-semibold text-emerald-50">
             SerenitySphere
           </span>
         </div>
-        {/* Close Button for Mobile */}
         <button
-          className="block md:hidden text-white p-2 rounded-md hover:bg-teal-800"
+          className="block md:hidden text-emerald-100 p-2 rounded-lg hover:bg-emerald-700/50 transition-colors"
           onClick={onClose}
         >
-          <X className="w-6 h-6" />
+          <X className="w-5 h-5" />
         </button>
       </div>
 
-      {/* Navigation Links */}
-      <nav className="flex-1 mt-2 px-2 md:px-0 space-y-2">
+      <nav className="flex-1 px-3 py-4 space-y-1">
         {routes.map((route) => (
           <Link
             key={route.href}
             href={route.href}
             className={cn(
-              "group flex items-center px-3 py-2 text-sm font-medium rounded-md",
-             pathname?.includes(route.href)
-                ? "bg-teal-900 text-white"
-                : "text-white hover:bg-teal-800 hover:text-white"
+              "group flex items-center w-full px-3 py-2 text-sm font-medium rounded-md transition-colors",
+              pathname?.includes(route.href)
+                ? "bg-emerald-700/60 text-white"
+                : "text-emerald-100 hover:bg-emerald-700/40 hover:text-white"
             )}
           >
-            <route.icon className="mr-3 flex-shrink-0 h-6 w-6 text-white" />
+            <route.icon className="mr-3 flex-shrink-0 h-4 w-4" />
             {route.label}
           </Link>
         ))}
       </nav>
-    </>
+    </div>
   );
 
   return (
     <>
-      {/* Desktop sidebar */}
       <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0">
-        <div className="flex-1 flex flex-col min-h-0 bg-gradient-to-b from-teal-700 via-light-green-600 via-light-green-700 to-yellow-200 p-4">
+        <div className="flex-1 flex flex-col min-h-0 bg-emerald-800">
           {sidebarContent}
         </div>
       </div>
 
-      {/* Mobile sidebar */}
       <div
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-[300px] sm:w-[400px] bg-gradient-to-b from-teal-700 via-light-green-600 via-light-green-700 to-yellow-200 transform transition-transform duration-300 ease-in-out",
+          "fixed inset-y-0 left-0 z-50 w-64 bg-emerald-800 transform transition-transform duration-300 ease-in-out md:hidden",
           open ? "translate-x-0" : "-translate-x-full"
         )}
       >
         {sidebarContent}
       </div>
 
-      {/* Overlay for mobile */}
       {open && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40"
+          className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 md:hidden"
           onClick={onClose}
-        ></div>
+        />
       )}
     </>
   );

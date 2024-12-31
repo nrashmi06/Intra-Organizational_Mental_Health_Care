@@ -1,4 +1,4 @@
-import axios from "axios";
+import axiosInstance from "@/utils/axios";
 import { REPORT_API_ENDPOINTS } from "@/mapper/reportMapper";
 
 export const submitFeedback = async (
@@ -8,7 +8,7 @@ export const submitFeedback = async (
   accessToken: string
 ) => {
   try {
-    const response = await axios.post(
+    const response = await axiosInstance.post(
       REPORT_API_ENDPOINTS.CREATE_REPORT, // Use the mapped endpoint
       {
         sessionId,

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Search, Info, Users } from "lucide-react";
+import { Search, Users } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
 import { useDispatch, useSelector } from "react-redux";
@@ -11,7 +11,11 @@ import router from "next/router";
 import InlineLoader from "@/components/ui/inlineLoader";
 import Pagination3 from "@/components/ui/pagination3";
 import UserCard from "./UserCard";
-import { addEventSource, clearEventSources, removeEventSource } from "@/store/eventsourceSlice";
+import {
+  addEventSource,
+  clearEventSources,
+  removeEventSource,
+} from "@/store/eventsourceSlice";
 
 export function OnlineUsersTable() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -94,7 +98,7 @@ export function OnlineUsersTable() {
 
       {loading && <InlineLoader />}
       {!loading && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
           {paginatedUsers.length === 0 ? (
             <div className="col-span-full text-center py-12 bg-gray-50 rounded-lg border border-dashed">
               <p className="text-gray-500">No users found.</p>
@@ -106,7 +110,6 @@ export function OnlineUsersTable() {
                 user={user}
                 onFirstButtonClick={(userId) => handleDetailsModal(userId)}
                 firstButtonLabel="Details"
-                firstButtonIcon={<Info className="h-4 w-4" />}
                 onViewSessions={(userId) =>
                   router.push(`/dashboard/user/sessions/${userId}`)
                 }

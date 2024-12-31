@@ -1,5 +1,6 @@
 import axios from "axios";
 import { LISTENER_API_ENDPOINTS } from "@/mapper/listenerProfileMapper";
+import axiosInstance from "@/utils/axios";
 
 export const changeStatus = async (
   listenerId: string,
@@ -7,7 +8,7 @@ export const changeStatus = async (
   action: string
 ) => {
   try {
-    const response = await axios.put(
+    const response = await axiosInstance.put(
       LISTENER_API_ENDPOINTS.SUSPEND_OR_UNSUSPEND_LISTENER(listenerId, action),
       {},
       {

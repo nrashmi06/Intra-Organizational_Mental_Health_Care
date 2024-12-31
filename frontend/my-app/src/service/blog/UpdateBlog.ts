@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { BLOG_API_ENDPOINTS } from '@/mapper/blogMapper'; // Adjust the path if needed
+import axiosInstance from '@/utils/axios';
 
 export const updateBlog = async (
   id: number,
@@ -25,14 +26,13 @@ export const updateBlog = async (
   if (blogData.summary) blogRequestDTO.summary = blogData.summary;
   if (blogData.userId) blogRequestDTO.userId = blogData.userId;
 
-  // Append the blog data as JSON in a blob
   const blogBlob = new Blob([JSON.stringify(blogRequestDTO)], {
     type: 'application/json',
   });
   formData.append('blog', blogBlob, 'blog.json');
 
   try {
-    const response = await axios.put(BLOG_API_ENDPOINTS.UPDATE_BLOG(id), formData, {
+    const response = await axiosInstance.put(BLOG_API_ENDPOINTS.UPDATE_BLOG(id), formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
         Authorization: `Bearer ${token}`,

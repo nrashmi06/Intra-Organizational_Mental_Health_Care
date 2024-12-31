@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { CheckCircle2, Search, X } from "lucide-react";
+import { CheckCircle2, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -19,7 +19,7 @@ import UserCard from "./UserCard";
 import Pagination from "../Pagination";
 
 const DEBOUNCE_DELAY = 750;
-const PAGE_SIZE = 1;
+const PAGE_SIZE = 4;
 
 export function RegisteredUsersTable() {
   const [users, setUsers] = useState<UserType[]>([]);
@@ -144,7 +144,7 @@ export function RegisteredUsersTable() {
 
         {!loading && (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
               {users.length === 0 ? (
                 <div className="col-span-full text-center py-12 bg-gray-50 rounded-lg border border-dashed">
                   <p className="text-gray-500">
@@ -158,7 +158,6 @@ export function RegisteredUsersTable() {
                     user={user}
                     onFirstButtonClick={(userId) => handleDetailsModal(userId)}
                     firstButtonLabel="Suspend"
-                    firstButtonIcon={<X className="h-4 w-4 text-red-600" />}
                     onViewSessions={(userId) =>
                       router.push(`/dashboard/user/sessions/${userId}`)
                     }

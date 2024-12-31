@@ -2,23 +2,30 @@ import { useEffect, useState } from "react";
 import ApplicationForm from "@/components/listener/ApplicationForm";
 import ApplicationDetails from "@/components/listener/ApplicationDetails";
 import { RootState } from "@/store";
-import { useSelector} from "react-redux";
+import { useSelector } from "react-redux";
 import { useRouter } from "next/router";
 import { fetchApplication } from "@/service/listener/fetchApplication";
-import { deleteApplication, updateApplication } from "@/service/listener/deleteAndUpdate";
+import {
+  deleteApplication,
+  updateApplication,
+} from "@/service/listener/deleteAndUpdate";
 import { clearUser } from "@/store/authSlice";
 import { clearDetailedApplication } from "@/store/detailedApplicationSlice";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
+import ProfileLayout from "@/components/profile/profilepageLayout";
 
-export default function ListenerApplication() {
+const ListenerApplication = () => {
   const { accessToken } = useSelector((state: RootState) => state.auth);
-  const { applicationData } = useSelector((state: RootState) => state.detailedApplication);
-  const [confirmationPopupVisible, setConfirmationPopupVisible] = useState(false);
+  const { applicationData } = useSelector(
+    (state: RootState) => state.detailedApplication
+  );
+  const [confirmationPopupVisible, setConfirmationPopupVisible] =
+    useState(false);
   const [isDeleted, setIsDeleted] = useState(false);
   const [isUpdated, setIsUpdated] = useState(false);
 
   const router = useRouter();
-    const dispatch = useAppDispatch(); 
+  const dispatch = useAppDispatch();
 
   useEffect(() => {
     if (!accessToken) {
@@ -39,7 +46,11 @@ export default function ListenerApplication() {
 
   const handleEdit = async (updatedData: any) => {
     try {
-      await updateApplication(applicationData.applicationId, accessToken, updatedData);
+      await updateApplication(
+        applicationData.applicationId,
+        accessToken,
+        updatedData
+      );
       setIsUpdated(true);
       setTimeout(() => {
         setIsUpdated(false);
@@ -82,13 +93,15 @@ export default function ListenerApplication() {
       ) : (
         <ApplicationForm />
       )}
-
       {confirmationPopupVisible && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-10">
           <div className="bg-white p-6 rounded-lg shadow-lg text-center">
-            <h3 className="text-lg font-semibold text-red-600">Confirm Deletion</h3>
+            <h3 className="text-lg font-semibold text-red-600">
+              Confirm Deletion
+            </h3>
             <p className="text-sm text-gray-600">
-              Are you sure you want to delete your listener profile? This action cannot be undone.
+              Are you sure you want to delete your listener profile? This action
+              cannot be undone.
             </p>
             <div className="flex justify-center gap-4 mt-4">
               <button
@@ -109,9 +122,11 @@ export default function ListenerApplication() {
       )}
 
       {isDeleted && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-10">
+        <div className="fixed inset-0 flex items-center justify-center bg-opacity-50 z-10">
           <div className="bg-white p-6 rounded-lg shadow-lg text-center">
-            <h3 className="text-lg font-semibold text-green-600">Application Deleted!</h3>
+            <h3 className="text-lg font-semibold text-green-600">
+              Application Deleted!
+            </h3>
             <p className="text-sm text-gray-600">
               Your application has been deleted successfully. Logging you out..
             </p>
@@ -120,9 +135,11 @@ export default function ListenerApplication() {
       )}
 
       {isUpdated && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-10">
+        <div className="fixed inset-0 flex items-center justify-center bg-opacity-50 z-10">
           <div className="bg-white p-6 rounded-lg shadow-lg text-center">
-            <h3 className="text-lg font-semibold text-green-600">Application Updated!</h3>
+            <h3 className="text-lg font-semibold text-green-600">
+              Application Updated!
+            </h3>
             <p className="text-sm text-gray-600">
               Your application has been updated successfully.
             </p>
@@ -132,3 +149,7 @@ export default function ListenerApplication() {
     </div>
   );
 }
+
+ListenerApplication.getLayout = (page: any) => <ProfileLayout>{page}</ProfileLayout>;
+
+export default ListenerApplication;

@@ -63,6 +63,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({
 
   return (
     <>
+    <div className="p-10">
       <ProfileView
         user={user}
         listener={listener}
@@ -79,6 +80,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({
         error={error}
         successMessage={successMessage}
       />
+      </div>
     </>
   );
 };

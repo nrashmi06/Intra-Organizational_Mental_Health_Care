@@ -1,9 +1,9 @@
-import axios from "axios";
 import { APPOINTMENT_API_ENDPOINTS } from "@/mapper/appointmentMapper"; 
+import axiosInstance from "@/utils/axios";
 
 export const rejectAppointment = async (token: string, appointmentId: string) => {
   try {
-    const response = await axios.post(
+    const response = await axiosInstance.post(
       APPOINTMENT_API_ENDPOINTS.CANCEL_APPOINTMENT(appointmentId),
       {
 

@@ -10,9 +10,9 @@ import verifyOtpForDownload from "@/service/user/Verify_Otp_For_Download";
 import "@/styles/global.css";
 import { RootState } from "@/store";
 import { useSelector } from "react-redux";
-import { ProfileLayout } from "@/components/profile/profilepageLayout";
+import ProfileLayout from "@/components/profile/profilepageLayout";
 
-export default function VerifyAndDownload() {
+export const VerifyAndDownload = () => {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
@@ -115,82 +115,82 @@ export default function VerifyAndDownload() {
   }, [errorMessage, successMessage]);
 
   return (
-    <ProfileLayout>
-      <main className="flex flex-1 justify-center items-center min-h-screen pb-32">
-        <div className="w-full max-w-md">
-          <div className="bg-white rounded-3xl shadow-xl p-8">
-            <div className="flex justify-center mb-6">
-              <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center">
-                <Image
-                  src="/phone.png"
-                  alt="Phone icon"
-                  width={64}
-                  height={64}
-                  className="w-16 h-16"
-                />
-              </div>
+    <main className="flex flex-1 justify-center items-center min-h-screen pb-32">
+      <div className="w-full max-w-md">
+        <div className="bg-white rounded-3xl shadow-xl p-8">
+          <div className="flex justify-center mb-6">
+            <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center">
+              <Image
+                src="/phone.png"
+                alt="Phone icon"
+                width={64}
+                height={64}
+                className="w-16 h-16"
+              />
             </div>
+          </div>
 
-            <h1 className="text-2xl font-bold text-center mb-2">
-              {!isOtpRequested
-                ? "Request Verification Code"
-                : "Enter OTP to Download PDF"}
-            </h1>
-            <h2 className="text-center text-lg text-gray-500 mb-8">
-              {!isOtpRequested
-                ? "Request a verification code to access your session and appointment data"
-                : "Please enter the 6-digit OTP sent to your email"}
-            </h2>
+          <h1 className="text-2xl font-bold text-center mb-2">
+            {!isOtpRequested
+              ? "Request Verification Code"
+              : "Enter OTP to Download PDF"}
+          </h1>
+          <h2 className="text-center text-lg text-gray-500 mb-8">
+            {!isOtpRequested
+              ? "Request a verification code to access your session and appointment data"
+              : "Please enter the 6-digit OTP sent to your email"}
+          </h2>
 
-            {!isOtpRequested && (
+          {!isOtpRequested && (
+            <Button
+              className="w-full mt-4 bg-black text-white hover:bg-black/90 disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={handleRequestOtp}
+              disabled={isRequestingOtp}
+            >
+              {isRequestingOtp ? "Requesting..." : "Request OTP"}
+            </Button>
+          )}
+
+          {isOtpRequested && (
+            <>
+              <div className="flex justify-center space-x-4 mb-4">
+                {otp.map((digit, index) => (
+                  <Input
+                    key={index}
+                    id={`otp-${index}`}
+                    type="text"
+                    className="w-12 h-12 text-center text-lg border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                    value={digit}
+                    onChange={(e) => handleOtpChange(index, e.target.value)}
+                    maxLength={1}
+                  />
+                ))}
+              </div>
+
               <Button
                 className="w-full mt-4 bg-black text-white hover:bg-black/90 disabled:opacity-50 disabled:cursor-not-allowed"
-                onClick={handleRequestOtp}
-                disabled={isRequestingOtp}
+                onClick={handleSubmitOtp}
+                disabled={otp.some((digit) => digit === "") || isSubmittingOtp}
               >
-                {isRequestingOtp ? "Requesting..." : "Request OTP"}
+                {isSubmittingOtp ? "Submitting..." : "Submit OTP"}
               </Button>
-            )}
+            </>
+          )}
 
-            {isOtpRequested && (
-              <>
-                <div className="flex justify-center space-x-4 mb-4">
-                  {otp.map((digit, index) => (
-                    <Input
-                      key={index}
-                      id={`otp-${index}`}
-                      type="text"
-                      className="w-12 h-12 text-center text-lg border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-                      value={digit}
-                      onChange={(e) => handleOtpChange(index, e.target.value)}
-                      maxLength={1}
-                    />
-                  ))}
-                </div>
-
-                <Button
-                  className="w-full mt-4 bg-black text-white hover:bg-black/90 disabled:opacity-50 disabled:cursor-not-allowed"
-                  onClick={handleSubmitOtp}
-                  disabled={
-                    otp.some((digit) => digit === "") || isSubmittingOtp
-                  }
-                >
-                  {isSubmittingOtp ? "Submitting..." : "Submit OTP"}
-                </Button>
-              </>
-            )}
-
-            {errorMessage && (
-              <p className="text-red-500 text-center mt-4">{errorMessage}</p>
-            )}
-            {successMessage && (
-              <p className="text-green-500 text-center mt-4">
-                {successMessage}
-              </p>
-            )}
-          </div>
+          {errorMessage && (
+            <p className="text-red-500 text-center mt-4">{errorMessage}</p>
+          )}
+          {successMessage && (
+            <p className="text-green-500 text-center mt-4">{successMessage}</p>
+          )}
         </div>
-      </main>
-    </ProfileLayout>
+      </div>
+    </main>
   );
-}
+};
+
+VerifyAndDownload.getLayout = (page: any) => (
+  <ProfileLayout>{page}</ProfileLayout>
+);
+
+export default VerifyAndDownload;

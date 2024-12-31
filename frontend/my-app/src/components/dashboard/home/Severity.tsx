@@ -34,7 +34,7 @@ export default function Severity() {
       try {
         console.log("Fetching listener details...");
         const response = await getSeverityAnalysis(token);
-        const details = await response.json();
+        const details = await response
 
         setDetails(details);
       } catch (error) {

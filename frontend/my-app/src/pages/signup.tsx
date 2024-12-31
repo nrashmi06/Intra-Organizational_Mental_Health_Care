@@ -1,46 +1,40 @@
-"use client";
-
-import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { Input } from "@/components/ui/input";
-import Footer from "@/components/footer/Footer";
-import Navbar from "@/components/navbar/NavBar";
-import { Button } from "@/components/ui/button";
-import "@/styles/global.css";
 import { useState } from "react";
-import { registerUser } from "@/service/user/Register_Api"; // Import the API function
-import { verifyEmail } from "@/service/user/Verify_Email"; // Import the Verify Email function
-import Link from "next/link"; // Import the Link component
+import { useRouter } from "next/router";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { registerUser } from "@/service/user/Register_Api";
+import { verifyEmail } from "@/service/user/Verify_Email";
+import Navbar from "@/components/navbar/Navbar2";
+import Footer from "@/components/footer/Footer";
+import { Eye, EyeOff } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
 
-export default function SignIn() {
-  const router = useRouter();
-
-  // State to store form values
+export default function SignUp() {
+  const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [anonymousName, setAnonymousName] = useState("");
-  const [loading, setLoading] = useState(false); // For button loading state
-  const [isSubmitted, setIsSubmitted] = useState(false); // To manage the popup visibility
-  const [successMessage, setSuccessMessage] = useState(""); // To store success message
-  const [errorMessage, setErrorMessage] = useState(""); // To store error messages
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
-  // Handle the form submission
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!email || !password || !anonymousName) {
-      alert("Please fill in all fields.");
+      setError("Please fill in all fields.");
       return;
     }
-    if (
-      !email.match(
-        /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-      )
-    ) {
-      alert("Please enter a valid email address.");
+
+    if(!email.match(/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/)) {
+      setError("Please enter a valid email address.");
       return;
     }
+    
     setLoading(true);
+    setError(null);
 
     try {
       // Register user
@@ -48,31 +42,18 @@ export default function SignIn() {
       console.log("User registered successfully:", response);
 
       // Trigger email verification
-      const verificationResponse = await verifyEmail(email);
-      console.log("Email verification initiated:", verificationResponse);
-
-      // Show success popup
-      setSuccessMessage(
-        "A verification email has been sent to your email address. Please verify it before logging in."
-      );
-      setIsSubmitted(true);
-
-      setTimeout(() => {
-        setIsSubmitted(false);
-        router.push("/signin"); // Redirect to the login page
-      }, 5000); // Redirect after 5 seconds
-    } catch (error: unknown) {
+      await verifyEmail(email);
+      
+      setError(null);
+      // Show success message and redirect
+      const successMessage = "A verification email has been sent. Please verify your email before signing in.";
+      alert(successMessage);
+      router.push("/signin");
+    } catch (error) {
       if (error instanceof Error) {
-        console.error(
-          "Error during registration or email verification:",
-          error
-        );
-        setErrorMessage(error.message || "Something went wrong.");
+        setError(error.message);
       } else {
-        console.error(
-          "Unknown error during registration or email verification"
-        );
-        setErrorMessage("An unexpected error occurred.");
+        setError("An unexpected error occurred.");
       }
     } finally {
       setLoading(false);
@@ -80,136 +61,116 @@ export default function SignIn() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
-      {/* Navbar */}
+    <div className="min-h-screen flex flex-col relative bg-gradient-to-b from-gray-50 to-white">
       <Navbar />
 
-      {/* Main Content */}
-      <main className="w-full flex justify-center px-4">
-        <div className="w-full max-w-md absolute top-[140px] z-50">
-          <div className="bg-white md:rounded-3xl md:shadow-xl p-8 w-full">
-            {/* Icon */}
+      {/* Background Decoration */}
+      <div className="fixed inset-0 z-0">
+        <div className="absolute top-0 left-0 right-0 h-96 bg-gradient-to-br from-emerald-50 via-teal-50 to-green-50 opacity-70" />
+        <div className="absolute top-1/3 left-0 w-1/2 h-96 bg-gradient-to-r from-emerald-100/30 to-transparent blur-3xl" />
+        <div className="absolute top-1/2 right-0 w-1/2 h-96 bg-gradient-to-l from-teal-100/30 to-transparent blur-3xl" />
+      </div>
+
+      <main className="flex-1 flex justify-center items-start px-4 z-20 relative">
+        <div className="w-full max-w-md mt-24 mb-12">
+          <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl p-8 w-full border border-gray-100">
             <div className="flex justify-center mb-6">
-              <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-full flex items-center justify-center shadow-inner">
                 <Image
                   src="/phone.png"
-                  alt="Email icon"
-                  width={64}
-                  height={64}
-                  className="w-16 h-16"
+                  alt="Phone icon"
+                  width={32}
+                  height={32}
+                  className="w-8 h-8 opacity-80"
                 />
               </div>
             </div>
 
-            {/* Signup Heading */}
-            <h1 className="text-2xl font-bold text-center mb-2">
-              Signup to SerenitySphere
+            <h1 className="text-2xl font-bold text-center mb-2 bg-gradient-to-r from-emerald-800 to-teal-800 bg-clip-text text-transparent">
+              Sign up to SerenitySphere
             </h1>
-            <h2 className="text-center text-lg text-gray-500 mb-8">
-              A Safe Place to Connect
-            </h2>
+            <p className="text-gray-500 text-center mb-8">A Safe Place to Connect</p>
 
-            {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
-                <label className="text-sm font-medium" htmlFor="email">
+                <label className="text-sm font-medium text-gray-700" htmlFor="email">
                   E-mail
                 </label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="example@domain.com"
+                  placeholder="example@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  className="border-gray-200 focus:border-emerald-500 focus:ring-emerald-500 bg-white/90"
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium" htmlFor="password">
+                <label className="text-sm font-medium text-gray-700" htmlFor="password">
                   Password
                 </label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="border-gray-200 focus:border-emerald-500 focus:ring-emerald-500 bg-white/90"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  >
+                    {showPassword ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
+                  </button>
+                </div>
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium" htmlFor="anonymousName">
+                <label className="text-sm font-medium text-gray-700" htmlFor="anonymousName">
                   Anonymous Name
                 </label>
                 <Input
                   id="anonymousName"
                   type="text"
-                  placeholder="Choose a name"
+                  placeholder="Choose a display name"
                   value={anonymousName}
                   onChange={(e) => setAnonymousName(e.target.value)}
+                  className="border-gray-200 focus:border-emerald-500 focus:ring-emerald-500 bg-white/90"
                 />
               </div>
 
               <p className="text-xs text-gray-500">
                 By signing up, you agree to our{" "}
-                <Link href="/t&c" className="text-blue-500 hover:underline">
+                <Link href="/t&c" className="text-emerald-600 hover:text-emerald-700 hover:underline">
                   Terms and Conditions
                 </Link>
               </p>
 
-              <Button
-                type="submit"
-                className={`w-full mt-4 ${
-                  loading
-                    ? "bg-gray-400"
-                    : "bg-black text-white hover:bg-black/90"
-                }`}
+              <Button 
+                type="submit" 
+                className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white hover:from-emerald-700 hover:to-teal-700 transition-all duration-200" 
                 disabled={loading}
               >
-                {loading ? "Verifying..." : "Sign Up"}
+                {loading ? "Creating Account..." : "Sign Up"}
               </Button>
+
+              {error && (
+                <Alert className="mt-4 border-red-200 bg-red-50/90 backdrop-blur-sm">
+                  <AlertDescription className="text-red-800">
+                    {error}
+                  </AlertDescription>
+                </Alert>
+              )}
             </form>
           </div>
         </div>
       </main>
 
-      {/* Success Popup */}
-      {isSubmitted && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg text-center">
-            <h3 className="text-lg font-semibold text-green-600">
-              Check Your Email!
-            </h3>
-            <p className="text-sm text-gray-600">{successMessage}</p>
-            <Button
-              onClick={() => setIsSubmitted(false)}
-              className="mt-4 bg-black text-white hover:bg-black/90"
-            >
-              OK
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {/* Error Message */}
-      {errorMessage && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg text-center">
-            <h3 className="text-lg font-semibold text-red-600">Error</h3>
-            <p className="text-sm text-gray-600">{errorMessage}</p>
-            <Button
-              onClick={() => setErrorMessage("")}
-              className="mt-4 bg-black text-white hover:bg-black/90"
-            >
-              OK
-            </Button>
-          </div>
-        </div>
-      )}
-
-      <div className="relative lg:mt-[500px] mt-[660px]">
-        <Footer />
-      </div>
+      <Footer/>
     </div>
   );
 }

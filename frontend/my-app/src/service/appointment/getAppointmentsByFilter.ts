@@ -1,7 +1,7 @@
-import axios from "axios";
 import { APPOINTMENT_API_ENDPOINTS } from "@/mapper/appointmentMapper";
 import { setAppointments } from "@/store/appointmentSlice";
 import { RootState, AppDispatch } from "@/store";
+import axiosInstance from "@/utils/axios";
 
 interface FilterParams {
   timeFilter: string;
@@ -18,7 +18,7 @@ export const getAppointmentsByFilter =
       const cachedEtag = getState().appointments.etag;
       const headers = cachedEtag ? { "If-None-Match": cachedEtag } : {};
 
-      const response = await axios.get(
+      const response = await axiosInstance.get(
         APPOINTMENT_API_ENDPOINTS.GET_APPOINTMENTS_BY_FILTER,
         {
           params: {

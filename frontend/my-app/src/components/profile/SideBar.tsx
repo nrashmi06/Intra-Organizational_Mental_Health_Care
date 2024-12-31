@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { useRouter } from "next/router";
 import {
   UserCircle,
@@ -7,88 +7,143 @@ import {
   Lock,
   Headphones,
   File,
+  X,
 } from "lucide-react";
-import { useDispatch } from "react-redux";
-import { clearUser } from "@/store/authSlice";
-import { clearHelplines } from "@/store/emergencySlice";
-import { clearEventSources } from "@/store/eventsourceSlice";
-import { clearNotifications } from "@/store/notificationSlice";
-import clearStore from "@/utils/clearStore";
+import Image from "next/image";
+import { cn } from "@/lib/utils";
+import useClearStore from "@/utils/clearStore";
 
-interface SidebarItem {
-  label: string;
-  icon: React.ReactNode;
-  href: string;
-}
+type ProfileSidebarProps = {
+  open: boolean;
+  onClose: () => void;
+};
 
-export const ProfileSidebar: React.FC = () => {
+export const ProfileSidebar = ({ open, onClose }: ProfileSidebarProps) => {
   const router = useRouter();
-  const dispatch = useDispatch();
+  const clearStore = useClearStore();
+  const previousPath = useRef(router.asPath);
 
-  const handleLogout = () => {
-    dispatch(clearEventSources());
-    dispatch(clearNotifications());
-    dispatch(clearUser());
-    dispatch(clearHelplines());
-    clearStore();
-    router.replace("/signin");
-  };
+  useEffect(() => {
+    if (previousPath.current !== router.asPath) {
+      previousPath.current = router.asPath;
+      onClose();
+    }
+  }, [router.asPath, onClose]);
 
-  const sidebarItems: SidebarItem[] = [
+  const sidebarItems = [
     {
-      label: "User Info",
-      icon: <UserCircle className="w-5 h-5" />,
+      label: "User Profile",
+      icon: UserCircle,
       href: "/profile",
     },
     {
       label: "My Blogs",
-      icon: <Newspaper className="w-5 h-5" />,
+      icon: Newspaper,
       href: "/profile/my-blogs",
     },
     {
       label: "Listener Application",
-      icon: <Headphones className="w-5 h-5" />,
+      icon: Headphones,
       href: "/profile/listener-application",
     },
     {
-      label: "Reset Password",
-      icon: <Lock className="w-5 h-5" />,
-      href: "/profile/reset-password",
+      label: "Change Password",
+      icon: Lock,
+      href: "/profile/change-password",
     },
     {
-      label: "Download My Data",
-      icon: <File className="w-5 h-5" />,
+      label: "Personal Data",
+      icon: File,
       href: "/profile/download",
     },
   ];
 
-  return (
-    <div className="w-64 min-h-screen bg-white border-r border-gray-200 p-4">
-      <div className="flex flex-col space-y-4 justify-between">
+  const sidebarContent = (
+    <div className="flex flex-col h-full">
+      {/* Header with Logo */}
+      <div className="flex items-center justify-between p-6 border-b border-emerald-600/20">
+        <div className="flex items-center gap-3">
+          <Image
+            src="/images/logo/logo.png"
+            alt="SerenitySphere Logo"
+            width={44}
+            height={44}
+            className="rounded-full ring-2 ring-emerald-100/20"
+          />
+          <span className="text-lg font-semibold text-emerald-50">
+            SerenitySphere
+          </span>
+        </div>
+        {/* Mobile Close Button */}
+        <button
+          className="block md:hidden text-emerald-100 p-2 rounded-full hover:bg-emerald-700/50 transition-colors"
+          onClick={onClose}
+        >
+          <X className="w-5 h-5" />
+        </button>
+      </div>
+
+      {/* Navigation Links */}
+      <nav className="flex-1 px-4 py-6 space-y-1.5">
         {sidebarItems.map((item) => (
-          <div
+          <button
             key={item.label}
             onClick={() => router.push(item.href)}
-            className={`flex items-center space-x-3 p-3 rounded-lg cursor-pointer
-        ${
-          router.asPath === item.href
-            ? "bg-gray-100 text-blue-600"
-            : "hover:bg-gray-50"
-        }`}
+            className={cn(
+              "group flex items-center w-full px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 ease-in-out",
+              router.asPath === item.href
+                ? "bg-emerald-700/60 text-emerald-50 shadow-sm"
+                : "text-emerald-100 hover:bg-emerald-700/40 hover:text-emerald-50"
+            )}
           >
-            {item.icon}
-            <span className="text-sm font-medium">{item.label}</span>
-          </div>
+            <item.icon className="mr-3 flex-shrink-0 h-5 w-5" />
+            {item.label}
+          </button>
         ))}
+      </nav>
 
+      {/* Footer with Logout */}
+      <div className="p-4 border-t border-emerald-600/20">
         <button
-          onClick={handleLogout}
-          className="flex items-center mb-10 space-x-3 p-3 rounded-lg w-full text-red-600 hover:bg-red-50 sticky"
+          onClick={() => {
+            clearStore();
+            router.push("/signin");
+          }}
+          className="flex items-center w-full px-4 py-3 text-sm font-medium rounded-lg text-rose-100 hover:bg-rose-500/20 transition-colors duration-200"
         >
-          <LogOut className="w-5 h-5" />
-          <span className="text-sm font-medium">Logout</span>
+          <LogOut className="mr-3 flex-shrink-0 h-5 w-5" />
+          Sign Out
         </button>
       </div>
     </div>
+  );
+
+  return (
+    <>
+      {/* Desktop Sidebar */}
+      <div className="hidden md:flex md:w-72 md:flex-col md:fixed md:inset-y-0">
+        <div className="flex-1 flex flex-col min-h-0 bg-gradient-to-b from-emerald-800 to-emerald-900 shadow-xl">
+          {sidebarContent}
+        </div>
+      </div>
+
+      {/* Mobile Sidebar */}
+      <div
+        className={cn(
+          "fixed inset-y-0 left-0 z-50 w-72 bg-gradient-to-b from-emerald-800 to-emerald-900 transform transition-transform duration-300 ease-in-out shadow-2xl",
+          open ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        {sidebarContent}
+      </div>
+
+      {/* Mobile Overlay */}
+      {open && (
+        <div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 transition-opacity"
+          onClick={onClose}
+        />
+      )}
+    </>
   );
 };

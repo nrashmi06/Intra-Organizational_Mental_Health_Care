@@ -1,3 +1,4 @@
+import axiosInstance from "@/utils/axios";
 import { TIME_SLOT_API_ENDPOINTS } from "@/mapper/timeslotMapper";
 
 const handleDeleteTimeSlot = async (
@@ -15,15 +16,14 @@ const handleDeleteTimeSlot = async (
     const url = `${TIME_SLOT_API_ENDPOINTS.DELETE_TIME_SLOT_BY_ID(userID, timeSlotId)}?idType=userId`;
 
     // Send DELETE request
-    const response = await fetch(url, {
-      method: "DELETE",
+    const response = await axiosInstance.delete(url, {
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
     });
 
-    if (!response.ok) {
+    if (response.status !== 200) {
       throw new Error(`Failed to delete the time slot. Status: ${response.status}`);
     }
 
@@ -35,4 +35,3 @@ const handleDeleteTimeSlot = async (
 };
 
 export default handleDeleteTimeSlot;
-

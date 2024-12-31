@@ -1,57 +1,130 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/router";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
-import { getSessionListByRole } from "@/service/session/getSessionsListByRole";
-import { Eye, FileText, MessageSquare, Menu, X } from "lucide-react";
-import DashboardLayout from "@/components/dashboard/DashboardLayout";
+import { getSessionsByStatus } from "@/service/session/getSessionsByStatus";
 import SessionDetailView from "@/components/dashboard/SessionDetailView";
-import StackNavbar from "@/components/ui/stackNavbar";
+import SessionGrid from "@/components/dashboard/session/SessionGrid";
+import Pagination from "@/components/dashboard/Pagination";
+import MobileSessionDrawer from "@/components/dashboard/session/MobileSessionDrawer";
 import { Session } from "@/lib/types";
+import { useMediaQuery } from "@/lib/utils";
+import DashboardLayout from "@/components/dashboard/DashboardLayout";
+import StackNavbar from "@/components/ui/stackNavbar";
+import ListenerDetails from "@/components/dashboard/user/ModalDetails";
+import UserDetails from "@/components/dashboard/user/ModalDetails";
 
-const ListenerSessions = () => {
+const UserSessions = () => {
   const router = useRouter();
   const { id } = router.query;
   const token = useSelector((state: RootState) => state.auth.accessToken);
+  const isDesktop = useMediaQuery("(min-width: 1024px)");
+  const [userModal, setUserModal] = useState(false);
+  const [listenerModal, setListenerModal] = useState(false);
+  const [modalSession, setModalSession] = useState<Session | null>(null);
   const [sessions, setSessions] = useState<Session[]>([]);
-  const [userId, setUserId] = useState<string | null>(null);
-  const [selectedSession, setSelectedSession] = useState<string | null>(null);
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [detailView, setDetailView] = useState<
     "report" | "feedback" | "messages" | null
   >(null);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const [loading, setLoading] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [paginationInfo, setPaginationInfo] = useState({
+    pageNumber: 0,
+    pageSize: 4,
+    totalElements: 0,
+    totalPages: 0,
+  });
+
+  const fetchSessions = useCallback(
+    async (page: number = paginationInfo.pageNumber) => {
+      if (!id) return;
+
+      try {
+        setLoading(true);
+        const response = await getSessionsByStatus({
+          accessToken: token,
+          page,
+          size: 4,
+          idType: "userId",
+          id: Number(id),
+        });
+
+        if (response && response.content) {
+          setSessions(response.content);
+          const totalPages = Math.ceil(response.page.totalElements / 4);
+          setPaginationInfo((prev) => ({
+            ...prev,
+            pageNumber: page,
+            totalElements: response.page.totalElements,
+            totalPages,
+          }));
+        }
+      } catch (error) {
+        console.error("Error fetching sessions:", error);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [token, id]
+  );
 
   useEffect(() => {
     if (id) {
-      const parsedId = id as string;
-      if (parsedId) {
-        setUserId(parsedId);
-        fetchSessions(parsedId);
-      }
+      fetchSessions(0);
     }
   }, [id]);
 
-  const fetchSessions = async (userId: string) => {
-    try {
-      const response = await getSessionListByRole(userId, "user", token);
-      if (response?.ok) {
-        const sessionData: Session[] = await response.json();
-        setSessions(sessionData);
-      } else {
-        console.error("Failed to fetch sessions:", response?.statusText);
-      }
-    } catch (error) {
-      console.error("Error fetching sessions:", error);
-    }
+  const handleUserModal = (session: Session) => {
+    setModalSession(session);
+    setUserModal(true);
+  };
+
+  const handleListenerModal = (session: Session) => {
+    setModalSession(session);
+    setListenerModal(true);
+  };
+
+  const handlePageChange = (page: number) => {
+    fetchSessions(page - 1);
   };
 
   const handleDetailView = (
-    sessionId: string,
+    session: Session,
     view: "report" | "feedback" | "messages"
   ) => {
-    setSelectedSession(sessionId);
+    setActiveSessionId(session.sessionId);
     setDetailView(view);
-    setIsMobileMenuOpen(false); // Close mobile menu when selecting a session
+    if (!isDesktop) {
+      setIsDrawerOpen(true);
+    }
+  };
+
+  const handleCloseDrawer = () => {
+    setIsDrawerOpen(false);
+    if (!isDesktop) {
+      setActiveSessionId(null);
+      setDetailView(null);
+    }
+  };
+
+  const renderSessionDetail = () => {
+    if (!activeSessionId || !detailView) {
+      return (
+        <div className="h-full flex items-center justify-center text-gray-500">
+          Select a session and view type to see details
+        </div>
+      );
+    }
+
+    return (
+      <SessionDetailView
+        type={detailView}
+        sessionId={activeSessionId}
+        token={token}
+      />
+    );
   };
 
   const stackItems = [
@@ -62,126 +135,100 @@ const ListenerSessions = () => {
       : []),
   ];
 
-  if (sessions.length === 0) {
+  if (!id) {
     return (
       <>
         <StackNavbar items={stackItems} />
         <div className="text-gray-500 flex items-center justify-center h-full p-4">
-          No sessions by User Id {id} yet!
+          Loading user information...
         </div>
       </>
     );
   }
 
-
-  const SessionCard = ({ session }: { session: Session }) => (
-    <div className="bg-white shadow-sm rounded-lg p-6 border border-gray-100 hover:shadow-md transition-all duration-200">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4">
-        <div className="flex flex-row justify-between items-center w-full">
-          <span className="font-semibold text-gray-700 text-lg">
-            Session #{session.sessionId}
-          </span>
-          <span
-            className={`px-3 py-1 rounded-full text-sm font-medium w-fit ${
-              session.sessionStatus === "Completed"
-                ? "bg-green-100 text-green-800"
-                : session.sessionStatus === "In Progress"
-                ? "bg-yellow-100 text-yellow-800"
-                : "bg-gray-100 text-gray-800"
-            }`}
-          >
-            {session.sessionStatus}
-          </span>
+  if (sessions.length === 0 && !loading) {
+    return (
+      <>
+        <StackNavbar items={stackItems} />
+        <div className="text-gray-500 flex items-center justify-center h-full p-4">
+          No sessions found for User ID {id}
         </div>
-      </div>
-
-      <div className="flex flex-wrap gap-2">
-        <button
-          onClick={() => handleDetailView(session.sessionId, "report")}
-          className="flex items-center gap-2 px-3 py-2 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 transition-colors text-sm font-medium flex-1 justify-center sm:justify-start"
-        >
-          <FileText size={18} />
-          <span>Report</span>
-        </button>
-        <button
-          onClick={() => handleDetailView(session.sessionId, "feedback")}
-          className="flex items-center gap-2 px-3 py-2 bg-green-50 text-green-600 rounded-md hover:bg-green-100 transition-colors text-sm font-medium flex-1 justify-center sm:justify-start"
-        >
-          <MessageSquare size={18} />
-          <span>Feedback</span>
-        </button>
-        <button
-          onClick={() => handleDetailView(session.sessionId, "messages")}
-          className="flex items-center gap-2 px-3 py-2 bg-purple-50 text-purple-600 rounded-md hover:bg-purple-100 transition-colors text-sm font-medium flex-1 justify-center sm:justify-start"
-        >
-          <Eye size={18} />
-          <span>Messages</span>
-        </button>
-      </div>
-    </div>
-  );
+      </>
+    );
+  }
 
   return (
     <>
       <StackNavbar items={stackItems} />
+      <div className="h-[calc(100vh-64px)] bg-gray-50">
+        <div className="container mx-auto h-full">
+          <div className="flex flex-col h-full">
+            <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-0 p-4">
+              <div className="flex flex-col gap-4">
+                <SessionGrid
+                  loading={loading}
+                  sessions={sessions}
+                  activeSessionId={activeSessionId}
+                  handleDetailView={handleDetailView}
+                  handleListenerModal={handleListenerModal}
+                  handleUserModal={handleUserModal}
+                />
 
-      {/* Mobile Menu Toggle */}
-      <div className="lg:hidden fixed top-16 right-4 z-50">
-        <button
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="p-2 bg-white rounded-full shadow-md"
-        >
-          {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
-      </div>
+                {sessions.length > 0 && (
+                  <Pagination
+                    currentPage={paginationInfo.pageNumber + 1}
+                    totalPages={paginationInfo.totalPages}
+                    onPageChange={handlePageChange}
+                  />
+                )}
+              </div>
 
-      <div className="flex flex-col lg:flex-row h-[calc(100vh-64px)]">
-        {/* Mobile Menu Overlay */}
-        <div
-          className={`fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity lg:hidden ${
-            isMobileMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-          }`}
-          onClick={() => setIsMobileMenuOpen(false)}
-        />
-
-        {/* Sessions List Section */}
-        <div
-          className={`w-full lg:w-1/3 bg-gray-50 border-r border-gray-200 overflow-y-auto 
-                     fixed lg:relative z-40 transition-transform duration-300 ease-in-out
-                     ${
-                       isMobileMenuOpen
-                         ? "translate-x-0"
-                         : "-translate-x-full lg:translate-x-0"
-                     }
-                     h-[calc(100vh-64px)] lg:h-auto`}
-        >
-          {userId && (
-            <div className="space-y-4 p-4">
-              {sessions.map((session) => (
-                <SessionCard key={session.sessionId} session={session} />
-              ))}
+              {isDesktop && (
+                <div className="hidden lg:block bg-white rounded-lg shadow-sm overflow-hidden">
+                  {renderSessionDetail()}
+                </div>
+              )}
             </div>
-          )}
-          {!userId && (
-            <p className="text-gray-500 p-4">Loading user information...</p>
-          )}
-        </div>
+          </div>
 
-        {/* Session Detail View Section */}
-        <div className="w-full lg:w-2/3 bg-gray-100 min-h-[calc(100vh-64px)]">
-          <SessionDetailView
-            type={detailView}
-            sessionId={selectedSession}
-            token={token}
-          />
+          {!isDesktop && (
+            <MobileSessionDrawer
+              isOpen={isDrawerOpen}
+              onClose={handleCloseDrawer}
+              sessionId={activeSessionId}
+              type={detailView}
+              token={token}
+            />
+          )}
+          {userModal && modalSession && (
+            <UserDetails
+              userId={modalSession.userId}
+              handleClose={() => {
+                setUserModal(false);
+                setModalSession(null);
+              }}
+              viewSession={true}
+            />
+          )}
+
+          {listenerModal && modalSession && (
+            <ListenerDetails
+              userId={modalSession.listenerId}
+              handleClose={() => {
+                setListenerModal(false);
+                setModalSession(null);
+              }}
+              viewSession={true}
+            />
+          )}
         </div>
       </div>
     </>
   );
 };
 
-ListenerSessions.getLayout = (page: any) => (
+UserSessions.getLayout = (page: any) => (
   <DashboardLayout>{page}</DashboardLayout>
 );
 
-export default ListenerSessions;
+export default UserSessions;

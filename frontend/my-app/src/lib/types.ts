@@ -63,8 +63,8 @@ export interface ListenerDetails {
   joinedAt: string;
   approvedBy: string;
   totalBlogsPublished: number;
-  totalLikesReceived: number;
-  totalViewsReceived: number;
+  totalBlogLikesReceived: number;
+  totalBlogViewsReceived: number;
 }
 
 export interface UserDetails {

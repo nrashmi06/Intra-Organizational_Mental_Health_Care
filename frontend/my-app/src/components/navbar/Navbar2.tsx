@@ -3,292 +3,192 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/router";
 import { useSelector } from "react-redux";
-import { RootState } from "@/store"; // Import RootState to access Redux state
+import { RootState } from "@/store";
+import { Menu, X } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import ServiceDropdown from "./ServiceDropdown";
+import { cn } from "@/lib/utils";
 
 export default function Navbar() {
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isServicesDropdownOpen, setIsServicesDropdownOpen] = useState(false);
   const anonymousName = useSelector(
     (state: RootState) => state.auth.anonymousName
   );
-  const user = useSelector((state: RootState) => state.auth); // Access user data from Redux state
+  const user = useSelector((state: RootState) => state.auth);
   const role = user.role;
-  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
-  const toggleServicesDropdown = () =>
-    setIsServicesDropdownOpen(!isServicesDropdownOpen);
+  const navLinks = [
+    { href: "/", label: "Home" },
+    { href: "/blog/all", label: "Blog" },
+    { href: "/helpline", label: "Helpline" },
+    { href: "/about", label: "About" },
+  ];
+
+  if (role === "ADMIN") {
+    navLinks.splice(1, 0, { href: "/insights", label: "Dashboard" });
+  }
+
+  const NavLink = ({ href, label }: { href: string; label: string }) => (
+    <Link
+      href={href}
+      className={cn(
+        "relative text-sm font-medium text-white transition-colors hover:text-gray-200",
+        "after:absolute after:left-0 after:bottom-[-4px] after:h-[2px] after:w-full after:origin-left after:scale-x-0 after:bg-white after:transition-transform hover:after:scale-x-100",
+        router.pathname === href && "after:scale-x-100"
+      )}
+    >
+      {label}
+    </Link>
+  );
+
+  const ProfileButton = () => (
+    <motion.button
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+      onClick={() => router.push("/profile")}
+      className="relative group"
+    >
+      <div className="w-10 h-10 rounded-full bg-emerald-600 flex items-center justify-center overflow-hidden transition-shadow group-hover:shadow-lg">
+        <span className="text-xl font-bold text-white">
+          {anonymousName.charAt(0)}
+        </span>
+      </div>
+      <motion.div
+        className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-white"
+        animate={{ scale: [1, 1.2, 1] }}
+        transition={{ duration: 2, repeat: Infinity }}
+      />
+    </motion.button>
+  );
 
   return (
-    <header className="z-20 relative">
-      <div className="header">
-        <div className="mx-auto px-4 py-4 flex items-center justify-between w-full h-[3.7rem]">
+    <header className="sticky top-0 left-0 right-0 z-50 bg-gradient-to-r from-gray-900 to-gray-800 border-b border-gray-800">
+      <nav className="mx-auto px-4">
+        <div className="h-16 flex items-center justify-between gap-8">
           {/* Logo Section */}
-          <div className="flex items-center gap-2">
-            <Image
-              src="/images/logo/logo.png"
-              alt="SerenitySphere Logo"
-              width={40}
-              height={40}
-              className="rounded-full"
-            />
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="relative">
+              <Image
+                src="/images/logo/logo.png"
+                alt="SerenitySphere Logo"
+                width={40}
+                height={40}
+                className="rounded-full transition-transform group-hover:scale-105"
+              />
+              <motion.div
+                className="absolute inset-0 rounded-full border-2 border-white/30"
+                animate={{ scale: [1, 1.1, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              />
+            </div>
             <span className="text-xl font-semibold text-white">
               SerenitySphere
             </span>
-          </div>
+          </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex md:flex-row md:items-center gap-6 md:gap-6 z-20">
-            <nav className="flex flex-row items-center gap-6 px-4">
-              <Link
-                href="/"
-                className={`text-sm font-medium text-white ${
-                  router.pathname === "/" ? "underline" : ""
-                }`}
-              >
-                Home
-              </Link>
-              {role === "ADMIN" && (
-                <Link
-                  href="/insights"
-                  className={`text-sm font-medium text-white ${
-                    router.pathname === "/insights" ? "underline" : ""
-                  }`}
-                >
-                  Dashboard
-                </Link>
-              )}
-              <Link
-                href="/blog/all"
-                className={`text-sm font-medium text-white ${
-                  router.pathname === "/blog" ? "underline" : ""
-                }`}
-              >
-                Blog
-              </Link>
-              <Link
-                href="/helpline"
-                className={`text-sm font-medium text-white ${
-                  router.pathname === "/helpline" ? "underline" : ""
-                }`}
-              >
-                Helpline
-              </Link>
-
-              {/* Click-based Dropdown for Services */}
-              <div className="relative">
-                <button
-                  onClick={toggleServicesDropdown}
-                  className={`text-sm font-medium text-white ${
-                    router.pathname === "/services" ? "underline" : ""
-                  }`}
-                >
-                  Services
-                </button>
-                {isServicesDropdownOpen && (
-                  <div
-                    className="absolute left-0 w-48 mt-2 bg-white text-black rounded-md shadow-lg"
-                    style={{ zIndex: 20 }}
-                  >
-                    <Link
-                      href="/listener-application"
-                      className="block px-4 py-2 text-sm hover:bg-gray-100"
-                    >
-                      Listener Application
-                    </Link>
-                    <Link
-                      href="/appointment"
-                      className="block px-4 py-2 text-sm hover:bg-gray-100"
-                    >
-                      Appointment
-                    </Link>
-                    <Link
-                      href="/match-a-listener"
-                      className="block px-4 py-2 text-sm hover:bg-gray-100"
-                    >
-                      Match a Listener
-                    </Link>
-                    <Link
-                      href="/download"
-                      className="block px-4 py-2 text-sm hover:bg-gray-100"
-                    >
-                      Download My Data
-                    </Link>
-                  </div>
-                )}
-              </div>
-
-              <Link
-                href="/about"
-                className={`text-sm font-medium text-white ${
-                  router.pathname === "/about" ? "underline" : ""
-                }`}
-              >
-                About
-              </Link>
-
-              {/* Sign-in and Register links */}
-              <div className="flex flex-row items-center gap-4">
-                {!user.accessToken ? (
-                  <>
-                    <Link
-                      href="/signin"
-                      className="text-sm font-medium text-white"
-                    >
-                      Sign-in
-                    </Link>
-                    <Link
-                      href="/signup"
-                      className="bg-black text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-800 transition-colors important"
-                    >
-                      Register
-                    </Link>
-                  </>
-                ) : (
-                  <button
-                    onClick={() => router.push("/profile")}
-                    className="text-sm font-medium text-white rounded-full hover:bg-gray-800 transition-colors flex items-center justify-center"
-                  >
-                    <div className="w-10 h-10 rounded-full bg-green-600 flex items-center justify-center">
-                      <span className="text-xl font-bold text-white">
-                        {anonymousName.charAt(0)}
-                      </span>
-                    </div>
-                  </button>
-                )}
-              </div>
-            </nav>
+          <div className="hidden md:flex items-center gap-8 flex-1 justify-center">
+            {navLinks.map((link) => (
+              <NavLink key={link.href} {...link} />
+            ))}
+            <ServiceDropdown />
           </div>
 
-          {/* Hamburger Icon for Mobile */}
-          <button className="md:hidden text-white" onClick={toggleMenu}>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              width="24"
-              height="24"
-            >
-              <path
-                fill="none"
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M3 12h18M3 6h18M3 18h18"
-              ></path>
-            </svg>
+          {/* Auth Section */}
+          <div className="hidden md:flex items-center gap-4">
+            {!user.accessToken ? (
+              <>
+                <Button
+                  variant="ghost"
+                  className="text-white hover:bg-white/10"
+                  onClick={() => router.push("/signin")}
+                >
+                  Sign in
+                </Button>
+                <Button
+                  className="bg-emerald-600 text-white hover:bg-emerald-700"
+                  onClick={() => router.push("/signup")}
+                >
+                  Register
+                </Button>
+              </>
+            ) : (
+              <ProfileButton />
+            )}
+          </div>
+
+          {/* Mobile Menu Button */}
+          <button
+            className="md:hidden p-2 text-white hover:bg-white/10 rounded-lg"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+          >
+            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
+      </nav>
 
-        {/* Mobile Navigation */}
-        <div
-          className={`md:hidden ${isMenuOpen ? "block" : "hidden"}`}
-          style={{
-            left: "0",
-            right: "0",
-            top: "100%",
-            backgroundColor: "rgba(0,0,0,1)",
-            paddingTop: "10px",
-            paddingBottom: "10px",
-            transition: "all 0.3s ease",
-          }}
-        >
-          <nav className="flex flex-col items-center gap-6 px-4">
-            <Link
-              href="/"
-              className={`text-sm font-medium text-white ${
-                router.pathname === "/" ? "underline" : ""
-              }`}
-            >
-              Home
-            </Link>
-            <Link
-              href="/blog/all"
-              className={`text-sm font-medium text-white ${
-                router.pathname === "/blog" ? "underline" : ""
-              }`}
-            >
-              Blog
-            </Link>
-            <Link
-              href="/helpline"
-              className={`text-sm font-medium text-white ${
-                router.pathname === "/helpline" ? "underline" : ""
-              }`}
-            >
-              Helpline
-            </Link>
-
-            {/* Mobile Dropdown for Services */}
-            <div className="relative">
-              <button
-                onClick={toggleServicesDropdown}
-                className={`text-sm font-medium text-white ${
-                  router.pathname === "/services" ? "underline" : ""
-                }`}
-              >
-                Services
-              </button>
-              {isServicesDropdownOpen && (
-                <div
-                  className="absolute left-0 w-48 mt-2 bg-white text-black rounded-md shadow-lg"
-                  style={{ zIndex: 20 }}
+      {/* Mobile Navigation */}
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="md:hidden border-t border-gray-800"
+          >
+            <div className="bg-gray-900 px-4 py-6 space-y-4">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="block text-white py-2 hover:text-gray-300"
+                  onClick={() => setIsMenuOpen(false)}
                 >
-                  <Link
-                    href="/listener-application"
-                    className="block px-4 py-2 text-sm hover:bg-gray-100"
+                  {link.label}
+                </Link>
+              ))}
+
+              {!user.accessToken ? (
+                <div className="pt-4 space-y-3">
+                  <Button
+                    variant="ghost"
+                    className="w-full text-white hover:bg-white/10"
+                    onClick={() => {
+                      router.push("/signin");
+                      setIsMenuOpen(false);
+                    }}
                   >
-                    Listener Application
-                  </Link>
-                  <Link
-                    href="/appointment"
-                    className="block px-4 py-2 text-sm hover:bg-gray-100"
+                    Sign in
+                  </Button>
+                  <Button
+                    className="w-full bg-emerald-600 text-white hover:bg-emerald-700"
+                    onClick={() => {
+                      router.push("/signup");
+                      setIsMenuOpen(false);
+                    }}
                   >
-                    Appointment
-                  </Link>
-                  <Link
-                    href="/match-a-listener"
-                    className="block px-4 py-2 text-sm hover:bg-gray-100"
+                    Register
+                  </Button>
+                </div>
+              ) : (
+                <div className="pt-4">
+                  <Button
+                    className="w-full text-white hover:bg-white/10"
+                    onClick={() => {
+                      router.push("/profile");
+                      setIsMenuOpen(false);
+                    }}
                   >
-                    Match a Listener
-                  </Link>
+                    View Profile
+                  </Button>
                 </div>
               )}
             </div>
-
-            {/* Sign-in and Register links */}
-            <div className="flex flex-col items-center gap-4">
-              {!user.accessToken ? (
-                <>
-                  <Link
-                    href="/signin"
-                    className="text-sm font-medium text-white"
-                  >
-                    Sign-in
-                  </Link>
-                  <Link
-                    href="/register"
-                    className="bg-black text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-800 transition-colors"
-                  >
-                    Register
-                  </Link>
-                </>
-              ) : (
-                <button
-                  onClick={() => router.push("/profile")}
-                  className="text-sm font-medium text-white bg-black px-4 py-2 rounded-full hover:bg-gray-800 transition-colors flex items-center justify-center"
-                >
-                  <div className="w-10 h-10 rounded-full bg-green-600 flex items-center justify-center">
-                    <span className="text-xl font-bold text-white">
-                      {anonymousName.charAt(0)}
-                    </span>
-                  </div>
-                </button>
-              )}
-            </div>
-          </nav>
-        </div>
-      </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   );
 }
