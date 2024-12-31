@@ -37,6 +37,7 @@ public class UserMetricServiceImpl implements UserMetricService {
         UserMetrics userMetrics = userMetricsRepository.findByUser_AnonymousName(user.getAnonymousName())
                 .orElseThrow(() -> new IllegalArgumentException("UserMetrics not found for user: " + user.getAnonymousName()));
         userMetrics.setTotalSessionsAttended(userMetrics.getTotalSessionsAttended() + 1);
+        userMetricsRepository.save(userMetrics);
     }
 
     @Override
@@ -44,6 +45,7 @@ public class UserMetricServiceImpl implements UserMetricService {
         UserMetrics userMetrics = userMetricsRepository.findByUser_AnonymousName(user.getAnonymousName())
                 .orElseThrow(() -> new IllegalArgumentException("UserMetrics not found for user: " + user.getAnonymousName()));
         userMetrics.setTotalAppointments(userMetrics.getTotalAppointments() + 1);
+        userMetricsRepository.save(userMetrics);
     }
 
     @Override
@@ -60,6 +62,7 @@ public class UserMetricServiceImpl implements UserMetricService {
         UserMetrics userMetrics = userMetricsRepository.findByUser_AnonymousName(user.getAnonymousName())
                 .orElseThrow(() -> new IllegalArgumentException("UserMetrics not found for user: " + user.getAnonymousName()));
         userMetrics.setTotalBlogsPublished(userMetrics.getTotalBlogsPublished() + count);
+        userMetricsRepository.save(userMetrics);
     }
 
     @Override
@@ -67,6 +70,7 @@ public class UserMetricServiceImpl implements UserMetricService {
         UserMetrics userMetrics = userMetricsRepository.findByUser_AnonymousName(user.getAnonymousName())
                 .orElseThrow(() -> new IllegalArgumentException("UserMetrics not found for user: " + user.getAnonymousName()));
         userMetrics.setTotalLikesReceived(userMetrics.getTotalLikesReceived() + 1);
+        userMetricsRepository.save(userMetrics);
     }
 
     @Override
@@ -74,5 +78,6 @@ public class UserMetricServiceImpl implements UserMetricService {
         UserMetrics userMetrics = userMetricsRepository.findByUser_AnonymousName(user.getAnonymousName())
                 .orElseThrow(() -> new IllegalArgumentException("UserMetrics not found for user: " + user.getAnonymousName()));
         userMetrics.setTotalViewsReceived(userMetrics.getTotalViewsReceived() + 1);
+        userMetricsRepository.save(userMetrics);
     }
 }

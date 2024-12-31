@@ -24,28 +24,26 @@ public class UserMetrics {
     private User user;
 
     @Column(name = "total_sessions_attended", nullable = false)
-    private int totalSessionsAttended;
+    private int totalSessionsAttended = 0;
 
     @Column(name = "last_session_date")
     private LocalDateTime lastSessionDate;
 
     @Column(name = "total_appointments", nullable = false)
-    private int totalAppointments;
+    private int totalAppointments = 0;
 
     @Column(name = "last_appointment_date")
     private LocalDateTime lastAppointmentDate;
 
     @Column(name = "total_messages_sent", nullable = false)
-    private int totalMessagesSent;
+    private int totalMessagesSent = 0;
 
     @Column(name = "total_blogs_published", nullable = false)
-    private int totalBlogsPublished;
+    private int totalBlogsPublished = 0;
 
     @Column(name = "total_blog_likes_received", nullable = false)
-    private int totalLikesReceived;
+    private int totalLikesReceived = 0;
 
     @Column(name = "total_blog_views_received", nullable = false)
-    private int totalViewsReceived;
-
-
+    private int totalViewsReceived = 0;
 }

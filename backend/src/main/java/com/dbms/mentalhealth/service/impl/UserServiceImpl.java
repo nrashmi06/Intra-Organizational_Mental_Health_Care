@@ -151,12 +151,6 @@ public class UserServiceImpl implements UserService, UserDetailsService {
             // Create and save UserMetrics for the new user
             UserMetrics userMetrics = new UserMetrics();
             userMetrics.setUser(user);
-            userMetrics.setTotalSessionsAttended(0);
-            userMetrics.setTotalAppointments(0);
-            userMetrics.setTotalMessagesSent(0);
-            userMetrics.setTotalBlogsPublished(0);
-            userMetrics.setTotalLikesReceived(0);
-            userMetrics.setTotalViewsReceived(0);
             userMetricsRepository.save(userMetrics);
 
             return UserMapper.toRegistrationResponseDTO(user);
