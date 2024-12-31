@@ -12,63 +12,51 @@ export default function WelcomePage() {
   const role = useSelector((state: RootState) => state.auth.role);
 
   useEffect(() => {
-    if (role === "ADMIN") {
-      // Set a timer to redirect after 2 seconds
-      const timer = setTimeout(() => {
-        router.push("/insights");
-      }, 2000);
+    const timer = setTimeout(() => {
+      router.push(role === "ADMIN" ? "/insights" : "/");
+    }, 2000);
 
-      // Cleanup the timer when the component is unmounted
-      return () => clearTimeout(timer);
-    } else {
-      // Set a timer to redirect after 2 seconds
-      const timer = setTimeout(() => {
-        router.push("/");
-      }, 2000);
-
-      // Cleanup the timer when the component is unmounted
-      return () => clearTimeout(timer);
-    }
-  }, [role, router]); // Add role as a dependency to ensure it reruns when role changes
+    return () => clearTimeout(timer);
+  }, [role, router]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-100 to-purple-100">
-      {/* Main Content */}
-      <main
-        className="container mx-auto px-4 flex flex-col-reverse md:flex-row items-center justify-between"
-        style={{ minHeight: "calc(100vh - 80px)" }}
-      >
-        {/* Image Section */}
-        <div className="w-full md:w-1/2 mt-6 md:mt-0">
-          <Image
-            src="/welcome.svg"
-            alt="Decorative 3D shapes and coffee cup illustration"
-            width={600}
-            height={600}
-            className="w-full h-auto"
-            priority
-          />
-        </div>
+      <main className="container mx-auto px-4 py-8 min-h-screen flex items-center justify-center">
+        <div className="w-full max-w-6xl">
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-12">
+            <div className="w-full lg:w-1/2 space-y-6 text-center lg:text-left">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
+                <span className="inline-block bg-gradient-to-r from-green-500 to-purple-600 text-transparent bg-clip-text">
+                  Welcome to
+                </span>
+                <br />
+                <span className="inline-block bg-gradient-to-r from-green-500 to-purple-600 text-transparent bg-clip-text">
+                  SerenitySphere
+                </span>
+              </h1>
+              <p className="text-base sm:text-lg md:text-xl text-gray-600">
+                A place where you will find a solution to all your problems!
+              </p>
+              <p className="text-sm text-gray-500">
+                Redirecting to the homepage in 2 seconds...
+              </p>
+            </div>
 
-        {/* Text Section */}
-        <div className="w-full md:w-1/2 space-y-4 text-center md:text-left">
-          <h1 className="text-4xl md:text-6xl font-bold leading-tight">
-            <span className="bg-gradient-to-r from-green-500 to-purple-600 text-transparent bg-clip-text">
-              Welcome to
-            </span>
-            <br />
-            <span className="bg-gradient-to-r from-green-500 to-purple-600 text-transparent bg-clip-text">
-              SerenitySphere
-            </span>
-          </h1>
-          <p className="text-lg md:text-xl text-gray-600">
-            A place where you will find a solution to all your problems!
-          </p>
-          <p className="text-sm text-gray-500">
-            Redirecting to the homepage in 2 seconds...
-          </p>
+            <div className="w-full lg:w-1/2 max-w-lg lg:max-w-none">
+              <div className="relative aspect-square">
+                <Image
+                  src="/welcome.svg"
+                  alt="Decorative 3D shapes and coffee cup illustration"
+                  fill
+                  className="object-contain"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  priority
+                />
+              </div>
+            </div>
+          </div>
         </div>
       </main>
-    </div>
-  );
+    </div>
+  );
 }

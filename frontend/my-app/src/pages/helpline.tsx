@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Lightbulb, Phone, Heart, Clock, Shield, Search } from "lucide-react";
+import { Lightbulb, Phone, Heart, Clock, Shield } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -9,7 +9,6 @@ import {
   TableHead,
 } from "@/components/ui/table";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import Navbar1 from "@/components/navbar/Navbar2";
 import Footer from "@/components/footer/Footer";
 import { RootState } from "@/store";
@@ -29,9 +28,7 @@ interface Helpline {
 
 export default function Component() {
   const [helplines, setHelplines] = useState<Helpline[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
   const dispatch = useAppDispatch();
-  const role = useSelector((state: RootState) => state.auth.role);
   const helplinesFromState = useSelector(
     (state: RootState) => state.emergency.helplines
   );
@@ -46,12 +43,6 @@ export default function Component() {
     }
   }, [helplinesFromState]);
 
-  const filteredHelplines = helplines.filter(
-    (helpline) =>
-      helpline.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      helpline.emergencyType.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
   const EmergencyCard = ({
     title,
     description,
@@ -63,10 +54,10 @@ export default function Component() {
   }) => (
     <Card className="bg-white hover:shadow-lg transition-shadow">
       <CardHeader className="space-y-1">
-        <CardTitle>
+        <div className="flex items-center space-x-2 font-bold">
           <Icon className="h-5 w-5 text-emerald-600" />
-          {title}
-        </CardTitle>
+          <p>{title}</p>
+        </div>
       </CardHeader>
       <CardContent>
         <p className="text-gray-600">{description}</p>
@@ -86,7 +77,7 @@ export default function Component() {
         }}
       >
         <div className="container mx-auto px-4">
-          <section className="w-full py-12 md:pt-24 lg:pt-32 space-y-10">
+          <section className="w-full py-12 md:pt-12 lg:pt-32 space-y-10">
             <div className="flex flex-col md:flex-row justify-between items-center mb-12">
               <div className="space-y-4 max-w-2xl">
                 <h1 className="text-4xl md:text-5xl font-bold leading-tight">
@@ -100,11 +91,10 @@ export default function Component() {
                   call away.
                 </p>
               </div>
-              {role !== "ADMIN" && (
-                <div className="mt-6 md:mt-0">
-                  <Lightbulb className="h-32 w-32 text-yellow-400 animate-pulse" />
-                </div>
-              )}
+
+              <div className="mt-6 md:mt-0">
+                <Lightbulb className="h-32 w-32 text-yellow-400 animate-pulse" />
+              </div>
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -124,19 +114,6 @@ export default function Component() {
                 description="Verified and accredited emergency helpline services you can rely on."
               />
             </div>
-            <Card className="mb-8">
-              <CardContent className="pt-6">
-                <div className="relative">
-                  <Search className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-                  <Input
-                    className="pl-10 "
-                    placeholder="Search by organization or emergency type..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                </div>
-              </CardContent>
-            </Card>
           </section>
         </div>
       </div>
@@ -162,7 +139,7 @@ export default function Component() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredHelplines.length === 0 ? (
+                {helplines.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={5}>
                       <div className="text-center py-8 text-gray-500">
@@ -177,7 +154,7 @@ export default function Component() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredHelplines.map((helpline) => (
+                  helplines.map((helpline) => (
                     <TableRow
                       key={helpline.helplineId}
                       className="hover:bg-gray-50 transition-colors"

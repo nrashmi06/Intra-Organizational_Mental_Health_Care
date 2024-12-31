@@ -30,7 +30,7 @@ export const DateTimeSelect: React.FC<DateTimeSelectProps> = ({
         <SelectTrigger className="h-12 text-sm rounded-xl border-gray-200 bg-white">
           <SelectValue placeholder="Select date" />
         </SelectTrigger>
-        <SelectContent className="max-h-96 overflow-y-auto">
+        <SelectContent className="max-h-96 overflow-y-auto bg-white">
           <ScrollArea className="h-full">
             {uniqueDates.map((date) => (
               <SelectItem key={date} value={date}>
@@ -48,7 +48,7 @@ export const DateTimeSelect: React.FC<DateTimeSelectProps> = ({
         <SelectTrigger className="h-12 text-sm rounded-xl border-gray-200 bg-white">
           <SelectValue placeholder={selectedDate ? "Select time" : "Select date first"} />
         </SelectTrigger>
-        <SelectContent className="max-h-96 overflow-y-auto">
+        <SelectContent className="max-h-96 overflow-y-auto bg-white">
           <ScrollArea className="h-full">
             {availableTimes.map((slot) => (
               <SelectItem key={slot.id} value={slot.id.toString()}>

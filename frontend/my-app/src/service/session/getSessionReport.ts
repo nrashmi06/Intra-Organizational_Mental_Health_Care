@@ -17,10 +17,8 @@ export const getSessionReport = async (
       },
       signal, // Include signal for request cancellation
     });
-    if (response.status === 404) {
-      return response;
-    }
-    return response.data; // Return the response data
+    return response.data;
+    // Return the response data
   } catch (error) {
     console.error("Error fetching session report:", error);
   }

@@ -7,7 +7,9 @@ export const replyNotification = async (
   token: string
 ) => {
   try {
-    const url = `${SESSION_API_ENDPOINTS.UPDATE_SESSION_STATUS(userId)}?action=${action}` ; 
+    const url = `${SESSION_API_ENDPOINTS.UPDATE_SESSION_STATUS(
+      userId
+    )}?action=${action}`;
     const response = await axiosInstance.post(
       url,
       {},
@@ -17,9 +19,9 @@ export const replyNotification = async (
         },
       }
     );
+
     return response.data;
   } catch (error) {
-    console.error(`Error during ${action} action for user ${userId}:`, error);
-    throw error;
+    console.info(`Error during ${action} action for user ${userId}:`, error);
   }
 };

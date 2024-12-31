@@ -121,7 +121,7 @@ export const ProfileSidebar = ({ open, onClose }: ProfileSidebarProps) => {
   return (
     <>
       {/* Desktop Sidebar */}
-      <div className="hidden md:flex md:w-72 md:flex-col md:fixed md:inset-y-0">
+      <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0">
         <div className="flex-1 flex flex-col min-h-0 bg-gradient-to-b from-emerald-800 to-emerald-900 shadow-xl">
           {sidebarContent}
         </div>

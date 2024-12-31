@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Bell, MessageCircle, User } from "lucide-react";
+import { Bell, MessageCircle, User, X, Check, XCircle, AlertCircle, ChevronRight, Sparkles } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/store";
 import { useRouter } from "next/router";
@@ -9,6 +9,7 @@ import { clearStoredRequest } from "@/store/notificationSlice";
 
 const NotificationBell: React.FC = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
   const router = useRouter();
   const dispatch = useDispatch();
 
@@ -38,7 +39,6 @@ const NotificationBell: React.FC = () => {
       dispatch(clearStoredRequest());
 
       if (action === "accept" && sessionID) {
-        console.log(`Redirecting to session: ${sessionID}`);
         dispatch(setSessionId(sessionID));
         setIsDrawerOpen(false);
         router.push(`/chat/${sessionID}`);
@@ -55,77 +55,78 @@ const NotificationBell: React.FC = () => {
 
   return (
     <>
-      {/* Notification Bell */}
       <button
         onClick={() => setIsDrawerOpen(true)}
-        className="fixed bottom-5 right-5 bg-white rounded-full p-3 shadow-lg hover:shadow-xl transition-shadow z-40"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        className={`fixed bottom-5 right-5 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full p-4 shadow-lg transition-all duration-300 z-40 
+          ${isHovered ? 'scale-110 shadow-xl' : ''}`}
       >
-        <Bell className="h-6 w-6 text-green-600" />
+        <Bell className="h-6 w-6 text-white" />
         {hasNotifications && (
-          <span className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center">
-            {notifications ? 1 : 0}
+          <span className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-6 h-6 text-xs flex items-center justify-center animate-pulse">
+            <Sparkles className="h-4 w-4" />
           </span>
         )}
       </button>
 
-      {/* Overlay */}
       <div
-        className={`fixed inset-0 bg-black/50 transition-opacity z-50 ${
-          isDrawerOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-        }`}
+        className={`fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-300 z-50 
+          ${isDrawerOpen ? "opacity-100" : "opacity-0 pointer-events-none"}`}
         onClick={() => setIsDrawerOpen(false)}
       />
 
-      {/* Drawer */}
       <div
-        className={`fixed top-0 bottom-0 right-0 w-full sm:w-96 bg-white shadow-xl transition-transform duration-300 transform z-50 ${
-          isDrawerOpen ? "translate-x-0" : "translate-x-full"
-        }`}
+        className={`fixed top-0 bottom-0 right-0 w-full sm:w-96 bg-gradient-to-b from-white to-gray-50 shadow-2xl transition-transform duration-300 transform z-50 
+          ${isDrawerOpen ? "translate-x-0" : "translate-x-full"}`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex flex-col h-full">
-          {/* Header */}
-          <div className="p-4 border-b">
+          <div className="p-6 border-b bg-gradient-to-r from-purple-500 to-indigo-500">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">Notifications</h3>
+              <div className="flex items-center space-x-3">
+                <Bell className="h-6 w-6 text-white" />
+                <h3 className="text-xl font-bold text-white">Notifications</h3>
+              </div>
               <button
                 onClick={() => setIsDrawerOpen(false)}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-white/80 hover:text-white transition-colors"
               >
-                ✕
+                <X className="h-6 w-6" />
               </button>
             </div>
           </div>
 
-          {/* Content */}
-          <div className="flex-1 overflow-y-auto p-4">
+          <div className="flex-1 overflow-y-auto p-6">
             {notifications && (
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-                {/* Sender Info */}
-                <div className="p-4 border-b border-gray-100">
-                  <div className="flex items-center space-x-3">
-                    <div className="bg-green-100 p-2 rounded-full">
-                      <User className="h-5 w-5 text-green-600" />
+              <div className="bg-white rounded-xl shadow-lg border border-purple-100 overflow-hidden transform transition-all duration-300 hover:shadow-xl hover:scale-102">
+                <div className="p-6 border-b border-purple-100">
+                  <div className="flex items-center space-x-4">
+                    <div className="bg-gradient-to-r from-purple-500 to-indigo-500 p-3 rounded-full">
+                      <User className="h-6 w-6 text-white" />
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900">
+                      <p className="font-semibold text-gray-900">
                         User ID: {notifications.senderId}
                       </p>
-                      <p className="text-sm text-gray-500">New session request</p>
+                      <div className="flex items-center space-x-2 text-purple-500">
+                        <AlertCircle className="h-4 w-4" />
+                        <p className="text-sm">New session request</p>
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Message */}
-                <div className="p-4 bg-gray-50">
-                  <div className="flex items-start space-x-3">
-                    <MessageCircle className="h-5 w-5 text-gray-400 mt-0.5" />
-                    <p className="text-sm text-gray-600 text-wrap line-clamp-1">{notifications.message}</p>
+                <div className="p-6 bg-purple-50">
+                  <div className="flex items-start space-x-4">
+                    <MessageCircle className="h-5 w-5 text-purple-500 mt-1" />
+                    <p className="text-gray-700 break-words break-all leading-relaxed">
+                      {notifications.message}
+                    </p>
                   </div>
                 </div>
 
-                {/* Actions */}
-                <div className="p-4 flex gap-3">
+                <div className="p-6 space-y-3">
                   <button
                     onClick={() =>
                       handleAction(
@@ -134,9 +135,11 @@ const NotificationBell: React.FC = () => {
                         notifications.message
                       )
                     }
-                    className="flex-1 bg-white border border-green-500 text-green-600 hover:bg-green-50 py-2 px-4 rounded-lg transition-colors text-sm font-medium"
+                    className="w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white py-3 px-6 rounded-lg transition-all duration-300 hover:shadow-lg hover:scale-102 flex items-center justify-center space-x-2"
                   >
-                    Accept Request
+                    <Check className="h-5 w-5" />
+                    <span>Accept Request</span>
+                    <ChevronRight className="h-5 w-5" />
                   </button>
                   <button
                     onClick={() =>
@@ -146,17 +149,19 @@ const NotificationBell: React.FC = () => {
                         notifications.message
                       )
                     }
-                    className="flex-1 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 py-2 px-4 rounded-lg transition-colors text-sm font-medium"
+                    className="w-full bg-white border-2 border-red-500 text-red-500 py-3 px-6 rounded-lg transition-all duration-300 hover:bg-red-50 flex items-center justify-center space-x-2"
                   >
-                    Decline
+                    <XCircle className="h-5 w-5" />
+                    <span>Decline</span>
                   </button>
                 </div>
               </div>
             )}
 
             {!hasNotifications && (
-              <div className="text-center text-gray-500 py-8">
-                <p>No notifications</p>
+              <div className="text-center text-gray-500 py-8 space-y-3">
+                <Bell className="h-12 w-12 mx-auto text-gray-400" />
+                <p className="text-lg font-medium">No notifications</p>
               </div>
             )}
           </div>
@@ -167,3 +172,5 @@ const NotificationBell: React.FC = () => {
 };
 
 export default NotificationBell;
+
+

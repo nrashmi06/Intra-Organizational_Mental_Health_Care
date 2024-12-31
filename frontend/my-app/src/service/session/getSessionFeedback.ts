@@ -17,9 +17,6 @@ export const getSessionFeedback = async (
       signal, // Pass the abort signal, Axios supports it via options
     });
 
-    if (response.status === 404) {
-      return response;
-    }
     return response.data; // Return the response data
   } catch (error) {
     console.error("Error fetching session feedback:", error);

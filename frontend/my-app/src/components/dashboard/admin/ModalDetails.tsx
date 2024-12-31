@@ -8,6 +8,9 @@ import {
   FileText,
   Phone,
   Contact,
+  BookOpen,
+  ThumbsUp,
+  Eye,
 } from "lucide-react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
@@ -66,7 +69,7 @@ const ModalDetails: React.FC<DetailsProps> = ({ userId, handleClose }) => {
     if (!showImagePreview || !adminDetails?.profilePictureUrl) return null;
 
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
+      <div className="fixed inset-0 flex items-center justify-center bg-black/80">
         <div className="relative max-w-2xl max-h-[90vh] p-2">
           <button
             onClick={() => setShowImagePreview(false)}
@@ -89,7 +92,7 @@ const ModalDetails: React.FC<DetailsProps> = ({ userId, handleClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-30 overflow-hidden">
+    <div className="fixed inset-0 overflow-hidden z-[9999]">
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={handleClose} />
       <div className="fixed inset-0 flex items-center justify-center p-4">
         <div className="relative w-full max-w-2xl bg-white rounded-lg shadow-lg flex flex-col max-h-[90vh]">
@@ -177,19 +180,58 @@ const ModalDetails: React.FC<DetailsProps> = ({ userId, handleClose }) => {
                     </div>
                   </div>
 
-                  {/* Admin Notes */}
-                  <div className="bg-white p-4 rounded-lg border">
-                    <h2 className="text-lg font-semibold mb-3 flex items-center text-blue-600">
-                      <FileText className="w-5 h-5 mr-2" />
-                      Admin Notes
-                    </h2>
-                    <div className="max-h-32 overflow-y-auto text-sm">
-                      <div
-                        className="text-gray-700 prose prose-sm max-w-none"
-                        dangerouslySetInnerHTML={{
-                          __html: adminDetails.adminNotes,
-                        }}
-                      />
+                  {/* Statistics Grid */}
+                  <div className="grid md:grid-cols-3 gap-4">
+                    <div className="bg-white p-4 rounded-lg border">
+                      <h2 className="text-lg font-semibold mb-3 flex items-center text-blue-600">
+                        <Calendar className="w-5 h-5 mr-2" />
+                        Appointments
+                      </h2>
+                      <div className="space-y-2">
+                        <p className="text-sm text-gray-700">
+                          Total: {adminDetails.totalAppointments}
+                        </p>
+                        <p className="text-sm text-gray-700">
+                          Last: {formatDate(adminDetails.lastAppointmentDate)}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="bg-white p-4 rounded-lg border">
+                      <h2 className="text-lg font-semibold mb-3 flex items-center text-blue-600">
+                        <BookOpen className="w-5 h-5 mr-2" />
+                        Blog Statistics
+                      </h2>
+                      <div className="space-y-2">
+                        <p className="text-sm text-gray-700">
+                          Published: {adminDetails.totalBlogsPublished}
+                        </p>
+                        <div className="flex items-center space-x-4">
+                          <p className="text-sm text-gray-700 flex items-center">
+                            <ThumbsUp className="w-4 h-4 mr-1" />
+                            {adminDetails.totalLikesReceived}
+                          </p>
+                          <p className="text-sm text-gray-700 flex items-center">
+                            <Eye className="w-4 h-4 mr-1" />
+                            {adminDetails.totalViewsReceived}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-white p-4 rounded-lg border">
+                      <h2 className="text-lg font-semibold mb-3 flex items-center text-blue-600">
+                        <FileText className="w-5 h-5 mr-2" />
+                        Admin Notes
+                      </h2>
+                      <div className="max-h-32 overflow-y-auto text-sm">
+                        <div
+                          className="text-gray-700 prose prose-sm max-w-none"
+                          dangerouslySetInnerHTML={{
+                            __html: adminDetails.adminNotes,
+                          }}
+                        />
+                      </div>
                     </div>
                   </div>
 

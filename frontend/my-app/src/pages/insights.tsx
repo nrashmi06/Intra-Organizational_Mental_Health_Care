@@ -1,7 +1,7 @@
 "use client";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import SessionSummary from "@/components/dashboard/home/SessionSummary";
 import AverageSession from "@/components/dashboard/home/AverageSession";
 import Severity from "@/components/dashboard/home/Severity";
@@ -16,6 +16,7 @@ import "@/styles/global.css";
 import InlineLoader from "@/components/ui/inlineLoader";
 import { PaginationInfo } from "@/lib/types";
 import PaginationComponent from "@/components/ui/PaginationComponent";
+import DashboardLayout from "@/components/dashboard/DashboardLayout";
 
 const DashboardPage = () => {
   const [blogs, setBlogs] = useState<BlogApproval[]>([]);
@@ -67,94 +68,109 @@ const DashboardPage = () => {
   };
 
   return (
-    <div className="md:p-6 space-y-8">
-      <UserCountGrid />
-      <div className="grid gap-8 grid-cols-1 xl:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0">
-            <CardTitle>Listener Summary</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <SessionSummary />
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Average Session Duration</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <AverageSession />
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Severity Analysis</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Severity />
-          </CardContent>
-        </Card>
-      </div>
-      <section>
-        <div className="bg-white rounded-lg shadow">
-          <div className="p-4 border-b flex flex-col md:flex-row justify-between items-start md:items-center">
-            <h2 className="text-xl font-bold">Blogs</h2>
-            <div className="flex gap-2 mt-2 md:mt-0">
-              <Button
-                onClick={() => setStatusFilter("pending")}
-                className={`${
-                  statusFilter === "pending"
-                    ? "bg-green-500 text-white"
-                    : "bg-green-300 text-purple-500"
-                }`}
-              >
-                Pending
-              </Button>
-              <Button
-                onClick={() => setStatusFilter("approved")}
-                className={`${
-                  statusFilter === "approved"
-                    ? "bg-green-500 text-white"
-                    : "bg-green-300 text-green-500"
-                }`}
-              >
-                Approved
-              </Button>
-              <Button
-                onClick={() => setStatusFilter("rejected")}
-                className={`${
-                  statusFilter === "rejected"
-                    ? "bg-green-500 text-white"
-                    : "bg-green-300 text-green-500"
-                }`}
-              >
-                Rejected
-              </Button>
-            </div>
-          </div>
+    <div
+      className="min-h-screen bg-gradient-to-br from-emerald-50 to-green-100 bg-opacity-90 py-8 px-4 sm:px-6 lg:px-8"
+      style={{
+        backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23a7f3d0' fill-opacity='0.2'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+      }}
+    >
+      <div className="max-w-7xl mx-auto space-y-8">
+        <UserCountGrid />
 
-          {loading ? (
-            <InlineLoader />
-          ) : (
-            <>
-              <BlogApprovalTable blogs={blogs} statusFilter={statusFilter} />
+        <div className="grid gap-8 grid-cols-1 xl:grid-cols-3 mt-8">
+          <Card className="border border-emerald-100 bg-white/80">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0">
+              <CardTitle>Listener Summary</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <SessionSummary />
+            </CardContent>
+          </Card>
 
-              {/* Pagination Controls */}
-              <PaginationComponent
-                currentPage={paginationInfo.pageNumber}
-                totalPages={paginationInfo.totalPages}
-                onPageChange={handlePageClick}
-              />
-            </>
-          )}
+          <Card className="border border-emerald-100 bg-white/80">
+            <CardHeader>
+              <CardTitle>Average Session Duration</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <AverageSession />
+            </CardContent>
+          </Card>
+
+          <Card className="border border-emerald-100 bg-white/80">
+            <CardHeader>
+              <CardTitle>Severity Analysis</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Severity />
+            </CardContent>
+          </Card>
         </div>
-      </section>
+
+        <section className="mt-8">
+          <div className="bg-white/80 rounded-lg shadow-lg border border-emerald-100">
+            <div className="p-4 border-b border-emerald-100 flex flex-col md:flex-row justify-between items-start md:items-center">
+              <h2 className="text-xl font-bold text-emerald-800">Blogs</h2>
+              <div className="flex gap-2 mt-2 md:mt-0">
+                <Button
+                  onClick={() => setStatusFilter("pending")}
+                  className={`${
+                    statusFilter === "pending"
+                      ? "bg-emerald-600 hover:bg-emerald-700"
+                      : "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
+                  } transition-colors`}
+                >
+                  Pending
+                </Button>
+                <Button
+                  onClick={() => setStatusFilter("approved")}
+                  className={`${
+                    statusFilter === "approved"
+                      ? "bg-emerald-600 hover:bg-emerald-700"
+                      : "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
+                  } transition-colors`}
+                >
+                  Approved
+                </Button>
+                <Button
+                  onClick={() => setStatusFilter("rejected")}
+                  className={`${
+                    statusFilter === "rejected"
+                      ? "bg-emerald-600 hover:bg-emerald-700"
+                      : "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
+                  } transition-colors`}
+                >
+                  Rejected
+                </Button>
+              </div>
+            </div>
+
+            {loading ? (
+              <InlineLoader />
+            ) : (
+              <>
+                <div className="border-t border-emerald-100">
+                  <BlogApprovalTable
+                    blogs={blogs}
+                    statusFilter={statusFilter}
+                  />
+                </div>
+
+                <div className="border-t border-emerald-100">
+                  <PaginationComponent
+                    currentPage={paginationInfo.pageNumber}
+                    totalPages={paginationInfo.totalPages}
+                    onPageChange={handlePageClick}
+                  />
+                </div>
+              </>
+            )}
+          </div>
+        </section>
+      </div>
     </div>
   );
 };
 
-DashboardPage.getLayout = (page: any) => (
-  <DashboardLayout>{page}</DashboardLayout>
-);
+DashboardPage.getLayout = (page: any) => <DashboardLayout>{page}</DashboardLayout>;
 
 export default DashboardPage;
