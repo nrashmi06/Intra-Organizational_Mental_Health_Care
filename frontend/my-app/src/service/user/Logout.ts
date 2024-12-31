@@ -13,8 +13,9 @@ export const logout = async (accessToken: string) => {
         withCredentials: true,
       }
     );
-
-    console.log(response) 
+    console.log("User logged out successfully");
+    console.log(response)
+   return response;
   } catch (error) {
     console.error("Error logging out the user:", error);
   }

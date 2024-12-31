@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
 import {
   UserCircle,
@@ -12,6 +12,9 @@ import {
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import useClearStore from "@/utils/clearStore";
+import { logout } from "@/service/user/Logout";
+import { RootState } from "@/store";
+import { useSelector } from "react-redux";
 
 type ProfileSidebarProps = {
   open: boolean;
@@ -22,13 +25,42 @@ export const ProfileSidebar = ({ open, onClose }: ProfileSidebarProps) => {
   const router = useRouter();
   const clearStore = useClearStore();
   const previousPath = useRef(router.asPath);
-
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const accessToken = useSelector((state: RootState) => state.auth.accessToken);
   useEffect(() => {
     if (previousPath.current !== router.asPath) {
       previousPath.current = router.asPath;
       onClose();
     }
   }, [router.asPath, onClose]);
+
+  const handleLogout = async () => {
+    if (isLoggingOut) return; // Prevent multiple clicks
+
+    setIsLoggingOut(true);
+    try {
+      if (!accessToken) {
+        console.error("No access token found");
+        clearStore();
+        router.push("/signin");
+        return;
+      }
+
+      const response = await logout(accessToken);
+      if(!response) {
+        router.reload();
+        return
+      }
+      if (response.status === 200 || response.status === 204) {
+        clearStore();
+        router.push("/signin");
+      } else {
+        console.error("Unexpected response from logout API:", response);
+      }
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
 
   const sidebarItems = [
     {
@@ -105,14 +137,15 @@ export const ProfileSidebar = ({ open, onClose }: ProfileSidebarProps) => {
       {/* Footer with Logout */}
       <div className="p-4 border-t border-emerald-600/20">
         <button
-          onClick={() => {
-            clearStore();
-            router.push("/signin");
-          }}
-          className="flex items-center w-full px-4 py-3 text-sm font-medium rounded-lg text-rose-100 hover:bg-rose-500/20 transition-colors duration-200"
+          onClick={handleLogout}
+          disabled={isLoggingOut}
+          className={cn(
+            "flex items-center w-full px-4 py-3 text-sm font-medium rounded-lg text-rose-100 hover:bg-rose-500/20 transition-colors duration-200",
+            isLoggingOut && "opacity-50 cursor-not-allowed"
+          )}
         >
           <LogOut className="mr-3 flex-shrink-0 h-5 w-5" />
-          Sign Out
+          {isLoggingOut ? "Signing Out..." : "Sign Out"}
         </button>
       </div>
     </div>
