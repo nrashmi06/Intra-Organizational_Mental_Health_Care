@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { API_ENDPOINTS } from '@/mapper/userMapper'; // Import the userMapper
+import axiosInstance from '@/utils/axios';
 
 interface ForgotPasswordResponse {
   message: string;
@@ -7,7 +8,7 @@ interface ForgotPasswordResponse {
 
 const forgotPassword = async (email: string, token: string): Promise<string> => {
   try {
-    const response = await axios.post<ForgotPasswordResponse>(API_ENDPOINTS.FORGOT_PASSWORD, { email }, {
+    const response = await axiosInstance.post<ForgotPasswordResponse>(API_ENDPOINTS.FORGOT_PASSWORD, { email }, {
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',

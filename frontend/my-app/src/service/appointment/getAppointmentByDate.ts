@@ -1,10 +1,8 @@
-// src/api/appointmentApi.js
-import axios from "axios";
 import { APPOINTMENT_API_ENDPOINTS } from "@/mapper/appointmentMapper";
 import { setAppointments } from "@/store/appointmentSlice";
-import { RootState, AppDispatch } from "@/store"; // Import AppDispatch for dispatch type
+import { RootState, AppDispatch } from "@/store"; 
+import axiosInstance from "@/utils/axios";
 
-// Thunk action to fetch appointments by date with ETag handling
 export const getAppointmentByDate =
   (startDate: string, endDate: string, page: number, size: number) =>
   async (dispatch: AppDispatch, getState: () => RootState) => {
@@ -14,7 +12,7 @@ export const getAppointmentByDate =
       // Set the `If-None-Match` header if the ETag is available
       const headers = cachedEtag ? { "If-None-Match": cachedEtag } : {};
 
-      const response = await axios.get(
+      const response = await axiosInstance.get(
         APPOINTMENT_API_ENDPOINTS.GET_APPOINTMENTS_BY_DATE_RANGE,
         {
           params: { startDate, endDate, page, size },
@@ -23,7 +21,7 @@ export const getAppointmentByDate =
             Authorization: `Bearer ${getState().auth.accessToken}`,
             ...headers
           },
-          validateStatus: (status) => status >= 200 && status < 400, // Accept 304 as valid
+          validateStatus: (status) => status >= 200 && status < 400, 
         }
       );
 

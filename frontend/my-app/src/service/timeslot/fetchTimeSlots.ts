@@ -1,5 +1,5 @@
 // src/service/timeSlotApi.ts
-import axios from "axios";
+import axiosInstance from "@/utils/axios";
 import { TIME_SLOT_API_ENDPOINTS } from "@/mapper/timeslotMapper";
 import { setTimeSlots} from "@/store/timeSlotSlice";
 import { RootState, AppDispatch } from "@/store";
@@ -31,7 +31,7 @@ export const fetchTimeSlots = (
     const url = `${TIME_SLOT_API_ENDPOINTS.GET_TIME_SLOTS_BY_ADMIN_IN_DATE_RANGE(userID)}`;
 
     // Sending the GET request
-    const response = await axios.get(url, {
+    const response = await axiosInstance.get(url, {
       params: {
         startDate,
         endDate,

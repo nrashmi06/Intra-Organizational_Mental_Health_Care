@@ -1,3 +1,4 @@
+import axiosInstance from "@/utils/axios"; // Import your Axios instance
 import { TIME_SLOT_API_ENDPOINTS } from "@/mapper/timeslotMapper";
 
 const deleteTimeSlots = async (
@@ -14,27 +15,26 @@ const deleteTimeSlots = async (
     // Construct the URL using the mapper
     const url = `${TIME_SLOT_API_ENDPOINTS.DELETE_TIME_SLOTS_IN_DATE_RANGE(userID)}?startDate=${startDate}&endDate=${endDate}&isAvailable=true&idType=userId`;
 
-    // Send the DELETE request
-    const response = await fetch(url, {
-      method: "DELETE",
+    // Send the DELETE request using axiosInstance
+    const response = await axiosInstance.delete(url, {
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
     });
 
+    // Handle different status codes
     if (response.status === 404) {
       console.warn("No time slots found for the specified date range.");
       return { message: "No data found for the specified date range." };
     }
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
+    // Check if the response contains a message or data
+    if (response.status === 200) {
+      return response.data || { message: "Time slots deleted successfully." };
     }
 
-    // Parse the response if it contains a body
-    const text = await response.text(); // Read response as text
-    return text ? JSON.parse(text) : { message: "Time slots deleted successfully." };
+    throw new Error(`HTTP error! Status: ${response.status}`);
   } catch (error) {
     console.error("Error deleting time slots:", error);
     return { message: "An error occurred while deleting time slots." };
@@ -42,4 +42,3 @@ const deleteTimeSlots = async (
 };
 
 export default deleteTimeSlots;
-

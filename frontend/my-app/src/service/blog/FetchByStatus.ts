@@ -1,55 +1,53 @@
-import { BLOG_API_ENDPOINTS } from '@/mapper/blogMapper';  // Import the endpoint mapper
+import axiosInstance from "@/utils/axios";
+import { BLOG_API_ENDPOINTS } from "@/mapper/blogMapper"; // Import endpoint mapper
 
-export async function fetchByStatus(status: string, token: string, page?: number, size?: number) {
+export async function fetchByStatus(
+  status: string,
+  token: string,
+  page?: number,
+  size?: number
+) {
   if (!token) {
-    throw new Error('No token found');
-  }
-
-  const headers = {
-    'Authorization': `Bearer ${token}`,
-    'Content-Type': 'application/json',
-  };
-
-  // Construct the URL with optional page and size parameters
-  const url = new URL(BLOG_API_ENDPOINTS.GET_BLOGS_BY_APPROVAL_STATUS);
-  url.searchParams.append('status', status || 'pending');
-  if (page !== undefined) {
-    url.searchParams.append('page', page.toString());
-  }
-  if (size !== undefined) {
-    url.searchParams.append('size', size.toString());
+    throw new Error("No token found");
   }
 
   try {
-    const response = await fetch(url.toString(), { method: 'GET', headers });
-
-    // Ensure the response is in the expected format (JSON or plain text)
-    const contentType = response.headers.get('Content-Type');
-
-    if (contentType && contentType.includes('application/json')) {
-      const data = await response.json();
-
-      // Ensure that the response data is an array before returning
-      if (data) {
-        return data;
-      } else {
-        console.error('Expected an array but got:', data);
-        return [];  // Return an empty array if the response is not an array
-      }
-    } else if (contentType && contentType.includes('text/plain')) {
-      // Handle text/plain response (for errors or other messages)
-      const textData = await response.text();
-      console.error('Received plain text:', textData);
-
-      // Wrap the plain text into a JSON object to maintain consistency
-      return { message: textData };
-    } else {
-      // Handle unexpected content type
-      throw new Error(`Expected JSON or plain text, but got ${contentType}`);
+    // Build the query parameters
+    const params: Record<string, string | number> = { status: status || "pending" };
+    if (page !== undefined) {
+      params.page = page;
     }
-  } catch (error) {
-    // Catch and log any unexpected errors during the fetch process
-    console.error('Error fetching blogs:', error);
-    throw new Error('Failed to fetch blogs');
+    if (size !== undefined) {
+      params.size = size;
+    }
+
+    // Make the GET request using Axios
+    const response = await axiosInstance.get(BLOG_API_ENDPOINTS.GET_BLOGS_BY_APPROVAL_STATUS, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      params, // Pass query parameters
+    });
+
+    // Ensure the response data is valid
+    if (Array.isArray(response.data)) {
+      return response.data;
+    } else {
+      console.error("Expected an array but got:", response.data);
+      return []; // Return an empty array if the response is not an array
+    }
+  } catch (error: any) {
+    console.error("Error fetching blogs:", error);
+
+    // Handle errors based on the Axios error structure
+    if (error.response) {
+      throw new Error(
+        error.response.data?.message || "Failed to fetch blogs"
+      );
+    } else if (error.request) {
+      throw new Error("No response received from the server. Please try again.");
+    } else {
+      throw new Error(error.message || "An unexpected error occurred.");
+    }
   }
-}
+};

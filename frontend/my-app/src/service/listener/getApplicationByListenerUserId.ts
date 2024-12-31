@@ -1,3 +1,4 @@
+import axiosInstance from "@/utils/axios";
 import { LISTENER_APPLICATION_API_ENDPOINTS } from "@/mapper/listnerMapper"; // Import the URL mapper
 
 export const getApplicationByListenerUserId = async (
@@ -5,11 +6,9 @@ export const getApplicationByListenerUserId = async (
   token: string
 ) => {
   try {
-    // Use the mapped endpoint for fetching application by listener's user ID
-    const response = await fetch(
+    const response = await axiosInstance.get(
       LISTENER_APPLICATION_API_ENDPOINTS.GET_APPLICATION_BY_LISTENERS_USER_ID(userId.toString()),
       {
-        method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -17,14 +16,19 @@ export const getApplicationByListenerUserId = async (
       }
     );
 
-    if (!response.ok) {
-      throw new Error(`Error: ${response.statusText}`);
-    }
+    return response.data; // Return the parsed data
+  } catch (error: any) {
+    console.error("Error fetching listener application:", error);
 
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error("Error fetching listener certificate:", error);
-    throw error;
+    // Handle Axios-specific errors
+    if (error.response) {
+      throw new Error(
+        `Error fetching listener application: ${error.response.data?.message || error.response.statusText}`
+      );
+    } else if (error.request) {
+      throw new Error("No response received from the server. Please try again.");
+    } else {
+      throw new Error(error.message || "An unexpected error occurred.");
+    }
   }
 };

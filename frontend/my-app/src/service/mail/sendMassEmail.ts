@@ -1,5 +1,5 @@
 // src/service/email/sendMassEmail.ts
-import axios from "axios";
+import axiosInstance from "@/utils/axios";
 import { EMAIL_API_ENDPOINTS } from "@/mapper/emailMapper"; // Import from the mapper file
 
 export const sendMassEmail = async (
@@ -19,8 +19,8 @@ export const sendMassEmail = async (
       formData.append(`files[${index}]`, file);
     });
 
-    const response = await axios.post(
-      EMAIL_API_ENDPOINTS.SEND_MASS_EMAIL(recipientType), // Using the endpoint from the mapper
+    const response = await axiosInstance.post(
+      EMAIL_API_ENDPOINTS.SEND_MASS_EMAIL(recipientType), 
       formData,
       {
         headers: {

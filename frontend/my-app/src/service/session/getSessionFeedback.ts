@@ -1,24 +1,26 @@
-// src/service/session/getSessionFeedback.ts
-import { FEEDBACK_API_ENDPOINTS } from "@/mapper/feedbackMapper"; // Import the feedback mapper
 
-export const getSessionFeedback = async (sessionId: string, token: string, signal?: AbortSignal) => {
+import axiosInstance from '@/utils/axios'; 
+import { FEEDBACK_API_ENDPOINTS } from "@/mapper/feedbackMapper"; 
+
+export const getSessionFeedback = async (
+  sessionId: string,
+  token: string,
+  signal?: AbortSignal
+) => {
   try {
-    const url = FEEDBACK_API_ENDPOINTS.GET_FEEDBACK_BY_SESSION(sessionId); // Use the mapped endpoint
+    const url = FEEDBACK_API_ENDPOINTS.GET_FEEDBACK_BY_SESSION(sessionId);
 
-    const response = await fetch(url, {
-      method: "GET",
+    const response = await axiosInstance.get(url, {
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
-      signal
+      signal, // Pass the abort signal, Axios supports it via options
     });
 
-    const data = await response.json();
-    console.log(data);
-    return data;
+    console.log(response.data);
+    return response.data; // Return the response data
   } catch (error) {
     console.error("Error fetching session feedback:", error);
-    throw error;
   }
 };

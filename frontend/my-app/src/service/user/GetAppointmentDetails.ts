@@ -1,4 +1,4 @@
-// src/service/user/getAppointmentsByUserId.ts
+import axiosInstance from "@/utils/axios"; // Import your Axios instance
 import { APPOINTMENT_API_ENDPOINTS } from '@/mapper/appointmentMapper';
 
 export const getAppointmentDetails = async (appointmentId: string | null, token: string) => {
@@ -8,10 +8,10 @@ export const getAppointmentDetails = async (appointmentId: string | null, token:
   }
 
   try {
-    const response = await fetch(
-      APPOINTMENT_API_ENDPOINTS.GET_APPOINTMENT_BY_ID(appointmentId),
+    // Send GET request using axiosInstance to fetch appointment details
+    const response = await axiosInstance.get(
+      APPOINTMENT_API_ENDPOINTS.GET_APPOINTMENT_BY_ID(appointmentId), 
       {
-        method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -19,10 +19,16 @@ export const getAppointmentDetails = async (appointmentId: string | null, token:
       }
     );
 
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error("Error fetching appointment details:", error);
-    throw error;
+    return response.data; // Return the response data
+  } catch (error : any) {
+    // Error handling
+    if (error.response) {
+      // If error has a response (e.g., 400, 404, etc.)
+      console.error("Error fetching appointment details:", error.response.data?.message || error.message);
+    } else {
+      // Network or unknown error
+      console.error("Error fetching appointment details:", error.message || error);
+    }
+    throw error; // Re-throw the error for further handling if needed
   }
 };

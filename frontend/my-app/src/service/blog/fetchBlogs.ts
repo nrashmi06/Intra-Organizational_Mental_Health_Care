@@ -1,5 +1,5 @@
-import axios from "axios";
 import { BLOG_API_ENDPOINTS } from "@/mapper/blogMapper";
+import axiosInstance from "@/utils/axios";
 
 export default async function fetchBlogs({
   userId,
@@ -40,7 +40,7 @@ export default async function fetchBlogs({
   }
   if (title) params.title = title;
   try {
-    const response = await axios.get(url, {
+    const response = await axiosInstance.get(url, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

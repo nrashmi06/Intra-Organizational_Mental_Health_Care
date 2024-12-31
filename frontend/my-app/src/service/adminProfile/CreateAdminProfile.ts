@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axiosInstance from '@/utils/axios';
 import { ADMIN_PROFILE_API_ENDPOINTS } from '@/mapper/adminProfileMapper';
 
 
@@ -53,7 +53,7 @@ export const createAdminProfile = async (
       }
   
       // Make the POST request
-      const response = await axios.post<AdminProfileResponse>(`${ADMIN_PROFILE_API_ENDPOINTS.CREATE_ADMIN_PROFILE}`, 
+      const response = await axiosInstance.post<AdminProfileResponse>(`${ADMIN_PROFILE_API_ENDPOINTS.CREATE_ADMIN_PROFILE}`, 
         formData, {
         headers: {
           Authorization: `Bearer ${accessToken}`,

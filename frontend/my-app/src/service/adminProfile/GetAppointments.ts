@@ -1,5 +1,5 @@
-import axios from "axios";
 import {APPOINTMENT_API_ENDPOINTS} from '@/mapper/appointmentMapper';
+import axiosInstance from "@/utils/axios";
 
 
 interface GetAppointmentsParams {
@@ -22,7 +22,7 @@ export const getAppointments = async ({
       url += `?userId=${userId}`;
     }
 
-    const response = await axios.get(url, {
+    const response = await axiosInstance.get(url, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

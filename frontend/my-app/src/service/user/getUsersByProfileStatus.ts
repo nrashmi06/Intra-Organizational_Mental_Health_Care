@@ -1,4 +1,5 @@
 import { API_ENDPOINTS } from "@/mapper/userMapper";
+import axiosInstance from "@/utils/axios";
 import axios from "axios";
 
 export const getUsersByProfileStatus = async ({
@@ -15,7 +16,7 @@ export const getUsersByProfileStatus = async ({
   token: string;
 }) => {
   try {
-    const response = await axios.get(
+    const response = await axiosInstance.get(
       API_ENDPOINTS.GET_ALL_USERS_BY_PROFILE_STATUS,
       {
         headers: {
@@ -25,7 +26,7 @@ export const getUsersByProfileStatus = async ({
           page,
           size,
           status,
-          ...(search ? { search } : {}), // Only include search if it exists
+          ...(search ? { search } : {}), 
         },
       }
     );
@@ -40,6 +41,6 @@ export const getUsersByProfileStatus = async ({
     } else {
       console.error("Error fetching users by profile status:", error);
     }
-    throw error; // Make sure to throw the error so it can be handled by the component
+    throw error; 
   }
 };
