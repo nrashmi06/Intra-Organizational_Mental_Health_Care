@@ -1,9 +1,8 @@
-import axios from "axios";
 import { LISTENER_APPLICATION_API_ENDPOINTS } from "@/mapper/listnerMapper"; // Import URL mappings
 import axiosInstance from "@/utils/axios";
 
 export const updateApplication = async (
-  applicationId: string, 
+  applicationId: string,
   applicationData: {
     fullName: string;
     branch: string;
