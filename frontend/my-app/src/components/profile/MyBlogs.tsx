@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { X } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Search } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -32,26 +31,18 @@ const BlogsByAuthor = ({ userId, token }: AuthorBlogsProps) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("authorBlogSearchQuery") || DEFAULT_FILTERS.searchQuery;
-    }
     return DEFAULT_FILTERS.searchQuery;
   });
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(searchQuery);
 
   const [paginationInfo, setPaginationInfo] = useState({
     pageNumber: 0,
-    pageSize: typeof window !== "undefined"
-      ? Number(localStorage.getItem("authorBlogPageSize")) || DEFAULT_FILTERS.pageSize
-      : DEFAULT_FILTERS.pageSize,
+    pageSize: DEFAULT_FILTERS.pageSize,
     totalElements: 0,
     totalPages: 0,
   });
 
   const [filterType, setFilterType] = useState<string>(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("authorBlogFilterType") || DEFAULT_FILTERS.filterType;
-    }
     return DEFAULT_FILTERS.filterType;
   });
 
@@ -109,13 +100,11 @@ const BlogsByAuthor = ({ userId, token }: AuthorBlogsProps) => {
       pageSize: Number(newSize),
       pageNumber: 0,
     }));
-    localStorage.setItem("authorBlogPageSize", newSize);
   };
 
   const handleFilterChange = (value: string) => {
     setFilterType(value);
     setPaginationInfo((prev) => ({ ...prev, pageNumber: 0 }));
-    localStorage.setItem("authorBlogFilterType", value);
   };
 
   const handlePageClick = (pageNum: number) => {
@@ -126,19 +115,6 @@ const BlogsByAuthor = ({ userId, token }: AuthorBlogsProps) => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const clearFilters = () => {
-    setSearchQuery(DEFAULT_FILTERS.searchQuery);
-    setPaginationInfo((prev) => ({
-      ...prev,
-      pageSize: DEFAULT_FILTERS.pageSize,
-      pageNumber: 0,
-    }));
-    setFilterType(DEFAULT_FILTERS.filterType);
-    localStorage.removeItem("authorBlogSearchQuery");
-    localStorage.removeItem("authorBlogPageSize");
-    localStorage.removeItem("authorBlogFilterType");
-  };
-
   if (error) {
     return <div className="text-red-500 text-center py-4">{error}</div>;
   }
@@ -147,57 +123,50 @@ const BlogsByAuthor = ({ userId, token }: AuthorBlogsProps) => {
     <div className="w-full">
       <div className="w-full bg-white border-b py-4">
         <div className="container mx-auto px-4 max-w-7xl">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex flex-col sm:flex-row w-full sm:w-auto gap-4 items-center">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+            <div className="relative">
+              <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                <Search className="h-5 w-5 text-gray-400" />
+              </div>
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
                   setPaginationInfo((prev) => ({ ...prev, pageNumber: 0 }));
-                  localStorage.setItem("authorBlogSearchQuery", e.target.value);
                 }}
                 placeholder="Search blogs..."
-                className="p-3 border rounded-lg w-full sm:w-64 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                className="pl-10 p-3 border rounded-lg w-full focus:ring-2 focus:ring-green-500 focus:border-green-500"
               />
-
-              <Select onValueChange={handleFilterChange} value={filterType}>
-                <SelectTrigger className="w-full sm:w-[180px]">
-                  <SelectValue placeholder="Filter by" />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  <SelectItem value="TRENDING">Trending</SelectItem>
-                  <SelectItem value="MOST_LIKED">Most Liked</SelectItem>
-                  <SelectItem value="RECENT">Most Recent</SelectItem>
-                  <SelectItem value="MOST_VIEWED">Most Viewed</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select
-                onValueChange={handlePageSizeChange}
-                value={paginationInfo.pageSize.toString()}
-              >
-                <SelectTrigger className="w-full sm:w-[180px]">
-                  <SelectValue placeholder="Items per page" />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  {PAGE_SIZE_OPTIONS.map((size) => (
-                    <SelectItem key={size} value={size.toString()}>
-                      {size} per page
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              
-              <Button
-                onClick={clearFilters}
-                variant="outline"
-                className="w-full sm:w-auto flex items-center gap-2"
-              >
-                <X className="w-4 h-4" />
-                Clear Filters
-              </Button>
             </div>
+
+            <Select onValueChange={handleFilterChange} value={filterType}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Filter by" />
+              </SelectTrigger>
+              <SelectContent className="bg-white">
+                <SelectItem value="TRENDING">Trending</SelectItem>
+                <SelectItem value="MOST_LIKED">Most Liked</SelectItem>
+                <SelectItem value="RECENT">Most Recent</SelectItem>
+                <SelectItem value="MOST_VIEWED">Most Viewed</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select
+              onValueChange={handlePageSizeChange}
+              value={paginationInfo.pageSize.toString()}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Items per page" />
+              </SelectTrigger>
+              <SelectContent className="bg-white">
+                {PAGE_SIZE_OPTIONS.map((size) => (
+                  <SelectItem key={size} value={size.toString()}>
+                    {size} per page
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </div>
@@ -216,9 +185,10 @@ const BlogsByAuthor = ({ userId, token }: AuthorBlogsProps) => {
                 key={blog.id}
                 post={{
                   ...blog,
-                  summary: blog.summary.length > 200
-                    ? `${blog.summary.substring(0, 200)}...`
-                    : blog.summary,
+                  summary:
+                    blog.summary.length > 200
+                      ? `${blog.summary.substring(0, 200)}...`
+                      : blog.summary,
                 }}
               />
             ))}

@@ -11,7 +11,7 @@ axiosInstance.interceptors.response.use(
   async (error) => {
     if (error.response?.status === 429) {
       // Handle 429 Too Many Requests globally
-      console.error('You are being rate-limited. Please try again later.');
+      console.info('You are being rate-limited. Please try again later.');
       alert('You are being rate-limited. Please try again later.');
 
       // Optional: Show a user-friendly message or notification

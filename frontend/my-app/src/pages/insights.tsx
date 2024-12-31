@@ -15,6 +15,7 @@ import { BlogApproval } from "@/lib/types";
 import "@/styles/global.css";
 import InlineLoader from "@/components/ui/inlineLoader";
 import { PaginationInfo } from "@/lib/types";
+import PaginationComponent from "@/components/ui/PaginationComponent";
 
 const DashboardPage = () => {
   const [blogs, setBlogs] = useState<BlogApproval[]>([]);
@@ -58,48 +59,11 @@ const DashboardPage = () => {
 
   useEffect(() => {
     setLoading(true);
-    setPaginationInfo((prev) => ({ ...prev, pageNumber: 0 }));
     loadBlogs();
   }, [token, statusFilter, paginationInfo.pageNumber, paginationInfo.pageSize]);
 
   const handlePageClick = (pageNum: number) => {
     setPaginationInfo((prev) => ({ ...prev, pageNumber: pageNum }));
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  const getPageNumbers = () => {
-    const pages = [];
-    const currentPage = paginationInfo.pageNumber;
-    const totalPages = paginationInfo.totalPages;
-
-    if (totalPages <= 7) {
-      for (let i = 0; i < totalPages; i++) {
-        pages.push(i);
-      }
-    } else {
-      if (currentPage <= 3) {
-        for (let i = 0; i < 5; i++) {
-          pages.push(i);
-        }
-        pages.push("...");
-        pages.push(totalPages - 1);
-      } else if (currentPage >= totalPages - 4) {
-        pages.push(0);
-        pages.push("...");
-        for (let i = totalPages - 5; i < totalPages; i++) {
-          pages.push(i);
-        }
-      } else {
-        pages.push(0);
-        pages.push("...");
-        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
-          pages.push(i);
-        }
-        pages.push("...");
-        pages.push(totalPages - 1);
-      }
-    }
-    return pages;
   };
 
   return (
@@ -176,37 +140,11 @@ const DashboardPage = () => {
               <BlogApprovalTable blogs={blogs} statusFilter={statusFilter} />
 
               {/* Pagination Controls */}
-              <div className="flex justify-center items-center gap-2 py-6">
-                {getPageNumbers().map((pageNum, index) => (
-                  <button
-                    key={index}
-                    onClick={() =>
-                      typeof pageNum === "number"
-                        ? handlePageClick(pageNum)
-                        : undefined
-                    }
-                    className={`px-4 py-2 rounded-lg transition-colors ${
-                      pageNum === "..."
-                        ? "cursor-default"
-                        : pageNum === paginationInfo.pageNumber
-                        ? "bg-green-500 text-white"
-                        : "hover:bg-gray-100"
-                    } ${
-                      typeof pageNum === "number"
-                        ? "min-w-[40px] font-medium"
-                        : "pointer-events-none"
-                    }`}
-                    disabled={pageNum === "..."}
-                  >
-                    {typeof pageNum === "number" ? pageNum + 1 : pageNum}
-                  </button>
-                ))}
-              </div>
-
-              {/* Results Summary */}
-              <div className="text-center text-sm text-gray-600 pb-6">
-                Showing {blogs.length} of {paginationInfo.totalElements} blogs
-              </div>
+              <PaginationComponent
+                currentPage={paginationInfo.pageNumber}
+                totalPages={paginationInfo.totalPages}
+                onPageChange={handlePageClick}
+              />
             </>
           )}
         </div>

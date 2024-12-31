@@ -13,7 +13,9 @@ const deleteTimeSlots = async (
     }
 
     // Construct the URL using the mapper
-    const url = `${TIME_SLOT_API_ENDPOINTS.DELETE_TIME_SLOTS_IN_DATE_RANGE(userID)}?startDate=${startDate}&endDate=${endDate}&isAvailable=true&idType=userId`;
+    const url = `${TIME_SLOT_API_ENDPOINTS.DELETE_TIME_SLOTS_IN_DATE_RANGE(
+      userID
+    )}?startDate=${startDate}&endDate=${endDate}&isAvailable=true&idType=userId`;
 
     // Send the DELETE request using axiosInstance
     const response = await axiosInstance.delete(url, {
@@ -33,8 +35,6 @@ const deleteTimeSlots = async (
     if (response.status === 200) {
       return response.data || { message: "Time slots deleted successfully." };
     }
-
-    throw new Error(`HTTP error! Status: ${response.status}`);
   } catch (error) {
     console.error("Error deleting time slots:", error);
     return { message: "An error occurred while deleting time slots." };
