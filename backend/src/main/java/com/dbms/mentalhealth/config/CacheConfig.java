@@ -6,14 +6,12 @@ import com.dbms.mentalhealth.dto.Appointment.response.AppointmentResponseDTO;
 import com.dbms.mentalhealth.dto.Appointment.response.AppointmentSummaryResponseDTO;
 import com.dbms.mentalhealth.dto.EmergencyHelpline.EmergencyHelplineDTO;
 import com.dbms.mentalhealth.dto.Listener.response.ListenerDetailsResponseDTO;
-import com.dbms.mentalhealth.dto.TimeSlot.response.TimeSlotResponseDTO;
 import com.dbms.mentalhealth.dto.UserActivity.UserActivityDTO;
 import com.dbms.mentalhealth.dto.adminSettings.response.AdminSettingsResponseDTO;
 import com.dbms.mentalhealth.dto.chatMessage.ChatMessageDTO;
 import com.dbms.mentalhealth.dto.listenerApplication.response.ListenerApplicationResponseDTO;
 import com.dbms.mentalhealth.dto.listenerApplication.response.ListenerApplicationSummaryResponseDTO;
 import com.dbms.mentalhealth.dto.session.response.SessionResponseDTO;
-import com.dbms.mentalhealth.dto.session.response.SessionSummaryDTO;
 import com.dbms.mentalhealth.dto.SessionReport.response.SessionReportResponseDTO;
 import com.dbms.mentalhealth.dto.SessionReport.response.SessionReportSummaryResponseDTO;
 import com.dbms.mentalhealth.dto.sessionFeedback.response.SessionFeedbackResponseDTO;
@@ -47,7 +45,7 @@ public class CacheConfig {
     private static final int STANDARD_CACHE_SIZE = 100;
     private static final int SMALL_CACHE_SIZE = 50;
     private static final int TINY_CACHE_SIZE = 10;
-    private static final int USER_INACTIVITY_MINUTES = 10;
+    private static final int USER_INACTIVITY_MINUTES = 30;
 
     private final Lock lock = new ReentrantLock();
 
