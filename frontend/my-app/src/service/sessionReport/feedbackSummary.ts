@@ -10,6 +10,7 @@ export const getSeverityAnalysis = async (token: string) => {
       },
     });
     console.log("Session feedback summary:", response.data);
+    return response.data; // Return the response data
   } catch (error: unknown) {
     if (isAxiosError(error)) {
       console.error("Error fetching session feedback summary:", error.response?.data || error.message);

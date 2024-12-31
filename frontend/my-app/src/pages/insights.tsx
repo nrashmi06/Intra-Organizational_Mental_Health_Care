@@ -43,10 +43,10 @@ const DashboardPage = () => {
         setBlogs(response.content);
         setPaginationInfo((prev) => ({
           ...prev,
-          totalPages: response.page.totalPages,
-          totalElements: response.page.totalElements,
-          last: response.last,
-          first: response.first,
+          totalPages: response.pageInfo.totalPages,
+          totalElements: response.pageInfo.totalElements,
+          pageSize: response.pageInfo.size,
+          pageNumber: response.pageInfo.number,
         }));
       }
     } catch (error) {

@@ -1,19 +1,27 @@
 import { FEEDBACK_API_ENDPOINTS } from "@/mapper/feedbackMapper";
-import axiosInstance from "@/utils/axios"; // Import the axios instance with global rate-limit handling
+import axiosInstance from "@/utils/axios";
 
 export const getSessionFeedbackSummary = async (token: string) => {
   try {
-    const response = await axiosInstance.get(FEEDBACK_API_ENDPOINTS.GET_SUMMARY_FEEDBACK, {
-      headers: {
-        Authorization: `Bearer ${token}`, // Attach token to Authorization header
-      },
-    });
+    const response = await axiosInstance.get(
+      FEEDBACK_API_ENDPOINTS.GET_SUMMARY_FEEDBACK,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (!response.data) {
+      throw new Error("API response does not contain data.");
+    }
 
     console.log("Listener details:", response.data);
-    return response.data; // Return the data from the response
-  } catch (error) {
-    const err = error as any;
-    console.error("Error fetching session feedback summary:", err.message || err);
-    throw new Error(`Failed to fetch session feedback summary: ${err.message || err}`);
+    return response.data; // Return the expected feedback summary
+  } catch (error: any) {
+    console.error("Error fetching session feedback summary:", error.message || error);
+    throw new Error(
+      `Failed to fetch session feedback summary: ${error.response?.data?.message || error.message || "Unknown error"}`
+    );
   }
 };
