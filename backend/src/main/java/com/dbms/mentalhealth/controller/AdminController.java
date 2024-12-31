@@ -3,6 +3,7 @@ package com.dbms.mentalhealth.controller;
 import com.dbms.mentalhealth.dto.Admin.request.AdminProfileRequestDTO;
 import com.dbms.mentalhealth.dto.Admin.response.AdminProfileResponseDTO;
 import com.dbms.mentalhealth.dto.Admin.response.AdminProfileSummaryResponseDTO;
+import com.dbms.mentalhealth.dto.Admin.response.FullAdminProfileResponseDTO;
 import com.dbms.mentalhealth.service.AdminService;
 import com.dbms.mentalhealth.urlMapper.AdminUrlMapping;
 import com.dbms.mentalhealth.util.Etags.AdminETagGenerator;
@@ -48,13 +49,13 @@ public class AdminController {
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping(AdminUrlMapping.GET_ADMIN_PROFILE)
-    public ResponseEntity<AdminProfileResponseDTO> getAdminProfile(
+    public ResponseEntity<FullAdminProfileResponseDTO> getAdminProfile(
             @RequestParam(value = "userId", required = false) Integer userId,
             @RequestParam(value = "adminId", required = false) Integer adminId,
             @RequestHeader(value = HttpHeaders.IF_NONE_MATCH, required = false) String ifNoneMatch) {
 
-        AdminProfileResponseDTO adminProfile = adminService.getAdminProfile(userId, adminId);
-        String eTag = eTagGenerator.generateProfileETag(adminProfile);
+        FullAdminProfileResponseDTO adminProfile = adminService.getAdminProfile(userId, adminId);
+        String eTag = eTagGenerator.generateFullProfileETag(adminProfile);
 
         if (ifNoneMatch != null && !ifNoneMatch.trim().isEmpty() && eTag.equals(ifNoneMatch)) {
             return ResponseEntity.status(HttpStatus.NOT_MODIFIED)

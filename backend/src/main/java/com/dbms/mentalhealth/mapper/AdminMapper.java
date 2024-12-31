@@ -3,8 +3,10 @@ package com.dbms.mentalhealth.mapper;
 import com.dbms.mentalhealth.dto.Admin.request.AdminProfileRequestDTO;
 import com.dbms.mentalhealth.dto.Admin.response.AdminProfileResponseDTO;
 import com.dbms.mentalhealth.dto.Admin.response.AdminProfileSummaryResponseDTO;
+import com.dbms.mentalhealth.dto.Admin.response.FullAdminProfileResponseDTO;
 import com.dbms.mentalhealth.model.Admin;
 import com.dbms.mentalhealth.model.User;
+import com.dbms.mentalhealth.model.UserMetrics;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -34,6 +36,26 @@ public class AdminMapper {
         responseDTO.setCreatedAt(admin.getCreatedAt());
         responseDTO.setFullName(admin.getFullName());
         responseDTO.setUpdatedAt(admin.getUpdatedAt());
+        return responseDTO;
+    }
+
+    public FullAdminProfileResponseDTO toFullResponseDTO(Admin admin, UserMetrics userMetrics) {
+        FullAdminProfileResponseDTO responseDTO = new FullAdminProfileResponseDTO();
+        responseDTO.setAdminId(admin.getAdminId());
+        responseDTO.setUserId(admin.getUser().getUserId());
+        responseDTO.setAdminNotes(admin.getAdminNotes());
+        responseDTO.setQualifications(admin.getQualifications());
+        responseDTO.setContactNumber(admin.getContactNumber());
+        responseDTO.setEmail(admin.getEmail());
+        responseDTO.setProfilePictureUrl(admin.getProfilePictureUrl()); // Set profile picture URL
+        responseDTO.setCreatedAt(admin.getCreatedAt());
+        responseDTO.setFullName(admin.getFullName());
+        responseDTO.setUpdatedAt(admin.getUpdatedAt());
+        responseDTO.setTotalAppointments(userMetrics.getTotalAppointments());
+        responseDTO.setLastAppointmentDate(userMetrics.getLastAppointmentDate());
+        responseDTO.setTotalBlogsPublished(userMetrics.getTotalBlogsPublished());
+        responseDTO.setTotalLikesReceived(userMetrics.getTotalLikesReceived());
+        responseDTO.setTotalViewsReceived(userMetrics.getTotalViewsReceived());
         return responseDTO;
     }
 

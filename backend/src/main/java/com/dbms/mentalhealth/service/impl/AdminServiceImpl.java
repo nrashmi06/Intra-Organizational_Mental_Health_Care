@@ -3,16 +3,19 @@ package com.dbms.mentalhealth.service.impl;
 import com.dbms.mentalhealth.dto.Admin.request.AdminProfileRequestDTO;
 import com.dbms.mentalhealth.dto.Admin.response.AdminProfileResponseDTO;
 import com.dbms.mentalhealth.dto.Admin.response.AdminProfileSummaryResponseDTO;
+import com.dbms.mentalhealth.dto.Admin.response.FullAdminProfileResponseDTO;
 import com.dbms.mentalhealth.enums.Role;
 import com.dbms.mentalhealth.exception.admin.AdminNotFoundException;
 import com.dbms.mentalhealth.mapper.AdminMapper;
 import com.dbms.mentalhealth.model.Admin;
 import com.dbms.mentalhealth.model.User;
 import com.dbms.mentalhealth.repository.AdminRepository;
+import com.dbms.mentalhealth.repository.UserMetricsRepository;
 import com.dbms.mentalhealth.repository.UserRepository;
 import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.service.AdminService;
 import com.dbms.mentalhealth.service.ImageStorageService;
+import com.dbms.mentalhealth.service.UserMetricService;
 import org.springframework.context.annotation.Primary;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,14 +37,18 @@ public class AdminServiceImpl implements AdminService {
     private final AdminMapper adminMapper;
     private final ImageStorageService imageStorageService;
     private final JwtUtils jwtUtils;
+    private final UserMetricService userMetricService;
+    private final UserMetricsRepository userMetricsRepository;
 
     @Autowired
-    public AdminServiceImpl(AdminRepository adminRepository, UserRepository userRepository, AdminMapper adminMapper, ImageStorageService imageStorageService, JwtUtils jwtUtils) {
+    public AdminServiceImpl(AdminRepository adminRepository, UserRepository userRepository, AdminMapper adminMapper, ImageStorageService imageStorageService, JwtUtils jwtUtils, UserMetricService userMetricService, UserMetricsRepository userMetricsRepository) {
         this.adminRepository = adminRepository;
         this.userRepository = userRepository;
         this.adminMapper = adminMapper;
         this.imageStorageService = imageStorageService;
         this.jwtUtils = jwtUtils;
+        this.userMetricService = userMetricService;
+        this.userMetricsRepository = userMetricsRepository;
     }
 
     @Override
@@ -74,25 +81,27 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     @Transactional(readOnly = true)
-    public AdminProfileResponseDTO getAdminProfile(Integer userId, Integer adminId) {
-        if (userId != null) {
-            User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-            Admin admin = adminRepository.findByUser(user)
-                    .orElseThrow(() -> new AdminNotFoundException("Admin profile not found"));
-            return adminMapper.toResponseDTO(admin);
-        } else if (adminId != null) {
-            Admin admin = adminRepository.findById(adminId)
-                    .orElseThrow(() -> new AdminNotFoundException("Admin profile not found"));
-            return adminMapper.toResponseDTO(admin);
-        } else {
-            Integer currentUserId = jwtUtils.getUserIdFromContext();
-            User currentUser = userRepository.findById(currentUserId)
-                    .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-            Admin admin = adminRepository.findByUser(currentUser)
-                    .orElseThrow(() -> new AdminNotFoundException("Admin profile not found"));
-            return adminMapper.toResponseDTO(admin);
+    public FullAdminProfileResponseDTO getAdminProfile(Integer userId, Integer adminId) {
+        User user = null;
+        Admin admin = null;
+
+        if (userId == null && adminId == null) {
+            userId = jwtUtils.getUserIdFromContext();
         }
+
+        if (userId != null) {
+            user = userRepository.findById(userId)
+                    .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+            admin = adminRepository.findByUser(user)
+                    .orElseThrow(() -> new AdminNotFoundException("Admin profile not found"));
+        } else {
+            admin = adminRepository.findById(adminId)
+                    .orElseThrow(() -> new AdminNotFoundException("Admin profile not found"));
+            user = admin.getUser();
+        }
+
+
+        return adminMapper.toFullResponseDTO(admin, userMetricsRepository.findByUser(user).orElseThrow(() -> new AdminNotFoundException("User metrics not found for the given user")));
     }
 
     @Override
