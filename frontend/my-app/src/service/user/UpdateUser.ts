@@ -1,4 +1,4 @@
-import axiosInstance from '@/utils/axios' // Import the Axios instance
+import axiosInstance from "@/utils/axios"; // Import the Axios instance
 import { API_ENDPOINTS } from "@/mapper/userMapper";
 
 export interface UpdateUserParams {
@@ -29,7 +29,7 @@ export const updateUser = async ({
   anonymousName,
 }: UpdateUserParams): Promise<UpdateUserResponse> => {
   try {
-    const response = await axiosInstance.put(
+    await axiosInstance.put(
       API_ENDPOINTS.UPDATE_USER(userId),
       { anonymousName },
       {
@@ -59,7 +59,9 @@ export const updateUser = async ({
 
       return {
         success: false,
-        message: errorMessages[error.response.status as keyof typeof errorMessages] || ERROR_MESSAGES.DEFAULT,
+        message:
+          errorMessages[error.response.status as keyof typeof errorMessages] ||
+          ERROR_MESSAGES.DEFAULT,
         data: { anonymousName: "" },
       };
     }
