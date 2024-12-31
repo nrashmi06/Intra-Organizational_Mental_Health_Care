@@ -1,10 +1,9 @@
-'use client';
-
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
+import { createPortal } from "react-dom";
 
 interface DatePickerProps {
   date: Date;
@@ -20,34 +19,47 @@ const DatePicker: React.FC<DatePickerProps> = ({
   const [isCalendarVisible, setIsCalendarVisible] = useState(false);
 
   const handleCalendarToggle = () => {
-    setIsCalendarVisible((prev) => !prev); // Toggle calendar visibility
+    setIsCalendarVisible((prev) => !prev);
   };
 
   const handleDateSelect = (newDate: Date) => {
-    onDateChange(newDate); // Pass selected date to parent
-    setIsCalendarVisible(false); // Close calendar after date is selected
+    onDateChange(newDate);
+    setIsCalendarVisible(false);
   };
 
   return (
     <div className="relative">
       <Button
         variant="outline"
-        className={`w-[240px] justify-start flex text-left font-normal ${className}`}
+        className={`${className}`}
         onClick={handleCalendarToggle}
       >
-
-        <span><CalendarIcon className="mr-2 h-4 w-4" /></span>
-        <span>{format(date, "PPP")}</span>
+        <CalendarIcon className="h-4 w-4" />
+        <span className="hidden sm:inline-block sm:ml-2">
+          {format(date, "PPP")}
+        </span>
       </Button>
 
-      {isCalendarVisible && (
-        <div className="absolute z-50 mt-2 w-full sm:w-72 rounded-md border bg-white p-4 shadow-md max-w-full max-h-[90vh] overflow-auto">
-          <Calendar
-            selected={date}
-            onSelect={handleDateSelect}
-          />
-        </div>
-      )}
+      {isCalendarVisible &&
+        createPortal(
+          <>
+            {/* Overlay */}
+            <div
+              className="fixed inset-0 bg-black/50 z-[9999]"
+              onClick={() => setIsCalendarVisible(false)}
+            />
+
+            {/* Calendar Container */}
+            <div className="fixed z-[9999] top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[90vw] max-w-[320px] rounded-lg border bg-white p-4 shadow-lg">
+              <Calendar
+                selected={date}
+                onSelect={handleDateSelect}
+                className="rounded-md border-none"
+              />
+            </div>
+          </>,
+          document.body
+        )}
     </div>
   );
 };

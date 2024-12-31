@@ -1,5 +1,3 @@
-"use client";
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import SessionSummary from "@/components/dashboard/home/SessionSummary";
@@ -108,39 +106,41 @@ const DashboardPage = () => {
 
         <section className="mt-8">
           <div className="bg-white/80 rounded-lg shadow-lg border border-emerald-100">
-            <div className="p-4 border-b border-emerald-100 flex flex-col md:flex-row justify-between items-start md:items-center">
-              <h2 className="text-xl font-bold text-emerald-800">Blogs</h2>
-              <div className="flex gap-2 mt-2 md:mt-0">
-                <Button
-                  onClick={() => setStatusFilter("pending")}
-                  className={`${
-                    statusFilter === "pending"
-                      ? "bg-emerald-600 hover:bg-emerald-700"
-                      : "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
-                  } transition-colors`}
-                >
-                  Pending
-                </Button>
-                <Button
-                  onClick={() => setStatusFilter("approved")}
-                  className={`${
-                    statusFilter === "approved"
-                      ? "bg-emerald-600 hover:bg-emerald-700"
-                      : "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
-                  } transition-colors`}
-                >
-                  Approved
-                </Button>
-                <Button
-                  onClick={() => setStatusFilter("rejected")}
-                  className={`${
-                    statusFilter === "rejected"
-                      ? "bg-emerald-600 hover:bg-emerald-700"
-                      : "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
-                  } transition-colors`}
-                >
-                  Rejected
-                </Button>
+            <div className="p-4 border-b border-emerald-100">
+              <div className="flex flex-col space-y-4">
+                <h2 className="text-xl font-bold text-emerald-800">Blogs</h2>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <Button
+                    onClick={() => setStatusFilter("pending")}
+                    className={`w-full sm:w-auto ${
+                      statusFilter === "pending"
+                        ? "bg-emerald-600 hover:bg-emerald-700"
+                        : "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
+                    } transition-colors`}
+                  >
+                    Pending
+                  </Button>
+                  <Button
+                    onClick={() => setStatusFilter("approved")}
+                    className={`w-full sm:w-auto ${
+                      statusFilter === "approved"
+                        ? "bg-emerald-600 hover:bg-emerald-700"
+                        : "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
+                    } transition-colors`}
+                  >
+                    Approved
+                  </Button>
+                  <Button
+                    onClick={() => setStatusFilter("rejected")}
+                    className={`w-full sm:w-auto ${
+                      statusFilter === "rejected"
+                        ? "bg-emerald-600 hover:bg-emerald-700"
+                        : "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
+                    } transition-colors`}
+                  >
+                    Rejected
+                  </Button>
+                </div>
               </div>
             </div>
 
