@@ -1,7 +1,7 @@
-import axios from "axios";
 import { LISTENER_APPLICATION_API_ENDPOINTS } from "@/mapper/listnerMapper";
 import { setApplicationList } from "@/store/applicationListSlice";
 import { RootState, AppDispatch } from "@/store";
+import axiosInstance from "@/utils/axios";
 
 interface ApprovalFilterParams {
   token: string;
@@ -21,7 +21,7 @@ export const getApplicationsByApprovalStatus =
         ...(cachedEtag && { "If-None-Match": cachedEtag }), // Include ETag header if available
       };
 
-      const response = await axios.get(
+      const response = await axiosInstance.get(
         LISTENER_APPLICATION_API_ENDPOINTS.GET_APPLICATION_BY_APPROVAL_STATUS,
         {
           params: { status, page, size }, // Pass query parameters

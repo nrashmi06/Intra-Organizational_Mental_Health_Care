@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axiosInstance from '@/utils/axios'; // Import the Axios instance
 import { TIME_SLOT_API_ENDPOINTS } from '@/mapper/timeslotMapper';
 
 export const confirmTimeSlots = async (accessToken: string,userID : string | null , timeSlots: any[], startDate: string, endDate: string) => {
@@ -14,7 +14,7 @@ export const confirmTimeSlots = async (accessToken: string,userID : string | nul
 
   try {
     // Use axios to make the POST request
-    const response = await axios.post(url, requestBody, {
+    const response = await axiosInstance.post(url, requestBody, {
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${accessToken}`,

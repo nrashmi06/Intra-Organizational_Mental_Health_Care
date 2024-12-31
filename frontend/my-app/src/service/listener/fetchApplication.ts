@@ -2,6 +2,7 @@ import axios from "axios";
 import { LISTENER_APPLICATION_API_ENDPOINTS } from "@/mapper/listnerMapper";
 import { RootState, AppDispatch } from "@/store";
 import { setDetailedApplication } from "@/store/detailedApplicationSlice"; // Import the action creator
+import axiosInstance from "@/utils/axios";
 
 export const fetchApplication =
   (accessToken: string, applicationId?: string | null) =>
@@ -28,8 +29,8 @@ export const fetchApplication =
         ? `${LISTENER_APPLICATION_API_ENDPOINTS.GET_APPLICATION_BY_ID}?applicationId=${applicationId}`
         : LISTENER_APPLICATION_API_ENDPOINTS.GET_APPLICATION_BY_ID;
 
-      const response = await axios.get(url, { headers });
-      console.log("Response:", response.status);
+    const response = await axiosInstance.get(url, { headers });
+    console.log("Response:", response.status);
 
       // Check the response status
       if (response.status === 200) {

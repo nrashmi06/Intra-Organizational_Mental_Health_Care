@@ -1,11 +1,11 @@
-import axios from "axios";
+import axiosInstance from "@/utils/axios";
 import {APPOINTMENT_API_ENDPOINTS} from '@/mapper/appointmentMapper';
 
 export const getAppointments = async (token: string, userId: string) => {
   try {
     const url = `${APPOINTMENT_API_ENDPOINTS.GET_APPOINTMENTS_BY_USER}/${userId}`;
 
-    const response = await axios.get(url, {
+    const response = await axiosInstance.get(url, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

@@ -1,6 +1,6 @@
-import axios from "axios";
 import { AdminProfile, AdminProfileResponse } from "./CreateAdminProfile";
 import { ADMIN_PROFILE_API_ENDPOINTS } from "@/mapper/adminProfileMapper";
+import axiosInstance from "@/utils/axios";
 
 export const updateAdminProfile = async (
   profile: AdminProfile,  // Change to AdminProfile type
@@ -33,7 +33,7 @@ export const updateAdminProfile = async (
     }
 
     // Make the PUT request to update the profile
-    const response = await axios.put<AdminProfileResponse>(
+    const response = await axiosInstance.put<AdminProfileResponse>(
       ADMIN_PROFILE_API_ENDPOINTS.UPDATE_ADMIN_PROFILE,
       formData,
       {

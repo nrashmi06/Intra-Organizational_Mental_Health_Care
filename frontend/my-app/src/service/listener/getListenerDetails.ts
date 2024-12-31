@@ -1,10 +1,10 @@
-//get details of a listener from the listener Table using the userId of the listener
 import axios from "axios";
 import { LISTENER_API_ENDPOINTS } from "@/mapper/listenerProfileMapper";
+import axiosInstance from "@/utils/axios";
 
 export const getListenerDetails = async (id: string, token: string, type: string) => {
   try {
-    const response = await axios.get(
+    const response = await axiosInstance.get(
       LISTENER_API_ENDPOINTS.GET_LISTENER_BY_ID_OR_TYPE(type, id),
       {
         headers: {

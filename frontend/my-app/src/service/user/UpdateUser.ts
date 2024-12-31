@@ -1,3 +1,4 @@
+import axiosInstance from '@/utils/axios' // Import the Axios instance
 import { API_ENDPOINTS } from "@/mapper/userMapper";
 
 export interface UpdateUserParams {
@@ -28,16 +29,28 @@ export const updateUser = async ({
   anonymousName,
 }: UpdateUserParams): Promise<UpdateUserResponse> => {
   try {
-    const response = await fetch(API_ENDPOINTS.UPDATE_USER(userId), {
-      method: "PUT",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ anonymousName }),
-    });
+    const response = await axiosInstance.put(
+      API_ENDPOINTS.UPDATE_USER(userId),
+      { anonymousName },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
-    if (!response.ok) {
+    // If successful, return success response
+    return {
+      success: true,
+      message: "User updated successfully.",
+      data: { anonymousName },
+    };
+  } catch (error: any) {
+    console.error("Error updating user details:", error);
+
+    // Axios-specific error handling
+    if (error.response) {
       const errorMessages = {
         401: ERROR_MESSAGES.UNAUTHORIZED,
         404: ERROR_MESSAGES.NOT_FOUND,
@@ -46,20 +59,11 @@ export const updateUser = async ({
 
       return {
         success: false,
-        message:
-          errorMessages[response.status as keyof typeof errorMessages] ||
-          ERROR_MESSAGES.DEFAULT,
+        message: errorMessages[error.response.status as keyof typeof errorMessages] || ERROR_MESSAGES.DEFAULT,
         data: { anonymousName: "" },
       };
     }
 
-    return {
-      success: true,
-      message: "User updated successfully.",
-      data: { anonymousName },
-    };
-  } catch (error) {
-    console.error("Error updating user details:", error);
     return {
       success: false,
       message: ERROR_MESSAGES.NETWORK,

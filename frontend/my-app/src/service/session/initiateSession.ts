@@ -1,6 +1,4 @@
-// src/service/session/initiateSession.ts
-
-import axios from "axios";
+import axiosInstance from "@/utils/axios";
 import { SESSION_API_ENDPOINTS } from "@/mapper/sessionMapper";
 
 export const initiateSession = async (
@@ -9,8 +7,8 @@ export const initiateSession = async (
   token: string
 ) => {
   try {
-    const url = SESSION_API_ENDPOINTS.INITIATE_SESSION(listenerId); // Use mapped endpoint
-    const response = await axios.post(
+    const url = SESSION_API_ENDPOINTS.INITIATE_SESSION(listenerId); 
+    const response = await axiosInstance.post(
       url,
       { message },
       {
@@ -22,11 +20,7 @@ export const initiateSession = async (
     );
     console.log("Session initiated:", response);
     return response.data;
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
+  } catch (error : any) {
       console.error("Error initiating session:", error.response?.data);
-    } else {
-      console.error("Error initiating session:", error);
-    }
   }
 };

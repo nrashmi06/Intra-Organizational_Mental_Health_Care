@@ -1,5 +1,5 @@
-import axios from "axios";
 import { LISTENER_APPLICATION_API_ENDPOINTS } from "@/mapper/listnerMapper"; // Import the mapper
+import axiosInstance from "@/utils/axios";
 
 export const createApplication = async (
   applicationData: {
@@ -42,7 +42,7 @@ export const createApplication = async (
     }
 
     // Make the POST request
-    const response = await axios.post(
+    const response = await axiosInstance.post(
       `${LISTENER_APPLICATION_API_ENDPOINTS.SUBMIT_APPLICATION}`, // Use the mapped endpoint
       formData,
       {
