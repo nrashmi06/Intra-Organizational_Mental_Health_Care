@@ -47,9 +47,9 @@ export const ProfileSidebar = ({ open, onClose }: ProfileSidebarProps) => {
       href: "/profile/listener-application",
     },
     {
-      label: "Reset Password",
+      label: "Change Password",
       icon: Lock,
-      href: "/profile/reset-password",
+      href: "/profile/change-password",
     },
     {
       label: "Personal Data",

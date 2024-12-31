@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { CheckCircle2, Search, X } from "lucide-react";
+import { CheckCircle2, Info, Search} from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -122,7 +122,7 @@ export function RegisteredListenersTable() {
           <SelectTrigger className="w-[160px] bg-white">
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-white">
             <SelectItem value="ACTIVE">Active</SelectItem>
             <SelectItem value="SUSPENDED">Suspended</SelectItem>
           </SelectContent>
@@ -134,15 +134,15 @@ export function RegisteredListenersTable() {
           No {statusFilter.toLowerCase()} listeners found.
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {paginatedListeners.map((listener) => (
             <ListenerCard
               key={listener.userId}
               listener={listener}
               statusFilter={statusFilter}
               onFirstButtonClick={handleDetailsModal}
-              firstButtonLabel="Suspend"
-              firstButtonIcon={<X className="h-4 w-4 text-red-600" />}
+              firstButtonLabel="Details"
+              firstButtonIcon={<Info className="h-4 w-4 text-blue-600" />}
               onViewSessions={(userId) => router.push(`/dashboard/listener/sessions/${userId}`)}
               onViewApplication={(userId) => fetchApplicationData(userId)}
               onViewFeedback={(userId) => router.push(`/dashboard/listener/feedbacks/${userId}`)}

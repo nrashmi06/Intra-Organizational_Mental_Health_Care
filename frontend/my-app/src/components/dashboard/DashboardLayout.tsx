@@ -20,7 +20,6 @@ export default function Layout({ children }: LayoutProps) {
   const [isAuthorized, setIsAuthorized] = useState(false);
 
   useEffect(() => {
-    // Check authorization when component mounts or role changes
     if (role !== "ADMIN") {
       router.push("/unauthorized");
     } else {
@@ -28,19 +27,15 @@ export default function Layout({ children }: LayoutProps) {
     }
   }, [role, router]);
 
-  // Don't render anything while checking authorization
   if (!isAuthorized) {
     return null;
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Sidebar - width matches the ml-72 offset in navbar */}
+    <div className="min-h-screen bg-gray-50">
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-
-      {/* Main content wrapper */}
-      <div className="flex flex-col md:pl-72"> {/* Changed from ml-64 to pl-72 to match sidebar width */}
-        {/* Navbar */}
+      
+      <div className="flex flex-col md:pl-64">
         <Navbar>
           <Button
             className="md:hidden text-gray-600 hover:text-gray-900"
@@ -48,12 +43,11 @@ export default function Layout({ children }: LayoutProps) {
             variant="ghost"
             size="icon"
           >
-            <Menu className="h-6 w-6" />
+            <Menu className="h-5 w-5" />
           </Button>
         </Navbar>
-
-        {/* Main content area */}
-        <main className="flex-1 p-4 md:p-6 min-h-[calc(100vh-4rem)]"> {/* Added padding and min-height */}
+        
+        <main className="flex-1 p-6 mx-auto w-full max-w-7xl min-h-[calc(100vh-4rem)]">
           {children}
         </main>
       </div>

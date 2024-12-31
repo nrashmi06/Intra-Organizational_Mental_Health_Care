@@ -14,9 +14,10 @@ export const getSessionFeedback = async (sessionId: string, token: string, signa
       signal
     });
 
-    const data = await response.json();
-    console.log(data);
-    return data;
+    if(response.status===404) {
+      return response;
+    }
+    return await response.json();
   } catch (error) {
     console.error("Error fetching session feedback:", error);
     throw error;

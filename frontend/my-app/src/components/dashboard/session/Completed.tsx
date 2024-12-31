@@ -79,7 +79,6 @@ export const CompletedSessions = () => {
   };
 
   const handlePageChange = (page: number) => {
-    // Adjust page number to be zero-based for the API
     fetchSessions(statusFilter, page - 1);
   };
 

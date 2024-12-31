@@ -57,6 +57,14 @@ const DetailsModal: React.FC<DetailsProps> = ({
     fetchData();
   }, [token, id]);
 
+  // Add styles to prevent body scrolling when modal is open
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, []);
+
   const handleAction = async (listenerId: string, statusFilter: string) => {
     const action = statusFilter === "ACTIVE" ? "suspend" : "unsuspend";
     try {
@@ -71,175 +79,143 @@ const DetailsModal: React.FC<DetailsProps> = ({
     }
   };
 
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
+  const InfoCard = ({ icon: Icon, title, value, color }: { icon: any; title: string; value: string | number; color: string }) => (
+    <div className="flex items-center p-2 sm:p-3 rounded-lg border hover:shadow-sm transition-shadow bg-white">
+      <Icon className={`mr-2 ${color} w-4 h-4 sm:w-5 sm:h-5`} />
+      <div className="min-w-0 flex-1">
+        <p className="text-xs font-medium text-gray-500 truncate">{title}</p>
+        <p className="text-xs sm:text-sm truncate">{value}</p>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-opacity-50 backdrop-blur-sm">
-      <div className="relative w-full max-w-2xl bg-white rounded-lg shadow-lg">
-        <button
-          onClick={handleClose}
-          className="absolute top-4 right-4 text-gray-500 hover:text-gray-800"
-        >
-          <X className="w-6 h-6" />
-        </button>
+    <div className="fixed inset-0 z-30 overflow-hidden">
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={handleClose} />
+      <div className="fixed inset-0 flex items-center justify-center p-4">
+        <div className="relative w-full max-w-3xl bg-white rounded-lg shadow-lg flex flex-col max-h-[90vh]">
+          <div className="flex-none p-3 border-b flex justify-between items-center">
+            <h2 className="text-lg font-semibold">Listener Details</h2>
+            <button
+              onClick={handleClose}
+              className="text-gray-500 hover:text-gray-800 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
 
-        {/* Header - Always visible */}
-        <div className="p-6 pb-0">
-          <h2 className="text-xl font-semibold text-center border-b pb-4">
-            Listener Details
-          </h2>
-        </div>
+          <div className="flex-1 p-4 overflow-y-auto">
+            {isLoading ? (
+              <InlineLoader height="h-60" />
+            ) : error ? (
+              <div className="flex items-center justify-center h-60 text-red-500 text-center">
+                {error}
+              </div>
+            ) : !listener ? (
+              <div className="flex items-center justify-center h-60 text-center">
+                No details available.
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  <InfoCard icon={Mail} title="Email" value={listener.userEmail} color="text-blue-500" />
+                  <InfoCard 
+                    icon={Calendar} 
+                    title="Joined At" 
+                    value={formatDate(listener.joinedAt)} 
+                    color="text-green-500" 
+                  />
+                  <InfoCard 
+                    icon={CheckCircle} 
+                    title="Total Sessions" 
+                    value={listener.totalSessions} 
+                    color="text-purple-500" 
+                  />
+                  <InfoCard 
+                    icon={User} 
+                    title="Messages Sent" 
+                    value={listener.totalMessagesSent ?? 'N/A'} 
+                    color="text-red-500" 
+                  />
+                  <InfoCard 
+                    icon={User} 
+                    title="Feedback Count" 
+                    value={listener.feedbackCount} 
+                    color="text-orange-500" 
+                  />
+                  <InfoCard 
+                    icon={Star} 
+                    title="Average Rating" 
+                    value={listener.averageRating.toFixed(1)} 
+                    color="text-yellow-500" 
+                  />
+                  <InfoCard 
+                    icon={Shield} 
+                    title="Approved By" 
+                    value={listener.approvedBy} 
+                    color="text-teal-500" 
+                  />
+                  <InfoCard 
+                    icon={CheckCircle} 
+                    title="Can Approve Blogs" 
+                    value={listener.canApproveBlogs ? "Yes" : "No"} 
+                    color="text-indigo-500" 
+                  />
+                  <InfoCard 
+                    icon={Book} 
+                    title="Blogs Published" 
+                    value={listener.totalBlogsPublished} 
+                    color="text-rose-500" 
+                  />
+                  <InfoCard 
+                    icon={ThumbsUp} 
+                    title="Likes Received" 
+                    value={listener.totalBlogLikesReceived} 
+                    color="text-amber-500" 
+                  />
+                  <InfoCard 
+                    icon={Eye} 
+                    title="Views Received" 
+                    value={listener.totalBlogViewsReceived} 
+                    color="text-violet-500" 
+                  />
+                </div>
 
-        {/* Content area with conditional rendering */}
-        <div className="min-h-[400px] p-6 pt-4">
-          {isLoading ? (
-            <InlineLoader height="h-72" />
-          ) : error ? (
-            <div className="flex items-center justify-center h-[400px] text-red-500 text-center">
-              {error}
-            </div>
-          ) : !listener ? (
-            <div className="flex items-center justify-center h-[400px] text-center">
-              No details available.
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex items-center p-4 rounded-lg border">
-                <Mail className="mr-2 text-blue-500" />
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Email</p>
-                  <p className="text-sm">{listener.userEmail}</p>
+                <div className="mt-4 flex flex-col sm:flex-row gap-2 justify-end">
+                  {statusFilter && (
+                    <Button
+                      variant="outline"
+                      className={`${
+                        statusFilter === "ACTIVE"
+                          ? "text-red-500 hover:bg-red-50"
+                          : "text-green-500 hover:bg-green-50"
+                      }`}
+                      onClick={() => handleAction(listener.listenerId, statusFilter)}
+                    >
+                      {statusFilter === "ACTIVE" ? "Suspend" : "Activate"} Listener
+                    </Button>
+                  )}
+                  {viewSession && (
+                    <Button
+                      variant="outline"
+                      className="text-blue-500 hover:bg-blue-50"
+                      onClick={() => router.push(`/dashboard/listener/sessions/${id}`)}
+                    >
+                      View Sessions
+                    </Button>
+                  )}
                 </div>
-              </div>
-              <div className="flex items-center p-4 rounded-lg border">
-                <Calendar className="mr-2 text-green-500" />
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Joined At</p>
-                  <p className="text-sm">
-                    {new Date(listener.joinedAt).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "short",
-                      day: "numeric",
-                    })}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center p-4 rounded-lg border">
-                <CheckCircle className="mr-2 text-purple-500" />
-                <div>
-                  <p className="text-sm font-medium text-gray-500">
-                    Total Sessions
-                  </p>
-                  <p className="text-sm">{listener.totalSessions}</p>
-                </div>
-              </div>
-              <div className="flex items-center p-4 rounded-lg border">
-                <User className="mr-2 text-red-500" />
-                <div>
-                  <p className="text-sm font-medium text-gray-500">
-                    Messages Sent
-                  </p>
-                  <p className="text-sm">
-                    {listener.totalMessagesSent !== null
-                      ? listener.totalMessagesSent
-                      : "N/A"}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center p-4 rounded-lg border">
-                <User className="mr-2 text-orange-500" />
-                <div>
-                  <p className="text-sm font-medium text-gray-500">
-                    Feedback Count
-                  </p>
-                  <p className="text-sm">{listener.feedbackCount}</p>
-                </div>
-              </div>
-              <div className="flex items-center p-4 rounded-lg border">
-                <Star className="mr-2 text-yellow-500" />
-                <div>
-                  <p className="text-sm font-medium text-gray-500">
-                    Average Rating
-                  </p>
-                  <p className="text-sm">{listener.averageRating.toFixed(1)}</p>
-                </div>
-              </div>
-              <div className="flex items-center p-4 rounded-lg border">
-                <Shield className="mr-2 text-teal-500" />
-                <div>
-                  <p className="text-sm font-medium text-gray-500">
-                    Approved By
-                  </p>
-                  <p className="text-sm">{listener.approvedBy}</p>
-                </div>
-              </div>
-              <div className="p-4 rounded-lg border">
-                <p className="text-sm font-medium text-gray-500">
-                  Can Approve Blogs
-                </p>
-                <p className="text-sm">
-                  {listener.canApproveBlogs ? "Yes" : "No"}
-                </p>
-              </div>
-              <div className="flex items-center p-4 rounded-lg border">
-                <Book className="mr-2 text-rose-500" />
-                <div>
-                  <p className="text-sm font-medium text-gray-500">
-                    Total Blogs Published
-                  </p>
-                  <p className="text-sm">{listener.totalBlogsPublished}</p>
-                </div>
-              </div>
-              <div className="flex items-center p-4 rounded-lg border">
-                <ThumbsUp className="mr-2 text-amber-500" />
-                <div>
-                  <p className="text-sm font-medium text-gray-500">
-                    Total Likes Received
-                  </p>
-                  <p className="text-sm">{listener.totalBlogLikesReceived}</p>
-                </div>
-              </div>
-              <div className="flex items-center p-4 rounded-lg border">
-                <Eye className="mr-2 text-violet-500" />
-                <div>
-                  <p className="text-sm font-medium text-gray-500">
-                    Total Views Received
-                  </p>
-                  <p className="text-sm">{listener.totalBlogViewsReceived}</p>
-                </div>
-              </div>
-
-              {statusFilter && (
-                <div className="col-span-2 p-4 flex justify-end">
-                  <Button
-                    variant="outline"
-                    className={`${
-                      statusFilter === "ACTIVE"
-                        ? "text-red-500 bg-red-100 hover:bg-red-200"
-                        : "text-green-500 bg-green-100 hover:bg-green-200"
-                    }`}
-                    onClick={() =>
-                      handleAction(listener.listenerId, statusFilter)
-                    }
-                  >
-                    {statusFilter === "ACTIVE" ? "Suspend" : "Activate"}{" "}
-                    Listener
-                  </Button>
-                </div>
-              )}
-            </div>
-          )}
-          {viewSession && (
-            <div className="p-4 flex justify-end">
-              <Button
-                variant="outline"
-                className="text-blue-500 bg-blue-100"
-                onClick={() =>
-                  router.push(`/dashboard/listener/sessions/${id}`)
-                }
-              >
-                View Sessions
-              </Button>
-            </div>
-          )}
+              </>
+            )}
+          </div>
         </div>
       </div>
     </div>

@@ -37,7 +37,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({
     <Card>
       <CardContent>
         <div className="flex items-center space-x-6 mb-8">
-          <div className="w-20 h-20 rounded-full bg-emerald-600 flex items-center justify-center">
+          <div className="w-20 h-20 rounded-full bg-slate-600 flex items-center justify-center">
             <span className="text-2xl font-bold text-white">{initials}</span>
           </div>
           <div>
@@ -121,17 +121,17 @@ const ProfileView: React.FC<ProfileViewProps> = ({
           ].map(({ icon: Icon, label, value }) => (
             <div
               key={label}
-              className="flex flex-col items-center p-4 bg-emerald-50 rounded-lg hover:bg-emerald-100 transition-colors duration-200"
+              className="flex flex-col items-center p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors duration-200"
             >
-              <Icon className="w-6 h-6 mb-2 text-emerald-600 stroke-2" />
-              <p className="text-sm text-emerald-700">{label}</p>
-              <p className="font-bold text-lg text-emerald-900">{value}</p>
+              <Icon className="w-6 h-6 mb-2 text-slate-600 stroke-2" />
+              <p className="text-sm text-slate-700">{label}</p>
+              <p className="font-bold text-lg text-slate-900">{value}</p>
             </div>
           ))}
         </div>
         <Button
           onClick={onEdit}
-          className="w-full mt-4 bg-emerald-600 hover:bg-emerald-700 text-white"
+          className="w-full mt-4 bg-slate-600 hover:bg-slate-700 text-white"
           variant="outline"
         >
           Change Anonymous Name
@@ -181,11 +181,11 @@ const ProfileView: React.FC<ProfileViewProps> = ({
           ].map(({ icon: Icon, label, value }) => (
             <div
               key={label}
-              className="flex flex-col items-center p-4 bg-emerald-50 rounded-lg hover:bg-emerald-100 transition-colors duration-200"
+              className="flex flex-col items-center p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors duration-200"
             >
-              <Icon className="w-6 h-6 mb-2 text-emerald-600 stroke-2" />
-              <p className="text-sm text-emerald-700">{label}</p>
-              <p className="font-bold text-lg text-emerald-900">{value}</p>
+              <Icon className="w-6 h-6 mb-2 text-slate-600 stroke-2" />
+              <p className="text-sm text-slate-700">{label}</p>
+              <p className="font-bold text-lg text-slate-900">{value}</p>
             </div>
           ))}
         </div>

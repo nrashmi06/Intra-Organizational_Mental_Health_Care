@@ -3,7 +3,7 @@ import axios from "axios";
 
 interface GetSessionsByStatusParams {
   accessToken: string;
-  status: string;
+  status?: string;
   page?: number;
   size?: number;
   idType?: string;

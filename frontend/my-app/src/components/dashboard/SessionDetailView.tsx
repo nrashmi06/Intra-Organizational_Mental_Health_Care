@@ -27,6 +27,15 @@ const SessionDetailView: React.FC<DetailViewProps> = ({
         case "report":
           setLoading(true);
           const data = await getSessionReport(sessionId, token);
+          if (data.status === 404) {
+            setContent(
+              <div className="p-4 text-gray-500">
+                No report found for this session
+              </div>
+            );
+            setLoading(false);
+            return;
+          }
           const report = data[0];
           if (report) {
             setContent(
@@ -77,6 +86,15 @@ const SessionDetailView: React.FC<DetailViewProps> = ({
         case "feedback":
           setLoading(true);
           const feedbackData = await getSessionFeedback(sessionId, token);
+          if (feedbackData.status === 404) {
+            setContent(
+              <div className="p-4 text-gray-500">
+                No feedback found for this session
+              </div>
+            );
+            setLoading(false);
+            return;
+          }
           const feedback = feedbackData[0];
           if (feedback) {
             setContent(
@@ -123,6 +141,15 @@ const SessionDetailView: React.FC<DetailViewProps> = ({
         case "messages":
           setLoading(true);
           const messages = await getSessionMessages(sessionId, token);
+          if (messages.status === 404) {
+            setContent(
+              <div className="p-4 text-gray-500">
+                No messages found for this session
+              </div>
+            );
+            setLoading(false);
+            return;
+          }
           if (messages) {
             setContent(
               <div className="h-full flex flex-col bg-gradient-to-br from-blue-300 via-blue-500 to-purple-600">
@@ -192,7 +219,7 @@ const SessionDetailView: React.FC<DetailViewProps> = ({
 
   return (
     <div className="bg-white shadow-md rounded-lg h-full overflow-y-auto">
-      {loading ? <InlineLoader height="h-full"/> : content}
+      {loading ? <InlineLoader height="h-full" /> : content}
     </div>
   );
 };

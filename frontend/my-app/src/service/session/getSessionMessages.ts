@@ -14,12 +14,10 @@ export const getSessionMessages = async (sessionId: string, token: string, signa
       signal
     });
 
-    if (!response.ok) { // Improved error handling
-      throw new Error(`Error: ${response.statusText}`);
+    if(response.status===404) {
+      return response;
     }
-
-    const data = await response.json();
-    return data;
+    return await response.json();
   } catch (error) {
     console.error("Error fetching session messages:", error);
     throw error;

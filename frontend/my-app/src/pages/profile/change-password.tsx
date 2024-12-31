@@ -131,7 +131,7 @@ const ResetPasswordPage = () => {
             <div className="mx-auto w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mb-4">
               <Lock className="h-6 w-6 text-emerald-600" />
             </div>
-            <CardTitle>Reset Password</CardTitle>
+            <CardTitle>Change Password</CardTitle>
           </CardHeader>
           <CardContent className="pt-6">
             <form onSubmit={handleSubmit} className="space-y-6">

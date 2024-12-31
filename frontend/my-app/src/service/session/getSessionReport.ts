@@ -10,6 +10,9 @@ export const getSessionReport = async (sessionId: string, token: string, signal?
       },
       signal
     });
+    if(response.status === 404) {
+      return response;
+    }
     return response.json();
   } catch (error) {
     console.error("Error fetching session report:", error);

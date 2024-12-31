@@ -28,6 +28,7 @@ export default function MyApp({ Component, pageProps }: AppPropsWithLayout) {
   const router = useRouter();
   const getLayout = Component.getLayout ?? ((page) => page);
   const isDashboardRoute = router.pathname.includes("/dashboard");
+  const isProfilePage = router.pathname.includes("/profile");
 
   useEffect(() => {
     const handleStart = (url: string) => {
@@ -75,10 +76,10 @@ export default function MyApp({ Component, pageProps }: AppPropsWithLayout) {
         {loading && (
           <div
             className={`fixed inset-0 z-[9999] flex items-center justify-center transition-opacity duration-200 ${
-              isDashboardRoute ? "bg-transparent" : "bg-white/80 backdrop-blur-sm"
+              (isDashboardRoute || isProfilePage) ? "bg-transparent" : "bg-white/80 backdrop-blur-sm"
             }`}
           >
-            {isDashboardRoute ? <DashboardLoader /> : <Loading />}
+            {(isDashboardRoute || isProfilePage) ? <DashboardLoader /> : <Loading />}
           </div>
         )}
         <div className={loading ? "pointer-events-none" : ""}>
