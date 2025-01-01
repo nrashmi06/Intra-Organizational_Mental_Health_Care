@@ -17,7 +17,7 @@ import { AppointmentReason } from "@/components/bookAppointments/AppointmentReas
 import { PrioritySelect } from "@/components/bookAppointments/PrioritySelect";
 import { FormData, Slot } from "@/lib/types";
 import SuccessMessage from "@/components/bookAppointments/SuccessMessage";
-import TermsModal from "@/components/TermsAndConditionModal";
+import TermsModal from "@/components/terms/TermsAndConditionModal";
 export default function BookAppointment() {
   const [showTooltip, setShowTooltip] = useState(false);
   const [admins, setAdmins] = useState([]);
