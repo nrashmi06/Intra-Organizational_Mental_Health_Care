@@ -21,7 +21,6 @@ export default function useClearStore() {
     dispatch(clearTimeSlots());
 
     if (eventSourceConnections.length > 0) {
-      console.log("EVNET SOURCES:", eventSourceConnections.length);
       dispatch(clearEventSources());
     }
 

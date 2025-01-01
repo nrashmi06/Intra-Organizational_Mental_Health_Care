@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Search, Users } from "lucide-react";
 import { Input } from "@/components/ui/input";
-
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/store";
 import ModalDetails from "./ModalDetails";
@@ -9,7 +8,7 @@ import { UserSummary } from "@/lib/types";
 import { getActiveUserByRoleName } from "@/service/SSE/getActiveUserByRoleName";
 import router from "next/router";
 import InlineLoader from "@/components/ui/inlineLoader";
-import Pagination3 from "@/components/ui/pagination3";
+import Pagination3 from "@/components/ui/ClientPagination";
 import UserCard from "./UserCard";
 import {
   addEventSource,

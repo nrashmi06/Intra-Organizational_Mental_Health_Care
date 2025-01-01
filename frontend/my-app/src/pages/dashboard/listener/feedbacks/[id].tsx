@@ -10,7 +10,7 @@ import { getListenerFeedbacks } from "@/service/feedback/getListenerFeedbacks";
 import { ListenerFeedback } from "@/lib/types";
 import FeedbackAnalyticsTabs from "@/components/dashboard/listener/feedback/FeedbackAnalyticsTabs";
 import FeedbackStatsSummary from "@/components/dashboard/listener/feedback/FeedbackStatsSummary";
-import Pagination from "@/components/ui/pagination";
+import Pagination from "@/components/ui/ServerPagination";
 
 const FeedbackDashboard = () => {
   const router = useRouter();

@@ -17,7 +17,7 @@ import { getUserReportsByUserId } from "@/service/sessionReport/getReportsByUser
 import { UserReport } from "@/lib/types";
 import AnalyticsTabs from "@/components/dashboard/user/report/AnalyticsTabs";
 import StatsSummary from "@/components/dashboard/user/report/StatsSummary";
-import Pagination from "@/components/ui/pagination";
+import Pagination from "@/components/ui/ServerPagination";
 
 const UserReports = () => {
   const router = useRouter();

@@ -1,6 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { CheckCircle2, Info, Search} from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { Info } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -10,70 +9,108 @@ import {
 } from "@/components/ui/select";
 import { getListenersByProfileStatus } from "@/service/listener/getListenersByProfileStatus";
 import { useSelector } from "react-redux";
-import { useAppDispatch } from '@/hooks/useAppDispatch';
+import { useAppDispatch } from "@/hooks/useAppDispatch";
 import Details from "./ModalDetails";
 import ListenerDetailsForAdmin from "@/components/dashboard/listener/ModalApplication";
 import { ListenerApplication } from "@/lib/types";
 import { getApplicationByListenerUserId } from "@/service/listener/getApplicationByListenerUserId";
 import { useRouter } from "next/router";
 import InlineLoader from "@/components/ui/inlineLoader";
-import Pagination from "@/components/ui/PaginationComponent";
 import ListenerCard from "./ListenerCard";
 import { RootState } from "@/store";
+import { SuccessMessage } from "./SuccessMessage";
+import ServerPagination from "@/components/ui/ServerPagination";
 
+const PAGE_SIZE_OPTIONS = [2,4,6,8];
+const DEFAULT_FILTERS = {
+  pageSize: 6,
+  status: "ACTIVE",
+};
 
 export function RegisteredListenersTable() {
   const dispatch = useAppDispatch();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"ACTIVE" | "SUSPENDED">("ACTIVE");
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6;
   const router = useRouter();
   const accessToken = useSelector((state: RootState) => state.auth.accessToken);
-  const [detailsModal, setDetailsModal] = useState(false);
-  const [applicationModal, setApplicationModal] = useState(false);
-  const [application, setApplication] = useState<ListenerApplication | null>(null);
-  const [selectedListener, setSelectedListener] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const listeners = useSelector((state: RootState) => state.listeners.listeners);
-  const totalPages = useSelector((state: RootState) => state.listeners.page?.totalPages ?? 0);
-  
-  // Fetch listeners by profile status
-  const fetchListenersByProfileStatus = useCallback(
-    async (status: "ACTIVE" | "SUSPENDED") => {
-      try {
-        setLoading(true);
-        
-        await dispatch(getListenersByProfileStatus({
-          status,
-          page: currentPage - 1,
-          size: itemsPerPage,
-          userId: accessToken,
-        }));
-      } catch (error) {
-        console.error("Error fetching listeners:", error);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [accessToken, currentPage, itemsPerPage, dispatch]
+  const listeners = useSelector(
+    (state: RootState) => state.listeners.listeners
   );
 
+  const [statusFilter, setStatusFilter] = useState<"ACTIVE" | "SUSPENDED">(
+    "ACTIVE"
+  );
+  const [loading, setLoading] = useState(false);
+  const [detailsModal, setDetailsModal] = useState(false);
+  const [applicationModal, setApplicationModal] = useState(false);
+  const [application, setApplication] = useState<ListenerApplication | null>(
+    null
+  );
+  const [selectedListener, setSelectedListener] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [paginationInfo, setPaginationInfo] = useState({
+    pageNumber: 0,
+    pageSize: DEFAULT_FILTERS.pageSize,
+    totalElements: 0,
+    totalPages: 0,
+  });
+
+  const fetchListeners = useCallback(async () => {
+    try {
+      setLoading(true);
+      await dispatch(
+        getListenersByProfileStatus({
+          status: statusFilter,
+          page: paginationInfo.pageNumber,
+          size: paginationInfo.pageSize,
+          userId: accessToken,
+        })
+      );
+    } catch (error) {
+      console.error("Error fetching listeners:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [
+    statusFilter,
+    paginationInfo.pageNumber,
+    paginationInfo.pageSize,
+    accessToken,
+    dispatch,
+  ]);
+
   useEffect(() => {
-    fetchListenersByProfileStatus(statusFilter);
-  }, [statusFilter, currentPage]); // Only re-fetch when status filter or page changes
+    fetchListeners();
+  }, [fetchListeners]);
 
   const handleStatusFilterChange = (value: string) => {
     setStatusFilter(value as "ACTIVE" | "SUSPENDED");
-    setCurrentPage(1); // Reset to first page when filter changes
-    setSearchQuery(""); // Optional: clear search when filter changes
+    setPaginationInfo((prev) => ({ ...prev, pageNumber: 0 }));
+  };
+
+  const handlePageSizeChange = (newSize: string) => {
+    setPaginationInfo((prev) => ({
+      ...prev,
+      pageSize: Number(newSize),
+      pageNumber: 0,
+    }));
+  };
+
+  const handlePageClick = (pageNum: number | string) => {
+    if (typeof pageNum === "number") {
+      setPaginationInfo((prev) => ({
+        ...prev,
+        pageNumber: pageNum - 1,
+      }));
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
 
   const fetchApplicationData = async (userId: string) => {
     try {
       setSelectedListener(userId);
-      const fetchedApplication = await getApplicationByListenerUserId(userId, accessToken);
+      const fetchedApplication = await getApplicationByListenerUserId(
+        userId,
+        accessToken
+      );
       setApplication(fetchedApplication);
       setApplicationModal(true);
     } catch (error) {
@@ -86,17 +123,6 @@ export function RegisteredListenersTable() {
     setDetailsModal(true);
   };
 
-  const filteredListeners = listeners.filter(
-    (listener) =>
-      listener.anonymousName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      listener.userId.toString().includes(searchQuery)
-  );
-
-  const paginatedListeners = filteredListeners.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
   if (loading) {
     return <InlineLoader />;
   }
@@ -104,21 +130,7 @@ export function RegisteredListenersTable() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center gap-4">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search by name or ID..."
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-            }}
-            className="pl-8"
-          />
-        </div>
-        <Select
-          value={statusFilter}
-          onValueChange={handleStatusFilterChange}
-        >
+        <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
           <SelectTrigger className="w-[160px] bg-white">
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
@@ -127,15 +139,30 @@ export function RegisteredListenersTable() {
             <SelectItem value="SUSPENDED">Suspended</SelectItem>
           </SelectContent>
         </Select>
+        <Select
+          onValueChange={handlePageSizeChange}
+          value={paginationInfo.pageSize.toString()}
+        >
+          <SelectTrigger className="w-[160px] bg-white">
+            <SelectValue placeholder="Items per page" />
+          </SelectTrigger>
+          <SelectContent className="bg-white">
+            {PAGE_SIZE_OPTIONS.map((size) => (
+              <SelectItem key={size} value={size.toString()}>
+                {size} per page
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
-      {paginatedListeners.length === 0 ? (
+      {listeners.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground">
           No {statusFilter.toLowerCase()} listeners found.
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {paginatedListeners.map((listener) => (
+          {listeners.map((listener) => (
             <ListenerCard
               key={listener.userId}
               listener={listener}
@@ -143,33 +170,27 @@ export function RegisteredListenersTable() {
               onFirstButtonClick={handleDetailsModal}
               firstButtonLabel="Details"
               firstButtonIcon={<Info className="h-4 w-4 text-blue-600" />}
-              onViewSessions={(userId) => router.push(`/dashboard/listener/sessions/${userId}`)}
+              onViewSessions={(userId) =>
+                router.push(`/dashboard/listener/sessions/${userId}`)
+              }
               onViewApplication={(userId) => fetchApplicationData(userId)}
-              onViewFeedback={(userId) => router.push(`/dashboard/listener/feedbacks/${userId}`)}
+              onViewFeedback={(userId) =>
+                router.push(`/dashboard/listener/feedbacks/${userId}`)
+              }
             />
           ))}
         </div>
       )}
 
-      <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={setCurrentPage}
-      />
+      <div className="container mx-auto px-4 max-w-7xl">
+        <ServerPagination
+          paginationInfo={paginationInfo}
+          handlePageClick={handlePageClick}
+          elements={listeners}
+        />
+      </div>
 
-      {successMessage && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/20 backdrop-blur-sm">
-          <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full mx-4">
-            <div className="flex flex-col items-center text-center space-y-4">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-                <CheckCircle2 className="w-10 h-10 text-green-600" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900">Success!</h3>
-              <p className="text-gray-600">{successMessage}</p>
-            </div>
-          </div>
-        </div>
-      )}
+      {successMessage && <SuccessMessage message={successMessage} />}
 
       {detailsModal && selectedListener && (
         <Details

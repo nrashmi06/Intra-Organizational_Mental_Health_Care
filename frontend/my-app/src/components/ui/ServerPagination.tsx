@@ -1,5 +1,23 @@
-import React from "react";
+//for server side pagination
+const getPageNumbers = (currentPage: number, totalPages: number) => {
+  const delta = 2;
+  const range: (number | string)[] = [];
+  for (let i = 1; i <= totalPages; i++) {
+    if (
+      i === 1 ||
+      i === totalPages ||
+      (i >= currentPage - delta && i <= currentPage + delta)
+    ) {
+      range.push(i);
+    } else if (i < currentPage - delta || i > currentPage + delta) {
+      if (range[range.length - 1] !== "...") {
+        range.push("...");
+      }
+    }
+  }
 
+  return range;
+};
 interface PaginationInfo {
   pageNumber: number;
   totalPages: number;
@@ -8,18 +26,13 @@ interface PaginationInfo {
 
 interface Pagination2Props {
   paginationInfo: PaginationInfo;
-  blogs: any[];
-  getPageNumbers: (
-    currentPage: number,
-    totalPages: number
-  ) => (number | string)[];
+  elements: any[];
   handlePageClick: (pageNum: number) => void;
 }
 
 export default function Pagination2({
   paginationInfo,
-  blogs,
-  getPageNumbers,
+  elements,
   handlePageClick,
 }: Pagination2Props) {
   return (
@@ -53,7 +66,7 @@ export default function Pagination2({
       </div>
 
       <div className="text-center text-gray-600 pb-6">
-        Showing {blogs.length} of {paginationInfo.totalElements} blogs
+        Showing {elements.length} of {paginationInfo.totalElements} items
       </div>
     </div>
   );

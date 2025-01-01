@@ -4,14 +4,27 @@ import InlineLoader from "@/components/ui/inlineLoader";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { getAppointmentsByFilter } from "@/service/appointment/getAppointmentsByFilter";
-import { Search, Calendar, Clock, User, Eye, CheckCircle, XCircle } from "lucide-react";
+import {
+  Search,
+  Calendar,
+  Clock,
+  User,
+  Eye,
+  CheckCircle,
+  XCircle,
+} from "lucide-react";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
-import { Card, CardContent, CardHeader, CardFooter } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import AppointmentDetailView from '@/components/dashboard/AppointmentDetailView';
-import StatusInputComponent from '@/components/dashboard/appointments/MessageRequestBox';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardFooter,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import AppointmentDetailView from "@/components/dashboard/AppointmentDetailView";
+import StatusInputComponent from "@/components/dashboard/appointments/MessageRequestBox";
 import updateAppointmentStatus from "@/service/appointment/updateAppointmentStatus";
-import { Appointment } from '@/lib/types';
+import { Appointment } from "@/lib/types";
 import Pagination from "@/components/ui/PaginationComponent";
 
 export function AppointmentRequests() {
@@ -23,13 +36,20 @@ export function AppointmentRequests() {
   const [loading, setLoading] = useState(false);
   const [timeFilter] = useState("UPCOMING");
   const [showPopUp, setShowPopUp] = useState(false);
-  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+  const [selectedAppointment, setSelectedAppointment] =
+    useState<Appointment | null>(null);
   const [isReject, setReject] = useState(false);
-  const [status, setStatus] = useState('');
+  const [status, setStatus] = useState("");
 
-  const appointments = useSelector((state: RootState) => state.appointments.appointments);
-  const totalElements = useSelector((state: RootState) => state.appointments.page?.totalElements);
-  const totalPages = useSelector((state: RootState) => state.appointments.page?.totalPages ?? 0);
+  const appointments = useSelector(
+    (state: RootState) => state.appointments.appointments
+  );
+  const totalElements = useSelector(
+    (state: RootState) => state.appointments.page?.totalElements
+  );
+  const totalPages = useSelector(
+    (state: RootState) => state.appointments.page?.totalPages ?? 0
+  );
   const token = useSelector((state: RootState) => state.auth.accessToken);
   const userId = useSelector((state: RootState) => state.auth.userId);
 
@@ -37,22 +57,27 @@ export function AppointmentRequests() {
     try {
       setReject(false);
       setSelectedAppointment(appointment);
-      await updateAppointmentStatus(token, appointment.appointmentId, 'CONFIRMED', token);
+      await updateAppointmentStatus(
+        token,
+        appointment.appointmentId,
+        "CONFIRMED",
+        token
+      );
       fetchAppointments();
     } catch (error) {
-      console.error('Error accepting appointment:', error);
+      console.error("Error accepting appointment:", error);
     }
   };
 
   const handleReject = async (appointment: Appointment) => {
     try {
-      await setStatus('CANCELLED');
+      await setStatus("CANCELLED");
       await setReject(true);
       await setSelectedAppointment(appointment);
       setShowPopUp(true);
       fetchAppointments();
     } catch (error) {
-      console.error('Error rejecting appointment:', error);
+      console.error("Error rejecting appointment:", error);
     }
   };
 
@@ -113,7 +138,15 @@ export function AppointmentRequests() {
 
   useEffect(() => {
     fetchAppointments();
-  }, [token, dispatch, statusFilter, currentPage, pageSize, timeFilter, userId]);
+  }, [
+    token,
+    dispatch,
+    statusFilter,
+    currentPage,
+    pageSize,
+    timeFilter,
+    userId,
+  ]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -125,14 +158,20 @@ export function AppointmentRequests() {
       <div className=" space-y-4 sm:space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="space-y-1">
-            <h1 className="text-2xl sm:text-4xl font-bold text-gray-900">Appointments</h1>
-            <p className="text-sm sm:text-base text-gray-500">View and manage all appointment records</p>
+            <h1 className="text-2xl sm:text-4xl font-bold text-gray-900">
+              Appointments
+            </h1>
+            <p className="text-sm sm:text-base text-gray-500">
+              View and manage all appointment records
+            </p>
           </div>
 
           <div className="w-full sm:w-auto">
             <div className="bg-amber-400 rounded-full px-4 py-2 shadow-sm border border-gray-200">
               <div className="flex items-center gap-2">
-                <span className="text-gray-900 font-medium">{totalElements} Pending</span>
+                <span className="text-gray-900 font-medium">
+                  {totalElements} Pending
+                </span>
               </div>
             </div>
           </div>
@@ -178,14 +217,20 @@ export function AppointmentRequests() {
                   <CardHeader className="border-b border-gray-100 bg-gray-50">
                     <div className="flex items-center gap-2">
                       <User className="w-5 h-5 text-blue-600" />
-                      <span className="font-medium text-gray-900">{appointment.userName}</span>
+                      <span className="font-medium text-gray-900">
+                        {appointment.userName}
+                      </span>
                     </div>
                   </CardHeader>
 
                   <CardContent className="pt-4 space-y-4">
                     <div className="bg-gray-50 p-3 rounded-lg">
-                      <p className="text-sm text-gray-700 font-medium">Reason for Visit:</p>
-                      <p className="text-sm mt-1">{appointment.appointmentReason}</p>
+                      <p className="text-sm text-gray-700 font-medium">
+                        Reason for Visit:
+                      </p>
+                      <p className="text-sm mt-1">
+                        {appointment.appointmentReason}
+                      </p>
                     </div>
 
                     <div className="flex items-center gap-3 text-gray-700">
@@ -221,7 +266,10 @@ export function AppointmentRequests() {
                           onClick={() => handleAccept(appointment)}
                         >
                           <div className="flex items-center">
-                            <CheckCircle className="w-4 h-4 mr-1.5" strokeWidth={2} />
+                            <CheckCircle
+                              className="w-4 h-4 mr-1.5"
+                              strokeWidth={2}
+                            />
                             <span>Accept</span>
                           </div>
                         </Button>
@@ -232,7 +280,10 @@ export function AppointmentRequests() {
                           onClick={() => handleReject(appointment)}
                         >
                           <div className="flex items-center">
-                            <XCircle className="w-4 h-4 mr-1.5" strokeWidth={2} />
+                            <XCircle
+                              className="w-4 h-4 mr-1.5"
+                              strokeWidth={2}
+                            />
                             <span>Reject</span>
                           </div>
                         </Button>
@@ -248,12 +299,15 @@ export function AppointmentRequests() {
                   onPageChange={handlePageChange}
                 />
               </div>
-                
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-12">
-              <h3 className="text-lg font-semibold text-gray-900">No appointments found</h3>
-              <p className="text-gray-500 mt-1">Try adjusting your search or filter criteria</p>
+              <h3 className="text-lg font-semibold text-gray-900">
+                No appointments found
+              </h3>
+              <p className="text-gray-500 mt-1">
+                Try adjusting your search or filter criteria
+              </p>
             </div>
           )}
         </div>
@@ -288,7 +342,7 @@ export function AppointmentRequests() {
             <StatusInputComponent
               appointmentId={selectedAppointment.appointmentId}
               token={token}
-              status={status === 'CONFIRMED' ? 'CONFIRMED' : 'CANCELLED'}
+              status={status === "CONFIRMED" ? "CONFIRMED" : "CANCELLED"}
               closePopUp={closePopUp}
             />
           </div>

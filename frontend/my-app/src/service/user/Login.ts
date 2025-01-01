@@ -13,6 +13,7 @@ export const loginUser =
         {
           headers: { "Content-Type": "application/json" },
           validateStatus: (status) => status >= 200 && status < 500,
+          withCredentials: true,
         }
       );
 
@@ -28,8 +29,7 @@ export const loginUser =
           success: false,
           error: "Wrong credentials. Please try again.",
         };
-      }
-      else if (response.status === 403) {
+      } else if (response.status === 403) {
         return {
           success: false,
           error: "Please verify your email address and try again.",
