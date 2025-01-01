@@ -13,17 +13,39 @@ interface MobileDrawerProps {
   appointments: Appointment[];
 }
 
-const getStatusColor = (status: string) => {
-  switch (status.toUpperCase()) {
-    case "CANCELLED":
-      return "bg-red-100 text-red-700";
-    case "COMPLETED":
-      return "bg-green-100 text-green-700";
-    case "PENDING":
-      return "bg-yellow-100 text-yellow-700";
-    default:
-      return "bg-gray-100 text-gray-700";
-  }
+const getStatusConfig = (status: string) => {
+  const configs = {
+    CANCELLED: {
+      cardClass: "bg-gradient-to-br from-red-50 to-red-100",
+      accentClass: "bg-gradient-to-r from-red-500 to-red-600",
+      badgeClass: "bg-red-100 text-red-700 ring-1 ring-red-500/30",
+      iconColor: "text-red-500",
+      timeBlockClass: "bg-red-100/50",
+    },
+    CONFIRMED: {
+      cardClass: "bg-gradient-to-br from-emerald-50 to-emerald-100",
+      accentClass: "bg-gradient-to-r from-emerald-500 to-emerald-600",
+      badgeClass: "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-500/30",
+      iconColor: "text-emerald-500",
+      timeBlockClass: "bg-emerald-100/50",
+    },
+    REQUESTED: {
+      cardClass: "bg-gradient-to-br from-amber-50 to-amber-100",
+      accentClass: "bg-gradient-to-r from-amber-500 to-amber-600",
+      badgeClass: "bg-amber-100 text-amber-700 ring-1 ring-amber-500/30",
+      iconColor: "text-amber-500",
+      timeBlockClass: "bg-amber-100/50",
+    },
+    DEFAULT: {
+      cardClass: "bg-gradient-to-br from-gray-50 to-gray-100",
+      accentClass: "bg-gradient-to-r from-gray-500 to-gray-600",
+      badgeClass: "bg-gray-100 text-gray-700 ring-1 ring-gray-500/30",
+      iconColor: "text-gray-500",
+      timeBlockClass: "bg-gray-100/50",
+    },
+  };
+
+  return configs[status.toUpperCase() as keyof typeof configs] || configs.DEFAULT;
 };
 
 export const MobileDrawer: React.FC<MobileDrawerProps> = ({
@@ -67,63 +89,78 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
           </div>
         </div>
 
-        <ScrollArea className="px-6 py-4 h-[calc(85vh-80px)]">
+        <ScrollArea className="px-4 py-4 h-[calc(85vh-80px)]">
           {appointments.length > 0 ? (
-            <div className="space-y-4">
-              {appointments.map((apt, idx) => (
-                <Card
-                  key={idx}
-                  className="border-0 shadow-md hover:shadow-lg transition-shadow"
-                >
-                  <CardContent className="p-4">
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-start">
-                        <h3 className="text-lg font-medium text-gray-900 ">
-                          {apt.appointmentReason}
-                        </h3>
-                        <Badge
-                          className={`${getStatusColor(
-                            apt.status
-                          )} px-3 py-1 rounded-full `}
-                          color="teal"
-                        >
-                          {apt.status}
-                        </Badge>
-                      </div>
+            <div className="space-y-4 pb-4">
+              {appointments.map((apt, idx) => {
+                const statusConfig = getStatusConfig(apt.status);
+                return (
+                  <Card
+                    key={idx}
+                    className={`relative overflow-hidden border-0 shadow-sm transition-all duration-300 ${statusConfig.cardClass}`}
+                  >
+                    <div
+                      className={`absolute top-0 left-0 w-1.5 h-full ${statusConfig.accentClass}`}
+                    />
+                    <CardContent className="p-4">
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-start gap-3">
+                          <h3 className="text-lg font-semibold text-gray-900 flex-1">
+                            {apt.appointmentReason}
+                          </h3>
+                          <Badge
+                            className={`${statusConfig.badgeClass} text-xs font-medium px-3 py-1 rounded-full whitespace-nowrap`}
+                          >
+                            {apt.status}
+                          </Badge>
+                        </div>
 
-                      <div className="space-y-2">
-                        <div className="flex items-center text-gray-600 ">
-                          <User className="w-4 h-4 mr-2" />
-                          <span className="text-sm">{apt.userName}</span>
-                        </div>
-                        <div className="flex items-center text-gray-600 ">
-                          <Clock className="w-4 h-4 mr-2" />
-                          <span className="text-sm">
-                            {format(
-                              new Date(`2024-01-01T${apt.startTime}`),
-                              "h:mm a"
-                            )}{" "}
-                            -
-                            {format(
-                              new Date(`2024-01-01T${apt.endTime}`),
-                              "h:mm a"
-                            )}
-                          </span>
-                        </div>
-                        <div className="flex items-center text-gray-600">
-                          <Calendar className="w-4 h-4 mr-2" />
-                          <span className="text-sm">with {apt.adminName}</span>
+                        <div
+                          className={`${statusConfig.timeBlockClass} p-3 rounded-lg space-y-3`}
+                        >
+                          <div className="flex items-center text-gray-700">
+                            <User
+                              className={`w-4 h-4 mr-2 ${statusConfig.iconColor}`}
+                            />
+                            <span className="text-sm font-medium">
+                              {apt.userName}
+                            </span>
+                          </div>
+                          <div className="flex items-center text-gray-700">
+                            <Clock
+                              className={`w-4 h-4 mr-2 ${statusConfig.iconColor}`}
+                            />
+                            <span className="text-sm font-medium">
+                              {format(
+                                new Date(`2024-01-01T${apt.startTime}`),
+                                "h:mm a"
+                              )}{" "}
+                              -{" "}
+                              {format(
+                                new Date(`2024-01-01T${apt.endTime}`),
+                                "h:mm a"
+                              )}
+                            </span>
+                          </div>
+                          <div className="flex items-center text-gray-700">
+                            <Calendar
+                              className={`w-4 h-4 mr-2 ${statusConfig.iconColor}`}
+                            />
+                            <span className="text-sm font-medium">
+                              with {apt.adminName}
+                            </span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center h-full py-12">
-              <Calendar className="w-12 h-12 text-gray-400 mb-4" />
-              <p className="text-black text-center">
+              <Calendar className="w-16 h-16 text-gray-300 mb-4" />
+              <p className="text-gray-500 text-center font-medium">
                 No appointments scheduled for this day
               </p>
             </div>

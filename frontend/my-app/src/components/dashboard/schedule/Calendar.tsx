@@ -3,9 +3,9 @@ import { parseISO } from "date-fns";
 
 export const getStatusColor = (status: string) => {
   const colors: Record<string, string> = {
-    CONFIRMED: '#4CAF50',
-    CANCELED: '#F44336',
-    REQUESTED: '#FFA726',
+    CONFIRMED: 'rgba(0, 151, 33, 0.55)',
+    CANCELLED: 'rgba(218, 11, 11, 0.4)',
+    REQUESTED: 'rgba(255, 191, 0, 0.4)',
     DEFAULT: '#9E9E9E'
   };
   return colors[status] || colors.DEFAULT;
