@@ -25,6 +25,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -183,13 +185,6 @@ public class AuthController {
     public ResponseEntity<VerifyEmailResponseDTO> sendVerificationEmail(@RequestBody VerifyEmailRequestDTO verifyEmailRequestDTO) {
         userService.sendVerificationEmail(verifyEmailRequestDTO.getEmail());
         return ResponseEntity.ok(new VerifyEmailResponseDTO("Verification email sent successfully."));
-    }
-
-    @GetMapping(UserUrlMapping.VERIFY_EMAIL)
-    @PreAuthorize("permitAll()")
-    public ResponseEntity<VerifyEmailResponseDTO> verifyEmail(@RequestParam String token) {
-        userService.verifyUser(token);
-        return ResponseEntity.ok(new VerifyEmailResponseDTO("Email verified successfully."));
     }
 
     @PostMapping(UserUrlMapping.RESEND_VERIFICATION_EMAIL)

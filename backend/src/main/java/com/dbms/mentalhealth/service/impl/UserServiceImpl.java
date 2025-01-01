@@ -151,22 +151,35 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         return response;
     }
 
+    private boolean isValidEmail(String email) {
+        // Regular expression for validating an email address
+        String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
+        return email != null && email.matches(emailRegex);
+    }
+
     @Transactional
     public UserRegistrationResponseDTO registerUser(UserRegistrationRequestDTO userRegistrationDTO) {
+        if (!isValidEmail(userRegistrationDTO.getEmail())) {
+            throw new InvalidEmailException("Invalid email format: " + userRegistrationDTO.getEmail());
+        }
+
         if (userRepository.existsByEmail(userRegistrationDTO.getEmail())) {
             throw new EmailAlreadyInUseException("Email is already in use: " + userRegistrationDTO.getEmail());
         }
 
-        if (!isValidUsername(userRegistrationDTO.getAnonymousName())) {
-            throw new InvalidUsernameException("Invalid username: " + userRegistrationDTO.getAnonymousName() + ". Please try another.");
+        // Trim the anonymous name before validation
+        String trimmedAnonymousName = userRegistrationDTO.getAnonymousName().replaceAll("\\s+", "");
+        if (!isValidUsername(trimmedAnonymousName)) {
+                throw new InvalidUsernameException("Invalid username: " + trimmedAnonymousName + ". Please try another.");
         }
 
-        if (userRepository.existsByAnonymousName(userRegistrationDTO.getAnonymousName())) {
-            throw new AnonymousNameAlreadyInUseException("Anonymous name is already in use: " + userRegistrationDTO.getAnonymousName());
+        if (userRepository.existsByAnonymousName(trimmedAnonymousName)) {
+            throw new AnonymousNameAlreadyInUseException("Anonymous name is already in use: " + trimmedAnonymousName);
         }
 
         try {
             User user = UserMapper.toEntity(userRegistrationDTO, passwordEncoder.encode(userRegistrationDTO.getPassword()));
+            user.setAnonymousName(trimmedAnonymousName); // Set the trimmed anonymous name
             userRepository.save(user);
 
             // Create and save UserMetrics for the new user
@@ -181,8 +194,9 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     private boolean isValidUsername(String username) {
-        // Add your username validation logic here
-        return username.matches("^[a-zA-Z0-9._-]{3,}$");
+        return username != null &&
+                !username.trim().isEmpty() &&
+                username.matches("^[a-zA-Z0-9 ._-]{3,}$");
     }
 
 

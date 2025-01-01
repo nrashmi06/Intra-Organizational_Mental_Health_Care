@@ -8,7 +8,15 @@ spring:
     username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
-
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+    cache: true  # Set to true in production
+    enabled: true
+    encoding: UTF-8
+    mode: HTML
+    servlet:
+      content-type: text/html
   jpa:
     hibernate:
       ddl-auto: validate

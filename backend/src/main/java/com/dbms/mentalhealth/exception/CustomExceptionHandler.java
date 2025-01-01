@@ -109,6 +109,10 @@ public class CustomExceptionHandler {
         return createErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(InvalidEmailException.class)
+    public ResponseEntity<String> handleInvalidEmailException(InvalidEmailException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
     // Appointment and TimeSlot Exceptions
     @ExceptionHandler({
             AppointmentNotFoundException.class,
