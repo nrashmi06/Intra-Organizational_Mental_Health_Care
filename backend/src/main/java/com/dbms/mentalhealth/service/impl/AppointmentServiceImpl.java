@@ -8,6 +8,7 @@ import com.dbms.mentalhealth.exception.admin.AdminNotFoundException;
 import com.dbms.mentalhealth.exception.appointment.AppointmentNotFoundException;
 import com.dbms.mentalhealth.exception.appointment.PendingAppointmentException;
 import com.dbms.mentalhealth.exception.timeslot.TimeSlotNotFoundException;
+import com.dbms.mentalhealth.exception.token.UnauthorizedException;
 import com.dbms.mentalhealth.exception.user.UserNotFoundException;
 import com.dbms.mentalhealth.mapper.AppointmentMapper;
 import com.dbms.mentalhealth.model.Appointment;
@@ -106,7 +107,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         if (userId != null && !isAdmin && !currentUserId.equals(userId)) {
             logger.warn("User with ID: {} attempted to view appointments of another user", currentUserId);
-            throw new IllegalStateException("You can only view your own appointments.");
+            throw new UnauthorizedException("You can only view your own appointments.");
         }
 
         List<Appointment> appointments = appointmentRepository.findByUser_UserId(isAdmin ? userId : currentUserId);
@@ -176,29 +177,6 @@ public class AppointmentServiceImpl implements AppointmentService {
         logger.info("Updated status of appointment ID: {} to {}", appointmentId, status);
     }
 
-    @Override
-    @Transactional
-    public void cancelAppointment(Integer appointmentId, String cancellationReason) {
-        logger.info("Cancelling appointment with ID: {}", appointmentId);
-        Appointment appointment = appointmentRepository.findById(appointmentId)
-                .orElseThrow(() -> new AppointmentNotFoundException("Appointment not found"));
-
-        Integer currentUserId = jwtUtils.getUserIdFromContext();
-        if (!currentUserId.equals(appointment.getUser().getUserId())) {
-            logger.warn("User with ID: {} attempted to cancel appointment of another user", currentUserId);
-            throw new IllegalStateException("You can only cancel your own appointments.");
-        }
-
-        appointment.setStatus(AppointmentStatus.CANCELLED);
-        appointment.setCancellationReason(cancellationReason);
-
-        TimeSlot timeSlot = appointment.getTimeSlot();
-        timeSlot.setIsAvailable(true);
-        timeSlotRepository.save(timeSlot);
-
-        appointmentRepository.save(appointment);
-        logger.info("Cancelled appointment with ID: {}", appointmentId);
-    }
 
     @Override
     @Transactional(readOnly = true)

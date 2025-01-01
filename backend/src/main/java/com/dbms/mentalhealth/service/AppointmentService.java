@@ -15,7 +15,6 @@ public interface AppointmentService {
     AppointmentResponseDTO createAppointment(AppointmentRequestDTO appointmentRequestDTO);
     List<AppointmentSummaryResponseDTO> getAppointmentsByUser(Integer userId);
     AppointmentResponseDTO getAppointmentById(Integer appointmentId);
-    void cancelAppointment(Integer appointmentId, String cancellationReason);
     Page<AppointmentSummaryResponseDTO> getAppointmentsByDateRange(LocalDate startDate, LocalDate endDate, Pageable pageable);
     void updateAppointmentStatus(Integer appointmentId, String status, String cancellationReason);
     Page<AppointmentSummaryResponseDTO> getAppointmentsForAdmin(AppointmentTimeFilter timeFilter, AppointmentStatus status, Pageable pageable,Integer userId,Integer adminId);

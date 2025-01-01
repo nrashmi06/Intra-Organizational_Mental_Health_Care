@@ -15,10 +15,8 @@ import com.dbms.mentalhealth.exception.user.*;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.MissingRequestCookieException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.NoHandlerFoundException;
@@ -79,7 +77,7 @@ public class CustomExceptionHandler {
 
     @ExceptionHandler(UserNotActiveException.class)
     public ResponseEntity<String> handleUserNotActiveException(UserNotActiveException ex) {
-        return createErrorResponse("User is not active", HttpStatus.FORBIDDEN);
+        return new ResponseEntity<>("User account is not active", HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(UserAccountSuspendedException.class)

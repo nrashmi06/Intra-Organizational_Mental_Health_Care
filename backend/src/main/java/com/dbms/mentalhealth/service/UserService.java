@@ -8,6 +8,7 @@ import com.dbms.mentalhealth.dto.user.response.UserDataResponseDTO;
 import com.dbms.mentalhealth.dto.user.response.UserInfoResponseDTO;
 import com.dbms.mentalhealth.dto.user.response.UserRegistrationResponseDTO;
 import com.dbms.mentalhealth.model.User;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
@@ -15,6 +16,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Map;
 
 public interface UserService {
+    void clearCookies(HttpServletResponse response, String baseUrl);
     Map<String, Object> loginUser(UserLoginRequestDTO userLoginDTO);
     UserRegistrationResponseDTO registerUser(UserRegistrationRequestDTO userRegistrationDTO);
     void setUserActiveStatus(String email, boolean isActive);

@@ -16,6 +16,8 @@ import com.dbms.mentalhealth.service.RefreshTokenService;
 import com.dbms.mentalhealth.service.UserActivityService;
 import com.dbms.mentalhealth.service.UserService;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -124,11 +126,6 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         if (!user.getProfileStatus().equals(ProfileStatus.ACTIVE)) {
             log.warn("Inactive user attempted login: {}", user.getEmail());
             throw new UserNotActiveException("User account is not active");
-        }
-
-        if (user.getProfileStatus().equals(ProfileStatus.SUSPENDED)) {
-            log.warn("Suspended user attempted login: {}", user.getEmail());
-            throw new UserAccountSuspendedException("User account is suspended");
         }
 
         // Update user status and last seen
@@ -530,4 +527,47 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         emailVerification.setStatus("verified");
         emailVerificationRepository.save(emailVerification);
     }
+
+    public void clearCookies(HttpServletResponse response,String baseUrl) {
+        log.info("Clearing refresh token cookie");
+
+        boolean isSecure = !baseUrl.contains("localhost");
+        String sameSite = isSecure ? "None" : "Lax"; // Use Lax for localhost
+
+        // Create cookie with security attributes and max-age=0
+        Cookie refreshTokenCookie = new Cookie("refreshToken", null);
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setSecure(isSecure);
+        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setMaxAge(0); // Expire immediately
+
+        // Set domain for non-localhost environments
+        if (!baseUrl.contains("localhost")) {
+            String domain = baseUrl.replaceAll("https?://", "")
+                    .replaceAll("/.*$", "")
+                    .split(":")[0]
+                    .trim();
+            refreshTokenCookie.setDomain(domain);
+        }
+
+        // Add cookie to response
+        response.addCookie(refreshTokenCookie);
+
+        // Set explicit cookie header for additional browser compatibility
+        String cookieString = String.format(
+                "refreshToken=; Path=/; HttpOnly; Max-Age=0; SameSite=%s%s",
+                sameSite,
+                isSecure ? "; Secure" : ""
+        );
+
+        if (!baseUrl.contains("localhost")) {
+            cookieString += "; Domain=" + refreshTokenCookie.getDomain();
+        }
+
+        response.setHeader("Set-Cookie", cookieString);
+
+        log.info("Cookie cleared - Path: /, MaxAge: 0, Secure: {}, SameSite: {}",
+                isSecure, sameSite);
+    }
+
 }
