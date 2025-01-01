@@ -44,9 +44,6 @@ const SchedulePage = () => {
 
     fetchAppointments();
   }, [token, dispatch, userId]);
-  if (appointments.length === 0) {
-    return <div>No appointments yet!</div>;
-  }
 
   const handleDateSelect = (newDate: Date | undefined) => {
     if (newDate) {
