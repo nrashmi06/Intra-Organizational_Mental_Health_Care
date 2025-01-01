@@ -20,6 +20,7 @@ import ListenerCard from "./ListenerCard";
 import { RootState } from "@/store";
 import { SuccessMessage } from "./SuccessMessage";
 import ServerPagination from "@/components/ui/ServerPagination";
+import { setListeners } from "@/store/listenerSlice";
 
 const PAGE_SIZE_OPTIONS = [2, 4, 6, 8];
 const DEFAULT_FILTERS = {
@@ -33,15 +34,21 @@ export function RegisteredListenersTable() {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const accessToken = useSelector((state: RootState) => state.auth.accessToken);
-  const listeners = useSelector((state: RootState) => state.listeners.listeners);
+  const listeners = useSelector(
+    (state: RootState) => state.listeners.listeners
+  );
 
-  const [statusFilter, setStatusFilter] = useState<"ACTIVE" | "SUSPENDED">("ACTIVE");
+  const [statusFilter, setStatusFilter] = useState<"ACTIVE" | "SUSPENDED">(
+    "ACTIVE"
+  );
   const [searchQuery, setSearchQuery] = useState(DEFAULT_FILTERS.searchQuery);
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(searchQuery);
   const [loading, setLoading] = useState(false);
   const [detailsModal, setDetailsModal] = useState(false);
   const [applicationModal, setApplicationModal] = useState(false);
-  const [application, setApplication] = useState<ListenerApplication | null>(null);
+  const [application, setApplication] = useState<ListenerApplication | null>(
+    null
+  );
   const [selectedListener, setSelectedListener] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [paginationInfo, setPaginationInfo] = useState({
@@ -63,15 +70,22 @@ export function RegisteredListenersTable() {
   const fetchListeners = useCallback(async () => {
     try {
       setLoading(true);
-      await dispatch(
+      const response = await dispatch(
         getListenersByProfileStatus({
           status: statusFilter,
           page: paginationInfo.pageNumber,
           size: paginationInfo.pageSize,
-          userId: accessToken,
           search: debouncedSearchQuery,
         })
       );
+      if (response && response.content) {
+        setListeners(response.content);
+        setPaginationInfo((prev) => ({
+          ...prev,
+          totalElements: response.page.totalElements,
+          totalPages: response.page.totalPages,
+        }));
+      }
     } catch (error) {
       console.error("Error fetching listeners:", error);
     } finally {
