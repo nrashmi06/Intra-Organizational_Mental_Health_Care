@@ -17,7 +17,10 @@ export default function SignUp() {
   const [password, setPassword] = useState("");
   const [anonymousName, setAnonymousName] = useState("");
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<{ type: 'error' | 'success'; text: string } | null>(null);
+  const [message, setMessage] = useState<{
+    type: "error" | "success";
+    text: string;
+  } | null>(null);
   const router = useRouter();
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -25,44 +28,59 @@ export default function SignUp() {
 
     // Client-side validations
     if (!email || !password || !anonymousName) {
-      setMessage({ type: 'error', text: "Please fill in all fields." });
+      setMessage({ type: "error", text: "Please fill in all fields." });
       return;
     }
 
-    if(!email.match(/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/)) {
-      setMessage({ type: 'error', text: "Please enter a valid email address." });
+    if (
+      !email.match(
+        /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+      )
+    ) {
+      setMessage({
+        type: "error",
+        text: "Please enter a valid email address.",
+      });
       return;
     }
 
     if (anonymousName.includes(" ")) {
-      setMessage({ type: 'error', text: "Anonymous name cannot contain spaces." });
+      setMessage({
+        type: "error",
+        text: "Anonymous name cannot contain spaces.",
+      });
       return;
     }
-    
+
     setLoading(true);
     setMessage(null);
 
     try {
       await registerUser({ email, password, anonymousName });
-      
+      // Handle successful registration
       await verifyEmail(email);
-      
-      setMessage({ 
-        type: 'success', 
-        text: "A verification email has been sent. Please verify your email before signing in." 
+      setMessage({
+        type: "success",
+        text: "A verification email has been sent. Please verify your email before signing in.",
       });
-      
+
       setTimeout(() => {
         router.push("/signin");
       }, 3000);
-      
     } catch (error: any) {
       // Handle API error messages
-      if (error.message) {
-        setMessage({ type: 'error', text: error.message });
+      if (error.status === 409) {
+        setMessage({
+          type: "error",
+          text: "An account with this email/anonymous name already exists.",
+        });
       } else {
-        setMessage({ type: 'error', text: "An unexpected error occurred." });
+        setMessage({
+          type: "error",
+          text: "An unexpected error occurred. Please try again.",
+        });
       }
+      console.error("Registration error:", error);
     } finally {
       setLoading(false);
     }
@@ -96,11 +114,16 @@ export default function SignUp() {
             <h1 className="text-2xl font-bold text-center mb-2 bg-gradient-to-r from-emerald-800 to-teal-800 bg-clip-text text-transparent">
               Sign up to SerenitySphere
             </h1>
-            <p className="text-gray-500 text-center mb-8">A Safe Place to Connect</p>
+            <p className="text-gray-500 text-center mb-8">
+              A Safe Place to Connect
+            </p>
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700" htmlFor="email">
+                <label
+                  className="text-sm font-medium text-gray-700"
+                  htmlFor="email"
+                >
                   E-mail
                 </label>
                 <Input
@@ -114,7 +137,10 @@ export default function SignUp() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700" htmlFor="password">
+                <label
+                  className="text-sm font-medium text-gray-700"
+                  htmlFor="password"
+                >
                   Password
                 </label>
                 <div className="relative">
@@ -131,13 +157,20 @@ export default function SignUp() {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
                   >
-                    {showPassword ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
+                    {showPassword ? (
+                      <Eye className="h-5 w-5" />
+                    ) : (
+                      <EyeOff className="h-5 w-5" />
+                    )}
                   </button>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700" htmlFor="anonymousName">
+                <label
+                  className="text-sm font-medium text-gray-700"
+                  htmlFor="anonymousName"
+                >
                   Anonymous Name
                 </label>
                 <Input
@@ -152,29 +185,36 @@ export default function SignUp() {
 
               <p className="text-xs text-gray-500">
                 By signing up, you agree to our{" "}
-                <Link href="/t&c" className="text-emerald-600 hover:text-emerald-700 hover:underline">
+                <Link
+                  href="/t&c"
+                  className="text-emerald-600 hover:text-emerald-700 hover:underline"
+                >
                   Terms and Conditions
                 </Link>
               </p>
 
-              <Button 
-                type="submit" 
-                className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white hover:from-emerald-700 hover:to-teal-700 transition-all duration-200" 
+              <Button
+                type="submit"
+                className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white hover:from-emerald-700 hover:to-teal-700 transition-all duration-200"
                 disabled={loading}
               >
                 {loading ? "Creating Account..." : "Sign Up"}
               </Button>
 
               {message && (
-                <Alert 
+                <Alert
                   className={`mt-4 backdrop-blur-sm ${
-                    message.type === 'error' 
-                      ? 'border-red-200 bg-red-50/90' 
-                      : 'border-emerald-200 bg-emerald-50/90'
+                    message.type === "error"
+                      ? "border-red-200 bg-red-50/90"
+                      : "border-emerald-200 bg-emerald-50/90"
                   }`}
                 >
-                  <AlertDescription 
-                    className={message.type === 'error' ? 'text-red-800' : 'text-emerald-800'}
+                  <AlertDescription
+                    className={
+                      message.type === "error"
+                        ? "text-red-800"
+                        : "text-emerald-800"
+                    }
                   >
                     {message.text}
                   </AlertDescription>
@@ -185,7 +225,7 @@ export default function SignUp() {
         </div>
       </main>
 
-      <Footer/>
+      <Footer />
     </div>
   );
 }

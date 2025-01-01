@@ -225,14 +225,12 @@ const TimeSlotPage = () => {
           <InlineLoader />
         </div>
       ) : (
-        timeSlots && (
-          <AvailableTimeSlotsCard
-            groupedSlots={groupedSlots}
-            handleUpdateTimeSlot={handleUpdateTimeSlot}
-            handleDeleteTimeSlot={handleDeleteTimeSlot}
-            setRefreshKey={fetchTimeSlotData}
-          />
-        )
+        <AvailableTimeSlotsCard
+          groupedSlots={groupedSlots}
+          handleUpdateTimeSlot={handleUpdateTimeSlot}
+          handleDeleteTimeSlot={handleDeleteTimeSlot}
+          setRefreshKey={fetchTimeSlotData}
+        />
       )}
       <Pagination
         currentPage={currentPage}

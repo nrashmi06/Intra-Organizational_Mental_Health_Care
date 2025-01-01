@@ -8,6 +8,11 @@ export interface RegisterUserPayload {
   anonymousName: string;
 }
 
+export interface ApiError {
+  message: string;
+  status?: number;
+}
+
 export const registerUser = async (data: RegisterUserPayload) => {
   try {
     const response = await axiosInstance.post(API_ENDPOINTS.REGISTER, data, {
@@ -15,16 +20,28 @@ export const registerUser = async (data: RegisterUserPayload) => {
         "Content-Type": "application/json",
       },
     });
-    return response.data;
+    console.log("RESPONSE", response);
+    return response;
   } catch (error: unknown) {
+    let errorToThrow: ApiError = {
+      message: "An unexpected error occurred during registration",
+    };
+
     if (axios.isAxiosError(error)) {
-      // Forward the exact error message from the API
-      const errorMessage = error.response?.data?.message || error.message;
-      console.error("API error while registering user:", errorMessage);
-      throw { message: errorMessage };
+      // Handle Axios errors
+      errorToThrow = {
+        message: error.response?.data?.message || error.message,
+        status: error.response?.status
+      };
+
+      console.error("API error while registering user:", errorToThrow.message);
+      
     } else {
+      // Handle other types of errors
       console.error("Unexpected error:", error);
-      throw { message: "An unexpected error occurred" };
     }
+
+    // Throw the error so it can be handled by the calling code
+    throw errorToThrow;
   }
 };
