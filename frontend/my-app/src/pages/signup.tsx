@@ -23,6 +23,7 @@ export default function SignUp() {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
+    // Client-side validations
     if (!email || !password || !anonymousName) {
       setMessage({ type: 'error', text: "Please fill in all fields." });
       return;
@@ -42,9 +43,8 @@ export default function SignUp() {
     setMessage(null);
 
     try {
-      const response = await registerUser({ email, password, anonymousName });
-      console.log("User registered successfully:", response);
-
+      await registerUser({ email, password, anonymousName });
+      
       await verifyEmail(email);
       
       setMessage({ 
@@ -56,8 +56,9 @@ export default function SignUp() {
         router.push("/signin");
       }, 3000);
       
-    } catch (error) {
-      if (error instanceof Error) {
+    } catch (error: any) {
+      // Handle API error messages
+      if (error.message) {
         setMessage({ type: 'error', text: error.message });
       } else {
         setMessage({ type: 'error', text: "An unexpected error occurred." });

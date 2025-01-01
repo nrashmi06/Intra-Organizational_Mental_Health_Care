@@ -7,10 +7,6 @@ export interface RegisterUserPayload {
   password: string;
   anonymousName: string;
 }
-interface ErrorResponse {
-  message: string;
-  status?: number; 
-}
 
 export const registerUser = async (data: RegisterUserPayload) => {
   try {
@@ -19,11 +15,13 @@ export const registerUser = async (data: RegisterUserPayload) => {
         "Content-Type": "application/json",
       },
     });
-    return response.data; 
+    return response.data;
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
-      console.error("API error while registering user:", error.response?.data || error.message);
-      throw error.response?.data as ErrorResponse || { message: "An unexpected API error occurred" };
+      // Forward the exact error message from the API
+      const errorMessage = error.response?.data?.message || error.message;
+      console.error("API error while registering user:", errorMessage);
+      throw { message: errorMessage };
     } else {
       console.error("Unexpected error:", error);
       throw { message: "An unexpected error occurred" };
