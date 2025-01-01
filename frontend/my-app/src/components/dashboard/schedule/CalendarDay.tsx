@@ -42,7 +42,7 @@ export const CalendarDay: React.FC<CalendarDayProps> = ({
           key={idx}
           className="text-xs p-1 rounded"
           style={{ 
-            backgroundColor: getStatusColor(apt.status) + '20',
+            backgroundColor: getStatusColor(apt.status) ,
             borderLeft: `2px solid ${getStatusColor(apt.status)}`
           }}
         >

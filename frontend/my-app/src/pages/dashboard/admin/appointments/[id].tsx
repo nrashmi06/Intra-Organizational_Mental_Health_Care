@@ -8,20 +8,15 @@ import { getAppointmentsByFilter } from "@/service/appointment/getAppointmentsBy
 import { CalendarDays, Search } from "lucide-react";
 import AppointmentCard from "@/components/dashboard/appointments/AppointmentCard";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
-import { useRouter } from "next/router";
-import DashboardLayout from "@/components/dashboard/DashboardLayout";
 
-const AllAppointments = () => {
+export function AllAppointments() {
   const dispatch = useAppDispatch();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [loading, setLoading] = useState(false);
-  const [timeFilter, setTimeFilter] = useState("PAST");
-  const [parsedId, setParsedId] = useState<string | null>(null);
-  const router = useRouter();
-  const { id } = router.query;
+  const [timeFilter, setTimeFilter] = useState("UPCOMING");
 
   const appointments = useSelector(
     (state: RootState) => state.appointments.appointments
@@ -33,6 +28,8 @@ const AllAppointments = () => {
     (state: RootState) => state.appointments.page?.totalPages
   );
   const token = useSelector((state: RootState) => state.auth.accessToken);
+  const userId = useSelector((state: RootState) => state.auth.userId);
+
   const timeFilterOptions = [
     { value: "PAST", label: "Past" },
     { value: "UPCOMING", label: "Upcoming" },
@@ -58,7 +55,7 @@ const AllAppointments = () => {
 
   useEffect(() => {
     const fetchAppointments = async () => {
-      if (!token || !parsedId) {
+      if (!token || !userId) {
         console.error("No auth token or user ID found.");
         return;
       }
@@ -72,7 +69,7 @@ const AllAppointments = () => {
             status: statusFilter,
             page: backendPage,
             size: pageSize,
-            userId: parsedId,
+            userId,
           })
         );
       } catch (error) {
@@ -82,22 +79,8 @@ const AllAppointments = () => {
       }
     };
 
-    if (id) {
-      const parsedId = id as string;
-      if (parsedId) {
-        setParsedId(parsedId);
-        fetchAppointments();
-      }
-    }
-  }, [
-    token,
-    dispatch,
-    statusFilter,
-    currentPage,
-    pageSize,
-    timeFilter,
-    parsedId,
-  ]);
+    fetchAppointments();
+  }, [token, dispatch, statusFilter, currentPage, pageSize, timeFilter, userId]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -142,7 +125,7 @@ const AllAppointments = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-
+            
             <select
               className="border rounded-md p-2"
               value={timeFilter}
@@ -151,7 +134,7 @@ const AllAppointments = () => {
                 setCurrentPage(1);
               }}
             >
-              {timeFilterOptions.map((option) => (
+              {timeFilterOptions.map(option => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>
@@ -205,7 +188,7 @@ const AllAppointments = () => {
                   appointment={appointment}
                 />
               ))}
-
+              
               {/* Pagination */}
               <div className="mt-6 flex justify-center gap-2">
                 <button
@@ -242,7 +225,5 @@ const AllAppointments = () => {
     </div>
   );
 }
-
-AllAppointments.getLayout = (page: any) => <DashboardLayout>{page}</DashboardLayout>;
 
 export default AllAppointments;
