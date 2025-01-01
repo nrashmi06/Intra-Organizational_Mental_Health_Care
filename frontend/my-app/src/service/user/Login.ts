@@ -1,70 +1,86 @@
 import { setUser } from "@/store/authSlice";
 import { AppDispatch } from "@/store/index";
+import axiosInstance from "@/utils/axios"; // Import your Axios instance
 import { API_ENDPOINTS } from "@/mapper/userMapper";
 
-export const loginUser = (email: string, password: string) => async (dispatch: AppDispatch) => {
-  try {
-    const response = await fetch(API_ENDPOINTS.LOGIN, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify({ email, password }),
-    });
+export const loginUser =
+  (email: string, password: string) => async (dispatch: AppDispatch) => {
+    try {
+      // Send POST request using Axios
+      const response = await axiosInstance.post(
+        API_ENDPOINTS.LOGIN,
+        { email, password },
+        {
+          headers: { "Content-Type": "application/json" },
+          validateStatus: (status) => status >= 200 && status < 500,
+        }
+      );
 
-    // Handle different status codes by returning error information
-    if (response.status === 401) {
-      return { success: false, error: "Invalid username or password. Please try again." };
-    }
+      // Extract access token from response headers
+      const accessToken = response.headers["authorization"]?.startsWith(
+        "Bearer "
+      )
+        ? response.headers["authorization"].slice(7)
+        : null;
 
-    if (response.status === 400) {
-      const errorData = await response.json();
-      return { 
-        success: false, 
-        error: errorData.message || "Invalid input. Please check your credentials." 
+      if (response.status === 401) {
+        return {
+          success: false,
+          error: "Wrong credentials. Please try again.",
+        };
+      }
+      else if (response.status === 403) {
+        return {
+          success: false,
+          error: "Please verify your email address and try again.",
+        };
+      }
+
+      // Dispatch the action to store user details and token in Redux
+      dispatch(
+        setUser({
+          userId: response.data.userId,
+          email: response.data.email,
+          anonymousName: response.data.anonymousName,
+          role: response.data.role,
+          accessToken: accessToken,
+        })
+      );
+
+      return { success: true, data: response.data, accessToken };
+    } catch (error: any) {
+      console.error("Login error:", error);
+
+      // Axios-specific error handling
+      if (error.response) {
+        if (error.response.status === 401) {
+          return {
+            success: false,
+            error: "Invalid username or password. Please try again.",
+          };
+        }
+
+        if (error.response.status === 400) {
+          const errorData = error.response.data;
+          return {
+            success: false,
+            error:
+              errorData.message ||
+              "Invalid input. Please check your credentials.",
+          };
+        }
+
+        return {
+          success: false,
+          error:
+            error.response.data?.message ||
+            "Login failed due to an unknown error.",
+        };
+      }
+
+      return {
+        success: false,
+        error: "Unable to connect to the server. Please try again later.",
       };
     }
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      return { 
-        success: false, 
-        error: errorData.message || "Login failed due to an unknown error." 
-      };
-    }
-
-    const data = await response.json();
-
-    const authHeader = response.headers.get("authorization");
-    const accessToken = authHeader?.startsWith("Bearer ")
-      ? authHeader.slice(7)
-      : null;
-
-    if (!accessToken) {
-      return { 
-        success: false, 
-        error: "Authentication failed. Please try again." 
-      };
-    }
-
-    // Dispatch the action to store user details and token in Redux
-    dispatch(
-      setUser({
-        userId: data.userId,
-        email: data.email,
-        anonymousName: data.anonymousName,
-        role: data.role,
-        accessToken: accessToken,
-      })
-    );
-
-    return { success: true, data, accessToken };
-  } catch (error) {
-    console.error("Login error:", error);
-    return { 
-      success: false, 
-      error: "Unable to connect to the server. Please try again later." 
-    };
-  }
-};
+  };

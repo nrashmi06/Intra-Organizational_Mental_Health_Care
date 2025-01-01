@@ -11,7 +11,7 @@ const SessionsPage = () => {
       <Tabs defaultValue="online" className="space-y-4">
         <TabsList>
           <TabsTrigger value="online">Live Sessions</TabsTrigger>
-          <TabsTrigger value="registered">Completed Sessions</TabsTrigger>
+          <TabsTrigger value="registered">All Sessions</TabsTrigger>
         </TabsList>
         <TabsContent value="online" className="space-y-4">
           <LiveSessions />

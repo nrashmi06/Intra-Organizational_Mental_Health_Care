@@ -1,5 +1,6 @@
 import axios from "axios";
 import { LISTENER_APPLICATION_API_ENDPOINTS } from "@/mapper/listnerMapper"; // Import the mapper
+import axiosInstance from "@/utils/axios";
 
 export const deleteApplication = async (
   applicationId: string | null,
@@ -13,7 +14,7 @@ export const deleteApplication = async (
     const url = `${LISTENER_APPLICATION_API_ENDPOINTS.DELETE_APPLICATION(applicationId.toString())}`;
     
 
-    const result = await axios.delete(url, {
+    const result = await axiosInstance.delete(url, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },

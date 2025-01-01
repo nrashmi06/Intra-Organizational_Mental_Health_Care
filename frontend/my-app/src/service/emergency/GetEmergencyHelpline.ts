@@ -1,21 +1,35 @@
-
-import axios from 'axios';
 import { EMERGENCY_API_ENDPOINTS } from '@/mapper/emergencyMapper';
+import { setHelplines } from '@/store/emergencySlice';
+import { RootState, AppDispatch } from '@/store';
+import axiosInstance from '@/utils/axios';
 
-// Function to fetch all emergency helplines
-export async function getAllHelplines( token: string) {
+export const getAllHelplines = () => async (dispatch: AppDispatch, getState: () => RootState) => {
   try {
-    //get access token from reduc
-    
-    const response = await axios.get(EMERGENCY_API_ENDPOINTS.GET_ALL_EMERGENCY, {
+    const cachedEtag = getState().emergency.etag;
+    const headers = cachedEtag ? { 'If-None-Match': cachedEtag } : {};
+
+    const response = await axiosInstance.get(EMERGENCY_API_ENDPOINTS.GET_ALL_EMERGENCY, {
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
+        ...headers,
       },
     });
-    return response.data; 
-  } catch (error) {
-    console.error('Error fetching helplines:', error);
-    return []; // Return an empty array in case of error
+
+    if (response.status === 304) {
+      console.log("No changes to helplines, using cached data");
+      return;
+    }
+
+    const etag = response.headers['etag'];
+
+    if (etag) {
+      dispatch(setHelplines({ helplines: response.data, etag }));
+    } else {
+      dispatch(setHelplines({ helplines: response.data, etag: cachedEtag }));
+    }
+  } catch (error: any) {
+    if (error.response && error.response.status !== 304) {
+      console.error('Error fetching helplines:', error);
+    }
   }
-}
+};

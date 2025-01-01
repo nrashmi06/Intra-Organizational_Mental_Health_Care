@@ -1,9 +1,9 @@
-import axios from 'axios';
+import axiosInstance from '@/utils/axios';
 import {API_ENDPOINTS} from '@/mapper/userMapper';
 
 const requestVerificationCode = async (accessToken: string) => {
     try {
-        const response = await axios.post(
+        const response = await axiosInstance.post(
             API_ENDPOINTS.REQUEST_VERIFICATION_CODE,
             {},
             {

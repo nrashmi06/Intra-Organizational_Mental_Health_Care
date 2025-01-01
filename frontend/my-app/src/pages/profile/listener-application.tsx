@@ -9,21 +9,23 @@ import {
   deleteApplication,
   updateApplication,
 } from "@/service/listener/deleteAndUpdate";
-import { useDispatch } from "react-redux";
 import { clearUser } from "@/store/authSlice";
+import { clearDetailedApplication } from "@/store/detailedApplicationSlice";
+import { useAppDispatch } from "@/hooks/useAppDispatch";
+import ProfileLayout from "@/components/profile/profilepageLayout";
 
-export default function ListenerApplication() {
+const ListenerApplication = () => {
   const { accessToken } = useSelector((state: RootState) => state.auth);
-  const [applicationExists, setApplicationExists] = useState<boolean | null>(
-    null
+  const { applicationData } = useSelector(
+    (state: RootState) => state.detailedApplication
   );
-  const [applicationData, setApplicationData] = useState<any>(null);
-  const [isDeleted, setIsDeleted] = useState(false);
-  const [isUpdated, setIsUpdated] = useState(false);
   const [confirmationPopupVisible, setConfirmationPopupVisible] =
     useState(false);
+  const [isDeleted, setIsDeleted] = useState(false);
+  const [isUpdated, setIsUpdated] = useState(false);
+
   const router = useRouter();
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   useEffect(() => {
     if (!accessToken) {
@@ -31,20 +33,16 @@ export default function ListenerApplication() {
       return;
     }
 
-    const checkApplication = async () => {
+    const loadApplication = async () => {
       try {
-        console.log("Checking application");
-        const response = await fetchApplication(accessToken);
-        console.log("Response:", response);
-        setApplicationData(response);
-        setApplicationExists(response !== null);
+        await dispatch(fetchApplication(accessToken));
       } catch (error) {
-        console.error("Error checking application:", error);
+        console.error("Error fetching application:", error);
       }
     };
 
-    checkApplication();
-  }, [accessToken, router, isUpdated]);
+    loadApplication();
+  }, [accessToken, dispatch, isUpdated, router]);
 
   const handleEdit = async (updatedData: any) => {
     try {
@@ -67,7 +65,8 @@ export default function ListenerApplication() {
       await deleteApplication(applicationData.applicationId, accessToken);
       setIsDeleted(true);
       setTimeout(async () => {
-        await router.push("/signin");
+        dispatch(clearDetailedApplication());
+        await router.push("/");
         dispatch(clearUser());
       }, 2000);
     } catch (error) {
@@ -75,13 +74,8 @@ export default function ListenerApplication() {
     }
   };
 
-  const showConfirmationPopup = () => {
-    setConfirmationPopupVisible(true);
-  };
-
-  const closeConfirmationPopup = () => {
-    setConfirmationPopupVisible(false);
-  };
+  const showConfirmationPopup = () => setConfirmationPopupVisible(true);
+  const closeConfirmationPopup = () => setConfirmationPopupVisible(false);
 
   const confirmDelete = () => {
     closeConfirmationPopup();
@@ -90,7 +84,7 @@ export default function ListenerApplication() {
 
   return (
     <div>
-      {applicationExists ? (
+      {applicationData ? (
         <ApplicationDetails
           applicationData={applicationData}
           onEdit={handleEdit}
@@ -99,8 +93,6 @@ export default function ListenerApplication() {
       ) : (
         <ApplicationForm />
       )}
-
-      {/* Confirmation Popup */}
       {confirmationPopupVisible && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-10">
           <div className="bg-white p-6 rounded-lg shadow-lg text-center">
@@ -130,7 +122,7 @@ export default function ListenerApplication() {
       )}
 
       {isDeleted && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-10">
+        <div className="fixed inset-0 flex items-center justify-center bg-opacity-50 z-10">
           <div className="bg-white p-6 rounded-lg shadow-lg text-center">
             <h3 className="text-lg font-semibold text-green-600">
               Application Deleted!
@@ -141,8 +133,9 @@ export default function ListenerApplication() {
           </div>
         </div>
       )}
+
       {isUpdated && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-10">
+        <div className="fixed inset-0 flex items-center justify-center bg-opacity-50 z-10">
           <div className="bg-white p-6 rounded-lg shadow-lg text-center">
             <h3 className="text-lg font-semibold text-green-600">
               Application Updated!
@@ -156,3 +149,7 @@ export default function ListenerApplication() {
     </div>
   );
 }
+
+ListenerApplication.getLayout = (page: any) => <ProfileLayout>{page}</ProfileLayout>;
+
+export default ListenerApplication;

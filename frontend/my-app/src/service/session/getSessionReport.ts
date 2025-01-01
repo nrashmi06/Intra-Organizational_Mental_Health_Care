@@ -1,17 +1,25 @@
-import { REPORT_API_ENDPOINTS } from "@/mapper/reportMapper";
+// src/service/report/getSessionReport.ts
+import axiosInstance from "@/utils/axios"; // Import the Axios instance
+import { REPORT_API_ENDPOINTS } from "@/mapper/reportMapper"; // Import the report mapper
 
-export const getSessionReport = async (sessionId: string, token: string) => {
+export const getSessionReport = async (
+  sessionId: string,
+  token: string,
+  signal?: AbortSignal
+) => {
   try {
-    const response = await fetch(REPORT_API_ENDPOINTS.GET_REPORT_BY_SESSION_ID(sessionId), {
-      method: "GET",
+    const url = REPORT_API_ENDPOINTS.GET_REPORT_BY_SESSION_ID(sessionId); // Use the mapped URL
+
+    const response = await axiosInstance.get(url, {
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
+      signal, // Include signal for request cancellation
     });
-    return response.json();
+    return response.data;
+    // Return the response data
   } catch (error) {
     console.error("Error fetching session report:", error);
-    throw error;
   }
 };

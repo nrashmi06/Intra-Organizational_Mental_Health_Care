@@ -1,8 +1,8 @@
-import axios from "axios";
 import { LISTENER_APPLICATION_API_ENDPOINTS } from "@/mapper/listnerMapper"; // Import URL mappings
+import axiosInstance from "@/utils/axios";
 
 export const updateApplication = async (
-  applicationId: string, // ID of the application to update
+  applicationId: string,
   applicationData: {
     fullName: string;
     branch: string;
@@ -10,20 +10,17 @@ export const updateApplication = async (
     semester: number;
     phoneNumber: string;
     reasonForApplying: string;
-    image?: File; // Optional: Include if updating the certificate
+    image?: File;
   },
   accessToken: string
 ) => {
   try {
-    // Create FormData instance
     const formData = new FormData();
 
-    // Add the image file to FormData if it exists
     if (applicationData.image) {
       formData.append("certificate", applicationData.image);
     }
 
-    // Prepare application data as a JSON object
     const applicationRequestDTO = {
       fullName: applicationData.fullName,
       branch: applicationData.branch,
@@ -33,19 +30,16 @@ export const updateApplication = async (
       phoneNumber: applicationData.phoneNumber,
     };
 
-    // Convert application data to a Blob
     const applicationBlob = new Blob([JSON.stringify(applicationRequestDTO)], {
       type: "application/json",
     });
     formData.append("application", applicationBlob, "application.json");
 
-    // Debug: Log FormData contents (optional, for debugging purposes)
     for (const [key, value] of formData.entries()) {
       console.log(`FormData - ${key}:`, value);
     }
 
-    // Make the PUT request to the update endpoint
-    const response = await axios.put(
+    const response = await axiosInstance.put(
       LISTENER_APPLICATION_API_ENDPOINTS.UPDATE_APPLICATION(applicationId),
       formData,
       {
@@ -58,7 +52,6 @@ export const updateApplication = async (
 
     return response.data;
   } catch (error: any) {
-    // Enhanced error logging
     if (error.response) {
       console.error("Error response data:", error.response.data);
       console.error("Error response status:", error.response.status);

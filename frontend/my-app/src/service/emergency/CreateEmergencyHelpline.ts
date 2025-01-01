@@ -1,5 +1,5 @@
-import axios from 'axios';
 import { EMERGENCY_API_ENDPOINTS } from '@/mapper/emergencyMapper';
+import axiosInstance from '@/utils/axios';
 
 export const createEmergencyHelpline = async (helplineData:{
     name: string;
@@ -9,7 +9,7 @@ export const createEmergencyHelpline = async (helplineData:{
     priority: number;
 } , token: string) => {
   try {
-    const response = await axios.post(`${EMERGENCY_API_ENDPOINTS.CREATE_EMERGENCY}`, helplineData, {
+    const response = await axiosInstance.post(`${EMERGENCY_API_ENDPOINTS.CREATE_EMERGENCY}`, helplineData, {
       headers: {
         'Content-Type': 'application/json',
          Authorization: `Bearer ${token}`,

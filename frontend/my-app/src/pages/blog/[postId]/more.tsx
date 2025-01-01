@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useSelector } from "react-redux";
-import { Plus, X } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import Navbar1 from "@/components/navbar/NavBar";
+import Navbar from "@/components/navbar/Navbar2";
 import BlogCard from "@/components/blog/BlogCard";
 import Footer from "@/components/footer/Footer";
 import InlineLoader from "@/components/ui/inlineLoader";
@@ -19,12 +19,13 @@ import fetchRecentBlogs from "@/service/blog/fetchBlogs";
 import { RootState } from "@/store";
 import "@/styles/global.css";
 import getPageNumbers from "@/components/blog/PageNumbers";
-import { BlogPost} from "@/lib/types";
+import { BlogPost } from "@/lib/types";
+import Pagination2 from "@/components/ui/pagination2";
 
 const PAGE_SIZE_OPTIONS = [6, 9, 12, 15];
 const DEFAULT_FILTERS = {
   pageSize: 6,
-  filterType: "MOST_LIKED",
+  filterType: "TRENDING",
   searchQuery: "",
 };
 const DEBOUNCE_DELAY = 750;
@@ -35,36 +36,20 @@ export default function MoreBlogs() {
   const token = useSelector((state: RootState) => state.auth.accessToken);
   const [blogs, setBlogs] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState(() => {
-    if (typeof window !== "undefined") {
-      return (
-        localStorage.getItem("blogSearchQuery") || DEFAULT_FILTERS.searchQuery
-      );
-    }
     return DEFAULT_FILTERS.searchQuery;
   });
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(searchQuery);
 
   const [paginationInfo, setPaginationInfo] = useState({
     pageNumber: 0,
-    pageSize:
-      typeof window !== "undefined"
-        ? Number(localStorage.getItem("blogPageSize")) ||
-          DEFAULT_FILTERS.pageSize
-        : DEFAULT_FILTERS.pageSize,
+    pageSize: DEFAULT_FILTERS.pageSize,
     totalElements: 0,
     totalPages: 0,
     title: "",
   });
 
   const [filterType, setFilterType] = useState<string>(() => {
-    if (typeof window !== "undefined") {
-      return (
-        (localStorage.getItem("blogFilterType")) ||
-        DEFAULT_FILTERS.filterType
-      );
-    }
     return DEFAULT_FILTERS.filterType;
   });
 
@@ -114,7 +99,6 @@ export default function MoreBlogs() {
         }));
       }
     } catch (err) {
-      setError("Failed to load blogs");
       console.error(err);
     } finally {
       setLoading(false);
@@ -127,13 +111,11 @@ export default function MoreBlogs() {
       pageSize: Number(newSize),
       pageNumber: 0,
     }));
-    localStorage.setItem("blogPageSize", newSize);
   };
 
   const handleFilterChange = (value: string) => {
     setFilterType(value);
     setPaginationInfo((prev) => ({ ...prev, pageNumber: 0 }));
-    localStorage.setItem("blogFilterType", value);
   };
 
   const handlePageClick = (pageNum: number | string) => {
@@ -146,26 +128,19 @@ export default function MoreBlogs() {
     }
   };
 
-  const clearFilters = () => {
-    setSearchQuery(DEFAULT_FILTERS.searchQuery);
-    setPaginationInfo((prev) => ({
-      ...prev,
-      pageSize: DEFAULT_FILTERS.pageSize,
-      pageNumber: 0,
-    }));
-    setFilterType(DEFAULT_FILTERS.filterType);
-    localStorage.removeItem("blogSearchQuery");
-    localStorage.removeItem("blogPageSize");
-    localStorage.removeItem("blogFilterType");
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
       <Head>
         <title>More Blogs</title>
       </Head>
-      <Navbar1 />
-      <div className="w-full bg-white py-8 md:py-10 border-b">
+      <Navbar />
+      <div
+        className="w-full  py-8 md:py-10 border-b"
+        style={{
+          background:
+            "linear-gradient(90deg, rgb(179, 245, 220) 0%, rgb(182, 230, 200) 3%, rgb(209, 224, 230) 18%, rgba(202, 206, 156, 0.64) 41%, rgb(210, 235, 214) 95%)",
+        }}
+      >
         <div className="container mx-auto px-4 max-w-7xl">
           <h1 className="text-3xl md:text-4xl font-bold text-center text-gray-800 mb-2">
             More Blogs
@@ -178,8 +153,11 @@ export default function MoreBlogs() {
 
       <div className="w-full bg-white border-b py-4">
         <div className="container mx-auto px-4 max-w-7xl">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex flex-col sm:flex-row w-full sm:w-auto gap-4 items-center">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+            <div className="relative">
+              <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                <Search className="h-5 w-5 text-gray-400" />
+              </div>
               <input
                 type="text"
                 value={searchQuery}
@@ -189,49 +167,40 @@ export default function MoreBlogs() {
                   localStorage.setItem("blogSearchQuery", e.target.value);
                 }}
                 placeholder="Search blogs..."
-                className="p-3 border rounded-lg w-full sm:w-64 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                className="pl-10 p-3 border rounded-lg w-full focus:ring-2 focus:ring-green-500 focus:border-green-500"
               />
-
-              <Select onValueChange={handleFilterChange} value={filterType}>
-                <SelectTrigger className="w-full sm:w-[180px]">
-                  <SelectValue placeholder="Filter by" />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  <SelectItem value="MOST_LIKED">Most Liked</SelectItem>
-                  <SelectItem value="RECENT">Most Recent</SelectItem>
-                  <SelectItem value="MOST_VIEWED">Most Viewed</SelectItem>
-                  <SelectItem value="TRENDING">Trending</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select
-                onValueChange={handlePageSizeChange}
-                value={paginationInfo.pageSize.toString()}
-              >
-                <SelectTrigger className="w-full sm:w-[180px]">
-                  <SelectValue placeholder="Items per page" />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  {PAGE_SIZE_OPTIONS.map((size) => (
-                    <SelectItem key={size} value={size.toString()}>
-                      {size} per page
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Button
-                onClick={clearFilters}
-                variant="outline"
-                className="w-full sm:w-auto flex items-center gap-2"
-              >
-                <X className="w-4 h-4" />
-                Clear Filters
-              </Button>
             </div>
 
+            <Select onValueChange={handleFilterChange} value={filterType}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Filter by" />
+              </SelectTrigger>
+              <SelectContent className="bg-white">
+                <SelectItem value="TRENDING">Trending</SelectItem>
+                <SelectItem value="MOST_LIKED">Most Liked</SelectItem>
+                <SelectItem value="RECENT">Most Recent</SelectItem>
+                <SelectItem value="MOST_VIEWED">Most Viewed</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select
+              onValueChange={handlePageSizeChange}
+              value={paginationInfo.pageSize.toString()}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Items per page" />
+              </SelectTrigger>
+              <SelectContent className="bg-white">
+                {PAGE_SIZE_OPTIONS.map((size) => (
+                  <SelectItem key={size} value={size.toString()}>
+                    {size} per page
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
             <Button
-              className="w-full sm:w-auto flex items-center justify-center gap-2 p-3 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors"
+              className="w-full flex items-center justify-center gap-2 p-3 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors"
               onClick={() => router.push("/blog/create_blog")}
             >
               <Plus className="w-5 h-5" />
@@ -242,72 +211,34 @@ export default function MoreBlogs() {
       </div>
 
       <div className="container mx-auto px-8 max-w-7xl py-6">
-        {loading ? (
+        {loading && (
           <div className="flex justify-center items-center min-h-[400px]">
             <InlineLoader />
           </div>
-        ) : error ? (
-          <div className="text-center py-8 text-red-500">{error}</div>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {blogs.map((post) => (
-                <BlogCard
-                  key={post.id}
-                  post={{
-                    ...post,
-                    summary:
-                      post.summary.length > 200
-                        ? `${post.summary.substring(0, 200)}...`
-                        : post.summary,
-                  }}
-                />
-              ))}
-            </div>
-
-            <div className="text-center text-xs text-gray-600 mt-6">
-              Showing {blogs.length} of {paginationInfo.totalElements} blogs
-            </div>
-          </>
+        )}
+        {!loading && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {blogs.map((post) => (
+              <BlogCard
+                key={post.id}
+                post={{
+                  ...post,
+                  summary:
+                    post.summary.length > 200
+                      ? `${post.summary.substring(0, 200)}...`
+                      : post.summary,
+                }}
+              />
+            ))}
+          </div>
         )}
       </div>
-
-      <div className="container mx-auto px-4 max-w-7xl">
-        <div className="flex justify-center items-center gap-2 py-6">
-          {getPageNumbers(
-            paginationInfo.pageNumber + 1,
-            paginationInfo.totalPages
-          ).map((pageNum, index) => (
-            <button
-              key={index}
-              onClick={() =>
-                typeof pageNum === "number"
-                  ? handlePageClick(pageNum)
-                  : undefined
-              }
-              className={`px-4 py-2 rounded-lg transition-colors ${
-                pageNum === "..."
-                  ? "cursor-default"
-                  : pageNum === paginationInfo.pageNumber + 1
-                  ? "bg-green-500 text-white"
-                  : "hover:bg-gray-100"
-              } ${
-                typeof pageNum === "number"
-                  ? "min-w-[40px] font-medium"
-                  : "pointer-events-none"
-              }`}
-              disabled={pageNum === "..."}
-            >
-              {pageNum}
-            </button>
-          ))}
-        </div>
-
-        <div className="text-center text-gray-600 pb-6">
-          Showing {blogs.length} of {paginationInfo.totalElements} blogs
-        </div>
-      </div>
-
+      <Pagination2
+        paginationInfo={paginationInfo}
+        blogs={blogs}
+        getPageNumbers={getPageNumbers}
+        handlePageClick={handlePageClick}
+      />
       <Footer />
     </div>
   );

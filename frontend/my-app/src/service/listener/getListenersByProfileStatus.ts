@@ -1,29 +1,57 @@
-import axios from "axios";
 import { LISTENER_API_ENDPOINTS } from "@/mapper/listenerProfileMapper";
+import { setListeners } from "@/store/listenerSlice";
+import { RootState, AppDispatch } from "@/store";
+import axiosInstance from '@/utils/axios';
 
-export const getListenersByProfileStatus = async (
-  token: string,
-  status: string
-) => {
-  try {
-    const response = await axios.get(
-      LISTENER_API_ENDPOINTS.GET_ALL_LISTENERS_BY_STATUS(status),
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-    return response.data;
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      console.error(
-        "Error fetching listeners by profile status:",
-        error.response?.data
+interface FilterParams {
+  status: string;
+  page: number;
+  size: number;
+  userId: string;
+}
+
+export const getListenersByProfileStatus =
+  ({ status, page, size, userId }: FilterParams) =>
+  async (dispatch: AppDispatch, getState: () => RootState) => {
+    try {
+      const cachedEtag = getState().listeners.etag;
+      const headers = cachedEtag ? { "If-None-Match": cachedEtag } : {};
+
+      const response = await axiosInstance.get(
+        LISTENER_API_ENDPOINTS.GET_ALL_LISTENERS_BY_STATUS,
+        {
+          params: {
+            status: status === "ALL" ? "active" : status, // default to 'active' if status is 'ALL'
+            page,
+            size,
+            adminID: userId,
+          },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${getState().auth.accessToken}`,
+            ...headers,
+          },
+          validateStatus: (status) => status >= 200 && status < 400,
+        }
       );
-    } else {
-      console.error("Error fetching listeners by profile status:", error);
+
+      if (response.status === 304) {
+        console.log("Using cached listener data");
+        return;
+      }
+
+      const etag = response.headers["etag"]; 
+      dispatch(
+        setListeners({
+          listeners: response.data.content,
+          page: response.data.page,
+          etag: etag || cachedEtag, 
+        })
+      );
+
+      return response.data;
+    } catch (error: any) {
+      console.error("Error fetching listeners:", error);
+      throw error;
     }
-    throw error;
-  }
-};
+  };

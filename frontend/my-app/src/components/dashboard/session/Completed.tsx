@@ -2,235 +2,190 @@ import React, { useEffect, useState, useCallback } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { getSessionsByStatus } from "@/service/session/getSessionsByStatus";
-import { Eye, FileText, MessageSquare, Search, Menu, X } from "lucide-react";
 import SessionDetailView from "@/components/dashboard/SessionDetailView";
-import { Input } from "@/components/ui/input";
-import { Session } from "@/lib/types";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import UserDetails from "@/components/dashboard/user/ModalDetails";
-import InlineLoader from "@/components/ui/inlineLoader";
 import ListenerDetails from "../listener/ModalDetails";
+import StatusFilter from "./StatusFilter";
+import SessionGrid from "./SessionGrid";
+import Pagination from "@/components/dashboard/Pagination";
+import MobileSessionDrawer from "./MobileSessionDrawer";
+import { Session } from "@/lib/types";
+import { useMediaQuery } from "@/lib/utils";
 
 export const CompletedSessions = () => {
   const token = useSelector((state: RootState) => state.auth.accessToken);
+  const isDesktop = useMediaQuery("(min-width: 1024px)");
   const [sessions, setSessions] = useState<Session[]>([]);
-  const [statusFilter, setStatusFilter] = useState<"COMPLETED" | "ONGOING">(
-    "COMPLETED"
-  );
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedSession, setSelectedSession] = useState<Session | null>(null);
-  const [detailView, setDetailView] = useState<
-    "report" | "feedback" | "messages" | null
-  >(null);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<"COMPLETED" | "ONGOING">("COMPLETED");
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+  const [detailView, setDetailView] = useState<"report" | "feedback" | "messages" | null>(null);
   const [userModal, setUserModal] = useState(false);
   const [listenerModal, setListenerModal] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [modalSession, setModalSession] = useState<Session | null>(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [paginationInfo, setPaginationInfo] = useState({
+    pageNumber: 0,
+    pageSize: 4,
+    totalElements: 0,
+    totalPages: 0,
+  });
 
   const fetchSessions = useCallback(
-    async (status: "COMPLETED" | "ONGOING") => {
+    async (
+      status: "COMPLETED" | "ONGOING",
+      page: number = paginationInfo.pageNumber
+    ) => {
       try {
         setLoading(true);
-        const response = await getSessionsByStatus(token, status);
-        setSessions(response);
-        setStatusFilter(status);
-        setLoading(false);
+        const response = await getSessionsByStatus({
+          status,
+          accessToken: token,
+          page,
+          size: 4,
+        });
+        if (response && response.content) {
+          setSessions(response.content);
+          const totalPages = Math.ceil(response.page.totalElements / 4);
+          setPaginationInfo((prev) => ({
+            ...prev,
+            pageNumber: page,
+            totalElements: response.page.totalElements,
+            totalPages,
+          }));
+          setStatusFilter(status);
+        }
       } catch (error) {
         console.error("Error fetching sessions:", error);
+      } finally {
+        setLoading(false);
       }
     },
     [token]
   );
 
   useEffect(() => {
-    setLoading(true);
     fetchSessions("COMPLETED");
-    setLoading(false);
-  }, [fetchSessions]);
+  }, []);
 
   const handleUserModal = (session: Session) => {
-    setSelectedSession(session);
+    setModalSession(session);
     setUserModal(true);
   };
 
-  const handleListenermodal = (session: Session) => {
-    setSelectedSession(session);
+  const handleListenerModal = (session: Session) => {
+    setModalSession(session);
     setListenerModal(true);
   };
 
-  const filteredSessions = sessions.filter(
-    (session) =>
-      session.sessionId.toString().includes(searchQuery) ||
-      session.listenerId.toString().includes(searchQuery) ||
-      session.userId.toString().includes(searchQuery)
-  );
+  const handlePageChange = (page: number) => {
+    fetchSessions(statusFilter, page - 1);
+  };
 
   const handleDetailView = (
     session: Session,
     view: "report" | "feedback" | "messages"
   ) => {
-    setSelectedSession(session);
+    setActiveSessionId(session.sessionId);
     setDetailView(view);
-    setIsMobileMenuOpen(false);
+    if (!isDesktop) {
+      setIsDrawerOpen(true);
+    }
   };
 
-  const SessionCard = ({ session }: { session: Session }) => (
-    <div className="bg-white shadow-sm rounded-lg p-2 border border-gray-100 hover:shadow-md transition-all duration-200">
-      <div className="flex items-center justify-between mb-2 px-1">
-        <p className="font-semibold text-gray-700 text-sm">
-          Session #{session.sessionId}
-        </p>
-        
-      </div>
+  const handleCloseDrawer = () => {
+    setIsDrawerOpen(false);
+    if (!isDesktop) {
+      setActiveSessionId(null);
+      setDetailView(null);
+    }
+  };
 
-      <div className="flex flex-wrap gap-1.5 mb-2">
-        <button
-          onClick={() => handleDetailView(session, "report")}
-          className="flex items-center gap-1.5 px-2 py-1.5 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 transition-colors text-xs font-medium flex-1 justify-center"
-        >
-          <FileText size={14} />
-          <span>Report</span>
-        </button>
-        <button
-          onClick={() => handleDetailView(session, "feedback")}
-          className="flex items-center gap-1.5 px-2 py-1.5 bg-green-50 text-green-600 rounded-md hover:bg-green-100 transition-colors text-xs font-medium flex-1 justify-center"
-        >
-          <MessageSquare size={14} />
-          <span>Feedback</span>
-        </button>
-        <button
-          onClick={() => handleDetailView(session, "messages")}
-          className="flex items-center gap-1.5 px-2 py-1.5 bg-purple-50 text-purple-600 rounded-md hover:bg-purple-100 transition-colors text-xs font-medium flex-1 justify-center"
-        >
-          <Eye size={14} />
-          <span>Messages</span>
-        </button>
-      </div>
+  const renderSessionDetail = () => {
+    if (!activeSessionId || !detailView) {
+      return (
+        <div className="h-full flex items-center justify-center text-gray-500">
+          Select a session and view type to see details
+        </div>
+      );
+    }
 
-      <div className="flex flex-wrap gap-1.5">
-        <button
-          onClick={() => handleListenermodal(session)}
-          className="flex-1 px-2 py-1.5 text-xs font-medium text-gray-600 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors"
-        >
-          View Listener
-        </button>
-        <button
-          onClick={() => handleUserModal(session)}
-          className="flex-1 px-2 py-1.5 text-xs font-medium text-gray-600 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors"
-        >
-          View User
-        </button>
-      </div>
-    </div>
-  );
+    return (
+      <SessionDetailView
+        type={detailView}
+        sessionId={activeSessionId}
+        token={token}
+      />
+    );
+  };
 
   return (
-    <div className="h-[calc(100vh-64px)]">
-      {/* Mobile Menu Toggle */}
-      <div className="lg:hidden fixed top-16 right-4 z-50">
-        <button
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="p-2 bg-white rounded-full shadow-md"
-        >
-          {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
-      </div>
-
-      <div className="flex flex-col lg:flex-row h-full">
-        {/* Mobile Menu Overlay */}
-        <div
-          className={`fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity lg:hidden ${
-            isMobileMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-          }`}
-          onClick={() => setIsMobileMenuOpen(false)}
-        />
-
-        {/* Sessions List Section */}
-        <div
-          className={`w-full lg:w-1/3 bg-gray-50 border-r border-gray-200 overflow-y-auto 
-                     fixed lg:relative z-40 transition-transform duration-300 ease-in-out
-                     ${
-                       isMobileMenuOpen
-                         ? "translate-x-0"
-                         : "-translate-x-full lg:translate-x-0"
-                     }
-                     h-full`}
-        >
-          <div className="sticky top-0 bg-gray-50 p-3 border-b border-gray-200 z-10">
-            <div className="flex items-center gap-2">
-              <div className="relative flex-1 min-w-0">
-                <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                <Input
-                  placeholder="Search..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-8 h-9 bg-white text-sm w-full"
-                />
-              </div>
-              <Select
-                value={statusFilter}
-                onValueChange={(value: "COMPLETED" | "ONGOING") =>
-                  fetchSessions(value)
-                }
-              >
-                <SelectTrigger className="w-32 h-9 bg-white text-sm">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  <SelectItem value="COMPLETED">Completed</SelectItem>
-                  <SelectItem value="ONGOING">Ongoing</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+    <div className="h-[calc(100vh-64px)] bg-gray-50">
+      <div className="container mx-auto h-full">
+        <div className="flex flex-col h-full">
+          <div className="flex justify-end">
+            <StatusFilter
+              value={statusFilter}
+              onChange={(value) => fetchSessions(value)}
+            />
           </div>
 
-          {loading && <InlineLoader height="h-full" />}
-          {!loading && (
-            <div className="p-3 space-y-2">
-              {filteredSessions.length === 0 ? (
-                <div className="text-gray-500 text-sm flex items-center justify-center p-4 bg-white rounded-lg border border-dashed">
-                  No sessions found
-                </div>
-              ) : (
-                filteredSessions.map((session) => (
-                  <SessionCard key={session.sessionId} session={session} />
-                ))
+          <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-0">
+            <div className="flex flex-col">
+              <SessionGrid
+                loading={loading}
+                sessions={sessions}
+                activeSessionId={activeSessionId}
+                handleDetailView={handleDetailView}
+                handleListenerModal={handleListenerModal}
+                handleUserModal={handleUserModal}
+              />
+
+              {sessions.length > 0 && (
+                <Pagination
+                  currentPage={paginationInfo.pageNumber + 1} // Convert to 1-based for display
+                  totalPages={paginationInfo.totalPages}
+                  onPageChange={handlePageChange}
+                />
               )}
             </div>
-          )}
+
+            {isDesktop && (
+              <div className="hidden lg:block bg-white rounded-lg shadow-sm overflow-hidden">
+                {renderSessionDetail()}
+              </div>
+            )}
+          </div>
         </div>
-        <div className="w-full lg:w-2/3 bg-gray-100 min-h-full overflow-y-auto">
-          {selectedSession && (
-            <SessionDetailView
-              type={detailView}
-              sessionId={selectedSession.sessionId}
-              token={token}
-            />
-          )}
-        </div>
-        {userModal && selectedSession && (
+
+        {!isDesktop && (
+          <MobileSessionDrawer
+            isOpen={isDrawerOpen}
+            onClose={handleCloseDrawer}
+            sessionId={activeSessionId}
+            type={detailView}
+            token={token}
+          />
+        )}
+
+        {userModal && modalSession && (
           <UserDetails
-            userId={selectedSession.userId}
+            userId={modalSession.userId}
             handleClose={() => {
               setUserModal(false);
-              setSelectedSession(null);
+              setModalSession(null);
             }}
             viewSession={true}
           />
         )}
-        {listenerModal && selectedSession && (
+        
+        {listenerModal && modalSession && (
           <ListenerDetails
-            id={selectedSession.listenerId}
+            id={modalSession.listenerId}
             type="userId"
             handleClose={() => {
               setListenerModal(false);
-              setSelectedSession(null);
+              setModalSession(null);
             }}
             viewSession={true}
           />

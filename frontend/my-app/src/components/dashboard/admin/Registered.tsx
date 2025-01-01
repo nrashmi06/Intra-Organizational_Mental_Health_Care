@@ -34,6 +34,13 @@ export function RegisteredAdminsTable() {
     fetchAdminProfiles();
   }, [fetchAdminProfiles]);
 
+  if(admins.length === 0) {
+    return (
+      <div className="text-center py-8 text-muted-foreground">
+        No admins found.
+      </div>
+    );
+  }
   const filteredAdmins = admins.filter((admin) => {
     const matchesSearch =
       admin.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||

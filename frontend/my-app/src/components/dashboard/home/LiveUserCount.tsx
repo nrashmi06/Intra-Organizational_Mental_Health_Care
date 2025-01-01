@@ -1,24 +1,25 @@
-//show the count of active users, listeners and admins
-
 "use client";
+
 import { useEffect, useState } from "react";
 import { getAllSSEbyRole } from "@/service/SSE/getAllSSEbyRole";
-import { useSelector } from "react-redux";
-import { RootState } from "@/store";
+import { getActiveSessions } from "@/service/SSE/getActiveSessions";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/store";
 import { User, Headphones, ShieldCheck } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "../../ui/card";
 import LiveSessionCount from "./LiveSessionCount";
+import { addEventSource, clearEventSources, removeEventSource } from "@/store/eventsourceSlice";
 
 function UserCountGrid() {
-  const [roleCounts, setRoleCounts] = useState(
-    {} as { [role: string]: number }
-  );
+  const [roleCounts, setRoleCounts] = useState({} as { [role: string]: number });
   const [totalCount, setTotalCount] = useState(0);
+  const [sessionCount, setSessionCount] = useState<number>(0); // Session count state
   const token = useSelector((state: RootState) => state.auth.accessToken);
+  const dispatch = useDispatch<AppDispatch>();
 
   useEffect(() => {
-    const eventSource = getAllSSEbyRole(token, (data) => {
-      // Process the API response
+    // EventSource for role counts
+    const roleEventSource = getAllSSEbyRole(token, (data) => {
       const roleCounts = data.reduce(
         (acc: { [x: string]: any }, item: { role: string; count: any }) => {
           acc[item.role.toLowerCase()] = item.count;
@@ -32,25 +33,43 @@ function UserCountGrid() {
         0
       );
 
-      // Set state variables
       setRoleCounts(roleCounts);
       setTotalCount(totalCount);
     });
 
+    dispatch(addEventSource({ id: "fetchRoleCount", eventSource: roleEventSource }));
+
+    // EventSource for live session count
+    const sessionEventSource = getActiveSessions(token, (data) => {
+      setSessionCount(data.length);
+    });
+
+    dispatch(addEventSource({ id: "fetchSessionCount", eventSource: sessionEventSource }));
+
     return () => {
-      eventSource.close();
+      dispatch(removeEventSource("fetchRoleCount"));
+      roleEventSource.close();
+
+      dispatch(removeEventSource("fetchSessionCount"));
+      sessionEventSource.close();
     };
-  }, [token]);
+  }, [token, dispatch]);
+
+  useEffect(() => {
+    return () => {
+      dispatch(clearEventSources());
+    };
+  }, [dispatch]);
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
       <Card className="bg-green-50">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle>Accounts</CardTitle>
           <User className="h-4 w-4 " />
         </CardHeader>
         <CardContent>
-          <div className="text-sm ">Total active accounts: {totalCount}</div>
+          <div className="text-sm ">Active accounts: {totalCount}</div>
         </CardContent>
       </Card>
       <Card className="bg-pink-50">
@@ -80,7 +99,8 @@ function UserCountGrid() {
           <div className="text-sm ">Active: {roleCounts["admin"] ?? 0}</div>
         </CardContent>
       </Card>
-      <LiveSessionCount token={token} />
+      {/* Pass sessionCount to LiveSessionCount */}
+      <LiveSessionCount sessionCount={sessionCount} />
     </div>
   );
 }

@@ -4,7 +4,7 @@ import { fetchBlogById, toggleLikeOnBlog } from "@/service/blog/GetBlogBuID";
 import { updateBlog } from "@/service/blog/UpdateBlog";
 import { RootState } from "@/store";
 import { useSelector } from "react-redux";
-import Navbar1 from "@/components/navbar/NavBar";
+import Navbar1 from "@/components/navbar/Navbar2";
 import { Heart, Eye, Pencil, Trash } from "lucide-react";
 import "@/styles/global.css";
 import Head from "next/head";
@@ -13,27 +13,14 @@ import DeleteBlogByID from "@/service/blog/DeleteBlogByID";
 import InlineLoader from "@/components/ui/inlineLoader";
 import BlogsByAuthor from "@/components/blog/BlogsByAuthor";
 import Image from "next/image";
+import { Article } from "@/lib/types";
 
 const BlogPost = () => {
   const router = useRouter();
   const { postId } = router.query;
-  const token = useSelector((state: RootState) => state.auth.accessToken); // Redux token
-  const ReduxuserId = useSelector((state: RootState) => state.auth.userId); // Redux userId
+  const token = useSelector((state: RootState) => state.auth.accessToken);
+  const ReduxuserId = useSelector((state: RootState) => state.auth.userId);
   const [imageLoading, setImageLoading] = useState(true);
-
-  interface Article {
-    id: number;
-    title: string;
-    publishDate: string;
-    viewCount: number;
-    userId: number;
-    imageUrl: string;
-    content: string;
-    summary: string;
-    likedByCurrentUser: boolean; // Determines if the current user liked the article
-    likeCount: number; // Total number of likes
-  }
-
   const [article, setArticle] = useState<Article | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [editMode, setEditMode] = useState<boolean>(false);
@@ -56,8 +43,7 @@ const BlogPost = () => {
         const response = await fetchBlogById(Number(postId), token);
         setArticle(response);
       } catch (error) {
-        console.error(error);
-        setError("Failed to fetch the article. Please try again later");
+        setError("Failed to fetch the article. Please try again later" + error);
       }
     };
 
@@ -66,18 +52,17 @@ const BlogPost = () => {
 
   const handleLikeToggle = async () => {
     if (!article || !token) return;
-
     try {
       const updatedArticle = await toggleLikeOnBlog(
         Number(postId),
         token,
         article.likedByCurrentUser
-      ); // Backend updates like status
+      );
       setArticle((prevArticle) =>
         prevArticle ? { ...prevArticle, ...updatedArticle } : null
       );
     } catch (error) {
-      console.error("Failed to update like status:", error);
+      setError("Failed to toggle like." + error);
     }
   };
 
@@ -94,15 +79,10 @@ const BlogPost = () => {
 
   const handleDeleteClick = async () => {
     DeleteBlogByID(Number(postId), token);
-    console.log("Deleted");
   };
 
   const handleSaveChanges = async () => {
-    if (
-      !editedBlogData.title ||
-      !editedBlogData.content ||
-      !editedBlogData.summary
-    ) {
+    if (!editedBlogData.title || !editedBlogData.content || !editedBlogData.summary) {
       setError("Please fill in all fields.");
       return;
     }
@@ -120,8 +100,7 @@ const BlogPost = () => {
       setArticle(updatedArticle);
       setEditMode(false);
     } catch (error) {
-      console.error("Failed to save blog updates:", error);
-      setError("Failed to save blog updates.");
+      setError("Failed to save blog updates." + error);
     }
   };
 
@@ -132,53 +111,48 @@ const BlogPost = () => {
 
   if (error) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <p>{error}</p>
+      <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-green-50 to-emerald-100">
+        <p className="text-red-500 bg-white/80 backdrop-blur-md p-4 rounded-lg shadow-lg">
+          {error}
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="relative min-h-screen bg-gray-50">
+    <div className="relative min-h-screen ">
+      <div className="absolute inset-0 h-full opacity-5 pointer-events-none" />
       <Head>
-        <title>{article?.title}</title>
+        <title>{article?.title || "Blog Post"}</title>
       </Head>
-
-      {/* Navbar with absolute positioning */}
       <div className="relative top-0 left-0 w-full z-20">
         <Navbar1 />
       </div>
-
-      {/* Blog content with overlay positioning */}
-      <main className="absolute top-[80px] left-0 w-full min-h-screen flex flex-col items-center justify-center md:pb-10">
-        <div className="container max-w-3xl w-full bg-white shadow-xl md:rounded-2xl overflow-hidden border border-gray-100 transition-all duration-300 hover:shadow-2xl">
-          {/* Blog Image with Modern Styling */}
+      <main className="absolute top-[80px] left-0 w-full min-h-screen flex flex-col items-center justify-center md:pb-10 bg-gradient-to-br from-green-50 to-emerald-100">
+        <div className="container max-w-3xl w-full bg-white/80 backdrop-blur-md shadow-xl md:rounded-2xl overflow-hidden border border-green-100 transition-all duration-300 md:hover:shadow-2xl">
           <div className="relative w-full h-[50vh] z-50 group overflow-hidden">
             {imageLoading && <InlineLoader height="h-full" />}
             {article?.imageUrl && (
               <Image
                 src={article?.imageUrl || "/images/blog/mh1.png"}
                 alt={article?.title || "Article image"}
-                className={`w-full h-full object-cover md:transform md:transition-transform md:duration-500 md:group-hover:scale-105`}
+                className="w-full h-full object-cover md:transform md:transition-transform md:duration-500 md:group-hover:scale-105"
                 onLoadingComplete={() => setImageLoading(false)}
                 width={800}
                 height={600}
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               />
             )}
-            <div className="absolute inset-0 bg-black opacity-20 group-hover:opacity-10 transition-opacity duration-500"></div>
+            <div className="hidden md:block absolute inset-0 bg-gradient-to-b from-transparent to-green-900/20 group-hover:opacity-10 transition-opacity duration-500"></div>
           </div>
-
-          {/* Blog Content Container */}
+          
           <div className="p-8 space-y-6">
-            {/* Title */}
-            <h1 className="text-4xl font-extrabold text-gray-900 leading-tight mb-4">
+            <h1 className="text-4xl font-extrabold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent leading-tight mb-4">
               {article?.title}
             </h1>
-
-            {/* Metadata and Actions */}
-            <div className="flex justify-between items-center text-sm text-gray-600 pb-4 border-b border-gray-200">
-              <span className="text-gray-500">
+            
+            <div className="flex justify-between items-center text-sm text-gray-600 pb-4 border-b border-green-100">
+              <span className="text-emerald-600 font-medium">
                 {article?.publishDate
                   ? new Date(article.publishDate).toLocaleString("en-US", {
                       weekday: "short",
@@ -191,14 +165,13 @@ const BlogPost = () => {
                     })
                   : null}
               </span>
+              
               <div className="flex items-center space-x-4">
-                {/* View Count */}
-                <div className="flex items-center space-x-1 text-gray-600">
-                  <Eye className="w-5 h-5 text-gray-500" />
+                <div className="flex items-center space-x-1 text-emerald-600">
+                  <Eye className="w-5 h-5" />
                   <span>{article?.viewCount}</span>
                 </div>
 
-                {/* Like Button */}
                 <button
                   className="flex items-center space-x-1 group"
                   onClick={handleLikeToggle}
@@ -206,28 +179,26 @@ const BlogPost = () => {
                 >
                   <Heart
                     className={`w-5 h-5 transition-colors duration-300 
-                      ${
-                        article?.likedByCurrentUser
-                          ? "text-red-500 fill-red-500"
-                          : "text-gray-500 group-hover:text-red-400"
+                      ${article?.likedByCurrentUser
+                        ? "text-red-500 fill-red-500"
+                        : "text-emerald-600 group-hover:text-red-400"
                       }`}
                     fill={article?.likedByCurrentUser ? "currentColor" : "none"}
                   />
-                  <span>{article?.likeCount}</span>
+                  <span className="text-emerald-600">{article?.likeCount}</span>
                 </button>
 
-                {/* Edit and Delete Actions */}
                 {article?.userId === Number(ReduxuserId) && (
                   <div className="flex items-center space-x-3">
                     <button
                       onClick={handleEditClick}
-                      className="text-gray-500 hover:text-blue-600 transition-colors"
+                      className="text-emerald-600 hover:text-emerald-700 transition-colors"
                     >
                       <Pencil className="w-5 h-5" />
                     </button>
                     <button
                       onClick={handleDeleteClick}
-                      className="text-gray-500 hover:text-red-600 transition-colors"
+                      className="text-emerald-600 hover:text-red-600 transition-colors"
                     >
                       <Trash className="w-5 h-5" />
                     </button>
@@ -236,9 +207,8 @@ const BlogPost = () => {
               </div>
             </div>
 
-            {/* Content Section */}
             <div className="prose max-w-none text-gray-800 space-y-4">
-              <h2 className="text-2xl font-semibold text-gray-900 border-l-4 border-blue-500 pl-4 mb-4">
+              <h2 className="text-2xl font-semibold text-emerald-700 border-l-4 border-emerald-500 pl-4 mb-4">
                 Content
               </h2>
               <div
@@ -247,19 +217,19 @@ const BlogPost = () => {
               />
             </div>
 
-            {/* Summary Section */}
             <div className="prose max-w-none text-gray-800 space-y-4">
-              <h2 className="text-2xl font-semibold text-gray-900 border-l-4 border-green-500 pl-4 mb-4">
+              <h2 className="text-2xl font-semibold text-emerald-700 border-l-4 border-emerald-500 pl-4 mb-4">
                 Summary
               </h2>
-              <p className="leading-relaxed italic text-gray-700">
+              <p className="leading-relaxed italic text-emerald-700 bg-green-50/50 p-4 rounded-lg">
                 {article?.summary}
               </p>
             </div>
           </div>
         </div>
+        
         {article && postId && (
-          <div>
+          <div className="w-full max-w-3xl mt-8">
             <BlogsByAuthor
               userId={article.userId.toString()}
               currentBlogId={postId}
@@ -269,7 +239,6 @@ const BlogPost = () => {
         )}
       </main>
 
-      {/* Edit Modal */}
       {editMode && (
         <EditBlogModal
           title={editedBlogData.title}

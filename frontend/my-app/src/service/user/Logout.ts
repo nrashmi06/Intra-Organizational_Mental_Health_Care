@@ -1,10 +1,8 @@
-import axios from "axios";
+import axiosInstance from "@/utils/axios";
 import { API_ENDPOINTS } from "@/mapper/userMapper";
-// Function to log out the user
 export const logout = async (accessToken: string) => {
   try {
-    // Make a POST request to the logout endpoint
-    const response = await axios.post(
+    const response = await axiosInstance.post(
       `${API_ENDPOINTS.LOGOUT}`,
       {},
       {
@@ -15,10 +13,10 @@ export const logout = async (accessToken: string) => {
         withCredentials: true,
       }
     );
-
-    return response.data; // Return the response data
+    console.log("User logged out successfully");
+    console.log(response)
+   return response;
   } catch (error) {
     console.error("Error logging out the user:", error);
-    throw error; // Rethrow to handle in the calling function
   }
 };

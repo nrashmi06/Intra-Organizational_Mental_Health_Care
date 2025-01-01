@@ -1,22 +1,23 @@
-import axios from 'axios';
-import { API_ENDPOINTS } from '@/mapper/userMapper'; // Import the userMapper
-
+import axios from "axios";
+import { API_ENDPOINTS } from "@/mapper/userMapper"; // Import the userMapper
+import axiosInstance from "@/utils/axios";
 interface ForgotPasswordResponse {
   message: string;
 }
 
-const forgotPassword = async (email: string): Promise<string> => {
+const forgotPassword = async (email: string) => {
   try {
-    const response = await axios.post<ForgotPasswordResponse>(API_ENDPOINTS.FORGOT_PASSWORD, { email });
+    const response = await axiosInstance.post<ForgotPasswordResponse>(
+      API_ENDPOINTS.FORGOT_PASSWORD,
+      { email }
+    );
     // Assuming the response structure matches the example provided
     return response.data.message;
   } catch (error: any) {
     if (axios.isAxiosError(error)) {
-      console.error('API error:', error.response?.data || error.message);
-      throw new Error(error.response?.data?.message || 'Failed to process forgot-password request');
+      console.error("API error:", error.response?.data || error.message);
     } else {
-      console.error('Unexpected error:', error);
-      throw new Error('An unexpected error occurred');
+      console.error("Unexpected error:", error);
     }
   }
 };

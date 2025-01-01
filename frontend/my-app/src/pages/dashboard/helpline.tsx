@@ -6,40 +6,33 @@ import { useSelector } from 'react-redux';
 import { Button } from '@/components/ui/button';
 import { createEmergencyHelpline } from '@/service/emergency/CreateEmergencyHelpline';
 import { getAllHelplines } from '@/service/emergency/GetEmergencyHelpline';
-import '@/styles/global.css';
 import { deleteEmergencyHelpline } from '@/service/emergency/DeleteEmergencyHelpline';
 import { updateEmergencyHelpline } from '@/service/emergency/UpdateEmergencyHelpline';
+import '@/styles/global.css';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
+import { useAppDispatch } from '@/hooks/useAppDispatch';
+import { Helpline } from '@/lib/types';
 
 const Component = () => {
   const [isModalOpen, setModalOpen] = useState(false); // Modal state
-  const [newHelpline, setNewHelpline] = useState({
+  const [newHelpline, setNewHelpline] = useState<Helpline>({
     name: '',
     phoneNumber: '',
     countryCode: '',
     emergencyType: '',
-    priority: 1,
+    priority: 0
   });
-
-  interface Helpline {
-    helplineId: string;
-    name: string;
-    phoneNumber: string;
-    countryCode: string;
-    emergencyType: string;
-    priority: number;
-  }
-
-  const [helplines, setHelplines] = useState<Helpline[]>([]); // State to store the fetched helplines
-  const [shouldRefetch, setShouldRefetch] = useState(false); // State to track refetch trigger
 
   const userRole = useSelector((state: RootState) => state.auth.role);
   const token = useSelector((state: RootState) => state.auth.accessToken);
+  const helplines = useSelector((state: RootState) => state.emergency.helplines); // Access helplines directly from Redux store
+  const dispatch = useAppDispatch(); 
+
   const [isUpdateMode, setIsUpdateMode] = useState(false);
   const [selectedHelplineId, setSelectedHelplineId] = useState<string | null>(null);
 
   // Open modal with existing data for update
-  const handleEditHelpline = (helpline: Helpline) => {
+  const handleEditHelpline = (helpline: any) => {
     setNewHelpline(helpline); // Populate modal with existing data
     setSelectedHelplineId(helpline.helplineId); // Store the ID of the helpline being edited
     setIsUpdateMode(true); // Set to update mode
@@ -54,7 +47,7 @@ const Component = () => {
       await updateEmergencyHelpline(selectedHelplineId, token, newHelpline); // Call the API
       setModalOpen(false); // Close modal
       setIsUpdateMode(false); // Exit update mode
-      setShouldRefetch((prev) => !prev); // Trigger data refetch
+      dispatch(getAllHelplines()); // Trigger data refetch
     } catch (error) {
       console.error("Failed to update helpline:", error);
     }
@@ -66,7 +59,7 @@ const Component = () => {
   const handleDeleteHelpline = async (helplineId: string) => {
     try {
       await deleteEmergencyHelpline(helplineId, token); // Call delete API
-      setShouldRefetch((prev) => !prev); // Trigger refetch to update the table
+      dispatch(getAllHelplines()); // Trigger refetch to update the table
     } catch (error) {
       console.error("Failed to delete helpline:", error);
     }
@@ -81,25 +74,18 @@ const Component = () => {
     try {
       await createEmergencyHelpline(newHelpline, token); // Call the createEmergencyHelpline function
       setModalOpen(false); // Close modal after submission
-      setShouldRefetch((prev) => !prev); // Trigger refetch
+      dispatch(getAllHelplines()); // Trigger refetch
     } catch (error) {
       console.error("Failed to create helpline:", error);
     }
   };
 
-  // Fetch all helplines on component mount or when shouldRefetch or token changes
+  // Fetch all helplines on component mount or when the token changes
   useEffect(() => {
-    const fetchHelplines = async () => {
-      try {
-        const data = await getAllHelplines(token); // Get helplines data
-        setHelplines(data); // Store helplines in state
-      } catch (error) {
-        console.error("Failed to fetch helplines:", error);
-      }
-    };
-
-    fetchHelplines();
-  }, [shouldRefetch, token]); // Rerun useEffect when shouldRefetch or token changes
+    if (token) {
+      dispatch(getAllHelplines()); // Fetch helplines when component mounts or token changes
+    }
+  }, [token, dispatch]);
 
   return (
     <div className="min-h-screen">
@@ -134,7 +120,7 @@ const Component = () => {
                   </TableCell>
                 </TableRow>
               ) : (
-                helplines.map((helpline) => (
+                helplines.map((helpline: any) => (
                   <TableRow key={helpline.helplineId}>
                     <TableCell>{helpline.name}</TableCell>
                     <TableCell>{helpline.phoneNumber}</TableCell>
@@ -198,7 +184,6 @@ const Component = () => {
           </div>
         </div>
       )}
-
     </div>
   );
 };
