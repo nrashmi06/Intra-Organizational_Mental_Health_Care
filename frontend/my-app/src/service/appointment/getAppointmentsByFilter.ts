@@ -23,7 +23,7 @@ export const getAppointmentsByFilter =
         {
           params: {
             timeFilter: timeFilter === "ALL" ? undefined : timeFilter,
-            status: status === "ALL" ? "CONFIRMED" : status,
+            status: status === "ALL" ? undefined : status,
             page,
             size,
             adminID: userId,
