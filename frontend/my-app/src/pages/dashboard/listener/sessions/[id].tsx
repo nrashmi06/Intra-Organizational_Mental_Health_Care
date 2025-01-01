@@ -46,7 +46,7 @@ const ListenerSessions = () => {
           accessToken: token,
           page,
           size: 4,
-          idType: "listenerId",
+          idType: "userId",
           id: Number(id),
         });
 

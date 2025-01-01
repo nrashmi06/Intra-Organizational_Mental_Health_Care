@@ -32,25 +32,26 @@ export default function SignUp() {
       setMessage({ type: 'error', text: "Please enter a valid email address." });
       return;
     }
+
+    if (anonymousName.includes(" ")) {
+      setMessage({ type: 'error', text: "Anonymous name cannot contain spaces." });
+      return;
+    }
     
     setLoading(true);
     setMessage(null);
 
     try {
-      // Register user
       const response = await registerUser({ email, password, anonymousName });
       console.log("User registered successfully:", response);
 
-      // Trigger email verification
       await verifyEmail(email);
       
-      // Show success message
       setMessage({ 
         type: 'success', 
         text: "A verification email has been sent. Please verify your email before signing in." 
       });
       
-      // Redirect after a short delay
       setTimeout(() => {
         router.push("/signin");
       }, 3000);
@@ -70,7 +71,6 @@ export default function SignUp() {
     <div className="min-h-screen flex flex-col relative bg-gradient-to-b from-gray-50 to-white">
       <Navbar />
 
-      {/* Background Decoration */}
       <div className="fixed inset-0 z-0">
         <div className="absolute top-0 left-0 right-0 h-96 bg-gradient-to-br from-emerald-50 via-teal-50 to-green-50 opacity-70" />
         <div className="absolute top-1/3 left-0 w-1/2 h-96 bg-gradient-to-r from-emerald-100/30 to-transparent blur-3xl" />

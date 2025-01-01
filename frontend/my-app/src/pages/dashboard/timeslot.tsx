@@ -196,15 +196,7 @@ const TimeSlotPage = () => {
       </div>
     );
   }
-  if (timeSlots.length === 0) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-muted-foreground text-center">
-          <p className="text-lg font-semibold">No time slots available.</p>
-        </div>
-      </div>
-    );
-  }
+
   const groupedSlots = timeSlots ? groupSlots(timeSlots) : {};
 
   return (
@@ -233,12 +225,14 @@ const TimeSlotPage = () => {
           <InlineLoader />
         </div>
       ) : (
-        <AvailableTimeSlotsCard
-          groupedSlots={groupedSlots}
-          handleUpdateTimeSlot={handleUpdateTimeSlot}
-          handleDeleteTimeSlot={handleDeleteTimeSlot}
-          setRefreshKey={fetchTimeSlotData}
-        />
+        timeSlots && (
+          <AvailableTimeSlotsCard
+            groupedSlots={groupedSlots}
+            handleUpdateTimeSlot={handleUpdateTimeSlot}
+            handleDeleteTimeSlot={handleDeleteTimeSlot}
+            setRefreshKey={fetchTimeSlotData}
+          />
+        )
       )}
       <Pagination
         currentPage={currentPage}
