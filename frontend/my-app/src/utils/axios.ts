@@ -1,5 +1,8 @@
-import axios from 'axios';
+import axios from "axios";
+import refreshToken from "@/service/user/RefreshToken"; 
+import { useAppDispatch } from "@/hooks/useAppDispatch";
 
+// Create Axios instance
 const axiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_BASE_URL, // Replace with your API base URL
   timeout: 10000, // Optional: set a timeout for requests
@@ -9,20 +12,43 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.response.use(
   (response) => response, // Simply return the response if successful
   async (error) => {
+    const originalRequest = error.config;
+    const dispatch = useAppDispatch();
+
+    // Handle 429 (Too Many Requests) globally
     if (error.response?.status === 429) {
-      // Handle 429 Too Many Requests globally
-      console.info('You are being rate-limited. Please try again later.');
-      alert('You are being rate-limited. Please try again later.');
-
-      // Optional: Show a user-friendly message or notification
-      if (typeof window !== 'undefined') {
-        alert('Too many requests! Please slow down.');
+      console.info("You are being rate-limited. Please try again later.");
+      alert("You are being rate-limited. Please try again later.");
+      if (typeof window !== "undefined") {
+        alert("Too many requests! Please slow down.");
       }
-
-      // You could also implement retry logic here if necessary
     }
 
-    return Promise.reject(error); // Continue rejecting the error for local handling
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true; 
+
+      try {
+        // Call refresh token logic, separate from component-specific hooks
+        const data = await refreshToken(dispatch); // Assuming refreshToken is designed for this purpose
+        if (data && data.accessToken) {
+
+          // Retry the original request with the new token
+          originalRequest.headers["Authorization"] = `Bearer ${data.accessToken}`;
+          return axiosInstance(originalRequest); // Retry the request
+        } else {
+          // Handle failure to refresh token (e.g., log out user)
+          alert("Session expired. Please log in again.");
+          window.location.href = "/signin"; // Redirect to sign-in page (or log the user out)
+        }
+      } catch (refreshError) {
+        console.error("Token refresh failed", refreshError);
+        // Handle the case where the token refresh fails
+        alert("Error refreshing token. Please log in again.");
+        window.location.href = "/signin"; // Redirect to sign-in page
+      }
+    }
+
+    return Promise.reject(error); // Reject the error for local handling
   }
 );
 
