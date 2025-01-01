@@ -83,8 +83,8 @@ public class AuthController {
             HttpServletResponse response) {
 
         log.info("Logout request received");
-        log.debug("RefreshToken from cookie: {}", refreshToken != null ? "present" : "null");
-        log.debug("Auth header: {}", authHeader != null ? "present" : "null");
+        log.info("RefreshToken from cookie: {}", refreshToken != null ? "present" : "null");
+        log.info("Auth header: {}", authHeader != null ? "present" : "null");
 
         if (refreshToken == null && authHeader == null) {
             log.info("No tokens found in request - user already logged out");

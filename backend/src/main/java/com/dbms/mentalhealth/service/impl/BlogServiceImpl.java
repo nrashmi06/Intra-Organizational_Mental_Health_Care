@@ -217,7 +217,7 @@ public class BlogServiceImpl implements BlogService {
         }
         BlogLike blogLike = new BlogLike();
         blogLike.setBlog(blog);
-        userMetricService.updateBlogCount(userRepository.findById(blog.getUserId()).orElseThrow(() -> new UserNotFoundException("User not found")),1);
+        userMetricService.updateLikeCount(userRepository.findById(blog.getUserId()).orElseThrow(() -> new UserNotFoundException("User not found")),1);
         blogLike.setUser(userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found")));
         blog.setLikeCount(blog.getLikeCount() + 1);
         blogLike.setCreatedAt(LocalDateTime.now());
@@ -233,9 +233,8 @@ public class BlogServiceImpl implements BlogService {
 
         Blog blog = blogRepository.findById(blogId).orElseThrow(() -> new BlogNotFoundException("Blog not found"));
         BlogLike blogLike = blogLikeRepository.findByBlogIdAndUserUserId(blogId, userId).orElseThrow(() -> new UserNotFoundException("Like not found"));
-        userMetricService.updateBlogCount(userRepository.findById(blog.getUserId()).orElseThrow(() -> new UserNotFoundException("User not found")),-1);
+        userMetricService.updateLikeCount(userRepository.findById(blog.getUserId()).orElseThrow(() -> new UserNotFoundException("User not found")),-1);
         blogLikeRepository.delete(blogLike);
-
         blog.setLikeCount(blog.getLikeCount() - 1);
         blogRepository.save(blog);
 

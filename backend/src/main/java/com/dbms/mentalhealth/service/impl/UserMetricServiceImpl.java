@@ -41,7 +41,7 @@ public class UserMetricServiceImpl implements UserMetricService {
     }
 
     @Override
-    public void incrementAppointmentCount(User user) {
+    public void updateAppointmentCount(User user,int count) {
         UserMetrics userMetrics = userMetricsRepository.findByUser_AnonymousName(user.getAnonymousName())
                 .orElseThrow(() -> new IllegalArgumentException("UserMetrics not found for user: " + user.getAnonymousName()));
         userMetrics.setTotalAppointments(userMetrics.getTotalAppointments() + 1);
@@ -66,10 +66,10 @@ public class UserMetricServiceImpl implements UserMetricService {
     }
 
     @Override
-    public void incrementLikeCount(User user) {
+    public void updateLikeCount(User user,int count) {
         UserMetrics userMetrics = userMetricsRepository.findByUser_AnonymousName(user.getAnonymousName())
                 .orElseThrow(() -> new IllegalArgumentException("UserMetrics not found for user: " + user.getAnonymousName()));
-        userMetrics.setTotalLikesReceived(userMetrics.getTotalLikesReceived() + 1);
+        userMetrics.setTotalLikesReceived(userMetrics.getTotalLikesReceived() + count);
         userMetricsRepository.save(userMetrics);
     }
 
