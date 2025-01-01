@@ -83,9 +83,10 @@ public class SecurityConfig {
                 .addFilterBefore(corsConfig.corsFilter(), UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(rateLimitingFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(sseAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(webSocketAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(sseAuthenticationFilter, AuthTokenFilter.class)
+                .addFilterAfter(webSocketAuthenticationFilter, AuthTokenFilter.class)
                 .build();
+
 
         log.info("SecurityFilterChain configuration completed");
         return chain;

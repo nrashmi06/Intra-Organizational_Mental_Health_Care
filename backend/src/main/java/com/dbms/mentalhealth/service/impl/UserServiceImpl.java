@@ -16,10 +16,12 @@ import com.dbms.mentalhealth.service.RefreshTokenService;
 import com.dbms.mentalhealth.service.UserActivityService;
 import com.dbms.mentalhealth.service.UserService;
 import jakarta.persistence.EntityNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
@@ -38,6 +40,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
+@Slf4j
 public class UserServiceImpl implements UserService, UserDetailsService {
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
@@ -90,43 +93,61 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         return Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role.name()));
     }
 
-    @Override
     @Transactional
-    public Map<String, Object> loginUser(UserLoginRequestDTO userLoginDTO) {
+    public Map<String, Object> loginUser(UserLoginRequestDTO loginRequest) {
+        log.debug("Processing login for user: {}", loginRequest.getEmail());
+
+        // Authenticate user
         Authentication authentication;
         try {
             authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(userLoginDTO.getEmail(), userLoginDTO.getPassword())
+                    new UsernamePasswordAuthenticationToken(
+                            loginRequest.getEmail(),
+                            loginRequest.getPassword()
+                    )
             );
-        } catch (Exception e) {
+        } catch (AuthenticationException e) {
+            log.warn("Authentication failed for user: {}", loginRequest.getEmail());
             throw new InvalidUserCredentialsException("Invalid email or password");
         }
 
+        // Get user details after authentication
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         User user = userRepository.findByEmail(userDetails.getUsername());
 
         if (user == null) {
-            throw new UsernameNotFoundException("User not found with email: " + userDetails.getUsername());
+            log.error("User not found after authentication: {}", userDetails.getUsername());
+            throw new UsernameNotFoundException("User not found");
         }
 
+        // Verify user status
         if (!user.getProfileStatus().equals(ProfileStatus.ACTIVE)) {
-            throw new UserNotActiveException("User is not active");
-        }
-        if(user.getProfileStatus().equals(ProfileStatus.SUSPENDED)){
-            throw new UserAccountSuspendedException("User Account Suspended");
+            log.warn("Inactive user attempted login: {}", user.getEmail());
+            throw new UserNotActiveException("User account is not active");
         }
 
+        if (user.getProfileStatus().equals(ProfileStatus.SUSPENDED)) {
+            log.warn("Suspended user attempted login: {}", user.getEmail());
+            throw new UserAccountSuspendedException("User account is suspended");
+        }
+
+        // Update user status and last seen
         setUserActiveStatus(user.getEmail(), true);
+        user.setLastSeen(LocalDateTime.now());
+        userRepository.save(user);
 
+        // Generate tokens
         String accessToken = jwtUtils.generateTokenFromUsername(userDetails, user.getUserId());
         String refreshToken = refreshTokenService.createRefreshToken(user.getEmail()).getToken();
-        UserLoginResponseDTO responseDTO = UserMapper.toUserLoginResponseDTO(user);
+        UserLoginResponseDTO userDTO = UserMapper.toUserLoginResponseDTO(user);
 
+        // Create response
         Map<String, Object> response = new HashMap<>();
-        response.put("user", responseDTO);
+        response.put("user", userDTO);
         response.put("accessToken", accessToken);
         response.put("refreshToken", refreshToken);
 
+        log.info("Login successful for user: {}", user.getEmail());
         return response;
     }
 
