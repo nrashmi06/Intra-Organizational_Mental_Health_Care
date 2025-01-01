@@ -1,3 +1,5 @@
+//for client side pagination
+
 import { Button } from "./button";
 interface Pagination3Props {
     currentPage: number;

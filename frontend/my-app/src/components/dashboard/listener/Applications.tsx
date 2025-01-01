@@ -7,7 +7,7 @@ import { fetchApplication } from "@/service/listener/fetchApplication";
 import { getApplicationsByApprovalStatus } from "@/service/listener/getByStatus";
 import { SearchFilter } from "./SearchFilter";
 import { ApplicationsGrid } from "./ApplicationGrid";
-import Pagination from "@/components/ui/PaginationComponent"
+import Pagination from "@/components/ui/PaginationComponent";
 import { SuccessMessage } from "./SuccessMessage";
 import ListenerDetailsForAdmin from "@/components/dashboard/listener/ModalApplication";
 import InlineLoader from "@/components/ui/inlineLoader";
@@ -15,19 +15,30 @@ import InlineLoader from "@/components/ui/inlineLoader";
 export function ListenerApplicationsTable() {
   const dispatch = useAppDispatch();
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"PENDING" | "APPROVED" | "REJECTED">("PENDING");
+  const [statusFilter, setStatusFilter] = useState<
+    "PENDING" | "APPROVED" | "REJECTED"
+  >("PENDING");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
   const [applicationModal, setApplicationModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [selectedApplication, setSelectedApplication] = useState<ListenerApplication | null>(null);
-  const [selectedApplicationId, setSelectedApplicationId] = useState<number | null>(null);
+  const [selectedApplication, setSelectedApplication] =
+    useState<ListenerApplication | null>(null);
+  const [selectedApplicationId, setSelectedApplicationId] = useState<
+    number | null
+  >(null);
   const [loading, setLoading] = useState(true);
 
   const accessToken = useSelector((state: RootState) => state.auth.accessToken);
-  const applications = useSelector((state: RootState) => state.applicationList.applications);
-  const applicationDataFromStore = useSelector((state: RootState) => state.detailedApplication.applicationData);
-  const totalPages = useSelector((state: RootState) => state.applicationList.page?.totalPages ?? 0);
+  const applications = useSelector(
+    (state: RootState) => state.applicationList.applications
+  );
+  const applicationDataFromStore = useSelector(
+    (state: RootState) => state.detailedApplication.applicationData
+  );
+  const totalPages = useSelector(
+    (state: RootState) => state.applicationList.page?.totalPages ?? 0
+  );
 
   const fetchListenersByStatus = useCallback(async () => {
     try {
@@ -67,8 +78,10 @@ export function ListenerApplicationsTable() {
 
       try {
         setLoading(true);
-        const response = await dispatch(fetchApplication(accessToken, selectedApplicationId.toString()));
-        
+        const response = await dispatch(
+          fetchApplication(accessToken, selectedApplicationId.toString())
+        );
+
         if (response?.payload) {
           setSelectedApplication(response.payload);
         } else if (applicationDataFromStore) {
@@ -97,7 +110,10 @@ export function ListenerApplicationsTable() {
   const filteredApplications = applications.filter((application) => {
     return (
       application.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      application.applicationId.toString().toLowerCase().includes(searchQuery.toLowerCase())
+      application.applicationId
+        .toString()
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase())
     );
   });
 
@@ -135,10 +151,10 @@ export function ListenerApplicationsTable() {
 
       {applications.length > 0 && filteredApplications.length > 0 && (
         <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={setCurrentPage}
-      />
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
       )}
 
       {applicationModal && selectedApplication && (

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useSelector } from "react-redux";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -18,17 +18,18 @@ import InlineLoader from "@/components/ui/inlineLoader";
 import fetchRecentBlogs from "@/service/blog/fetchBlogs";
 import { RootState } from "@/store";
 import "@/styles/global.css";
-import getPageNumbers from "@/components/blog/PageNumbers";
 import { BlogPost } from "@/lib/types";
-import Pagination2 from "@/components/ui/pagination2";
+import ServerPagination from "@/components/ui/ServerPagination";
 
 const PAGE_SIZE_OPTIONS = [6, 9, 12, 15];
 const DEFAULT_FILTERS = {
   pageSize: 6,
   filterType: "TRENDING",
   searchQuery: "",
+  pageNumber: 0,
 };
 const DEBOUNCE_DELAY = 750;
+const STORAGE_KEY = "more-blogs-filters";
 
 export default function MoreBlogs() {
   const router = useRouter();
@@ -36,20 +37,51 @@ export default function MoreBlogs() {
   const token = useSelector((state: RootState) => state.auth.accessToken);
   const [blogs, setBlogs] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
+  
   const [searchQuery, setSearchQuery] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        const parsedStored = JSON.parse(stored);
+        return parsedStored.searchQuery || DEFAULT_FILTERS.searchQuery;
+      }
+    }
     return DEFAULT_FILTERS.searchQuery;
   });
+  
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(searchQuery);
 
-  const [paginationInfo, setPaginationInfo] = useState({
-    pageNumber: 0,
-    pageSize: DEFAULT_FILTERS.pageSize,
-    totalElements: 0,
-    totalPages: 0,
-    title: "",
+  const [paginationInfo, setPaginationInfo] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        const parsedStored = JSON.parse(stored);
+        return {
+          pageNumber: parsedStored.pageNumber || 0,
+          pageSize: parsedStored.pageSize || DEFAULT_FILTERS.pageSize,
+          totalElements: 0,
+          totalPages: 0,
+          title: "",
+        };
+      }
+    }
+    return {
+      pageNumber: 0,
+      pageSize: DEFAULT_FILTERS.pageSize,
+      totalElements: 0,
+      totalPages: 0,
+      title: "",
+    };
   });
 
   const [filterType, setFilterType] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        const parsedStored = JSON.parse(stored);
+        return parsedStored.filterType || DEFAULT_FILTERS.filterType;
+      }
+    }
     return DEFAULT_FILTERS.filterType;
   });
 
@@ -60,6 +92,18 @@ export default function MoreBlogs() {
 
     return () => clearTimeout(timer);
   }, [searchQuery]);
+
+  // Save to localStorage whenever filters change
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        pageNumber: paginationInfo.pageNumber,
+        pageSize: paginationInfo.pageSize,
+        filterType,
+        searchQuery,
+      }));
+    }
+  }, [paginationInfo.pageNumber, paginationInfo.pageSize, filterType, searchQuery]);
 
   useEffect(() => {
     if (!token) {
@@ -128,6 +172,21 @@ export default function MoreBlogs() {
     }
   };
 
+  const handleClearFilters = () => {
+    setFilterType(DEFAULT_FILTERS.filterType);
+    setPaginationInfo({
+      pageNumber: 0,
+      pageSize: DEFAULT_FILTERS.pageSize,
+      totalElements: 0,
+      totalPages: 0,
+      title: "",
+    });
+    setSearchQuery("");
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(STORAGE_KEY);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Head>
@@ -135,7 +194,7 @@ export default function MoreBlogs() {
       </Head>
       <Navbar />
       <div
-        className="w-full  py-8 md:py-10 border-b"
+        className="w-full py-8 md:py-10 border-b"
         style={{
           background:
             "linear-gradient(90deg, rgb(179, 245, 220) 0%, rgb(182, 230, 200) 3%, rgb(209, 224, 230) 18%, rgba(202, 206, 156, 0.64) 41%, rgb(210, 235, 214) 95%)",
@@ -153,7 +212,7 @@ export default function MoreBlogs() {
 
       <div className="w-full bg-white border-b py-4">
         <div className="container mx-auto px-4 max-w-7xl">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-center">
             <div className="relative">
               <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
                 <Search className="h-5 w-5 text-gray-400" />
@@ -164,7 +223,6 @@ export default function MoreBlogs() {
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
                   setPaginationInfo((prev) => ({ ...prev, pageNumber: 0 }));
-                  localStorage.setItem("blogSearchQuery", e.target.value);
                 }}
                 placeholder="Search blogs..."
                 className="pl-10 p-3 border rounded-lg w-full focus:ring-2 focus:ring-green-500 focus:border-green-500"
@@ -200,6 +258,14 @@ export default function MoreBlogs() {
             </Select>
 
             <Button
+              className="w-full flex items-center justify-center gap-2 p-3 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
+              onClick={handleClearFilters}
+            >
+              <X className="w-5 h-5" />
+              Clear Filters
+            </Button>
+
+            <Button
               className="w-full flex items-center justify-center gap-2 p-3 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors"
               onClick={() => router.push("/blog/create_blog")}
             >
@@ -233,10 +299,9 @@ export default function MoreBlogs() {
           </div>
         )}
       </div>
-      <Pagination2
+      <ServerPagination
         paginationInfo={paginationInfo}
-        blogs={blogs}
-        getPageNumbers={getPageNumbers}
+        elements={blogs}
         handlePageClick={handlePageClick}
       />
       <Footer />

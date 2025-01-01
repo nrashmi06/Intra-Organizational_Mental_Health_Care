@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useSelector } from "react-redux";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -18,17 +18,18 @@ import InlineLoader from "@/components/ui/inlineLoader";
 import fetchRecentBlogs from "@/service/blog/fetchBlogs";
 import { RootState } from "@/store";
 import "@/styles/global.css";
-import getPageNumbers from "@/components/blog/PageNumbers";
 import { BlogPost } from "@/lib/types";
-import Pagination2 from "@/components/ui/pagination2";
+import ServerPagination from "@/components/ui/ServerPagination";
 
 const PAGE_SIZE_OPTIONS = [6, 9, 12, 15];
 const DEFAULT_FILTERS = {
   pageSize: 6,
   filterType: "TRENDING",
   searchQuery: "",
+  pageNumber: 0,
 };
 const DEBOUNCE_DELAY = 750;
+const STORAGE_KEY = "blog-filters";
 
 export default function AllBlogsPage() {
   const router = useRouter();
@@ -40,15 +41,39 @@ export default function AllBlogsPage() {
   });
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(searchQuery);
 
-  const [paginationInfo, setPaginationInfo] = useState({
-    pageNumber: 0,
-    pageSize: DEFAULT_FILTERS.pageSize,
-    totalElements: 0,
-    totalPages: 0,
-    title: "",
+  const [paginationInfo, setPaginationInfo] = useState(() => {
+    // Load initial state from localStorage if available
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        const parsedStored = JSON.parse(stored);
+        return {
+          pageNumber: parsedStored.pageNumber || 0,
+          pageSize: parsedStored.pageSize || DEFAULT_FILTERS.pageSize,
+          totalElements: 0,
+          totalPages: 0,
+          title: "",
+        };
+      }
+    }
+    return {
+      pageNumber: 0,
+      pageSize: DEFAULT_FILTERS.pageSize,
+      totalElements: 0,
+      totalPages: 0,
+      title: "",
+    };
   });
 
   const [filterType, setFilterType] = useState<string>(() => {
+    // Load initial filter type from localStorage if available
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        const parsedStored = JSON.parse(stored);
+        return parsedStored.filterType || DEFAULT_FILTERS.filterType;
+      }
+    }
     return DEFAULT_FILTERS.filterType;
   });
 
@@ -59,6 +84,17 @@ export default function AllBlogsPage() {
 
     return () => clearTimeout(timer);
   }, [searchQuery]);
+
+  // Save to localStorage whenever filters change
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        pageNumber: paginationInfo.pageNumber,
+        pageSize: paginationInfo.pageSize,
+        filterType,
+      }));
+    }
+  }, [paginationInfo.pageNumber, paginationInfo.pageSize, filterType]);
 
   useEffect(() => {
     if (!token) {
@@ -123,6 +159,21 @@ export default function AllBlogsPage() {
     }
   };
 
+  const handleClearFilters = () => {
+    setFilterType(DEFAULT_FILTERS.filterType);
+    setPaginationInfo({
+      pageNumber: 0,
+      pageSize: DEFAULT_FILTERS.pageSize,
+      totalElements: 0,
+      totalPages: 0,
+      title: "",
+    });
+    setSearchQuery("");
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(STORAGE_KEY);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white">
       <Head>
@@ -145,9 +196,9 @@ export default function AllBlogsPage() {
           </p>
         </div>
       </div>
-      <div className="w-full bg-transparent  py-4">
+      <div className="w-full bg-transparent py-4">
         <div className="container mx-auto px-4 max-w-7xl ">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-center">
             <div className="relative">
               <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
                 <Search className="h-5 w-5 text-gray-400" />
@@ -193,6 +244,14 @@ export default function AllBlogsPage() {
             </Select>
 
             <Button
+              className="w-full flex items-center justify-center gap-2 p-3 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
+              onClick={handleClearFilters}
+            >
+              <X className="w-5 h-5" />
+              Clear Filters
+            </Button>
+
+            <Button
               className="w-full flex items-center justify-center gap-2 p-3 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors"
               onClick={() => router.push("/blog/create_blog")}
             >
@@ -226,10 +285,9 @@ export default function AllBlogsPage() {
         )}
       </div>
       <div className="container mx-auto px-4 max-w-7xl">
-        <Pagination2
+        <ServerPagination
           paginationInfo={paginationInfo}
-          blogs={blogs}
-          getPageNumbers={getPageNumbers}
+          elements={blogs}
           handlePageClick={handlePageClick}
         />
       </div>

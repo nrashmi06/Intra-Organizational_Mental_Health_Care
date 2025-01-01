@@ -39,19 +39,14 @@ export const ProfileSidebar = ({ open, onClose }: ProfileSidebarProps) => {
 
     setIsLoggingOut(true);
     try {
-      if (!accessToken) {
-        console.error("No access token found");
-        clearStore();
-        router.push("/signin");
+      const response = await logout(accessToken);
+      if (!response) {
+        console.error("No response from logout API");
         return;
       }
-
-      const response = await logout(accessToken);
-      if(!response) {
-        router.reload();
-        return
-      }
       if (response.status === 200 || response.status === 204) {
+        console.log(response);
+        console.log("RESPONSESTATUS", response.status);
         clearStore();
         router.push("/signin");
       } else {
