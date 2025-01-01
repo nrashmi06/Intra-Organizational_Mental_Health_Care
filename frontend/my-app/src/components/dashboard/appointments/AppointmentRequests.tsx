@@ -75,22 +75,22 @@ export function AppointmentRequests() {
       await setReject(true);
       await setSelectedAppointment(appointment);
       setShowPopUp(true);
-      fetchAppointments();
     } catch (error) {
       console.error("Error rejecting appointment:", error);
     }
   };
 
   const handleView = (appointment: Appointment) => {
+    setReject(false);
     setSelectedAppointment(appointment);
     setShowPopUp(true);
-    setReject(false);
   };
 
   const closePopUp = () => {
     setShowPopUp(false);
     setSelectedAppointment(null);
     setReject(false);
+    fetchAppointments();
   };
 
   const filteredAppointments = useMemo(() => {
