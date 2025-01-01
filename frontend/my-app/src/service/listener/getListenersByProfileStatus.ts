@@ -7,7 +7,7 @@ interface FilterParams {
   status: string;
   page: number;
   size: number;
-  userId: string;
+  userId?: string;
   search?: string;
 }
 
