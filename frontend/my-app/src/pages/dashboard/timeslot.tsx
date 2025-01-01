@@ -33,8 +33,8 @@ const TimeSlotPage = () => {
   const [newEndTime, setNewEndTime] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAvailable, setIsAvailable] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
   const token = useSelector((state: RootState) => state.auth.accessToken);
   const userID = useSelector((state: RootState) => state.auth.userId);
   const timeSlots = useSelector(
@@ -56,7 +56,6 @@ const TimeSlotPage = () => {
     return startDate.toISOString().split("T")[0];
   }, []);
 
-  // Memoized function to group slots
   const groupSlots = useCallback((slots: any[]) => {
     return slots.reduce((acc: any, slot: any) => {
       acc[slot.date] = acc[slot.date] || [];
@@ -65,7 +64,6 @@ const TimeSlotPage = () => {
     }, {});
   }, []);
 
-  // Fetch time slots
   const fetchTimeSlotData = useCallback(async () => {
     if (!token || !userID) {
       setIsLoading(false);
@@ -81,7 +79,7 @@ const TimeSlotPage = () => {
 
     try {
       await dispatch(
-        fetchTimeSlots(token, userID, today, end, true, currentPage - 1, 5)
+        fetchTimeSlots(token, userID, today, end, isAvailable, currentPage - 1, 5)
       );
       setIsLoading(false);
     } catch (error) {
@@ -89,7 +87,7 @@ const TimeSlotPage = () => {
       setIsLoading(false);
       console.error("Error fetching time slots:", error);
     }
-  }, [token, userID, currentPage, dispatch, getEndDate]);
+  }, [token, userID, currentPage, dispatch, getEndDate, isAvailable]);
 
   // Cleanup old slots
   useEffect(() => {
@@ -111,7 +109,6 @@ const TimeSlotPage = () => {
     cleanupOldSlots();
   }, [token, userID, getStartDate]);
 
-  // Fetch time slots effect
   useEffect(() => {
     fetchTimeSlotData();
   }, [fetchTimeSlotData]);
@@ -230,6 +227,7 @@ const TimeSlotPage = () => {
           handleUpdateTimeSlot={handleUpdateTimeSlot}
           handleDeleteTimeSlot={handleDeleteTimeSlot}
           setRefreshKey={fetchTimeSlotData}
+          setIsAvailable={setIsAvailable}
         />
       )}
       <Pagination

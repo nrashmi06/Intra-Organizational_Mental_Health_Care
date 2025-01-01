@@ -35,7 +35,7 @@ export const SelectedTimeSlots = ({
               Selected Time Slots
             </span>
             <Badge variant="secondary">
-              {selectedSlots.length} selected
+              {selectedSlots.length} 
             </Badge>
           </div>
         </CardTitle>
