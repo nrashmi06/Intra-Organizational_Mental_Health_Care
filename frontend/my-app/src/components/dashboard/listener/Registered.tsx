@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { Info } from "lucide-react";
+import { Info, Search } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -21,29 +21,27 @@ import { RootState } from "@/store";
 import { SuccessMessage } from "./SuccessMessage";
 import ServerPagination from "@/components/ui/ServerPagination";
 
-const PAGE_SIZE_OPTIONS = [2,4,6,8];
+const PAGE_SIZE_OPTIONS = [2, 4, 6, 8];
 const DEFAULT_FILTERS = {
   pageSize: 6,
   status: "ACTIVE",
+  searchQuery: "",
 };
+const DEBOUNCE_DELAY = 750;
 
 export function RegisteredListenersTable() {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const accessToken = useSelector((state: RootState) => state.auth.accessToken);
-  const listeners = useSelector(
-    (state: RootState) => state.listeners.listeners
-  );
+  const listeners = useSelector((state: RootState) => state.listeners.listeners);
 
-  const [statusFilter, setStatusFilter] = useState<"ACTIVE" | "SUSPENDED">(
-    "ACTIVE"
-  );
+  const [statusFilter, setStatusFilter] = useState<"ACTIVE" | "SUSPENDED">("ACTIVE");
+  const [searchQuery, setSearchQuery] = useState(DEFAULT_FILTERS.searchQuery);
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(searchQuery);
   const [loading, setLoading] = useState(false);
   const [detailsModal, setDetailsModal] = useState(false);
   const [applicationModal, setApplicationModal] = useState(false);
-  const [application, setApplication] = useState<ListenerApplication | null>(
-    null
-  );
+  const [application, setApplication] = useState<ListenerApplication | null>(null);
   const [selectedListener, setSelectedListener] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [paginationInfo, setPaginationInfo] = useState({
@@ -52,6 +50,15 @@ export function RegisteredListenersTable() {
     totalElements: 0,
     totalPages: 0,
   });
+
+  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, DEBOUNCE_DELAY);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const fetchListeners = useCallback(async () => {
     try {
@@ -62,6 +69,7 @@ export function RegisteredListenersTable() {
           page: paginationInfo.pageNumber,
           size: paginationInfo.pageSize,
           userId: accessToken,
+          search: debouncedSearchQuery,
         })
       );
     } catch (error) {
@@ -75,6 +83,7 @@ export function RegisteredListenersTable() {
     paginationInfo.pageSize,
     accessToken,
     dispatch,
+    debouncedSearchQuery,
   ]);
 
   useEffect(() => {
@@ -130,6 +139,22 @@ export function RegisteredListenersTable() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center gap-4">
+        <div className="relative w-full md:w-64">
+          <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+            <Search className="h-5 w-5 text-gray-400" />
+          </div>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setPaginationInfo((prev) => ({ ...prev, pageNumber: 0 }));
+            }}
+            placeholder="Search by anonymous name..."
+            className="pl-10 p-3 border rounded-lg w-full focus:ring-2 focus:ring-green-500 focus:border-green-500"
+          />
+        </div>
+
         <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
           <SelectTrigger className="w-[160px] bg-white">
             <SelectValue placeholder="Filter by status" />
@@ -139,6 +164,7 @@ export function RegisteredListenersTable() {
             <SelectItem value="SUSPENDED">Suspended</SelectItem>
           </SelectContent>
         </Select>
+
         <Select
           onValueChange={handlePageSizeChange}
           value={paginationInfo.pageSize.toString()}
