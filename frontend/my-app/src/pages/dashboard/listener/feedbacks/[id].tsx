@@ -10,7 +10,7 @@ import { getListenerFeedbacks } from "@/service/feedback/getListenerFeedbacks";
 import { ListenerFeedback } from "@/lib/types";
 import FeedbackAnalyticsTabs from "@/components/dashboard/listener/feedback/FeedbackAnalyticsTabs";
 import FeedbackStatsSummary from "@/components/dashboard/listener/feedback/FeedbackStatsSummary";
-import Pagination from "@/components/ui/ServerPagination";
+import Pagination3 from "@/components/ui/ClientPagination";
 
 const FeedbackDashboard = () => {
   const router = useRouter();
@@ -159,8 +159,6 @@ const FeedbackDashboard = () => {
     </Card>
   );
 
-  // Pagination
-  const totalPages = Math.ceil(feedbacks.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentFeedbacks = feedbacks.slice(
     startIndex,
@@ -187,9 +185,10 @@ const FeedbackDashboard = () => {
             currentFeedbacks={currentFeedbacks}
           />
 
-          <Pagination
+          <Pagination3
             currentPage={currentPage}
-            totalPages={totalPages}
+            itemsPerPage={itemsPerPage}
+            filteredElements={feedbacks}
             setCurrentPage={setCurrentPage}
           />
         </div>
