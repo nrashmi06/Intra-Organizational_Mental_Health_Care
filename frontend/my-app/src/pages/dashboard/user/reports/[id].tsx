@@ -17,7 +17,7 @@ import { getUserReportsByUserId } from "@/service/sessionReport/getReportsByUser
 import { UserReport } from "@/lib/types";
 import AnalyticsTabs from "@/components/dashboard/user/report/AnalyticsTabs";
 import StatsSummary from "@/components/dashboard/user/report/StatsSummary";
-import Pagination from "@/components/ui/ServerPagination";
+import Pagination3 from "@/components/ui/ClientPagination";
 
 const UserReports = () => {
   const router = useRouter();
@@ -178,8 +178,6 @@ const UserReports = () => {
     </Card>
   );
 
-  // Pagination
-  const totalPages = Math.ceil(reports.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentReports = reports.slice(startIndex, startIndex + itemsPerPage);
 
@@ -201,9 +199,10 @@ const UserReports = () => {
             ReportCard={ReportCard}
             currentReports={currentReports}
           />
-          <Pagination
+          <Pagination3
             currentPage={currentPage}
-            totalPages={totalPages}
+            itemsPerPage={itemsPerPage}
+            filteredElements={reports}
             setCurrentPage={setCurrentPage}
           />
         </div>
