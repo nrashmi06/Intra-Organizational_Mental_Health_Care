@@ -13,10 +13,10 @@ axiosInstance.interceptors.response.use(
   (response) => response, // Simply return the response if successful
   async (error) => {
     const originalRequest = error.config;
-    const dispatch = useAppDispatch();
+    console.log("Request inside axios instance failed with status code:", error.response?.status);
 
     // Handle 429 (Too Many Requests) globally
-    if (error.response?.status === 429) {
+    if (error.response?.status === undefined || error.response?.status === 429) {
       console.info("You are being rate-limited. Please try again later.");
       alert("You are being rate-limited. Please try again later.");
       if (typeof window !== "undefined") {
@@ -28,8 +28,8 @@ axiosInstance.interceptors.response.use(
       originalRequest._retry = true; 
 
       try {
-        // Call refresh token logic, separate from component-specific hooks
-        const data = await refreshToken(dispatch); // Assuming refreshToken is designed for this purpose
+        const dispatch = useAppDispatch();
+        const data = await dispatch(refreshToken); // Assuming refreshToken is designed for this purpose
         if (data && data.accessToken) {
 
           // Retry the original request with the new token
