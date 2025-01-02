@@ -16,28 +16,28 @@ const getStatusConfig = (status: string) => {
     CANCELLED: {
       cardClass: "bg-gradient-to-br from-red-50 to-red-100 hover:from-red-100 hover:to-red-200",
       accentClass: "bg-gradient-to-r from-red-500 to-red-600",
-      badgeClass: "bg-red-100 text-black ring-1 ring-red-500/30",
+      badgeClass: "bg-red-500  ring-1 ring-red-500/30",
       timeBlockClass: "bg-red-100/50",
       iconColor: "text-red-500"
     },
     CONFIRMED: {
       cardClass: "bg-gradient-to-br from-emerald-50 to-emerald-100 hover:from-emerald-100 hover:to-emerald-200",
       accentClass: "bg-gradient-to-r from-emerald-500 to-emerald-600",
-      badgeClass: "bg-teal-100 text-black ring-1 ring-emerald-500/30",
+      badgeClass: "bg-teal-500 ring-1 ring-emerald-500/30",
       timeBlockClass: "bg-emerald-100/50",
       iconColor: "text-emerald-500"
     },
     REQUESTED: {
       cardClass: "bg-gradient-to-br from-amber-50 to-amber-100 hover:from-amber-100 hover:to-amber-200",
       accentClass: "bg-gradient-to-r from-amber-500 to-amber-600",
-      badgeClass: "bg-white text-black ring-1 ring-amber-500/30",
+      badgeClass: "bg-yellow-500 ring-1 ring-amber-500/30",
       timeBlockClass: "bg-amber-100/50",
       iconColor: "text-amber-500"
     },
     DEFAULT: {
       cardClass: "bg-gradient-to-br from-gray-50 to-gray-100 hover:from-gray-100 hover:to-gray-200",
       accentClass: "bg-gradient-to-r from-gray-500 to-gray-600",
-      badgeClass: "bg-gray-100 text-black ring-1 ring-gray-500/30",
+      badgeClass: "bg-gray-100 ring-1 ring-gray-500/30",
       timeBlockClass: "bg-gray-100/50",
       iconColor: "text-gray-500"
     }
