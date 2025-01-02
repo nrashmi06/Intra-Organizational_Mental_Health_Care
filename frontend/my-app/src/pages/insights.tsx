@@ -40,13 +40,13 @@ const DashboardPage = () => {
           paginationInfo.pageSize
         );
 
-        setBlogs(response.content);
+        setBlogs(response?.content);
         setPaginationInfo((prev) => ({
           ...prev,
-          totalPages: response.pageInfo.totalPages,
-          totalElements: response.pageInfo.totalElements,
-          pageSize: response.pageInfo.size,
-          pageNumber: response.pageInfo.number,
+          totalPages: response?.pageInfo.totalPages,
+          totalElements: response?.pageInfo.totalElements,
+          pageSize: response?.pageInfo.size,
+          pageNumber: response?.pageInfo.number,
         }));
       }
     } catch (error) {

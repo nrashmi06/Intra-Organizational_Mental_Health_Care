@@ -14,11 +14,12 @@ axiosInstance.interceptors.response.use(
     (response) => response,
     async (error) => {
         const originalRequest = error.config;
+        console.log(" The status of error is ", error.response?.status);
         
         if (error.response?.status === undefined || error.response?.status === 429) {
             console.info("You are being rate-limited. Please try again later.");
             if (typeof window !== "undefined") {
-                alert("Too many requests! Please slow down.");
+                window.location.href = "/RateLimitPage";
             }
             return Promise.reject(error);
         }
@@ -27,12 +28,9 @@ axiosInstance.interceptors.response.use(
             originalRequest._retry = true;
 
             try {
-                const result = await refreshToken(store.dispatch);
-                
-                if (result?.accessToken) {
-                    originalRequest.headers["Authorization"] = `Bearer ${result.accessToken}`;
-                    return axiosInstance(originalRequest);
-                }
+                await refreshToken(store.dispatch);
+                originalRequest.headers["Authorization"] = `Bearer ${store.getState().auth.accessToken}`;
+                return axiosInstance(originalRequest);
             } catch (refreshError) {
                 console.error("Token refresh failed", refreshError);
                 if (typeof window !== "undefined") {
