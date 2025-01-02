@@ -6,26 +6,16 @@ import { RootState } from "@/store";
 import { getAppointmentsByFilter } from "@/service/appointment/getAppointmentsByFilter";
 import {
   Search,
-  Calendar,
-  Clock,
-  User,
-  Eye,
-  CheckCircle,
   XCircle,
 } from "lucide-react";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardFooter,
-} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import AppointmentDetailView from "@/components/dashboard/AppointmentDetailView";
 import StatusInputComponent from "@/components/dashboard/appointments/MessageRequestBox";
 import updateAppointmentStatus from "@/service/appointment/updateAppointmentStatus";
 import { Appointment } from "@/lib/types";
 import Pagination from "@/components/ui/PaginationComponent";
+import AppointmentRequestCard from "./AppointmentRequestCard";
 
 export function AppointmentRequests() {
   const dispatch = useAppDispatch();
@@ -138,15 +128,7 @@ export function AppointmentRequests() {
 
   useEffect(() => {
     fetchAppointments();
-  }, [
-    token,
-    dispatch,
-    statusFilter,
-    currentPage,
-    pageSize,
-    timeFilter,
-    userId,
-  ]);
+  }, [token, dispatch, statusFilter, currentPage,pageSize,timeFilter,userId,]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -210,87 +192,13 @@ export function AppointmentRequests() {
           ) : filteredAppointments.length > 0 ? (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {filteredAppointments.map((appointment: Appointment) => (
-                <Card
+                <AppointmentRequestCard
                   key={appointment.appointmentId}
-                  className="bg-white hover:shadow-xl transition-all duration-300 border border-gray-100"
-                >
-                  <CardHeader className="border-b border-gray-100 bg-gray-50">
-                    <div className="flex items-center gap-2">
-                      <User className="w-5 h-5 text-blue-600" />
-                      <span className="font-medium text-gray-900">
-                        {appointment.userName}
-                      </span>
-                    </div>
-                  </CardHeader>
-
-                  <CardContent className="pt-4 space-y-4">
-                    <div className="bg-gray-50 p-3 rounded-lg">
-                      <p className="text-sm text-gray-700 font-medium">
-                        Reason for Visit:
-                      </p>
-                      <p className="text-sm mt-1">
-                        {appointment.appointmentReason}
-                      </p>
-                    </div>
-
-                    <div className="flex items-center gap-3 text-gray-700">
-                      <Calendar className="w-4 h-4 text-blue-600" />
-                      <span className="text-sm">{appointment.date}</span>
-                    </div>
-
-                    <div className="flex items-center gap-3 text-gray-700">
-                      <Clock className="w-4 h-4 text-blue-600" />
-                      <span className="text-sm">
-                        {appointment.startTime} - {appointment.endTime}
-                      </span>
-                    </div>
-                  </CardContent>
-
-                  <CardFooter className="border-t border-gray-100 p-3">
-                    <div className="flex flex-col space-y-2 w-full">
-                      <Button
-                        value="View Details"
-                        variant="ghost"
-                        className="w-full hover:bg-stone-100 text-emerald-700 text-sm font-semibold shadow hover:shadow-lg transition-all duration-300 inline-flex items-center justify-center h-9"
-                        onClick={() => handleView(appointment)}
-                      >
-                        <div className="flex items-center">
-                          <Eye className="w-4 h-4 mr-1.5" strokeWidth={2} />
-                          <span>View Details</span>
-                        </div>
-                      </Button>
-
-                      <div className="flex gap-2 w-full">
-                        <Button
-                          className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold shadow hover:shadow-lg transition-all duration-300 inline-flex items-center justify-center h-9"
-                          onClick={() => handleAccept(appointment)}
-                        >
-                          <div className="flex items-center">
-                            <CheckCircle
-                              className="w-4 h-4 mr-1.5"
-                              strokeWidth={2}
-                            />
-                            <span>Accept</span>
-                          </div>
-                        </Button>
-
-                        <Button
-                          variant="outline"
-                          className="flex-1 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold shadow hover:shadow-lg transition-all duration-300 inline-flex items-center justify-center h-9"
-                          onClick={() => handleReject(appointment)}
-                        >
-                          <div className="flex items-center">
-                            <XCircle
-                              className="w-4 h-4 mr-1.5"
-                              strokeWidth={2}
-                            />
-                            <span>Reject</span>
-                          </div>
-                        </Button>
-                      </div>
-                    </div>
-                  </CardFooter>
-                </Card>
+                  appointment={appointment}
+                  onView={handleView}
+                  onAccept={handleAccept}
+                  onReject={handleReject}
+                />
               ))}
               <div className="col-span-full flex justify-center mt-8">
                 <Pagination
