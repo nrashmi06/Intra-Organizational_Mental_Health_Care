@@ -143,10 +143,11 @@ public class AuthController {
 
         // Set new refresh token as HttpOnly cookie
         refreshTokenService.setSecureRefreshTokenCookie(response, newRefreshToken);
+        String bearerToken = "Bearer " + newAccessToken;
 
-        // Only return new access token in Authorization header and user data in body
+        // Return new access token in Authorization header and user data in body
         return ResponseEntity.ok()
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + newAccessToken)
+                .header(HttpHeaders.AUTHORIZATION, bearerToken)
                 .body(responseDTO);
     }
 }
