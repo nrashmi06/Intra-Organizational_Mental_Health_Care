@@ -24,7 +24,7 @@ interface BlogApprovalTableProps {
 }
 
 const BlogApprovalTable: React.FC<BlogApprovalTableProps> = ({
-  blogs,
+  blogs = [],
   statusFilter,
 }) => {
   const token = useSelector((state: RootState) => state.auth.accessToken); // Get token from Redux state
@@ -86,7 +86,7 @@ const BlogApprovalTable: React.FC<BlogApprovalTableProps> = ({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {blogs.length > 0 ? (
+          {blogs.length || 0 > 0 ? (
             blogs.map((blog) => (
               <TableRow key={blog.id}>
                 <TableCell>
