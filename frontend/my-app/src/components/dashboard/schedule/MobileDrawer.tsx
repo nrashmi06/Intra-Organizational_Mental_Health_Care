@@ -105,9 +105,10 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
                     <CardContent className="p-4">
                       <div className="space-y-4">
                         <div className="flex justify-between items-start gap-3">
-                          <h3 className="text-lg font-semibold text-gray-900 flex-1">
-                            {apt.appointmentReason}
-                          </h3>
+                        <h3 className="text-lg font-semibold text-gray-900 flex-1 whitespace-normal break-words">
+  {apt.appointmentReason}
+</h3>
+
                           <Badge
                             className={`${statusConfig.badgeClass} text-xs font-medium px-3 py-1 rounded-full whitespace-nowrap`}
                           >

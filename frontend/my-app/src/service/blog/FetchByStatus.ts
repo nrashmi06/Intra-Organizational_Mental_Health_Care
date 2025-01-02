@@ -39,15 +39,12 @@ export async function fetchByStatus(status: string, token: string, page?: number
       };
     } else {
       console.error('Unexpected data structure:', data);
-      throw new Error('Invalid response structure');
     }
   } catch (error : any) {
     if (axios.isAxiosError(error)) {
       console.error('Axios error response:', error.response?.data);
-      throw new Error(error.response?.data?.message || 'Failed to fetch blogs');
     } else {
       console.error('Unexpected error:', error);
-      throw new Error('An unexpected error occurred');
     }
   }
 }
