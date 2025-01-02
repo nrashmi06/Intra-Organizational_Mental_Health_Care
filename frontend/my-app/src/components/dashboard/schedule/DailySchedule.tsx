@@ -2,6 +2,18 @@ import React from "react";
 import { Appointment } from "@/lib/types";
 import { format, parseISO } from "date-fns";
 
+const getColorByStatus = (status : string) => {
+  switch (status) {
+    case "approved":
+      return "bg-green-500";
+    case "rejected":
+      return "bg-red-500";
+    default:
+      return "bg-yellow-200"; 
+  }
+};
+
+
 const DailySchedule: React.FC<{
   appointments: Appointment[];
   date: Date;
@@ -75,13 +87,14 @@ const DailySchedule: React.FC<{
           {/* Appointments overlay */}
           {processAppointmentsForDay().map((apt, aptIdx) => (
             <div
-              key={aptIdx}
-              className="absolute left-1 right-1 bg-blue-100 rounded-lg border border-blue-200 p-2 overflow-hidden"
-              style={{
-                top: `${apt.top}px`,
-                height: `${apt.height}px`,
-              }}
-            >
+            key={aptIdx}
+            className={`absolute left-1 right-1 ${getColorByStatus(apt.status)} rounded-lg border border-blue-200 p-2 overflow-hidden`}
+            style={{
+              top: `${apt.top}px`,
+              height: `${apt.height}px`,
+            }}
+          >
+          
               <div className="text-sm font-medium text-blue-900 truncate">
                 {apt.appointmentReason}
               </div>
