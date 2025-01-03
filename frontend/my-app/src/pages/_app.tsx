@@ -12,6 +12,7 @@ import DashboardLoader from "@/components/ui/dashboardLoader";
 import type { ReactElement, ReactNode } from "react";
 import type { NextPage } from "next";
 import '@/styles/navbar.css';
+import '@/styles/globals.css';
 
 type NextPageWithLayout = NextPage & {
   getLayout?: (page: ReactElement) => ReactNode;
