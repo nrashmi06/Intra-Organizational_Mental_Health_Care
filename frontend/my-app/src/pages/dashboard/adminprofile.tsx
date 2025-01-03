@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { X } from "lucide-react";
-import "@/styles/global.css";
 import { createAdminProfile } from "@/service/adminProfile/CreateAdminProfile";
 import { fetchAdminProfile } from "@/service/adminProfile/GetAdminProfile";
 import { updateAdminProfile } from "@/service/adminProfile/UpdateAdminProfile";

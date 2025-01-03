@@ -4,7 +4,6 @@ import { RootState } from "@/store";
 import { getListenerDetails } from "@/service/listener/getListenerDetails";
 import { Star, X, MessageCircle, Calendar, Shield, Headphones, ThumbsUp, Eye, BookOpen } from "lucide-react";
 import { ListenerDetails } from "@/lib/types";
-import "@/styles/global.css";
 import InlineLoader from "../ui/inlineLoader";
 import SendMessageModal from "./SendMessageModal";
 
