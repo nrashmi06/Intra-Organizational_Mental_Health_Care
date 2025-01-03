@@ -4,7 +4,6 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import "@/styles/globals.css";
 import { useRouter } from "next/router";
 import Navbar from "@/components/navbar/Navbar2"; // Adjust the import path
 import { submitFeedback } from "@/service/sessionReport/listnerReport"; // Adjust the path as needed

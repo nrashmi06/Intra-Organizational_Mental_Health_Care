@@ -3,8 +3,7 @@ import { Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useRouter } from "next/navigation";
-import Navbar from "@/components/navbar/Navbar2"; // Import your Navbar component
-import "@/styles/globals.css";
+import Navbar from "@/components/navbar/Navbar2"; 
 import submitFeedback from "@/service/feedback/sendFeedback"; // Import the submitFeedback API function
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
