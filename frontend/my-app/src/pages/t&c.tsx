@@ -4,7 +4,6 @@ import { useRouter } from 'next/navigation';
 import Footer from "@/components/footer/Footer"
 import Navbar from "@/components/navbar/Navbar2"
 import { Button } from "@/components/ui/button"
-import "@/styles/global.css";
 
 export default function TermsAndConditions() {
   const router = useRouter();

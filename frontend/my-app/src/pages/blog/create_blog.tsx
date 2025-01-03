@@ -11,7 +11,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { RootState } from "@/store";
 import { createBlog } from "@/service/blog/Create_blog";
-import "@/styles/globals.css";
 
 const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
 import "quill/dist/quill.snow.css";

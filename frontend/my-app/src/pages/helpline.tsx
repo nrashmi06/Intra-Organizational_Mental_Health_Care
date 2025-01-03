@@ -15,7 +15,6 @@ import { RootState } from "@/store";
 import { useSelector } from "react-redux";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
 import { getAllHelplines } from "@/service/emergency/GetEmergencyHelpline";
-import "@/styles/global.css";
 
 interface Helpline {
   helplineId: string;
