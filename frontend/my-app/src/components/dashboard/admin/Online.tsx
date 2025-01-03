@@ -7,7 +7,6 @@ import { getActiveUserByRoleName } from "@/service/SSE/getActiveUserByRoleName";
 import ModalDetails from "./ModalDetails";
 import { Admin } from "@/lib/types";
 import UserIcon from "@/components/ui/userIcon";
-import "@/styles/global.css";
 import InlineLoader from "@/components/ui/inlineLoader";
 import { addEventSource, clearEventSources, removeEventSource } from "@/store/eventsourceSlice";
 import { AppDispatch, RootState } from "@/store";
