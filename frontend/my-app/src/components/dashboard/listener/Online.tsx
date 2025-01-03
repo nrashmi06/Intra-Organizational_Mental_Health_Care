@@ -3,13 +3,8 @@ import {
   Search,
   Users,
   Info,
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { getActiveListeners } from "@/service/SSE/getActiveListeners";
 import { AppDispatch, RootState } from "@/store";
 import { useDispatch, useSelector } from "react-redux";
@@ -26,6 +21,7 @@ import {
   clearEventSources,
   removeEventSource,
 } from "@/store/eventsourceSlice";
+import Pagination3 from "@/components/ui/ClientPagination";
 
 export function OnlineListenersTable() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -35,7 +31,9 @@ export function OnlineListenersTable() {
   const token = useSelector((state: RootState) => state.auth.accessToken);
   const [detailsModal, setDetailsModal] = useState(false);
   const [applicationModal, setApplicationModal] = useState(false);
-  const [application, setApplication] = useState<ListenerApplication | null>(null);
+  const [application, setApplication] = useState<ListenerApplication | null>(
+    null
+  );
   const [selectedListener, setSelectedListener] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const dispatch = useDispatch<AppDispatch>();
@@ -87,7 +85,10 @@ export function OnlineListenersTable() {
 
   const fetchApplicationData = async (userId: string) => {
     try {
-      const fetchedApplication = await getApplicationByListenerUserId(userId, token);
+      const fetchedApplication = await getApplicationByListenerUserId(
+        userId,
+        token
+      );
       setApplication(fetchedApplication);
       setApplicationModal(true);
     } catch (error) {
@@ -97,49 +98,19 @@ export function OnlineListenersTable() {
 
   const filteredListeners = listeners.filter(
     (listener) =>
-      listener.anonymousName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      listener.userId.toString().toLowerCase().includes(searchQuery.toLowerCase())
+      listener.anonymousName
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
+      listener.userId
+        .toString()
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase())
   );
 
-  const totalPages = Math.ceil(filteredListeners.length / itemsPerPage);
   const paginatedListeners = filteredListeners.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
-
-  // Pagination controls
-  const goToPage = (page: number) => {
-    setCurrentPage(Math.max(1, Math.min(page, totalPages)));
-  };
-
-  const renderPageNumbers = () => {
-    const pageNumbers = [];
-    const maxVisiblePages = 5;
-    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-    const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-
-    if (endPage - startPage + 1 < maxVisiblePages) {
-      startPage = Math.max(1, endPage - maxVisiblePages + 1);
-    }
-
-    for (let i = startPage; i <= endPage; i++) {
-      pageNumbers.push(
-        <Button
-          key={i}
-          onClick={() => goToPage(i)}
-          variant={currentPage === i ? "default" : "outline"}
-          className={`h-8 w-8 p-0 ${
-            currentPage === i
-              ? "bg-primary text-primary-foreground hover:bg-primary/90"
-              : "hover:bg-accent"
-          }`}
-        >
-          {i}
-        </Button>
-      );
-    }
-    return pageNumbers;
-  };
 
   return (
     <div className="space-y-6">
@@ -189,50 +160,14 @@ export function OnlineListenersTable() {
             </div>
           )}
 
-{filteredListeners.length > 0 && (
-  <div className="flex flex-col items-center gap-4 mt-6">
-    <div className="text-sm text-muted-foreground">
-      Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredListeners.length)} of {filteredListeners.length} results
-    </div>
-    <div className="flex items-center gap-2">
-      <Button
-        variant="outline"
-        className="h-8 w-8 p-0"
-        onClick={() => goToPage(1)}
-        disabled={currentPage === 1}
-      >
-        <ChevronsLeft className="h-4 w-4" />
-      </Button>
-      <Button
-        variant="outline"
-        className="h-8 w-8 p-0"
-        onClick={() => goToPage(currentPage - 1)}
-        disabled={currentPage === 1}
-      >
-        <ChevronLeft className="h-4 w-4" />
-      </Button>
-
-      <div className="flex items-center gap-2 mx-2">{renderPageNumbers()}</div>
-
-      <Button
-        variant="outline"
-        className="h-8 w-8 p-0"
-        onClick={() => goToPage(currentPage + 1)}
-        disabled={currentPage === totalPages}
-      >
-        <ChevronRight className="h-4 w-4" />
-      </Button>
-      <Button
-        variant="outline"
-        className="h-8 w-8 p-0"
-        onClick={() => goToPage(totalPages)}
-        disabled={currentPage === totalPages}
-      >
-        <ChevronsRight className="h-4 w-4" />
-      </Button>
-    </div>
-  </div>
-)}
+          {filteredListeners.length > 0 && (
+            <Pagination3
+              currentPage={currentPage}
+              itemsPerPage={itemsPerPage}
+              setCurrentPage={setCurrentPage}
+              filteredElements={filteredListeners}
+            />
+          )}
         </>
       )}
 

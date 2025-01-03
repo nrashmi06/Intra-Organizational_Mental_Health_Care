@@ -7,10 +7,10 @@ import UserDetails from "@/components/dashboard/user/ModalDetails";
 import ListenerDetails from "../listener/ModalDetails";
 import StatusFilter from "./StatusFilter";
 import SessionGrid from "./SessionGrid";
-import Pagination from "@/components/dashboard/Pagination";
 import MobileSessionDrawer from "./MobileSessionDrawer";
 import { Session } from "@/lib/types";
 import { useMediaQuery } from "@/lib/utils";
+import ServerPagination from "@/components/ui/ServerPagination";
 
 export const CompletedSessions = () => {
   const token = useSelector((state: RootState) => state.auth.accessToken);
@@ -142,10 +142,10 @@ export const CompletedSessions = () => {
               />
 
               {sessions.length > 0 && (
-                <Pagination
-                  currentPage={paginationInfo.pageNumber + 1} // Convert to 1-based for display
-                  totalPages={paginationInfo.totalPages}
-                  onPageChange={handlePageChange}
+                <ServerPagination
+                  paginationInfo={paginationInfo}
+                  elements={sessions}
+                  handlePageClick={handlePageChange}
                 />
               )}
             </div>

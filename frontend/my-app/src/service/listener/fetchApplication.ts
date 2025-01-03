@@ -69,8 +69,5 @@ export const fetchApplication =
           console.log("Error Response Status:", status);
         }
       }
-
-      // Log other errors for debugging
-      console.error("Error fetching application:", error);
     }
   };

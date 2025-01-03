@@ -3,7 +3,6 @@ import Navbar from "@/components/navbar/Navbar2";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Checkbox from "@/components/ui/checkbox";
-import Link from "next/link";
 import { useSelector } from "react-redux";
 import { fetchAdmins } from "@/service/adminProfile/getAllAdmin";
 import { RootState } from "@/store";
@@ -18,6 +17,7 @@ import { AppointmentReason } from "@/components/bookAppointments/AppointmentReas
 import { PrioritySelect } from "@/components/bookAppointments/PrioritySelect";
 import { FormData, Slot } from "@/lib/types";
 import SuccessMessage from "@/components/bookAppointments/SuccessMessage";
+import TermsModal from "@/components/terms/TermsAndConditionModal";
 export default function BookAppointment() {
   const [showTooltip, setShowTooltip] = useState(false);
   const [admins, setAdmins] = useState([]);
@@ -30,6 +30,7 @@ export default function BookAppointment() {
   const [formData, setFormData] = useState<FormData>({} as FormData);
   const [showSuccess, setShowSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
 
   const token = useSelector((state: RootState) => state.auth.accessToken);
 
@@ -195,15 +196,22 @@ export default function BookAppointment() {
                 />
                 <label htmlFor="terms" className="text-sm text-gray-600">
                   I agree to the{" "}
-                  <Link
-                    href="/t&c"
+                  <button
+                    type="button" 
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setIsTermsModalOpen(true);
+                    }}
                     className="text-purple-600 hover:text-purple-800 font-medium"
                   >
-                    Terms of Service and Privacy Policy
-                  </Link>
+                    Terms of Service 
+                  </button>
                 </label>
               </div>
-
+              <TermsModal 
+                isOpen={isTermsModalOpen} 
+                onClose={() => setIsTermsModalOpen(false)} 
+              />
               <Button
                 type="submit"
                 disabled={isSubmitting}

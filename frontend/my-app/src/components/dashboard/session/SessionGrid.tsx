@@ -1,14 +1,17 @@
 // SessionGrid.tsx
-import React from 'react';
-import SessionCard from './SessionCard';
-import InlineLoader from '@/components/ui/inlineLoader';
-import { Session } from '@/lib/types';
+import React from "react";
+import SessionCard from "./SessionCard";
+import InlineLoader from "@/components/ui/inlineLoader";
+import { Session } from "@/lib/types";
 
 interface SessionGridProps {
   loading: boolean;
   sessions: Session[];
   activeSessionId: string | null;
-  handleDetailView: (session: Session, view: "report" | "feedback" | "messages") => void;
+  handleDetailView: (
+    session: Session,
+    view: "report" | "feedback" | "messages"
+  ) => void;
   handleListenerModal: (session: Session) => void;
   handleUserModal: (session: Session) => void;
 }

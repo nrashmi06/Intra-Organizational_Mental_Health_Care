@@ -10,8 +10,8 @@ import {
 import InlineLoader from "@/components/ui/inlineLoader";
 import fetchBlogs from "@/service/blog/fetchBlogs";
 import BlogCard from "@/components/blog/BlogCard";
-import Pagination from "@/components/dashboard/Pagination";
 import { BlogPost } from "@/lib/types";
+import ServerPagination from "../ui/ServerPagination";
 
 const PAGE_SIZE_OPTIONS = [3, 6, 9, 12];
 const DEFAULT_FILTERS = {
@@ -197,11 +197,11 @@ const BlogsByAuthor = ({ userId, token }: AuthorBlogsProps) => {
       </div>
 
       {paginationInfo.totalPages > 1 && (
-        <Pagination
-          currentPage={paginationInfo.pageNumber + 1}
-          totalPages={paginationInfo.totalPages}
-          onPageChange={handlePageClick}
-        />
+        <ServerPagination
+          paginationInfo={paginationInfo}
+          elements={blogs}
+          handlePageClick={handlePageClick}
+        />  
       )}
     </div>
   );

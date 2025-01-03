@@ -13,8 +13,8 @@ import { BlogApproval } from "@/lib/types";
 import "@/styles/global.css";
 import InlineLoader from "@/components/ui/inlineLoader";
 import { PaginationInfo } from "@/lib/types";
-import PaginationComponent from "@/components/ui/PaginationComponent";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
+import ServerPagination from "@/components/ui/ServerPagination";
 
 const DashboardPage = () => {
   const [blogs, setBlogs] = useState<BlogApproval[]>([]);
@@ -40,13 +40,13 @@ const DashboardPage = () => {
           paginationInfo.pageSize
         );
 
-        setBlogs(response.content);
+        setBlogs(response?.content);
         setPaginationInfo((prev) => ({
           ...prev,
-          totalPages: response.pageInfo.totalPages,
-          totalElements: response.pageInfo.totalElements,
-          pageSize: response.pageInfo.size,
-          pageNumber: response.pageInfo.number,
+          totalPages: response?.pageInfo.totalPages,
+          totalElements: response?.pageInfo.totalElements,
+          pageSize: response?.pageInfo.size,
+          pageNumber: response?.pageInfo.number,
         }));
       }
     } catch (error) {
@@ -156,10 +156,10 @@ const DashboardPage = () => {
                 </div>
 
                 <div className="border-t border-emerald-100">
-                  <PaginationComponent
-                    currentPage={paginationInfo.pageNumber}
-                    totalPages={paginationInfo.totalPages}
-                    onPageChange={handlePageClick}
+                  <ServerPagination
+                    elements={blogs}
+                    paginationInfo={paginationInfo}
+                    handlePageClick={handlePageClick}
                   />
                 </div>
               </>
@@ -171,6 +171,8 @@ const DashboardPage = () => {
   );
 };
 
-DashboardPage.getLayout = (page: any) => <DashboardLayout>{page}</DashboardLayout>;
+DashboardPage.getLayout = (page: any) => (
+  <DashboardLayout>{page}</DashboardLayout>
+);
 
 export default DashboardPage;

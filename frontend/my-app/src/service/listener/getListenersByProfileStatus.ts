@@ -7,11 +7,12 @@ interface FilterParams {
   status: string;
   page: number;
   size: number;
-  userId: string;
+  userId?: string;
+  search?: string;
 }
 
 export const getListenersByProfileStatus =
-  ({ status, page, size, userId }: FilterParams) =>
+  ({ status, page, size, userId, search }: FilterParams) =>
   async (dispatch: AppDispatch, getState: () => RootState) => {
     try {
       const cachedEtag = getState().listeners.etag;
@@ -25,6 +26,7 @@ export const getListenersByProfileStatus =
             page,
             size,
             adminID: userId,
+            ...(search ? { search } : {}),
           },
           headers: {
             "Content-Type": "application/json",

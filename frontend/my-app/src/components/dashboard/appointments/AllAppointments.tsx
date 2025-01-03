@@ -16,7 +16,7 @@ export function AllAppointments() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [loading, setLoading] = useState(false);
-  const [timeFilter, setTimeFilter] = useState("PAST");
+  const [timeFilter, setTimeFilter] = useState("UPCOMING");
 
   const appointments = useSelector(
     (state: RootState) => state.appointments.appointments

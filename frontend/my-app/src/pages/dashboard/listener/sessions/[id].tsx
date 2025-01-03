@@ -5,7 +5,6 @@ import { RootState } from "@/store";
 import { getSessionsByStatus } from "@/service/session/getSessionsByStatus";
 import SessionDetailView from "@/components/dashboard/SessionDetailView";
 import SessionGrid from "@/components/dashboard/session/SessionGrid";
-import Pagination from "@/components/dashboard/Pagination";
 import MobileSessionDrawer from "@/components/dashboard/session/MobileSessionDrawer";
 import { Session } from "@/lib/types";
 import { useMediaQuery } from "@/lib/utils";
@@ -13,6 +12,7 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import StackNavbar from "@/components/ui/stackNavbar";
 import ListenerDetails from "@/components/dashboard/listener/ModalDetails";
 import UserDetails from "@/components/dashboard/user/ModalDetails";
+import ServerPagination from "@/components/ui/ServerPagination";
 
 const ListenerSessions = () => {
   const router = useRouter();
@@ -172,10 +172,10 @@ const ListenerSessions = () => {
                 />
 
                 {sessions.length > 0 && (
-                  <Pagination
-                    currentPage={paginationInfo.pageNumber + 1}
-                    totalPages={paginationInfo.totalPages}
-                    onPageChange={handlePageChange}
+                  <ServerPagination
+                    paginationInfo={paginationInfo}
+                    elements={sessions}
+                    handlePageClick={handlePageChange}
                   />
                 )}
               </div>

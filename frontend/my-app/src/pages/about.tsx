@@ -123,7 +123,7 @@ export default function Component() {
               <h2 className="text-3xl m-2 font-bold tracking-tighter md:text-4xl border-2 border-grey-700 rounded-lg bg-green-900 text-white md:text-4xl">
                 Join Our Community
               </h2>
-              <p className="max-w-[600px] text-gray-700 md:text-xl  bg-white dark:text-gray-400">
+              <p className="max-w-[600px] text-gray-700 md:text-xl dark:text-gray-400">
                 <b>
                   Be part of something meaningful. Start your journey with
                   SerenitySphere today.

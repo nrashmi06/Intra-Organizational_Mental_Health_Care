@@ -1,14 +1,22 @@
-import React from 'react';
-import { Appointment } from '@/lib/types';
-import { format, parseISO } from 'date-fns';
+import React, { useMemo } from "react";
+import { Appointment } from "@/lib/types";
+import { format, parseISO } from "date-fns";
 
-const DailySchedule: React.FC<{ 
-  appointments: Appointment[]; 
-  date: Date; 
-}> = ({ appointments, date }) => {
-  if(appointments.length === 0) {
-    return <div>No appointments yet!</div>;
+const getColorByStatus = (status: string) => {
+  switch (status) {
+    case "CONFIRMED":
+      return "bg-green-200";
+    case "REJECTED":
+      return "bg-red-500";
+    default:
+      return "bg-yellow-200";
   }
+};
+
+const DailySchedule: React.FC<{
+  appointments: Appointment[];
+  date: Date;
+}> = ({ appointments, date }) => {
   // Generate time slots for each hour from 5 AM to 10 PM
   const timeSlots = Array.from({ length: 18 }, (_, i) => {
     const hour = i + 5; // Start from 5 AM
@@ -16,9 +24,9 @@ const DailySchedule: React.FC<{
   });
 
   // Filter and process appointments for the given day
-  const processAppointmentsForDay = () => {
+  const processedAppointments = useMemo(() => {
     return appointments
-      .filter(apt => {
+      .filter((apt) => {
         const aptDate = parseISO(apt.date);
         return (
           aptDate.getFullYear() === date.getFullYear() &&
@@ -26,7 +34,7 @@ const DailySchedule: React.FC<{
           aptDate.getDate() === date.getDate()
         );
       })
-      .map(apt => {
+      .map((apt) => {
         const aptStart = parseISO(`2024-01-01T${apt.startTime}`);
         const aptEnd = parseISO(`2024-01-01T${apt.endTime}`);
 
@@ -44,13 +52,15 @@ const DailySchedule: React.FC<{
           endHour,
         };
       });
-  };
+  }, [appointments, date]); // Recalculate only when `appointments` or `date` changes
 
   return (
     <div className="bg-white rounded-lg shadow-lg overflow-hidden">
       {/* Header */}
       <div className="p-4 text-center border-b border-gray-200 bg-white sticky top-0 z-10">
-        <div className="font-semibold text-gray-900">{format(date, 'EEEE, MMMM d')}</div>
+        <div className="font-semibold text-gray-900">
+          {format(date, "EEEE, MMMM d")}
+        </div>
       </div>
 
       {/* Time grid */}
@@ -60,7 +70,7 @@ const DailySchedule: React.FC<{
           {timeSlots.map((time, i) => (
             <div key={i} className="h-24 border-b border-gray-200 relative">
               <span className="absolute -top-3 right-4 text-sm text-gray-500">
-                {format(time, 'h:mm a')}
+                {format(time, "h:mm a")}
               </span>
             </div>
           ))}
@@ -74,21 +84,24 @@ const DailySchedule: React.FC<{
           ))}
 
           {/* Appointments overlay */}
-          {processAppointmentsForDay().map((apt, aptIdx) => (
+          {processedAppointments.map((apt, aptIdx) => (
             <div
               key={aptIdx}
-              className="absolute left-1 right-1 bg-blue-100 rounded-lg border border-blue-200 p-2 overflow-hidden"
+              className={`absolute left-1 right-1 ${getColorByStatus(
+                apt.status
+              )} rounded-lg border border-blue-200 p-2`}
               style={{
                 top: `${apt.top}px`,
                 height: `${apt.height}px`,
               }}
+              title={apt.appointmentReason} // Tooltip displays full text
             >
-              <div className="text-sm font-medium text-blue-900 truncate">
-                {apt.appointmentReason}
+              <div className="text-sm sm:text-base font-medium text-blue-900 whitespace-normal">
+                {apt.appointmentReason} {/* Full text displayed */}
               </div>
-              <div className="text-xs text-blue-700">
-                {format(parseISO(`2024-01-01T${apt.startTime}`), 'h:mm a')} - 
-                {format(parseISO(`2024-01-01T${apt.endTime}`), 'h:mm a')}
+              <div className="text-xs sm:text-sm text-blue-700">
+                {format(parseISO(`2024-01-01T${apt.startTime}`), "h:mm a")} -{" "}
+                {format(parseISO(`2024-01-01T${apt.endTime}`), "h:mm a")}
               </div>
             </div>
           ))}

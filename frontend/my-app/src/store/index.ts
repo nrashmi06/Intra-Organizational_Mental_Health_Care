@@ -1,6 +1,6 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { persistReducer, persistStore } from "redux-persist";
-import storage from "redux-persist/lib/storage/session"; // Using sessionStorage
+import storage from "redux-persist/lib/storage"; // Using sessionStorage
 import chatReducer from "./chatSlice";
 import emergencyReducer from "./emergencySlice";
 import detailedApplicationSlice from "./detailedApplicationSlice";

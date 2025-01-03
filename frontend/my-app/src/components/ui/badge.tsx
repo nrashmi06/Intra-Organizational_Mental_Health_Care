@@ -5,7 +5,7 @@ interface BadgeProps extends HTMLProps<HTMLSpanElement> {
   children: React.ReactNode;
   className?: string;
   variant?: 'default' | 'ghost' | 'outline' | 'link' | 'secondary'; // Customize the types of button variants
-  color?: 'green' | 'red' | 'yellow' | 'gray' | 'teal' | '';  // Define colors for approved, rejected, pending, etc.
+  color?: 'green' | 'red' | 'yellow' | 'gray' | 'teal' | ''; 
 }
 
 const Badge: React.FC<BadgeProps> = ({ children, className = '', color = 'gray', ...props }) => {

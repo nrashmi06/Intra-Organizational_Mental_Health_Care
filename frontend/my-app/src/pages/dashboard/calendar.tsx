@@ -7,8 +7,9 @@ import { RootState } from "@/store";
 import { useSelector } from "react-redux";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import DatePicker from "@/components/dashboard/schedule/DatePicker";
-import { getAppointmentsByFilter } from "@/service/appointment/getAppointmentsByFilter";
+import { getAppointmentByDate } from "@/service/appointment/getAppointmentByDate";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
+import { format } from "date-fns";
 
 const SchedulePage = () => {
   const dispatch = useAppDispatch();
@@ -18,24 +19,26 @@ const SchedulePage = () => {
     (state: RootState) => state.appointments.appointments
   );
   const token = useSelector((state: RootState) => state.auth.accessToken);
-  const userId = useSelector((state: RootState) => state.auth.userId);
 
   useEffect(() => {
-    const fetchAppointments = async () => {
-      if (!token || !userId) {
-        console.error("No auth token or user ID found.");
-        return;
-      }
+    if (!token) {
+      console.error("No auth token found.");
+      return;
+    }
 
+    // Calculate the start and end dates for the selected month
+    const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+    const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+
+    const fetchAppointments = async () => {
       try {
         await dispatch(
-          getAppointmentsByFilter({
-            timeFilter: "ALL",
-            status: "ALL",
-            page: 0,
-            size: 100,
-            userId,
-          })
+          getAppointmentByDate(
+            format(startOfMonth, "yyyy-MM-dd"),
+            format(endOfMonth, "yyyy-MM-dd"),
+            0, 
+            100 // Size
+          )
         );
       } catch (error) {
         console.error("Error fetching appointments:", error);
@@ -43,10 +46,7 @@ const SchedulePage = () => {
     };
 
     fetchAppointments();
-  }, [token, dispatch, userId]);
-  if (appointments.length === 0) {
-    return <div>No appointments yet!</div>;
-  }
+  }, [date, token, dispatch]);
 
   const handleDateSelect = (newDate: Date | undefined) => {
     if (newDate) {
@@ -68,7 +68,7 @@ const SchedulePage = () => {
             <DatePicker
               date={date}
               onDateChange={handleDateSelect}
-              className="w-9 sm:w-[240px] px-0 sm:px-3 flex items-center justify-center"
+              className="sm:w-[240px] px-0 flex items-center justify-center"
             />
           </div>
 
