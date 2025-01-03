@@ -3,7 +3,6 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import "@/styles/global.css";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 

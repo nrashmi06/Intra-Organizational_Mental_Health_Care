@@ -8,7 +8,6 @@ import { createEmergencyHelpline } from '@/service/emergency/CreateEmergencyHelp
 import { getAllHelplines } from '@/service/emergency/GetEmergencyHelpline';
 import { deleteEmergencyHelpline } from '@/service/emergency/DeleteEmergencyHelpline';
 import { updateEmergencyHelpline } from '@/service/emergency/UpdateEmergencyHelpline';
-import '@/styles/global.css';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { useAppDispatch } from '@/hooks/useAppDispatch';
 import { Helpline } from '@/lib/types';

@@ -7,16 +7,15 @@ import { Input } from "@/components/ui/input";
 import Footer from "@/components/footer/Footer";
 import Navbar from "@/components/navbar/NavBar"; 
 import { Button } from "@/components/ui/button"; 
-import resetPassword from "@/service/user/Reset_Password"; // Import the resetPassword API call
-import "@/styles/global.css";
+import resetPassword from "@/service/user/Reset_Password"; 
 
 export default function VerifyAndChangePassword() {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
-  const [newPassword, setNewPassword] = useState(""); // State for new password
-  const [errorMessage, setErrorMessage] = useState(""); // State for error messages
-  const [isSubmitted, setIsSubmitted] = useState(false); // State to track success popup
-  const [isError, setIsError] = useState(false); // State to track error popups
-  const router = useRouter(); // Initialize the router for navigation
+  const [newPassword, setNewPassword] = useState(""); 
+  const [errorMessage, setErrorMessage] = useState(""); 
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isError, setIsError] = useState(false); 
+  const router = useRouter();
 
   // Handle OTP input change
   const handleOtpChange = (index: number, value: string) => {
@@ -25,55 +24,51 @@ export default function VerifyAndChangePassword() {
       newOtp[index] = value;
       setOtp(newOtp);
 
-      // Automatically move to the next input box if a digit is entered
       if (value && index < otp.length - 1) {
         document.getElementById(`otp-${index + 1}`)?.focus();
       }
     }
   };
 
-  // Handle password submission and call Reset_Password API
   const handleSubmitPassword = async () => {
     try {
-      const enteredOtp = otp.join(""); // Get the OTP entered by the user
-      const message = await resetPassword({ token: enteredOtp, newPassword }); // Call the Reset_Password API
-      setIsSubmitted(true); // Show success popup
+      const enteredOtp = otp.join(""); 
+      const message = await resetPassword({ token: enteredOtp, newPassword }); 
+      setIsSubmitted(true); 
       if (message) {
         setTimeout(() => {
-          setIsSubmitted(false); // Hide popup after 2 seconds
-          router.push("/signin"); // Redirect to Sign In page after success
+          setIsSubmitted(false); 
+          router.push("/signin"); 
         }, 2000);
       }
     } catch (error) {
-      setIsError(true); // Show error popup
+      setIsError(true); 
       if (error instanceof Error) {
-        setErrorMessage(error.message); // Display the error message from the API
+        setErrorMessage(error.message); 
       } else {
-        setErrorMessage("An unknown error occurred."); // Fallback error message
+        setErrorMessage("An unknown error occurred.");
       }
     }
   };
 
-  // Close error popup after 2 seconds
   useEffect(() => {
     if (isError) {
       const timer = setTimeout(() => {
-        setErrorMessage(""); // Hide the error message
-        setIsError(false); // Hide the error popup
+        setErrorMessage("");
+        setIsError(false); 
       }, 2000);
 
-      return () => clearTimeout(timer); // Cleanup timeout on unmount or when isError changes
+      return () => clearTimeout(timer);
     }
   }, [isError]);
 
-  // Close success popup after 2 seconds
   useEffect(() => {
     if (isSubmitted) {
       const timer = setTimeout(() => {
-        setIsSubmitted(false); // Hide the success popup
+        setIsSubmitted(false);
       }, 2000);
 
-      return () => clearTimeout(timer); // Cleanup timeout on unmount or when isSubmitted changes
+      return () => clearTimeout(timer); 
     }
   }, [isSubmitted]);
 
@@ -101,7 +96,6 @@ export default function VerifyAndChangePassword() {
               Please enter the 6-digit OTP and your new password
             </h2>
 
-            {/* OTP Input Boxes */}
             <div className="flex justify-center space-x-4 mb-4">
               {otp.map((digit, index) => (
                 <Input
@@ -115,10 +109,8 @@ export default function VerifyAndChangePassword() {
               ))}
             </div>
 
-            {/* Error Message */}
             {errorMessage && <p className="text-red-500 text-center mt-4">{errorMessage}</p>}
 
-            {/* Password Change Form */}
             <div className="space-y-1 mb-2 mt-2">
               <label className="text-sm font-medium" htmlFor="new-password">
                 New Password
@@ -132,7 +124,6 @@ export default function VerifyAndChangePassword() {
               />
             </div>
 
-            {/* Submit Button */}
             <Button 
               className="w-full mt-4 bg-black text-white hover:bg-black/90"
               onClick={handleSubmitPassword}

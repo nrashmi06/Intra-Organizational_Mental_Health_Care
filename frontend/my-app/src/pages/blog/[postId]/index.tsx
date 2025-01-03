@@ -6,7 +6,6 @@ import { RootState } from "@/store";
 import { useSelector } from "react-redux";
 import Navbar1 from "@/components/navbar/Navbar2";
 import { Heart, Eye, Pencil, Trash } from "lucide-react";
-import "@/styles/global.css";
 import Head from "next/head";
 import EditBlogModal from "@/components/blog/EditBlogModal";
 import DeleteBlogByID from "@/service/blog/DeleteBlogByID";

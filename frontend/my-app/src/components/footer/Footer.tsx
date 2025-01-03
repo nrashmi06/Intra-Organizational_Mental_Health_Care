@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from "next/link";
-import { Facebook, Instagram, Linkedin, Twitter } from "lucide-react";
+import { Facebook, Instagram, Linkedin} from "lucide-react";
 
 const Footer = () => {
   return (
@@ -37,14 +37,8 @@ const Footer = () => {
           <div className="space-y-6">
             <h3 className="text-lg font-medium">Quick Links</h3>
             <div className="grid grid-cols-2 gap-4">
-              <Link href="/privacy-policy" className="text-gray-400 hover:text-white transition-colors">
-                Privacy Policy
-              </Link>
-              <Link href="/" className="text-gray-400 hover:text-white transition-colors">
+              <Link href="/t&c" className="text-gray-400 hover:text-white transition-colors">
                 Terms of Service
-              </Link>
-              <Link href="/disclosure" className="text-gray-400 hover:text-white transition-colors">
-                Disclosure
               </Link>
             </div>
           </div>
@@ -55,7 +49,6 @@ const Footer = () => {
             <div className="flex gap-4">
               {[
                 { icon: Facebook, href: "#" },
-                { icon: Twitter, href: "#" },
                 { icon: Linkedin, href: "#" },
                 { icon: Instagram, href: "#" },
               ].map((social, index) => (
@@ -80,7 +73,7 @@ const Footer = () => {
 
         {/* Copyright */}
         <div className="mt-8 text-center text-sm text-gray-500">
-          Copyright © {new Date().getFullYear()} Agencies Private Limited
+          Copyright © 2024 Agencies Private Limited
         </div>
       </div>
     </footer>
