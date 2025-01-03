@@ -17,7 +17,6 @@ import Footer from "@/components/footer/Footer";
 import InlineLoader from "@/components/ui/inlineLoader";
 import fetchRecentBlogs from "@/service/blog/fetchBlogs";
 import { RootState } from "@/store";
-import "@/styles/global.css";
 import { BlogPost } from "@/lib/types";
 import ServerPagination from "@/components/ui/ServerPagination";
 
