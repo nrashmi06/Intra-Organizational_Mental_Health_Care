@@ -8,6 +8,7 @@ import { getAppointmentsByFilter } from "@/service/appointment/getAppointmentsBy
 import { CalendarDays, Search } from "lucide-react";
 import AppointmentCard from "@/components/dashboard/appointments/AppointmentCard";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
+import DashboardLayout from "@/components/dashboard/DashboardLayout";
 
 export function AllAppointments() {
   const dispatch = useAppDispatch();
@@ -226,4 +227,5 @@ export function AllAppointments() {
   );
 }
 
+AllAppointments.getLayout = (page: React.ReactNode) =><DashboardLayout>{page}</DashboardLayout> ;
 export default AllAppointments;

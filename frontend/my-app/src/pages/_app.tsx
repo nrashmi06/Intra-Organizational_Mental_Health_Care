@@ -6,6 +6,7 @@ import { store, persistor } from "../store";
 import "@/styles/globals.css";
 import type { AppProps } from "next/app";
 import NotificationWrapper from "@/components/notification/notificationWrapper";
+import HeartbeatWrapper from "@/components/heartBeat/heartBeatWrapper";
 import NotificationPopup from "@/components/notification/NotificationPopup";
 import Loading from "@/components/ui/loading";
 import DashboardLoader from "@/components/ui/dashboardLoader";
@@ -83,10 +84,12 @@ export default function MyApp({ Component, pageProps }: AppPropsWithLayout) {
           </div>
         )}
         <div className={loading ? "pointer-events-none" : ""}>
+          <HeartbeatWrapper >
           <NotificationWrapper>
             <NotificationPopup />
             {getLayout(<Component {...pageProps} />)}
           </NotificationWrapper>
+          </HeartbeatWrapper>
         </div>
       </PersistGate>
     </Provider>
