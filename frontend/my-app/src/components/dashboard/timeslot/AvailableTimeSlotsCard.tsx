@@ -34,7 +34,7 @@ const AvailableTimeSlotsCard: React.FC<AvailableTimeSlotsCardProps> = ({
             <span className="text-xl font-semibold text-gray-800">Time Slots</span>
           </div>
 
-          <div className="flex w-full sm:w-auto bg-white p-1.5 rounded-xl shadow-sm border">
+          <div className="flex w-full sm:w-auto gap-1 bg-white p-1.5 rounded-xl shadow-sm border">
             <Button
               onClick={() => setIsAvailable(false)}
               variant="ghost"

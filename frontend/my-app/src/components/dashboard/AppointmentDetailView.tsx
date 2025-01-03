@@ -150,7 +150,7 @@ const AppointmentDetailView: React.FC<DetailViewProps> = ({
                 <div className="flex flex-col gap-1">
                   <div className="flex items-center gap-2">
                     <CalendarCheck size={16} className="text-gray-400" />
-                    <span className="text-gray-700">Date: {formatTime(appointmentDetails.timeSlotDate)}</span>
+                    <span className="text-gray-700">Date: {(appointmentDetails.timeSlotDate)}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <CalendarCheck size={16} className="text-gray-400" />
