@@ -1,4 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
+import { X } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState, AppDispatch } from "@/store";
@@ -12,6 +14,23 @@ import { SelectedTimeSlots } from "@/components/dashboard/timeslot/SelectedTimeS
 import AvailableTimeSlotsCard from "@/components/dashboard/timeslot/AvailableTimeSlotsCard";
 import Pagination from "@/components/ui/PaginationComponent";
 import InlineLoader from "@/components/ui/inlineLoader";
+
+// Error Message Component
+const ErrorMessage = ({ message, onClose }: { message: string; onClose: () => void }) => {
+  return (
+    <Alert className="mb-4 bg-red-50 border-red-200 text-red-800">
+      <div className="flex justify-between items-center">
+        <AlertDescription>{message}</AlertDescription>
+        <button 
+          onClick={onClose}
+          className="p-1 hover:bg-red-100 rounded-full transition-colors"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+    </Alert>
+  );
+};
 
 const TimeSlotPage = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -35,11 +54,11 @@ const TimeSlotPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isAvailable, setIsAvailable] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [validationError, setValidationError] = useState<string | null>(null);
+  
   const token = useSelector((state: RootState) => state.auth.accessToken);
   const userID = useSelector((state: RootState) => state.auth.userId);
-  const timeSlots = useSelector(
-    (state: RootState) => state.timeSlots.timeSlots
-  );
+  const timeSlots = useSelector((state: RootState) => state.timeSlots.timeSlots);
   const totalPages = useSelector(
     (state: RootState) => state.timeSlots.page?.totalPages ?? 0
   );
@@ -137,21 +156,78 @@ const TimeSlotPage = () => {
     }
   };
 
+  const validateTimeSlot = useCallback(() => {
+    // Validate dates
+    if (new Date(endDate) < new Date(startDate)) {
+      setValidationError("End date cannot be before start date");
+      return false;
+    }
+
+    // Convert times to comparable format
+    const start = new Date(`${startDate}T${newStartTime}`);
+    const end = new Date(`${startDate}T${newEndTime}`);
+
+    // Validate times
+    if (end <= start) {
+      setValidationError("End time must be after start time");
+      return false;
+    }
+
+    // Check for overlaps with existing slots
+    const isOverlapping = (
+      startA: Date,
+      endA: Date,
+      startB: Date,
+      endB: Date
+    ) => {
+      return startA < endB && startB < endA;
+    };
+
+    // Check against existing time slots
+    const hasExistingOverlap = timeSlots?.some((slot) => {
+      const existingStart = new Date(`${slot.date}T${slot.startTime}`);
+      const existingEnd = new Date(`${slot.date}T${slot.endTime}`);
+      return isOverlapping(start, end, existingStart, existingEnd);
+    });
+
+    if (hasExistingOverlap) {
+      setValidationError("Time slot overlaps with existing slots");
+      return false;
+    }
+
+    // Check against selected slots
+    const hasSelectedOverlap = selectedSlots.some((slot) => {
+      const selectedStart = new Date(`${slot.date}T${slot.startTime}`);
+      const selectedEnd = new Date(`${slot.date}T${slot.endTime}`);
+      return isOverlapping(start, end, selectedStart, selectedEnd);
+    });
+
+    if (hasSelectedOverlap) {
+      setValidationError("Time slot overlaps with selected slots");
+      return false;
+    }
+
+    return true;
+  }, [startDate, endDate, newStartTime, newEndTime, timeSlots, selectedSlots]);
+
   const handleAddTimeSlot = useCallback(() => {
     if (newStartTime && newEndTime) {
-      setSelectedSlots((prev) => [
-        ...prev,
-        {
-          date: startDate,
-          startTime: newStartTime,
-          endTime: newEndTime,
-          isAvailable: true,
-        },
-      ]);
-      setNewStartTime("");
-      setNewEndTime("");
+      if (validateTimeSlot()) {
+        setSelectedSlots((prev) => [
+          ...prev,
+          {
+            date: startDate,
+            startTime: newStartTime,
+            endTime: newEndTime,
+            isAvailable: true,
+          },
+        ]);
+        setNewStartTime("");
+        setNewEndTime("");
+        setValidationError(null);
+      }
     }
-  }, [newStartTime, newEndTime, startDate]);
+  }, [newStartTime, newEndTime, startDate, validateTimeSlot]);
 
   const handleSlotSelection = useCallback((slot: any) => {
     setSelectedSlots((prev) => {
@@ -198,6 +274,13 @@ const TimeSlotPage = () => {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
+      {validationError && (
+        <ErrorMessage 
+          message={validationError} 
+          onClose={() => setValidationError(null)} 
+        />
+      )}
+
       <TimeSlotManager
         startDate={startDate}
         endDate={endDate}
