@@ -68,7 +68,7 @@ const SchedulePage = () => {
             <DatePicker
               date={date}
               onDateChange={handleDateSelect}
-              className="w-9 sm:w-[240px] px-0 sm:px-3 flex items-center justify-center"
+              className="sm:w-[240px] px-0 flex items-center justify-center"
             />
           </div>
 

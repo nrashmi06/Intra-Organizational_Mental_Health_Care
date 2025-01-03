@@ -32,7 +32,7 @@ interface Pagination2Props {
 
 export default function Pagination2({
   paginationInfo,
-  elements,
+  elements = [],
   handlePageClick,
 }: Pagination2Props) {
   return (

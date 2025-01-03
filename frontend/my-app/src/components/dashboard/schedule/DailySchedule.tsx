@@ -1,6 +1,17 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Appointment } from "@/lib/types";
 import { format, parseISO } from "date-fns";
+
+const getColorByStatus = (status: string) => {
+  switch (status) {
+    case "CONFIRMED":
+      return "bg-green-200";
+    case "REJECTED":
+      return "bg-red-500";
+    default:
+      return "bg-yellow-200";
+  }
+};
 
 const DailySchedule: React.FC<{
   appointments: Appointment[];
@@ -13,7 +24,7 @@ const DailySchedule: React.FC<{
   });
 
   // Filter and process appointments for the given day
-  const processAppointmentsForDay = () => {
+  const processedAppointments = useMemo(() => {
     return appointments
       .filter((apt) => {
         const aptDate = parseISO(apt.date);
@@ -41,7 +52,7 @@ const DailySchedule: React.FC<{
           endHour,
         };
       });
-  };
+  }, [appointments, date]); // Recalculate only when `appointments` or `date` changes
 
   return (
     <div className="bg-white rounded-lg shadow-lg overflow-hidden">
@@ -73,20 +84,23 @@ const DailySchedule: React.FC<{
           ))}
 
           {/* Appointments overlay */}
-          {processAppointmentsForDay().map((apt, aptIdx) => (
+          {processedAppointments.map((apt, aptIdx) => (
             <div
               key={aptIdx}
-              className="absolute left-1 right-1 bg-blue-100 rounded-lg border border-blue-200 p-2 overflow-hidden"
+              className={`absolute left-1 right-1 ${getColorByStatus(
+                apt.status
+              )} rounded-lg border border-blue-200 p-2`}
               style={{
                 top: `${apt.top}px`,
                 height: `${apt.height}px`,
               }}
+              title={apt.appointmentReason} // Tooltip displays full text
             >
-              <div className="text-sm font-medium text-blue-900 truncate">
-                {apt.appointmentReason}
+              <div className="text-sm sm:text-base font-medium text-blue-900 whitespace-normal">
+                {apt.appointmentReason} {/* Full text displayed */}
               </div>
-              <div className="text-xs text-blue-700">
-                {format(parseISO(`2024-01-01T${apt.startTime}`), "h:mm a")} -
+              <div className="text-xs sm:text-sm text-blue-700">
+                {format(parseISO(`2024-01-01T${apt.startTime}`), "h:mm a")} -{" "}
                 {format(parseISO(`2024-01-01T${apt.endTime}`), "h:mm a")}
               </div>
             </div>
