@@ -6,6 +6,7 @@ import com.dbms.mentalhealth.dto.Appointment.response.AppointmentResponseDTO;
 import com.dbms.mentalhealth.dto.Appointment.response.AppointmentSummaryResponseDTO;
 import com.dbms.mentalhealth.enums.AppointmentStatus;
 import com.dbms.mentalhealth.enums.AppointmentTimeFilter;
+import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.service.AppointmentService;
 import com.dbms.mentalhealth.urlMapper.AppointmentUrlMapping;
 import com.dbms.mentalhealth.util.Etags.AppointmentETagGenerator;
@@ -28,10 +29,12 @@ public class AppointmentController {
 
     private final AppointmentService appointmentService;
     private final AppointmentETagGenerator eTagGenerator;
+    private final JwtUtils jwtUtils;
 
-    public AppointmentController(AppointmentService appointmentService, AppointmentETagGenerator eTagGenerator) {
+    public AppointmentController(AppointmentService appointmentService, AppointmentETagGenerator eTagGenerator, JwtUtils jwtUtils) {
         this.appointmentService = Objects.requireNonNull(appointmentService, "appointmentService cannot be null");
         this.eTagGenerator = Objects.requireNonNull(eTagGenerator, "eTagGenerator cannot be null");
+        this.jwtUtils = Objects.requireNonNull(jwtUtils, "jwtUtils cannot be null");
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -54,9 +57,8 @@ public class AppointmentController {
     @PreAuthorize("isAuthenticated()")
     @GetMapping(AppointmentUrlMapping.GET_APPOINTMENTS_BY_USER)
     public ResponseEntity<List<AppointmentSummaryResponseDTO>> getAppointmentsByUser(
-            @RequestParam(value = "userId", required = false) Integer userId,
+            @PathVariable(name="userId",required = false) Integer userId,
             @RequestHeader(value = HttpHeaders.IF_NONE_MATCH, required = false) String ifNoneMatch) {
-
         List<AppointmentSummaryResponseDTO> appointments = appointmentService.getAppointmentsByUser(userId);
         if (appointments == null || appointments.isEmpty()) {
             return ResponseEntity.noContent().build();
@@ -111,18 +113,6 @@ public class AppointmentController {
         return ResponseEntity.noContent().build();
     }
 
-    @PreAuthorize("isAuthenticated()")
-    @PutMapping(AppointmentUrlMapping.CANCEL_APPOINTMENT)
-    public ResponseEntity<Void> cancelAppointment(
-            @PathVariable Integer appointmentId,
-            @RequestBody String cancellationReason) {
-        if (appointmentId == null) {
-            return ResponseEntity.badRequest().build();
-        }
-
-        appointmentService.cancelAppointment(appointmentId, cancellationReason);
-        return ResponseEntity.noContent().build();
-    }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping(AppointmentUrlMapping.GET_APPOINTMENTS_BY_DATE_RANGE)

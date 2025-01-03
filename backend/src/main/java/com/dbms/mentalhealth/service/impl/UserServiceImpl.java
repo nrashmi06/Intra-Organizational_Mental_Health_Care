@@ -16,10 +16,14 @@ import com.dbms.mentalhealth.service.RefreshTokenService;
 import com.dbms.mentalhealth.service.UserActivityService;
 import com.dbms.mentalhealth.service.UserService;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
@@ -38,6 +42,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
+@Slf4j
 public class UserServiceImpl implements UserService, UserDetailsService {
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
@@ -90,73 +95,93 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         return Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role.name()));
     }
 
-    @Override
     @Transactional
-    public Map<String, Object> loginUser(UserLoginRequestDTO userLoginDTO) {
+    public Map<String, Object> loginUser(UserLoginRequestDTO loginRequest) {
+        log.debug("Processing login for user: {}", loginRequest.getEmail());
+
+        // Authenticate user
         Authentication authentication;
         try {
             authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(userLoginDTO.getEmail(), userLoginDTO.getPassword())
+                    new UsernamePasswordAuthenticationToken(
+                            loginRequest.getEmail(),
+                            loginRequest.getPassword()
+                    )
             );
-        } catch (Exception e) {
+        } catch (AuthenticationException e) {
+            log.warn("Authentication failed for user: {}", loginRequest.getEmail());
             throw new InvalidUserCredentialsException("Invalid email or password");
         }
 
+        // Get user details after authentication
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         User user = userRepository.findByEmail(userDetails.getUsername());
 
         if (user == null) {
-            throw new UsernameNotFoundException("User not found with email: " + userDetails.getUsername());
+            log.error("User not found after authentication: {}", userDetails.getUsername());
+            throw new UsernameNotFoundException("User not found");
         }
 
+        // Verify user status
         if (!user.getProfileStatus().equals(ProfileStatus.ACTIVE)) {
-            throw new UserNotActiveException("User is not active");
-        }
-        if(user.getProfileStatus().equals(ProfileStatus.SUSPENDED)){
-            throw new UserAccountSuspendedException("User Account Suspended");
+            log.warn("Inactive user attempted login: {}", user.getEmail());
+            throw new UserNotActiveException("User account is not active");
         }
 
+        // Update user status and last seen
         setUserActiveStatus(user.getEmail(), true);
+        user.setLastSeen(LocalDateTime.now());
+        userRepository.save(user);
 
+        // Generate tokens
         String accessToken = jwtUtils.generateTokenFromUsername(userDetails, user.getUserId());
         String refreshToken = refreshTokenService.createRefreshToken(user.getEmail()).getToken();
-        UserLoginResponseDTO responseDTO = UserMapper.toUserLoginResponseDTO(user);
+        UserLoginResponseDTO userDTO = UserMapper.toUserLoginResponseDTO(user);
 
+        // Create response
         Map<String, Object> response = new HashMap<>();
-        response.put("user", responseDTO);
+        response.put("user", userDTO);
         response.put("accessToken", accessToken);
         response.put("refreshToken", refreshToken);
 
+        log.info("Login successful for user: {}", user.getEmail());
         return response;
+    }
+
+    private boolean isValidEmail(String email) {
+        // Regular expression for validating an email address
+        String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
+        return email != null && email.matches(emailRegex);
     }
 
     @Transactional
     public UserRegistrationResponseDTO registerUser(UserRegistrationRequestDTO userRegistrationDTO) {
+        if (!isValidEmail(userRegistrationDTO.getEmail())) {
+            throw new InvalidEmailException("Invalid email format: " + userRegistrationDTO.getEmail());
+        }
+
         if (userRepository.existsByEmail(userRegistrationDTO.getEmail())) {
             throw new EmailAlreadyInUseException("Email is already in use: " + userRegistrationDTO.getEmail());
         }
 
-        if (!isValidUsername(userRegistrationDTO.getAnonymousName())) {
-            throw new InvalidUsernameException("Invalid username: " + userRegistrationDTO.getAnonymousName() + ". Please try another.");
+        // Trim the anonymous name before validation
+        String trimmedAnonymousName = userRegistrationDTO.getAnonymousName().replaceAll("\\s+", "");
+        if (!isValidUsername(trimmedAnonymousName)) {
+                throw new InvalidUsernameException("Invalid username: " + trimmedAnonymousName + ". Please try another.");
         }
 
-        if (userRepository.existsByAnonymousName(userRegistrationDTO.getAnonymousName())) {
-            throw new AnonymousNameAlreadyInUseException("Anonymous name is already in use: " + userRegistrationDTO.getAnonymousName());
+        if (userRepository.existsByAnonymousName(trimmedAnonymousName)) {
+            throw new AnonymousNameAlreadyInUseException("Anonymous name is already in use: " + trimmedAnonymousName);
         }
 
         try {
             User user = UserMapper.toEntity(userRegistrationDTO, passwordEncoder.encode(userRegistrationDTO.getPassword()));
+            user.setAnonymousName(trimmedAnonymousName); // Set the trimmed anonymous name
             userRepository.save(user);
 
             // Create and save UserMetrics for the new user
             UserMetrics userMetrics = new UserMetrics();
             userMetrics.setUser(user);
-            userMetrics.setTotalSessionsAttended(0);
-            userMetrics.setTotalAppointments(0);
-            userMetrics.setTotalMessagesSent(0);
-            userMetrics.setTotalBlogsPublished(0);
-            userMetrics.setTotalLikesReceived(0);
-            userMetrics.setTotalViewsReceived(0);
             userMetricsRepository.save(userMetrics);
 
             return UserMapper.toRegistrationResponseDTO(user);
@@ -166,8 +191,9 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     private boolean isValidUsername(String username) {
-        // Add your username validation logic here
-        return username.matches("^[a-zA-Z0-9._-]{3,}$");
+        return username != null &&
+                !username.trim().isEmpty() &&
+                username.matches("^[a-zA-Z0-9 ._-]{3,}$");
     }
 
 
@@ -501,4 +527,47 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         emailVerification.setStatus("verified");
         emailVerificationRepository.save(emailVerification);
     }
+
+    public void clearCookies(HttpServletResponse response,String baseUrl) {
+        log.info("Clearing refresh token cookie");
+
+        boolean isSecure = !baseUrl.contains("localhost");
+        String sameSite = isSecure ? "None" : "Lax"; // Use Lax for localhost
+
+        // Create cookie with security attributes and max-age=0
+        Cookie refreshTokenCookie = new Cookie("refreshToken", null);
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setSecure(isSecure);
+        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setMaxAge(0); // Expire immediately
+
+        // Set domain for non-localhost environments
+        if (!baseUrl.contains("localhost")) {
+            String domain = baseUrl.replaceAll("https?://", "")
+                    .replaceAll("/.*$", "")
+                    .split(":")[0]
+                    .trim();
+            refreshTokenCookie.setDomain(domain);
+        }
+
+        // Add cookie to response
+        response.addCookie(refreshTokenCookie);
+
+        // Set explicit cookie header for additional browser compatibility
+        String cookieString = String.format(
+                "refreshToken=; Path=/; HttpOnly; Max-Age=0; SameSite=%s%s",
+                sameSite,
+                isSecure ? "; Secure" : ""
+        );
+
+        if (!baseUrl.contains("localhost")) {
+            cookieString += "; Domain=" + refreshTokenCookie.getDomain();
+        }
+
+        response.setHeader("Set-Cookie", cookieString);
+
+        log.info("Cookie cleared - Path: /, MaxAge: 0, Secure: {}, SameSite: {}",
+                isSecure, sameSite);
+    }
+
 }

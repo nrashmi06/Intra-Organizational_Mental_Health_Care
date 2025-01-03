@@ -39,7 +39,6 @@ import org.springframework.security.core.GrantedAuthority;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 @Service

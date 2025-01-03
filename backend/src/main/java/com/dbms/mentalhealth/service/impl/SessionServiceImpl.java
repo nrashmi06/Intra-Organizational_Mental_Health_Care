@@ -247,18 +247,14 @@ public class SessionServiceImpl implements SessionService {
     @Transactional(readOnly = true)
     public Page<SessionSummaryDTO> getSessionsByFilters(String status, Integer id, String idType, Pageable pageable) {
         Page<Session> sessions;
-
         if (id != null && idType != null && status != null) {
-            SessionStatus sessionStatus;
-            try {
-                sessionStatus = SessionStatus.valueOf(status.toUpperCase());
-            } catch (IllegalArgumentException e) {
-                throw new InvalidRequestException("Invalid session status: " + status);
-            }
+            SessionStatus sessionStatus = SessionStatus.valueOf(status.toUpperCase());
             if (idType.equalsIgnoreCase("userId")) {
                 sessions = sessionRepository.findByUser_UserIdAndSessionStatus(id, sessionStatus, pageable);
             } else if (idType.equalsIgnoreCase("listenerId")) {
-                sessions = sessionRepository.findByListener_ListenerIdAndSessionStatus(id, sessionStatus, pageable);
+                Listener listener = listenerRepository.findByUser_UserId(id)
+                        .orElseThrow(() -> new ListenerNotFoundException("Listener not found"));
+                sessions = sessionRepository.findByListener_ListenerIdAndSessionStatus(listener.getListenerId(), sessionStatus, pageable);
             } else {
                 throw new InvalidRequestException("Invalid idType: " + idType);
             }
@@ -266,17 +262,14 @@ public class SessionServiceImpl implements SessionService {
             if (idType.equalsIgnoreCase("userId")) {
                 sessions = sessionRepository.findByUser_UserId(id, pageable);
             } else if (idType.equalsIgnoreCase("listenerId")) {
-                sessions = sessionRepository.findByListener_ListenerId(id, pageable);
+                Listener listener = listenerRepository.findByUser_UserId(id)
+                        .orElseThrow(() -> new ListenerNotFoundException("Listener not found"));
+                sessions = sessionRepository.findByListener_ListenerId(listener.getListenerId(), pageable);
             } else {
                 throw new InvalidRequestException("Invalid idType: " + idType);
             }
         } else if (status != null) {
-            SessionStatus sessionStatus;
-            try {
-                sessionStatus = SessionStatus.valueOf(status.toUpperCase());
-            } catch (IllegalArgumentException e) {
-                throw new InvalidRequestException("Invalid session status: " + status);
-            }
+            SessionStatus sessionStatus = SessionStatus.valueOf(status.toUpperCase());
             sessions = sessionRepository.findBySessionStatus(sessionStatus, pageable);
         } else {
             sessions = sessionRepository.findAll(pageable);
@@ -284,6 +277,9 @@ public class SessionServiceImpl implements SessionService {
 
         return sessions.map(SessionMapper::toSessionSummaryDTO);
     }
+
+
+
     public static boolean isUserInSessionStatic(Integer userId) {
         return instance.isUserInSession(userId);
     }

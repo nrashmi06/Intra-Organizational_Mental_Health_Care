@@ -23,7 +23,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
             "u.role = 'USER' AND " +
             "(:status IS NULL OR u.profileStatus = :status) AND " +
             "(:search IS NULL OR " +
-            "CAST(u.anonymousName AS string) LIKE CONCAT('%', :search, '%'))")
+            "LOWER(CAST(u.anonymousName AS string)) LIKE LOWER(CONCAT('%', :search, '%')))")
     Page<User> findUsersWithFilters(
             @Param("status") ProfileStatus status,
             @Param("search") String search,

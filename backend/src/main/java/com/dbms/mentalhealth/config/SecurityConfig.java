@@ -1,9 +1,7 @@
 package com.dbms.mentalhealth.config;
 
 import com.dbms.mentalhealth.security.*;
-import com.dbms.mentalhealth.security.filter.RateLimitingFilter;
-import com.dbms.mentalhealth.security.filter.SseAuthenticationFilter;
-import com.dbms.mentalhealth.security.filter.WebSocketAuthenticationFilter;
+import com.dbms.mentalhealth.security.filter.*;
 import com.dbms.mentalhealth.security.jwt.*;
 import com.dbms.mentalhealth.urlMapper.*;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +18,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.context.SecurityContextHolderFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -51,50 +50,46 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, CustomAccessDeniedHandler customAccessDeniedHandler) throws Exception {
-        SecurityFilterChain chain = http
-                .cors(cors -> {
-                    log.debug("Configuring CORS");
-                    cors.configurationSource(corsConfig.corsConfigurationSource());
-                })
-                .authorizeHttpRequests(requests -> {
-                    log.debug("Configuring HTTP request authorization");
-                    requests
-                            .requestMatchers(
-                                    UserUrlMapping.FORGOT_PASSWORD,
-                                    UserUrlMapping.RESET_PASSWORD,
-                                    UserUrlMapping.USER_REGISTER,
-                                    UserUrlMapping.VERIFY_EMAIL,
-                                    UserUrlMapping.RESEND_VERIFICATION_EMAIL,
-                                    UserUrlMapping.USER_LOGIN,
-                                    UserUrlMapping.RENEW_TOKEN,
-                                    EmergencyHelplineUrlMapping.GET_ALL_EMERGENCY_HELPLINES
-                            ).permitAll()
-                            .anyRequest().authenticated();
-                })
-                .sessionManagement(session -> {
-                    session.sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-                })
-                .exceptionHandling(exception -> {
-                    exception
-                            .authenticationEntryPoint(unauthorizedHandler)
-                            .accessDeniedHandler(customAccessDeniedHandler);
-                })
-                .csrf(AbstractHttpConfigurer::disable)
-                .addFilterBefore(corsConfig.corsFilter(), UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(rateLimitingFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(sseAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(webSocketAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .build();
+        // First add the rate limiting filter
+        http.addFilterBefore(rateLimitingFilter, SecurityContextHolderFilter.class);
 
-        log.info("SecurityFilterChain configuration completed");
-        return chain;
+        return http
+                .cors(cors -> cors.configurationSource(corsConfig.corsConfigurationSource()))
+                .authorizeHttpRequests(requests -> requests
+                        .requestMatchers(
+                                UserUrlMapping.FORGOT_PASSWORD,
+                                UserUrlMapping.RESET_PASSWORD,
+                                UserUrlMapping.USER_REGISTER,
+                                UserUrlMapping.VERIFY_EMAIL,
+                                UserUrlMapping.RESEND_VERIFICATION_EMAIL,
+                                UserUrlMapping.USER_LOGIN,
+                                UserUrlMapping.RENEW_TOKEN,
+                                EmergencyHelplineUrlMapping.GET_ALL_EMERGENCY_HELPLINES,
+                                "/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/v3/api-docs/**",
+                                "/api/auth/**",
+                                "/api/public/**",
+                                "/actuator/health",
+                                "/actuator/info"
+                        ).permitAll()
+                        .anyRequest().authenticated()
+                )
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(unauthorizedHandler)
+                        .accessDeniedHandler(customAccessDeniedHandler)
+                )
+                .csrf(AbstractHttpConfigurer::disable)
+                .addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(sseAuthenticationFilter, AuthTokenFilter.class)
+                .addFilterAfter(webSocketAuthenticationFilter, AuthTokenFilter.class)
+                .build();
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(
-            AuthenticationConfiguration authenticationConfiguration
-    ) throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
 

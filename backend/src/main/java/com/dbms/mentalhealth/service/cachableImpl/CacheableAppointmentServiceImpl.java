@@ -119,20 +119,6 @@ public class CacheableAppointmentServiceImpl implements AppointmentService {
 
         logger.info("Updated appointment status and invalidated related caches for appointmentId: {}", appointmentId);
     }
-    @Override
-    @Transactional
-    public void cancelAppointment(Integer appointmentId, String cancellationReason) {
-        appointmentServiceImpl.cancelAppointment(appointmentId, cancellationReason);
-        AppointmentCacheKey cacheKey = new AppointmentCacheKey(appointmentId, AppointmentKeyType.APPOINTMENT);
-        appointmentCache.invalidate(cacheKey);
-
-        AppointmentResponseDTO appointment = appointmentCache.getIfPresent(cacheKey);
-        if (appointment != null) {
-            invalidateUserAndAdminCaches(appointment.getUserId(), appointment.getAdminId());
-        }
-
-        logger.info("Invalidated caches for appointment ID: {} and relevant caches after cancellation", appointmentId);
-    }
 
     @Override
     @Transactional(readOnly = true)

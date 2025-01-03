@@ -156,16 +156,17 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         log.debug("Setting secure refresh token cookie");
 
         boolean isSecure = !baseUrl.contains("localhost");
+        String sameSite = isSecure ? "None" : "Strict";
+
+        int maxAge = 7 * 24 * 60 * 60; // 7 days in seconds
 
         Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
         refreshTokenCookie.setHttpOnly(true);
         refreshTokenCookie.setSecure(isSecure);
         refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setMaxAge(maxAge);
 
-        // Important: Set max age for persistence
-        refreshTokenCookie.setMaxAge(24 * 60 * 60); // 24 hours in seconds
-
-        // Don't set domain for localhost
+        // Set domain for non-localhost environments
         if (!baseUrl.contains("localhost")) {
             String domain = baseUrl.replaceAll("https?://", "")
                     .replaceAll("/.*$", "")
@@ -174,18 +175,26 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
             refreshTokenCookie.setDomain(domain);
         }
 
-        // Set SameSite attribute
-        String cookieString = String.format(
-                "refreshToken=%s; Path=/; HttpOnly; Max-Age=%d; SameSite=None%s",
-                refreshToken,
-                24 * 60 * 60,
-                isSecure ? "; Secure" : ""
-        );
-
-        response.setHeader("Set-Cookie", cookieString);
         response.addCookie(refreshTokenCookie);
 
-        log.debug("Cookie settings - Path: /, MaxAge: {}, Secure: {}, SameSite: None",
-                24 * 60 * 60, isSecure);
+        StringBuilder cookieString = new StringBuilder();
+        cookieString.append(String.format("refreshToken=%s", refreshToken));
+        cookieString.append("; Path=/");
+        cookieString.append("; HttpOnly");
+        cookieString.append(String.format("; Max-Age=%d", maxAge));
+        cookieString.append(String.format("; SameSite=%s", sameSite));
+
+        if (isSecure) {
+            cookieString.append("; Secure");
+        }
+
+        if (!baseUrl.contains("localhost")) {
+            cookieString.append(String.format("; Domain=%s", refreshTokenCookie.getDomain()));
+        }
+
+        response.setHeader("Set-Cookie", cookieString.toString());
+
+        log.debug("Cookie settings - Path: /, MaxAge: {}, Secure: {}, SameSite: {}",
+                maxAge, isSecure, sameSite);
     }
 }

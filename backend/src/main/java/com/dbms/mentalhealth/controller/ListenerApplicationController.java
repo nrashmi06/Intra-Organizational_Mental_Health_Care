@@ -1,10 +1,9 @@
 package com.dbms.mentalhealth.controller;
+
 import com.dbms.mentalhealth.dto.listenerApplication.response.ListenerApplicationSummaryResponseDTO;
 import com.dbms.mentalhealth.dto.Listener.response.ListenerDetailsResponseDTO;
 import com.dbms.mentalhealth.dto.listenerApplication.request.ListenerApplicationRequestDTO;
 import com.dbms.mentalhealth.dto.listenerApplication.response.ListenerApplicationResponseDTO;
-import com.dbms.mentalhealth.exception.listener.ListenerApplicationNotFoundException;
-import com.dbms.mentalhealth.exception.listener.InvalidListenerApplicationException;
 import com.dbms.mentalhealth.service.ListenerApplicationService;
 import com.dbms.mentalhealth.urlMapper.ListenerApplicationUrlMapping;
 import com.dbms.mentalhealth.util.Etags.ListenerApplicationETagGenerator;
@@ -20,7 +19,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
 import java.util.Objects;
 
 @RestController
@@ -40,15 +38,11 @@ public class ListenerApplicationController {
     public ResponseEntity<ListenerApplicationResponseDTO> submitApplication(
             @RequestPart("application") ListenerApplicationRequestDTO applicationRequestDTO,
             @RequestPart("certificate") MultipartFile certificate) throws Exception {
-        try {
-            ListenerApplicationResponseDTO responseDTO = listenerApplicationService.submitApplication(applicationRequestDTO, certificate);
-            String eTag = eTagGenerator.generateApplicationETag(responseDTO);
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.ETAG, eTag)
-                    .body(responseDTO);
-        } catch (InvalidListenerApplicationException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
-        }
+        ListenerApplicationResponseDTO responseDTO = listenerApplicationService.submitApplication(applicationRequestDTO, certificate);
+        String eTag = eTagGenerator.generateApplicationETag(responseDTO);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.ETAG, eTag)
+                .body(responseDTO);
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -56,33 +50,25 @@ public class ListenerApplicationController {
     public ResponseEntity<ListenerApplicationResponseDTO> getApplicationById(
             @RequestParam(value = "applicationId", required = false) Integer applicationId,
             @RequestHeader(value = HttpHeaders.IF_NONE_MATCH, required = false) String ifNoneMatch) {
-        try {
-            ListenerApplicationResponseDTO responseDTO = listenerApplicationService.getApplicationById(applicationId);
-            String eTag = eTagGenerator.generateApplicationETag(responseDTO);
+        ListenerApplicationResponseDTO responseDTO = listenerApplicationService.getApplicationById(applicationId);
+        String eTag = eTagGenerator.generateApplicationETag(responseDTO);
 
-            if (ifNoneMatch != null && !ifNoneMatch.trim().isEmpty() && eTag.equals(ifNoneMatch)) {
-                return ResponseEntity.status(HttpStatus.NOT_MODIFIED)
-                        .header(HttpHeaders.ETAG, eTag)
-                        .build();
-            }
-
-            return ResponseEntity.ok()
+        if (ifNoneMatch != null && !ifNoneMatch.trim().isEmpty() && eTag.equals(ifNoneMatch)) {
+            return ResponseEntity.status(HttpStatus.NOT_MODIFIED)
                     .header(HttpHeaders.ETAG, eTag)
-                    .body(responseDTO);
-        } catch (ListenerApplicationNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+                    .build();
         }
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.ETAG, eTag)
+                .body(responseDTO);
     }
 
     @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_LISTENER')")
     @DeleteMapping(ListenerApplicationUrlMapping.DELETE_APPLICATION)
     public ResponseEntity<Void> deleteApplication(@PathVariable("applicationId") Integer applicationId) {
-        try {
-            listenerApplicationService.deleteApplication(applicationId);
-            return ResponseEntity.noContent().build();
-        } catch (ListenerApplicationNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+        listenerApplicationService.deleteApplication(applicationId);
+        return ResponseEntity.noContent().build();
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -91,17 +77,11 @@ public class ListenerApplicationController {
             @PathVariable("applicationId") Integer applicationId,
             @RequestPart("application") ListenerApplicationRequestDTO applicationRequestDTO,
             @RequestPart(value = "certificate", required = false) MultipartFile certificate) throws Exception {
-        try {
-            ListenerApplicationResponseDTO responseDTO = listenerApplicationService.updateApplication(applicationId, applicationRequestDTO, certificate);
-            String eTag = eTagGenerator.generateApplicationETag(responseDTO);
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.ETAG, eTag)
-                    .body(responseDTO);
-        } catch (ListenerApplicationNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        } catch (InvalidListenerApplicationException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
-        }
+        ListenerApplicationResponseDTO responseDTO = listenerApplicationService.updateApplication(applicationId, applicationRequestDTO, certificate);
+        String eTag = eTagGenerator.generateApplicationETag(responseDTO);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.ETAG, eTag)
+                .body(responseDTO);
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
@@ -109,14 +89,9 @@ public class ListenerApplicationController {
     public ResponseEntity<ListenerDetailsResponseDTO> updateApplicationStatus(
             @PathVariable("applicationId") Integer applicationId,
             @RequestParam(value = "status", required = false) String status) {
-        try {
-            ListenerDetailsResponseDTO responseDTO = listenerApplicationService.updateApplicationStatus(applicationId, status);
-            return ResponseEntity.ok(responseDTO);
-        } catch (ListenerApplicationNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        }
+        ListenerDetailsResponseDTO responseDTO = listenerApplicationService.updateApplicationStatus(applicationId, status);
+        return ResponseEntity.ok(responseDTO);
     }
-
 
     @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_LISTENER')")
     @GetMapping(ListenerApplicationUrlMapping.GET_APPLICATION_BY_LISTENERS_USER_ID)

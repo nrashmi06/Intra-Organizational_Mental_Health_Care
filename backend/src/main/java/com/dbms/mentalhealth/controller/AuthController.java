@@ -38,8 +38,7 @@ public class AuthController {
 
     public AuthController(UserService userService,
                           RefreshTokenServiceImpl refreshTokenService,
-                          @Value("${spring.app.base-url}") String baseUrl
-    ) {
+                          @Value("${spring.app.base-url}") String baseUrl) {
         this.userService = userService;
         this.refreshTokenService = refreshTokenService;
         this.baseUrl = baseUrl;
@@ -53,27 +52,28 @@ public class AuthController {
     }
 
     @PostMapping(UserUrlMapping.USER_LOGIN)
-    public ResponseEntity<?> authenticateUser(@RequestBody UserLoginRequestDTO loginRequest,
-                                              HttpServletResponse response) {
-        try {
-            Map<String, Object> loginResponse = userService.loginUser(loginRequest);
+    public ResponseEntity<?> authenticateUser(
+            @RequestBody UserLoginRequestDTO loginRequest,
+            HttpServletResponse response) {
+        log.debug("Processing login request for email: {}", loginRequest.getEmail());
+        Map<String, Object> loginResponse = userService.loginUser(loginRequest);
+        String accessToken = (String) loginResponse.get("accessToken");
+        String refreshToken = (String) loginResponse.get("refreshToken");
+        UserLoginResponseDTO userDTO = (UserLoginResponseDTO) loginResponse.get("user");
 
-            String accessToken = (String) loginResponse.get("accessToken");
-            String refreshToken = (String) loginResponse.get("refreshToken");
-            UserLoginResponseDTO responseDTO = (UserLoginResponseDTO) loginResponse.get("user");
-
-            // Set refresh token as HttpOnly cookie
-            refreshTokenService.setSecureRefreshTokenCookie(response, refreshToken);
-
-            // Only return access token in Authorization header and user data in body
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
-                    .body(responseDTO);
-        } catch (InvalidUserCredentialsException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
-        } catch (UserNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        if (accessToken == null || refreshToken == null || userDTO == null) {
+            log.error("Login response missing required fields");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Authentication failed due to internal error");
         }
+        refreshTokenService.setSecureRefreshTokenCookie(response, refreshToken);
+        String bearerToken = "Bearer " + accessToken;
+
+        log.info("User successfully authenticated: {}", userDTO.getEmail());
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.AUTHORIZATION, bearerToken)
+                .body(userDTO);
     }
 
     @PostMapping(UserUrlMapping.USER_LOGOUT)
@@ -83,64 +83,17 @@ public class AuthController {
             HttpServletResponse response) {
 
         log.info("Logout request received");
-        log.debug("RefreshToken from cookie: {}", refreshToken != null ? "present" : "null");
-        log.debug("Auth header: {}", authHeader != null ? "present" : "null");
 
-        if (refreshToken == null && authHeader == null) {
-            log.info("No tokens found in request - user already logged out");
-            clearCookies(response);
-            return ResponseEntity.ok("User logged out successfully.");
+        if (refreshToken != null && !refreshToken.isEmpty()) {
+            String email = refreshTokenService.getEmailFromRefreshToken(refreshToken);
+            userService.setUserActiveStatus(email, false);
+            refreshTokenService.deleteRefreshToken(refreshToken);
+            log.info("Refresh token deleted for user: {}", email);
         }
 
-        try {
-            // Handle refresh token if present
-            if (refreshToken != null) {
-                String email = refreshTokenService.getEmailFromRefreshToken(refreshToken);
-                userService.setUserActiveStatus(email, false);
-                refreshTokenService.deleteRefreshToken(refreshToken);
-                log.info("Logout successful for user: {}", email);
-            }
-
-            // Handle auth token if present
-            if (authHeader != null && authHeader.startsWith("Bearer ")) {
-                SecurityContextHolder.clearContext();
-            }
-
-        } catch (RefreshTokenException e) {
-            log.warn("Invalid or expired refresh token during logout: {}", e.getMessage());
-        } catch (Exception e) {
-            log.error("Unexpected error during logout process", e);
-        } finally {
-            clearCookies(response);
-            // Clear auth header if needed
-            response.setHeader("Authorization", "");
-        }
-
+        SecurityContextHolder.clearContext();
+        userService.clearCookies(response, baseUrl);
         return ResponseEntity.ok("User logged out successfully.");
-    }
-
-    private void clearCookies(HttpServletResponse response) {
-        Cookie refreshTokenCookie = new Cookie("refreshToken", "");
-        refreshTokenCookie.setMaxAge(0);
-        refreshTokenCookie.setPath("/");  // Use root path to match the setting
-        refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setSecure(!baseUrl.contains("localhost"));
-
-        // Don't set domain for localhost
-        if (!baseUrl.contains("localhost")) {
-            String domain = baseUrl.replaceAll("https?://", "")
-                    .replaceAll("/.*$", "")
-                    .split(":")[0]
-                    .trim();
-            refreshTokenCookie.setDomain(domain);
-        }
-
-        response.addCookie(refreshTokenCookie);
-
-        // Update header-based cookie clearing to use root path
-        response.setHeader("Set-Cookie",
-                "refreshToken=; Path=/; HttpOnly; Max-Age=0; SameSite=None" +
-                        (!baseUrl.contains("localhost") ? "; Secure" : ""));
     }
 
     @PostMapping(UserUrlMapping.VERIFY_EMAIL)
@@ -148,13 +101,6 @@ public class AuthController {
     public ResponseEntity<VerifyEmailResponseDTO> sendVerificationEmail(@RequestBody VerifyEmailRequestDTO verifyEmailRequestDTO) {
         userService.sendVerificationEmail(verifyEmailRequestDTO.getEmail());
         return ResponseEntity.ok(new VerifyEmailResponseDTO("Verification email sent successfully."));
-    }
-
-    @GetMapping(UserUrlMapping.VERIFY_EMAIL)
-    @PreAuthorize("permitAll()")
-    public ResponseEntity<VerifyEmailResponseDTO> verifyEmail(@RequestParam String token) {
-        userService.verifyUser(token);
-        return ResponseEntity.ok(new VerifyEmailResponseDTO("Email verified successfully."));
     }
 
     @PostMapping(UserUrlMapping.RESEND_VERIFICATION_EMAIL)
@@ -181,31 +127,23 @@ public class AuthController {
     @PostMapping(UserUrlMapping.RENEW_TOKEN)
     public ResponseEntity<?> renewToken(@CookieValue("refreshToken") String refreshToken,
                                         HttpServletResponse response) {
-        try {
-            if (refreshToken == null) {
-                throw new MissingRequestCookieException("Required cookie 'refreshToken' is not present");
-            }
-
-            Map<String, Object> renewResponse = refreshTokenService.renewToken(refreshToken);
-
-            String newAccessToken = (String) renewResponse.get("accessToken");
-            String newRefreshToken = (String) renewResponse.get("refreshToken");
-            UserLoginResponseDTO responseDTO = (UserLoginResponseDTO) renewResponse.get("user");
-
-            // Set new refresh token as HttpOnly cookie
-            refreshTokenService.setSecureRefreshTokenCookie(response, newRefreshToken);
-
-            // Only return new access token in Authorization header and user data in body
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + newAccessToken)
-                    .body(responseDTO);
-        } catch (RefreshTokenException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
-        } catch (UserNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("An unexpected error occurred");
+        if (refreshToken == null) {
+            throw new MissingRequestCookieException("Required cookie 'refreshToken' is not present");
         }
+
+        Map<String, Object> renewResponse = refreshTokenService.renewToken(refreshToken);
+
+        String newAccessToken = (String) renewResponse.get("accessToken");
+        String newRefreshToken = (String) renewResponse.get("refreshToken");
+        UserLoginResponseDTO responseDTO = (UserLoginResponseDTO) renewResponse.get("user");
+
+        // Set new refresh token as HttpOnly cookie
+        refreshTokenService.setSecureRefreshTokenCookie(response, newRefreshToken);
+        String bearerToken = "Bearer " + newAccessToken;
+
+        // Return new access token in Authorization header and user data in body
+        return ResponseEntity.ok()
+                .header(HttpHeaders.AUTHORIZATION, bearerToken)
+                .body(responseDTO);
     }
 }
