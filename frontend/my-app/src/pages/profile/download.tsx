@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import requestVerificationCode from "@/service/user/Requst_Verification_Code";
 import verifyOtpForDownload from "@/service/user/Verify_Otp_For_Download";
-import "@/styles/global.css";
 import { RootState } from "@/store";
 import { useSelector } from "react-redux";
 import ProfileLayout from "@/components/profile/profilepageLayout";
