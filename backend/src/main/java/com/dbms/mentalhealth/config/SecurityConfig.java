@@ -64,7 +64,15 @@ public class SecurityConfig {
                                 UserUrlMapping.RESEND_VERIFICATION_EMAIL,
                                 UserUrlMapping.USER_LOGIN,
                                 UserUrlMapping.RENEW_TOKEN,
-                                EmergencyHelplineUrlMapping.GET_ALL_EMERGENCY_HELPLINES
+                                EmergencyHelplineUrlMapping.GET_ALL_EMERGENCY_HELPLINES,
+                                "/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/v3/api-docs/**",
+                                "/api/auth/**",
+                                "/api/public/**",
+                                "/actuator/health",
+                                "/actuator/info"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

@@ -91,12 +91,8 @@ public class AuthController {
             log.info("Refresh token deleted for user: {}", email);
         }
 
-        // Clear security context
         SecurityContextHolder.clearContext();
-
-        // Clear cookies
         userService.clearCookies(response, baseUrl);
-
         return ResponseEntity.ok("User logged out successfully.");
     }
 

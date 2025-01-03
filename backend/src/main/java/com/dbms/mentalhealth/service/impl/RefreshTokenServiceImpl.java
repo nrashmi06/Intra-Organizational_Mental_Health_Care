@@ -156,10 +156,8 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         log.debug("Setting secure refresh token cookie");
 
         boolean isSecure = !baseUrl.contains("localhost");
-        // Important: Use Strict for production, Lax for development
         String sameSite = isSecure ? "None" : "Strict";
 
-        // Consistent 7-day expiry
         int maxAge = 7 * 24 * 60 * 60; // 7 days in seconds
 
         Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
@@ -179,7 +177,6 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 
         response.addCookie(refreshTokenCookie);
 
-        // Set explicit cookie header with all necessary attributes
         StringBuilder cookieString = new StringBuilder();
         cookieString.append(String.format("refreshToken=%s", refreshToken));
         cookieString.append("; Path=/");

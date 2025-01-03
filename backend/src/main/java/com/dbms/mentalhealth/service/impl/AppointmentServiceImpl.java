@@ -22,6 +22,7 @@ import com.dbms.mentalhealth.repository.AdminRepository;
 import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.service.AppointmentService;
 import com.dbms.mentalhealth.enums.AppointmentStatus;
+import com.dbms.mentalhealth.service.EmailService;
 import com.dbms.mentalhealth.service.UserMetricService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,9 +32,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class AppointmentServiceImpl implements AppointmentService {
@@ -46,19 +47,22 @@ public class AppointmentServiceImpl implements AppointmentService {
     private final AdminRepository adminRepository;
     public final JwtUtils jwtUtils;
     public final UserMetricService userMetricsService;
+    public final EmailService emailService;
 
     public AppointmentServiceImpl(AppointmentRepository appointmentRepository,
                                   JwtUtils jwtUtils,
                                   TimeSlotRepository timeSlotRepository,
                                   UserRepository userRepository,
                                   AdminRepository adminRepository,
-                                    UserMetricService userMetricsService) {
+                                    UserMetricService userMetricsService,
+                                  EmailService emailService) {
         this.appointmentRepository = appointmentRepository;
         this.timeSlotRepository = timeSlotRepository;
         this.userRepository = userRepository;
         this.adminRepository = adminRepository;
         this.jwtUtils = jwtUtils;
         this.userMetricsService = userMetricsService;
+        this.emailService = emailService;
     }
 
     @Override
@@ -87,6 +91,13 @@ public class AppointmentServiceImpl implements AppointmentService {
             timeSlotRepository.save(timeSlot);
             appointment.setTimeSlot(timeSlot);
             Appointment savedAppointment = appointmentRepository.save(appointment);
+            LocalDateTime appointmentTime = timeSlot.getDate().atTime(timeSlot.getStartTime());
+            emailService.sendAppointmentRequestedEmail(
+                    user.getEmail(),
+                    admin.getEmail(),
+                    appointmentTime
+            );
+
             logger.info("Appointment created with ID: {}", savedAppointment.getAppointmentId());
             return AppointmentMapper.toDTO(savedAppointment);
         } catch (UserNotFoundException | AdminNotFoundException | TimeSlotNotFoundException | PendingAppointmentException e) {
@@ -139,7 +150,8 @@ public class AppointmentServiceImpl implements AppointmentService {
         logger.info("Updating status of appointment ID: {} to {}", appointmentId, status);
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new AppointmentNotFoundException("Appointment not found"));
-
+        LocalDateTime appointmentTime = appointment.getTimeSlot().getDate()
+                .atTime(appointment.getTimeSlot().getStartTime());
         AppointmentStatus newStatus;
         try {
             newStatus = AppointmentStatus.valueOf(status.toUpperCase());
@@ -157,6 +169,10 @@ public class AppointmentServiceImpl implements AppointmentService {
             userMetricsService.setLastAppointmentDate(appointment.getUser(), appointment.getTimeSlot().getDate().atTime(appointment.getTimeSlot().getStartTime()));
             userMetricsService.updateAppointmentCount(appointment.getUser(),1);
             userMetricsService.updateAppointmentCount(userAdmin,1);
+            emailService.sendAppointmentConfirmedEmail(
+                    appointment.getUser().getEmail(),
+                    appointmentTime
+            );
         } else if (newStatus == AppointmentStatus.CANCELLED) {
             timeSlot.setIsAvailable(true);
             timeSlotRepository.save(timeSlot);
@@ -166,6 +182,11 @@ public class AppointmentServiceImpl implements AppointmentService {
                 userMetricsService.updateAppointmentCount(appointment.getUser(),-1);
             }
             appointment.setStatus(AppointmentStatus.CANCELLED);
+            emailService.sendAppointmentCancelledEmail(
+                    appointment.getUser().getEmail(),
+                    appointmentTime,
+                    cancellationReason
+            );
         }
 
         if (newStatus == AppointmentStatus.CANCELLED) {

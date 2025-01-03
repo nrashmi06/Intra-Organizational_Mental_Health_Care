@@ -24,6 +24,7 @@ import org.thymeleaf.context.Context;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -275,5 +276,56 @@ public class EmailServiceImpl implements EmailService {
         String body = templateEngine.process("dataRequestVerificationEmailTemplate.html", context);
         sendHtmlEmail(email, subject, body);
         logger.info("Data request verification email sent to: {}", email);
+    }
+
+    @Async
+    @Override
+    public CompletableFuture<Void> sendAppointmentRequestedEmail(String userEmail, String adminEmail, LocalDateTime appointmentTime) {
+        logger.info("Starting to send appointment requested emails to user: {} and admin: {}", userEmail, adminEmail);
+
+        // Send email to user
+        String userSubject = "Appointment Request Received";
+        Context userContext = new Context();
+        userContext.setVariable("appointmentTime", appointmentTime);
+        String userBody = templateEngine.process("userAppointmentRequestedTemplate.html", userContext);
+        sendHtmlEmail(userEmail, userSubject, userBody);
+
+        // Send email to admin
+        String adminSubject = "New Appointment Request";
+        Context adminContext = new Context();
+        adminContext.setVariable("appointmentTime", appointmentTime);
+        adminContext.setVariable("userEmail", userEmail);
+        String adminBody = templateEngine.process("adminAppointmentRequestedTemplate.html", adminContext);
+        sendHtmlEmail(adminEmail, adminSubject, adminBody);
+
+        logger.info("Appointment requested emails sent to user and admin");
+        return CompletableFuture.completedFuture(null);
+    }
+
+    @Async
+    @Override
+    public CompletableFuture<Void> sendAppointmentConfirmedEmail(String userEmail, LocalDateTime appointmentTime) {
+        logger.info("Starting to send appointment confirmation email to: {}", userEmail);
+        String subject = "Appointment Confirmed";
+        Context context = new Context();
+        context.setVariable("appointmentTime", appointmentTime);
+        String body = templateEngine.process("appointmentConfirmedTemplate.html", context);
+        sendHtmlEmail(userEmail, subject, body);
+        logger.info("Appointment confirmation email sent to: {}", userEmail);
+        return CompletableFuture.completedFuture(null);
+    }
+
+    @Async
+    @Override
+    public CompletableFuture<Void> sendAppointmentCancelledEmail(String userEmail, LocalDateTime appointmentTime, String cancellationReason) {
+        logger.info("Starting to send appointment cancellation email to: {}", userEmail);
+        String subject = "Appointment Cancelled";
+        Context context = new Context();
+        context.setVariable("appointmentTime", appointmentTime);
+        context.setVariable("cancellationReason", cancellationReason);
+        String body = templateEngine.process("appointmentCancelledTemplate.html", context);
+        sendHtmlEmail(userEmail, subject, body);
+        logger.info("Appointment cancellation email sent to: {}", userEmail);
+        return CompletableFuture.completedFuture(null);
     }
 }
