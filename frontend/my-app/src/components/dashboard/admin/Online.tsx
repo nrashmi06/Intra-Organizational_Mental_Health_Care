@@ -77,66 +77,76 @@ export function OnlineAdminsTable() {
   );
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search admins..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-8"
-          />
+    <div className="space-y-6 p-4 sm:p-6 max-w-7xl mx-auto">
+      <div className="flex flex-col sm:flex-row items-center gap-4 mb-6">
+        <div className="relative flex-1 w-full max-w-md">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <Input
+              placeholder="Search admins..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 h-11 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-xl focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-600 transition-shadow"
+            />
+          </div>
         </div>
       </div>
+
       {loading && <InlineLoader />}
+      
       {!loading && (
         <>
           {paginatedAdmins.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              No admins found.
-            </div>
+            <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-lg rounded-xl p-8">
+              <div className="text-center py-8 text-slate-500 dark:text-slate-400">
+                No admins found.
+              </div>
+            </Card>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:min-h-[400px]">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {paginatedAdmins.map((admin) => (
                 <Card
                   key={admin.userId}
-                  className="overflow-hidden h-min hover:shadow-lg transition-shadow duration-200 bg-white"
+                  className="group overflow-hidden hover:shadow-xl transition-all duration-300 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-xl"
                 >
-                  <CardContent className="p-6">
+                  <CardContent className="p-5 sm:p-6">
                     <div className="flex flex-col space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <UserIcon role={"admin"} />
-                          <div>
-                            <p className="font-medium text-gray-900">
-                              {admin.anonymousName}
-                            </p>
-                            <p className="text-sm text-gray-500">
-                              ID: {admin.userId}
-                            </p>
+                      <div className="flex items-center space-x-4">
+                        <div className="relative">
+                          <div className="w-12 h-12 rounded-3xl bg-gradient-to-br from-lime-100 to-teal-300 flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:shadow-blue-500/30 group-hover:scale-105 transition-all duration-300">
+                            <UserIcon role="admin" />
                           </div>
+                          <div className="absolute -bottom-1 -right-1 bg-emerald-500 w-3 h-3 rounded-full border-2 border-white dark:border-slate-900"></div>
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-lg font-semibold text-slate-900 dark:text-white truncate">
+                            {admin.anonymousName}
+                          </h3>
+                          <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+                            ID: {admin.userId}
+                          </p>
                         </div>
                       </div>
 
                       <div className="flex flex-col space-y-2">
                         <Button
                           variant="outline"
-                          className="w-full flex items-center justify-center space-x-2"
                           onClick={() => handleDetailsModal(admin.userId)}
+                          className="w-full h-10 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-colors rounded-xl flex items-center justify-center space-x-2"
                         >
-                          <User2 className="h-4 w-4" />
-                          <span>View Details</span>
+                          <User2 className="h-4 w-4 text-slate-600 dark:text-slate-400" />
+                          <span className="font-medium">View Details</span>
                         </Button>
 
                         <Button
                           variant="outline"
-                          className="w-full flex items-center justify-center space-x-2"
                           href={`/dashboard/admin/appointments/${admin.userId}?req=onlineAdmins`}
+                          className="w-full h-10 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-colors rounded-xl flex items-center justify-center space-x-2"
                         >
-                          <Calendar className="h-4 w-4" />
-                          <span>Appointments</span>
-                          <ExternalLink className="h-4 w-4 ml-1" />
+                          <Calendar className="h-4 w-4 text-slate-600 dark:text-slate-400" />
+                          <span className="font-medium">Appointments</span>
+                          <ExternalLink className="h-4 w-4 ml-1 text-slate-400" />
                         </Button>
                       </div>
                     </div>
@@ -145,43 +155,49 @@ export function OnlineAdminsTable() {
               ))}
             </div>
           )}
+
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6">
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
+              {Math.min(currentPage * itemsPerPage, filteredAdmins.length)} of{" "}
+              {filteredAdmins.length} entries
+            </p>
+            
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="h-9 px-4 rounded-xl border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50"
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage((p) => p + 1)}
+                disabled={currentPage * itemsPerPage >= filteredAdmins.length}
+                className="h-9 px-4 rounded-xl border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50"
+              >
+                Next
+              </Button>
+            </div>
+          </div>
         </>
       )}
 
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
-          {Math.min(currentPage * itemsPerPage, filteredAdmins.length)} of{" "}
-          {filteredAdmins.length} entries
-        </p>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-            disabled={currentPage === 1}
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setCurrentPage((p) => p + 1)}
-            disabled={currentPage * itemsPerPage >= filteredAdmins.length}
-          >
-            Next
-          </Button>
-        </div>
-      </div>
-
       {detailsModal && (
-        createPortal(<ModalDetails
-          userId={selectedUserId}
-          handleClose={() => {
-            setDetailsModal(false);
-            setSelectedUserId("");
-          }}
-        />, document.body)
+        createPortal(
+          <ModalDetails
+            userId={selectedUserId}
+            handleClose={() => {
+              setDetailsModal(false);
+              setSelectedUserId("");
+            }}
+          />,
+          document.body
+        )
       )}
     </div>
   );

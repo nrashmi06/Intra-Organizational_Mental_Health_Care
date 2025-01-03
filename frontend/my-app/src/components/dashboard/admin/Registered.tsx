@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
-import { Search } from "lucide-react";
+import { Search, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
@@ -15,7 +15,7 @@ export function RegisteredAdminsTable() {
   const [searchQuery, setSearchQuery] = useState("");
   const [admins, setAdmins] = useState<AdminSummary[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6; // Increased for better grid layout
+  const itemsPerPage = 6;
   const accessToken = useSelector((state: RootState) => state.auth.accessToken);
   const [loading, setLoading] = useState(true);
 
@@ -41,6 +41,7 @@ export function RegisteredAdminsTable() {
       </div>
     );
   }
+
   const filteredAdmins = admins.filter((admin) => {
     const matchesSearch =
       admin.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -58,13 +59,13 @@ export function RegisteredAdminsTable() {
       {/* Search Bar */}
       <div className="flex items-center gap-4">
         <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-3 h-4 w-4 text-blue-500" />
           <Input
             id="search-admins"
             placeholder="Search admins..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-8"
+            className="pl-10 h-12 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
           />
         </div>
       </div>
@@ -77,50 +78,60 @@ export function RegisteredAdminsTable() {
               No admins found.
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:min-h-[400px]">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {paginatedAdmins.map((admin) => (
                 <Card
                   key={admin.adminId}
-                  className="hover:shadow-lg h-min transition-shadow"
+                  className="overflow-hidden rounded-xl border-2 border-gray-200 group hover:border-green-500 transition-all duration-300"
                 >
-                  <CardContent className="p-6 space-y-4">
-                    <div className="flex items-center space-x-4">
-                      <UserIcon role={"admin"} />
-                      <div>
-                        <h3 className="font-semibold text-lg">
+                  <div className="h-2 bg-teal-500 transform origin-left transition-all duration-300 scale-x-0 group-hover:scale-x-100" />
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-4 mb-6">
+                      <div className=" p-3 rounded-xl">
+                        <UserIcon role="admin" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-xl font-bold text-gray-900 mb-1">
                           {admin.fullName}
                         </h3>
-                        <p className="text-sm text-muted-foreground">
-                          ID: {admin.adminId}
+                        <p className="text-sm text-slate-600 font-medium">
+                          {admin.adminId}
                         </p>
                       </div>
                     </div>
 
-                    <div className="space-y-2">
-                      <p className="text-sm font-medium text-muted-foreground">
-                        Contact
-                      </p>
-                      <p className="text-sm">{admin.contactNumber}</p>
-                    </div>
+                    <div className="space-y-4">
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="h-1 w-1 rounded-full" />
+                          <p className="text-sm font-semibold text-gray-600">Contact</p>
+                        </div>
+                        <p className="text-sm ml-3 text-gray-800">{admin.contactNumber}</p>
+                      </div>
 
-                    <div className="space-y-2">
-                      <p className="text-sm font-medium text-muted-foreground">
-                        Notes
-                      </p>
-                      <div
-                        className="text-sm text-gray-700 line-clamp-3"
-                        dangerouslySetInnerHTML={{ __html: admin.adminNotes }}
-                      />
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="h-1 w-1 rounded-full" />
+                          <p className="text-sm font-semibold text-gray-600">Notes</p>
+                        </div>
+                        <div
+                          className="text-sm ml-3 text-gray-800 line-clamp-2"
+                          dangerouslySetInnerHTML={{ __html: admin.adminNotes }}
+                        />
+                      </div>
                     </div>
                   </CardContent>
 
-                  <CardFooter className="bg-gray-50 px-6 py-4">
+                  <CardFooter className="p-4 bg-gray-50 flex items-center justify-between">
                     <Button
-                      variant="outline"
-                      className="w-full"
+                      variant="ghost"
+                      className="w-full hover:bg-green-50 hover:text-green-600 group/btn"
                       href={`/dashboard/admin/appointments/${admin.adminId}?req=registeredAdmins`}
                     >
-                      View Appointments
+                      <div className="flex items-center gap-1">
+                      <span className="flex-1">View Appointments</span>
+                      <ChevronRight className="h-4 w-4 transform transition-transform group-hover/btn:translate-x-1" />
+                      </div>
                     </Button>
                   </CardFooter>
                 </Card>
@@ -131,8 +142,8 @@ export function RegisteredAdminsTable() {
       )}
 
       {/* Pagination */}
-      <div className="flex items-center justify-between pt-4">
-        <p className="text-sm text-muted-foreground">
+      <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+        <p className="text-sm text-gray-600">
           Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
           {Math.min(currentPage * itemsPerPage, filteredAdmins.length)} of{" "}
           {filteredAdmins.length} entries
@@ -143,6 +154,7 @@ export function RegisteredAdminsTable() {
             size="sm"
             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
             disabled={currentPage === 1}
+            className="rounded-lg hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 disabled:opacity-50"
           >
             Previous
           </Button>
@@ -151,6 +163,7 @@ export function RegisteredAdminsTable() {
             size="sm"
             onClick={() => setCurrentPage((p) => p + 1)}
             disabled={currentPage * itemsPerPage >= filteredAdmins.length}
+            className="rounded-lg hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 disabled:opacity-50"
           >
             Next
           </Button>

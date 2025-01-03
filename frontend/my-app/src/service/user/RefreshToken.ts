@@ -25,7 +25,7 @@ const refreshToken = async (dispatch: AppDispatch): Promise<void> => {
                 email: response.data.email,
                 anonymousName: response.data.anonymousName,
                 role: response.data.role,
-                accessToken,
+                accessToken: accessToken,
             })
         );
     } catch (error: any) {
