@@ -287,7 +287,7 @@ public class EmailServiceImpl implements EmailService {
         String userSubject = "Appointment Request Received";
         Context userContext = new Context();
         userContext.setVariable("appointmentTime", appointmentTime);
-        String userBody = templateEngine.process("userAppointmentRequestedTemplate.html", userContext);
+        String userBody = templateEngine.process("userAppointmentReceivedTemplate.html", userContext);
         sendHtmlEmail(userEmail, userSubject, userBody);
 
         // Send email to admin
@@ -295,7 +295,7 @@ public class EmailServiceImpl implements EmailService {
         Context adminContext = new Context();
         adminContext.setVariable("appointmentTime", appointmentTime);
         adminContext.setVariable("userEmail", userEmail);
-        String adminBody = templateEngine.process("adminAppointmentRequestedTemplate.html", adminContext);
+        String adminBody = templateEngine.process("adminAppointmentReceivedTemplate.html", adminContext);
         sendHtmlEmail(adminEmail, adminSubject, adminBody);
 
         logger.info("Appointment requested emails sent to user and admin");
@@ -309,7 +309,7 @@ public class EmailServiceImpl implements EmailService {
         String subject = "Appointment Confirmed";
         Context context = new Context();
         context.setVariable("appointmentTime", appointmentTime);
-        String body = templateEngine.process("appointmentConfirmedTemplate.html", context);
+        String body = templateEngine.process("userAppointmentAcceptanceTemplate.html", context);
         sendHtmlEmail(userEmail, subject, body);
         logger.info("Appointment confirmation email sent to: {}", userEmail);
         return CompletableFuture.completedFuture(null);
@@ -323,7 +323,7 @@ public class EmailServiceImpl implements EmailService {
         Context context = new Context();
         context.setVariable("appointmentTime", appointmentTime);
         context.setVariable("cancellationReason", cancellationReason);
-        String body = templateEngine.process("appointmentCancelledTemplate.html", context);
+        String body = templateEngine.process("userAppointmentRejectionTemplate.html", context);
         sendHtmlEmail(userEmail, subject, body);
         logger.info("Appointment cancellation email sent to: {}", userEmail);
         return CompletableFuture.completedFuture(null);
