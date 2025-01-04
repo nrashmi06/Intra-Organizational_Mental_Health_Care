@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appointment Update</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 100%;
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .header {
+            background-color: #dc3545;
+            color: #ffffff;
+            text-align: center;
+            padding: 20px;
+        }
+        .header h1 {
+            margin: 0;
+        }
+        .content {
+            padding: 20px;
+            text-align: center;
+        }
+        .alternative-times {
+            background-color: #f8f9fa;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+            text-align: left;
+        }
+        .reschedule-button {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 24px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .footer {
+            background-color: #f4f4f9;
+            text-align: center;
+            padding: 10px;
+            font-size: 12px;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>Appointment Cancelled</h1>
+    </div>
+    <img src="https://assets-global.website-files.com/62196607bf1b46c300301846/6568ae0c5f49a94dae48c838_oit5acxowjyw0mzclpxu.webp" alt="Cancelled Appointment" style="max-width: 100%; height: auto; margin: 20px 0;">
+
+    <div class="content">
+        <p>We regret to inform you that your appointment scheduled for <strong th:text="${#temporals.format(appointmentTime, 'MMMM dd, yyyy HH:mm')}">appointment time</strong> has been cancelled.</p>
+
+        <div th:if="${cancellationReason != null}">
+            <p><strong>Reason for cancellation:</strong></p>
+            <p th:text="${cancellationReason}">cancellation reason</p>
+        </div>
+
+        <p>Please contact us to schedule a new appointment at your convenience.</p>
+    </div>
+    <div class="footer">
+        <p>&copy; 2024 HealthCare Center. All rights reserved.</p>
+    </div>
+</div>
+</body>
+</html>

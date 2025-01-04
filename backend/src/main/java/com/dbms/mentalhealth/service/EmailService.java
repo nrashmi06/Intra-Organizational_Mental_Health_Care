@@ -3,6 +3,7 @@ package com.dbms.mentalhealth.service;
 import com.dbms.mentalhealth.dto.massEmail.MassEmailRequestDTO;
 
 import java.io.File;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -19,4 +20,7 @@ public interface EmailService {
     CompletableFuture<Void> sendListenerRejectionEmail(String email);
     CompletableFuture<Void> sendMassEmail(String recipientType, MassEmailRequestDTO request, List<File> files, Runnable callback) throws Exception;
     void sendDataRequestVerificationEmail(String email, String token);
+    CompletableFuture<Void> sendAppointmentRequestedEmail(String userEmail, String adminEmail, LocalDateTime appointmentTime);
+    CompletableFuture<Void> sendAppointmentConfirmedEmail(String userEmail, LocalDateTime appointmentTime);
+    CompletableFuture<Void> sendAppointmentCancelledEmail(String userEmail, LocalDateTime appointmentTime, String cancellationReason);
 }

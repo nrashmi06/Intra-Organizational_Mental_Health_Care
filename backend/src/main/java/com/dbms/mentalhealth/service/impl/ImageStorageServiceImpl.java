@@ -2,10 +2,10 @@ package com.dbms.mentalhealth.service.impl;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+import com.dbms.mentalhealth.exception.Image.ImageStorageException;
 import com.dbms.mentalhealth.service.ImageStorageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -28,10 +28,10 @@ public class ImageStorageServiceImpl implements ImageStorageService {
 
     @Async
     @Override
-    public CompletableFuture<String> uploadImage(MultipartFile image) throws Exception {
+    public CompletableFuture<String> uploadImage(MultipartFile image) {
         logger.info("Starting image upload...");
         if (image == null || image.isEmpty()) {
-            throw new IllegalArgumentException("Image file must not be null or empty");
+            throw new ImageStorageException("Image file must not be null or empty");
         }
 
         try {
@@ -43,16 +43,16 @@ public class ImageStorageServiceImpl implements ImageStorageService {
             return CompletableFuture.completedFuture(imageUrl);
         } catch (IOException e) {
             logger.error("Failed to upload image to Cloudinary", e);
-            throw new Exception("Failed to upload image to Cloudinary", e);
+            throw new ImageStorageException("Failed to upload image to Cloudinary", e);
         }
     }
 
     @Async
     @Override
-    public CompletableFuture<Void> deleteImage(String imageUrl) throws Exception {
+    public CompletableFuture<Void> deleteImage(String imageUrl) {
         logger.info("Starting image deletion for URL: {}", imageUrl);
         if (imageUrl == null || imageUrl.isEmpty()) {
-            throw new IllegalArgumentException("Image URL must not be null or empty");
+            throw new ImageStorageException("Image URL must not be null or empty");
         }
 
         try {
@@ -62,7 +62,7 @@ public class ImageStorageServiceImpl implements ImageStorageService {
             return CompletableFuture.completedFuture(null);
         } catch (IOException e) {
             logger.error("Failed to delete image from Cloudinary", e);
-            throw new Exception("Failed to delete image from Cloudinary", e);
+            throw new ImageStorageException("Failed to delete image from Cloudinary", e);
         }
     }
 

@@ -8,4 +8,5 @@ import lombok.Data;
 public class UserActivityDTO {
     private Integer userId;
     private String anonymousName;
+    private boolean isInASession;
 }

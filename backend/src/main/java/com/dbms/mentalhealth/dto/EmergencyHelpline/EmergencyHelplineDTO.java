@@ -31,5 +31,5 @@ public class EmergencyHelplineDTO {
     private Integer priority;
 
     @NotNull
-    private Integer adminId; // New field to link to the admin who added the helpline
+    private Integer adminId;
 }

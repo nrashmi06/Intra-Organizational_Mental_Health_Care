@@ -1,6 +1,5 @@
 package com.dbms.mentalhealth.dto.adminSettings.response;
 import lombok.Data;
-
 import java.time.LocalDateTime;
 
 @Data

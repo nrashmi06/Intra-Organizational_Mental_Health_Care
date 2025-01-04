@@ -69,4 +69,3 @@ build/
 # Docker
 docker-compose.yml
 
-/src/main/resources/application.yml

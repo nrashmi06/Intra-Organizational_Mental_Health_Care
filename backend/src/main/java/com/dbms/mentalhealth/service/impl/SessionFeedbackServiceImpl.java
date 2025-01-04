@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -80,10 +81,19 @@ public class SessionFeedbackServiceImpl implements SessionFeedbackService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<SessionFeedbackResponseDTO> getAllListenerFeedback(Integer listenerId) {
-        List<SessionFeedback> feedbackList = sessionFeedbackRepository.findByListener_ListenerId(listenerId);
+    public List<SessionFeedbackResponseDTO> getAllListenerFeedback(Integer id, String type) {
+        List<SessionFeedback> feedbackList;
+        if (type.equals("listenerId")) {
+            feedbackList = sessionFeedbackRepository.findByListener_ListenerId(id);
+        } else {
+            Optional<Listener> listenerOptional = listenerRepository.findByUser_UserId(id);
+            if (listenerOptional.isEmpty()) {
+                throw new ListenerNotFoundException("No listener found for user with ID " + id);
+            }
+            feedbackList = sessionFeedbackRepository.findByListener(listenerOptional.get());
+        }
         if (feedbackList.isEmpty()) {
-            throw new ListenerNotFoundException("Listener with ID " + listenerId + " not found");
+            throw new ListenerNotFoundException("No feedback found for listener with ID " + id);
         }
         return feedbackList.stream()
                 .map(sessionFeedbackMapper::toResponseDTO)

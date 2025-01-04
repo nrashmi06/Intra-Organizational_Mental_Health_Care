@@ -1,6 +1,7 @@
 package com.dbms.mentalhealth.config;
 
-import com.dbms.mentalhealth.security.WebSocketAuthenticationFilter;
+import com.dbms.mentalhealth.security.filter.WebSocketAuthenticationFilter;
+import com.dbms.mentalhealth.websocket.ChatWebSocketHandler;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
@@ -25,6 +26,6 @@ public class WebSocketConfig implements WebSocketConfigurer {
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry.addHandler(chatWebSocketHandler, "/chat/{sessionId}/{username}")
                 .addInterceptors(new HttpSessionHandshakeInterceptor())
-                .setAllowedOrigins(allowedOrigins); // Enable CORS
+                .setAllowedOrigins(allowedOrigins);
     }
 }
