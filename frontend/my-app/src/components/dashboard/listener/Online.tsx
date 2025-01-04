@@ -115,15 +115,15 @@ export function OnlineListenersTable() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-center gap-4">
-        <div className="relative flex-1 w-full sm:max-w-sm">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search listeners..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-8"
-          />
-        </div>
+        <div className="relative flex-1 max-w-sm">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                  <Input
+                    placeholder="Search users..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-8"
+                  />
+                </div>
         <div className="flex items-center gap-2">
           <Users className="h-5 w-5 text-gray-500" />
           <span className="text-sm text-gray-600 font-medium">
@@ -136,7 +136,7 @@ export function OnlineListenersTable() {
       {!loading && (
         <>
           {paginatedListeners.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
+            <div className="text-center py-8 text-black">
               No listeners found.
             </div>
           ) : (

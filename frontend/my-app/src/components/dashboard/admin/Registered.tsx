@@ -154,7 +154,7 @@ export function RegisteredAdminsTable() {
             size="sm"
             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
             disabled={currentPage === 1}
-            className="rounded-lg hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 disabled:opacity-50"
+            className="rounded-lg hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 "
           >
             Previous
           </Button>
@@ -163,7 +163,7 @@ export function RegisteredAdminsTable() {
             size="sm"
             onClick={() => setCurrentPage((p) => p + 1)}
             disabled={currentPage * itemsPerPage >= filteredAdmins.length}
-            className="rounded-lg hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 disabled:opacity-50"
+            className="rounded-lg hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200"
           >
             Next
           </Button>

@@ -11,6 +11,7 @@ import Loading from "@/components/ui/loading";
 import DashboardLoader from "@/components/ui/dashboardLoader";
 import type { ReactElement, ReactNode } from "react";
 import type { NextPage } from "next";
+import Head from 'next/head';
 import '@/styles/navbar.css';
 import '@/styles/globals.css';
 
@@ -31,20 +32,33 @@ export default function MyApp({ Component, pageProps }: AppPropsWithLayout) {
   const isDashboardRoute = router.pathname.includes("/dashboard");
   const isProfilePage = router.pathname.includes("/profile");
 
+  // Force light mode on mount and prevent system dark mode
+  useEffect(() => {
+    // Remove any dark mode classes that might be added by the system
+    document.documentElement.classList.remove('dark');
+    document.documentElement.classList.add('light');
+    
+    // Prevent system dark mode from taking effect
+    const meta = document.createElement('meta');
+    meta.name = 'color-scheme';
+    meta.content = 'light only';
+    document.head.appendChild(meta);
+
+    return () => {
+      document.head.removeChild(meta);
+    };
+  }, []);
+
   useEffect(() => {
     const handleStart = (url: string) => {
-      // Clear any existing timeouts
       if (loadingTimeoutRef.current) clearTimeout(loadingTimeoutRef.current);
       if (showLoaderTimeoutRef.current) clearTimeout(showLoaderTimeoutRef.current);
 
-      // Only show loader if navigating to a different path
       if (url !== router.asPath) {
-        // Only show loader if loading takes more than 300ms
         showLoaderTimeoutRef.current = setTimeout(() => {
           setLoading(true);
         }, 300);
 
-        // Safety timeout to remove loader after 5 seconds
         loadingTimeoutRef.current = setTimeout(() => {
           setLoading(false);
         }, 5000);
@@ -52,7 +66,6 @@ export default function MyApp({ Component, pageProps }: AppPropsWithLayout) {
     };
 
     const handleComplete = () => {
-      // Clear all timeouts
       if (loadingTimeoutRef.current) clearTimeout(loadingTimeoutRef.current);
       if (showLoaderTimeoutRef.current) clearTimeout(showLoaderTimeoutRef.current);
       setLoading(false);
@@ -72,26 +85,35 @@ export default function MyApp({ Component, pageProps }: AppPropsWithLayout) {
   }, [router]);
 
   return (
-    <Provider store={store}>
-      <PersistGate loading={null} persistor={persistor}>
-        {loading && (
-          <div
-            className={`fixed inset-0 z-[9999] flex items-center justify-center transition-opacity duration-200 ${
-              (isDashboardRoute || isProfilePage) ? "bg-transparent" : "bg-white/80 backdrop-blur-sm"
-            }`}
-          >
-            {(isDashboardRoute || isProfilePage) ? <DashboardLoader /> : <Loading />}
+    <>
+      <Head>
+        <meta name="color-scheme" content="light only" />
+        {/* Force light mode at the browser level */}
+        <meta name="theme-color" content="#ffffff" />
+      </Head>
+      <Provider store={store}>
+        <PersistGate loading={null} persistor={persistor}>
+          {loading && (
+            <div
+              className="fixed inset-0 z-[9999] flex items-center justify-center transition-opacity duration-200 bg-white text-black"
+              style={{
+                backgroundColor: isDashboardRoute || isProfilePage ? 'transparent' : 'rgba(255, 255, 255, 0.8)',
+                backdropFilter: isDashboardRoute || isProfilePage ? 'none' : 'blur(4px)'
+              }}
+            >
+              {(isDashboardRoute || isProfilePage) ? <DashboardLoader /> : <Loading />}
+            </div>
+          )}
+          <div className={`${loading ? "pointer-events-none" : ""} bg-white text-black`}>
+            <HeartbeatWrapper>
+              <NotificationWrapper>
+                <NotificationPopup />
+                {getLayout(<Component {...pageProps} />)}
+              </NotificationWrapper>
+            </HeartbeatWrapper>
           </div>
-        )}
-        <div className={loading ? "pointer-events-none" : ""}>
-          <HeartbeatWrapper >
-          <NotificationWrapper>
-            <NotificationPopup />
-            {getLayout(<Component {...pageProps} />)}
-          </NotificationWrapper>
-          </HeartbeatWrapper>
-        </div>
-      </PersistGate>
-    </Provider>
+        </PersistGate>
+      </Provider>
+    </>
   );
 }
