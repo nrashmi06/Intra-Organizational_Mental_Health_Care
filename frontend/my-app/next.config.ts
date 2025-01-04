@@ -13,13 +13,13 @@ const nextConfig: NextConfig = {
             controlFlowFlattening: true, // Adds more complexity
             debugProtection: true, // Protects from debugging
           },
-          ['excluded_bundle.js'] // Specify files to exclude from obfuscation
+          [] // No files excluded from obfuscation
         )
-      );       
+      );
 
-      // Apply to SSR (Server-Side Rendering) and CSR (Client-Side Rendering)
+      // Apply to SSR and CSR
       config.module?.rules?.push({
-        test: /\.tsx$/, // Target TypeScript files
+        test: /\.(js|tsx|ts)$/, // Target JavaScript and TypeScript files
         exclude: /node_modules/, // Exclude node_modules
         enforce: 'post', // Apply after other loaders
         use: {
@@ -36,6 +36,13 @@ const nextConfig: NextConfig = {
           },
         },
       });
+
+      // Suppress Webpack's "Critical dependency" warnings for dynamic imports or `require()` statements
+      config.ignoreWarnings = [
+        (warning) =>
+          warning.message.includes('Critical dependency') || 
+          warning.message.includes('the request of a dependency is an expression')
+      ];
     }
 
     return config;
