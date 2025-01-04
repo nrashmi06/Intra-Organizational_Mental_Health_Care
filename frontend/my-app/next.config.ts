@@ -2,8 +2,8 @@ import type { NextConfig } from 'next';
 import JavaScriptObfuscator from 'webpack-obfuscator';
 
 const nextConfig: NextConfig = {
-  webpack: (config, { dev, isServer }) => {
-    if (!dev && !isServer) {
+  webpack: (config, { dev }) => {
+    if (!dev) {
       // Apply JavaScript obfuscation during production build
       config.plugins?.push(
         new JavaScriptObfuscator(
