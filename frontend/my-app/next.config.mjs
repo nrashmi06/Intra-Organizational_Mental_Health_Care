@@ -33,11 +33,10 @@ const nextConfig = {
       }, ['excluded_bundle.js'])
     )
 
-    // Loader configuration
     config.module.rules.push({
       test: /\.(js|tsx|ts)$/,
       exclude: [
-        path.resolve(__dirname, 'src/pages/api'),
+        path.resolve(__dirname, 'src/service'),
         /node_modules/,
         'excluded_file.ts'
       ],
@@ -48,13 +47,10 @@ const nextConfig = {
           rotateStringArray: true,
           stringArray: true,
           stringArrayEncoding: ['base64'],
-          // Different settings for dev vs prod
           ...(dev ? {
-            // Lighter settings for development
             compact: false,
             controlFlowFlattening: false
           } : {
-            // Heavier settings for production
             compact: true,
             controlFlowFlattening: true
           })
