@@ -25,7 +25,7 @@ const nextConfig: NextConfig = {
       );
 
       config.module?.rules?.push({
-        test: /\.(js|ts|tsx)$/,
+        test: /\.tsx$/,
         exclude: /node_modules/, 
         enforce: 'post',
         use: {
@@ -33,7 +33,7 @@ const nextConfig: NextConfig = {
           options: {
             rotateStringArray: true,
             stringArray: true,
-            stringArrayEncoding: ['base64'],
+            stringArrayEncoding: ['rc4'],
           },
         },
       });
