@@ -1,44 +1,53 @@
-import path from 'path'
-import JavaScriptObfuscator from 'webpack-obfuscator'
+import path from 'path';
+import { fileURLToPath } from 'url';
+import JavaScriptObfuscator from 'webpack-obfuscator';
+
+// Define __dirname for ES Modules
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   webpack: (config, { dev }) => {
     config.plugins.push(
-      new JavaScriptObfuscator({
-        rotateStringArray: true,
-        stringArray: true,
-        stringArrayEncoding: ['base64'],
-        controlFlowFlattening: true,
-        deadCodeInjection: true,
-        debugProtection: true,
-        debugProtectionInterval: 2000,
-        disableConsoleOutput: true,
-        identifierNamesGenerator: 'hexadecimal',
-        numbersToExpressions: true,
-        selfDefending: true,
-        ...(dev ? {
-          compact: false,
-          controlFlowFlattening: false,
-          deadCodeInjection: false,
-          debugProtection: false,
-          disableConsoleOutput: false,
-        } : {
-          compact: true,
+      new JavaScriptObfuscator(
+        {
+          rotateStringArray: true,
+          stringArray: true,
+          stringArrayEncoding: ['base64'],
           controlFlowFlattening: true,
           deadCodeInjection: true,
           debugProtection: true,
+          debugProtectionInterval: 2000,
           disableConsoleOutput: true,
-        })
-      }, ['excluded_bundle.js'])
-    )
+          identifierNamesGenerator: 'hexadecimal',
+          numbersToExpressions: true,
+          selfDefending: true,
+          ...(dev
+            ? {
+                compact: false,
+                controlFlowFlattening: false,
+                deadCodeInjection: false,
+                debugProtection: false,
+                disableConsoleOutput: false,
+              }
+            : {
+                compact: true,
+                controlFlowFlattening: true,
+                deadCodeInjection: true,
+                debugProtection: true,
+                disableConsoleOutput: true,
+              }),
+        },
+        ['excluded_bundle.js']
+      )
+    );
 
     config.module.rules.push({
       test: /\.(js|tsx|ts)$/,
       exclude: [
-        path.resolve(__dirname, 'src/service'),
+        path.resolve(__dirname, 'src/pages/api'), // Now __dirname is correctly defined
         /node_modules/,
-        'excluded_file.ts'
+        'excluded_file.ts',
       ],
       enforce: 'post',
       use: {
@@ -47,19 +56,21 @@ const nextConfig = {
           rotateStringArray: true,
           stringArray: true,
           stringArrayEncoding: ['base64'],
-          ...(dev ? {
-            compact: false,
-            controlFlowFlattening: false
-          } : {
-            compact: true,
-            controlFlowFlattening: true
-          })
-        }
-      }
-    })
-    
-    return config
-  }
-}
+          ...(dev
+            ? {
+                compact: false,
+                controlFlowFlattening: false,
+              }
+            : {
+                compact: true,
+                controlFlowFlattening: true,
+              }),
+        },
+      },
+    });
 
-export default nextConfig
+    return config;
+  },
+};
+
+export default nextConfig;
