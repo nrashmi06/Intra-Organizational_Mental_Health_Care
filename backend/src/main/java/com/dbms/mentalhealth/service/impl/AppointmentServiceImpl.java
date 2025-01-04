@@ -6,6 +6,7 @@ import com.dbms.mentalhealth.dto.Appointment.response.AppointmentSummaryResponse
 import com.dbms.mentalhealth.enums.AppointmentTimeFilter;
 import com.dbms.mentalhealth.exception.admin.AdminNotFoundException;
 import com.dbms.mentalhealth.exception.appointment.AppointmentNotFoundException;
+import com.dbms.mentalhealth.exception.appointment.InvalidAppointmentStatusException;
 import com.dbms.mentalhealth.exception.appointment.PendingAppointmentException;
 import com.dbms.mentalhealth.exception.timeslot.TimeSlotNotFoundException;
 import com.dbms.mentalhealth.exception.token.UnauthorizedException;
@@ -45,16 +46,16 @@ public class AppointmentServiceImpl implements AppointmentService {
     private final TimeSlotRepository timeSlotRepository;
     private final UserRepository userRepository;
     private final AdminRepository adminRepository;
-    public final JwtUtils jwtUtils;
-    public final UserMetricService userMetricsService;
-    public final EmailService emailService;
+    private final JwtUtils jwtUtils;
+    private final UserMetricService userMetricsService;
+    private final EmailService emailService;
 
     public AppointmentServiceImpl(AppointmentRepository appointmentRepository,
                                   JwtUtils jwtUtils,
                                   TimeSlotRepository timeSlotRepository,
                                   UserRepository userRepository,
                                   AdminRepository adminRepository,
-                                    UserMetricService userMetricsService,
+                                  UserMetricService userMetricsService,
                                   EmailService emailService) {
         this.appointmentRepository = appointmentRepository;
         this.timeSlotRepository = timeSlotRepository;
@@ -68,45 +69,41 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Override
     @Transactional
     public AppointmentResponseDTO createAppointment(AppointmentRequestDTO appointmentRequestDTO) {
-        try {
-            logger.info("Creating appointment for user with ID: {}", jwtUtils.getUserIdFromContext());
-            Integer userId = jwtUtils.getUserIdFromContext();
-            User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new UserNotFoundException("User not found"));
-            Admin admin = adminRepository.findById(appointmentRequestDTO.getAdminId())
-                    .orElseThrow(() -> new AdminNotFoundException("Admin not found"));
-            boolean hasPendingAppointment = appointmentRepository.existsByUserAndAdminAndStatus(user, admin, AppointmentStatus.REQUESTED);
-            if (hasPendingAppointment) {
-                logger.warn("User with ID: {} has a pending appointment", userId);
-                throw new PendingAppointmentException("You have a pending appointment. Please wait for it to be processed.");
-            }
+        logger.info("Creating appointment for user with ID: {}", jwtUtils.getUserIdFromContext());
 
-            TimeSlot timeSlot = timeSlotRepository.findById(appointmentRequestDTO.getTimeSlotId())
-                    .orElseThrow(() -> new TimeSlotNotFoundException("Time slot not found"));
+        Integer userId = jwtUtils.getUserIdFromContext();
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
-            Appointment appointment = AppointmentMapper.toEntity(appointmentRequestDTO);
-            appointment.setUser(user);
-            appointment.setAdmin(admin);
-            timeSlot.setIsAvailable(false);
-            timeSlotRepository.save(timeSlot);
-            appointment.setTimeSlot(timeSlot);
-            Appointment savedAppointment = appointmentRepository.save(appointment);
-            LocalDateTime appointmentTime = timeSlot.getDate().atTime(timeSlot.getStartTime());
-            emailService.sendAppointmentRequestedEmail(
-                    user.getEmail(),
-                    admin.getEmail(),
-                    appointmentTime
-            );
+        Admin admin = adminRepository.findById(appointmentRequestDTO.getAdminId())
+                .orElseThrow(() -> new AdminNotFoundException("Admin not found"));
 
-            logger.info("Appointment created with ID: {}", savedAppointment.getAppointmentId());
-            return AppointmentMapper.toDTO(savedAppointment);
-        } catch (UserNotFoundException | AdminNotFoundException | TimeSlotNotFoundException | PendingAppointmentException e) {
-            logger.error("Error creating appointment: {}", e.getMessage());
-            throw e;
-        } catch (Exception e) {
-            logger.error("Unexpected error creating appointment", e);
-            throw new RuntimeException("Unexpected error creating appointment", e);
+        if (appointmentRepository.existsByUserAndAdminAndStatus(user, admin, AppointmentStatus.REQUESTED)) {
+            logger.warn("User with ID: {} has a pending appointment", userId);
+            throw new PendingAppointmentException("You have a pending appointment. Please wait for it to be processed.");
         }
+
+        TimeSlot timeSlot = timeSlotRepository.findById(appointmentRequestDTO.getTimeSlotId())
+                .orElseThrow(() -> new TimeSlotNotFoundException("Time slot not found"));
+
+        Appointment appointment = AppointmentMapper.toEntity(appointmentRequestDTO);
+        appointment.setUser(user);
+        appointment.setAdmin(admin);
+        timeSlot.setIsAvailable(false);
+        timeSlotRepository.save(timeSlot);
+        appointment.setTimeSlot(timeSlot);
+
+        Appointment savedAppointment = appointmentRepository.save(appointment);
+
+        LocalDateTime appointmentTime = timeSlot.getDate().atTime(timeSlot.getStartTime());
+        emailService.sendAppointmentRequestedEmail(
+                user.getEmail(),
+                admin.getEmail(),
+                appointmentTime
+        );
+
+        logger.info("Appointment created with ID: {}", savedAppointment.getAppointmentId());
+        return AppointmentMapper.toDTO(savedAppointment);
     }
 
     @Override
@@ -117,7 +114,6 @@ public class AppointmentServiceImpl implements AppointmentService {
         logger.info("Fetching appointments for user ID: {}", userId != null ? userId : currentUserId);
 
         if (userId != null && !isAdmin && !currentUserId.equals(userId)) {
-            logger.warn("User with ID: {} attempted to view appointments of another user", currentUserId);
             throw new UnauthorizedException("You can only view your own appointments.");
         }
 
@@ -127,20 +123,20 @@ public class AppointmentServiceImpl implements AppointmentService {
                 .toList();
     }
 
-
     @Override
     @Transactional(readOnly = true)
     public AppointmentResponseDTO getAppointmentById(Integer appointmentId) {
         Integer currentUserId = jwtUtils.getUserIdFromContext();
         boolean isAdmin = jwtUtils.isAdminFromContext();
         logger.info("Fetching appointment with ID: {}", appointmentId);
+
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new AppointmentNotFoundException("Appointment not found"));
 
         if (!isAdmin && !currentUserId.equals(appointment.getUser().getUserId())) {
-            logger.warn("User with ID: {} attempted to view appointment of another user", currentUserId);
-            throw new IllegalStateException("You can only view your own appointments.");
+            throw new UnauthorizedException("You can only view your own appointments.");
         }
+
         return AppointmentMapper.toDTO(appointment);
     }
 
@@ -148,65 +144,89 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Transactional
     public void updateAppointmentStatus(Integer appointmentId, String status, String cancellationReason) {
         logger.info("Updating status of appointment ID: {} to {}", appointmentId, status);
+
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new AppointmentNotFoundException("Appointment not found"));
+
         LocalDateTime appointmentTime = appointment.getTimeSlot().getDate()
                 .atTime(appointment.getTimeSlot().getStartTime());
-        AppointmentStatus newStatus;
-        try {
-            newStatus = AppointmentStatus.valueOf(status.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            logger.error("Invalid appointment status: {}", status);
-            throw new IllegalStateException("Invalid appointment status.");
-        }
+
+        AppointmentStatus newStatus = parseAndValidateStatus(status);
         TimeSlot timeSlot = appointment.getTimeSlot();
-        if (newStatus == AppointmentStatus.CONFIRMED) {
-            appointment.setStatus(AppointmentStatus.CONFIRMED);
-            timeSlot.setIsAvailable(false);
-            timeSlotRepository.save(timeSlot);
-            User userAdmin = appointment.getAdmin().getUser();
-            userMetricsService.setLastAppointmentDate(userAdmin, appointment.getTimeSlot().getDate().atTime(appointment.getTimeSlot().getStartTime()));
-            userMetricsService.setLastAppointmentDate(appointment.getUser(), appointment.getTimeSlot().getDate().atTime(appointment.getTimeSlot().getStartTime()));
-            userMetricsService.updateAppointmentCount(appointment.getUser(),1);
-            userMetricsService.updateAppointmentCount(userAdmin,1);
-            emailService.sendAppointmentConfirmedEmail(
-                    appointment.getUser().getEmail(),
-                    appointmentTime
-            );
-        } else if (newStatus == AppointmentStatus.CANCELLED) {
-            timeSlot.setIsAvailable(true);
-            timeSlotRepository.save(timeSlot);
-            if(appointment.getStatus() == AppointmentStatus.CONFIRMED){
-                User userAdmin = appointment.getAdmin().getUser();
-                userMetricsService.updateAppointmentCount(userAdmin,-1);
-                userMetricsService.updateAppointmentCount(appointment.getUser(),-1);
-            }
-            appointment.setStatus(AppointmentStatus.CANCELLED);
-            emailService.sendAppointmentCancelledEmail(
-                    appointment.getUser().getEmail(),
-                    appointmentTime,
-                    cancellationReason
-            );
+
+        switch (newStatus) {
+            case CONFIRMED -> handleConfirmedStatus(appointment, timeSlot, appointmentTime);
+            case CANCELLED -> handleCancelledStatus(appointment, timeSlot, appointmentTime, cancellationReason);
+            default -> throw new InvalidAppointmentStatusException("Invalid appointment status: " + status);
         }
 
-        if (newStatus == AppointmentStatus.CANCELLED) {
-            appointment.setCancellationReason(cancellationReason);
-        } else {
-            appointment.setCancellationReason(null);
-        }
         appointmentRepository.save(appointment);
         logger.info("Updated status of appointment ID: {} to {}", appointmentId, status);
     }
 
+    private AppointmentStatus parseAndValidateStatus(String status) {
+        try {
+            return AppointmentStatus.valueOf(status.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new InvalidAppointmentStatusException("Invalid appointment status: " + status);
+        }
+    }
+
+    private void handleConfirmedStatus(Appointment appointment, TimeSlot timeSlot, LocalDateTime appointmentTime) {
+        appointment.setStatus(AppointmentStatus.CONFIRMED);
+        timeSlot.setIsAvailable(false);
+        timeSlotRepository.save(timeSlot);
+
+        User userAdmin = appointment.getAdmin().getUser();
+        updateUserMetrics(userAdmin, appointment.getUser(), appointmentTime, 1);
+
+        emailService.sendAppointmentConfirmedEmail(
+                appointment.getUser().getEmail(),
+                appointmentTime
+        );
+    }
+
+    private void handleCancelledStatus(Appointment appointment, TimeSlot timeSlot,
+                                       LocalDateTime appointmentTime, String cancellationReason) {
+        timeSlot.setIsAvailable(true);
+        timeSlotRepository.save(timeSlot);
+
+        if (appointment.getStatus() == AppointmentStatus.CONFIRMED) {
+            User userAdmin = appointment.getAdmin().getUser();
+            updateUserMetrics(userAdmin, appointment.getUser(), null, -1);
+        }
+
+        appointment.setStatus(AppointmentStatus.CANCELLED);
+        appointment.setCancellationReason(cancellationReason);
+
+        emailService.sendAppointmentCancelledEmail(
+                appointment.getUser().getEmail(),
+                appointmentTime,
+                cancellationReason
+        );
+    }
+
+    private void updateUserMetrics(User admin, User user, LocalDateTime appointmentTime, int delta) {
+        if (appointmentTime != null) {
+            userMetricsService.setLastAppointmentDate(admin, appointmentTime);
+            userMetricsService.setLastAppointmentDate(user, appointmentTime);
+        }
+        userMetricsService.updateAppointmentCount(admin, delta);
+        userMetricsService.updateAppointmentCount(user, delta);
+    }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<AppointmentSummaryResponseDTO> getAppointmentsByDateRange(LocalDate startDate, LocalDate endDate, Pageable pageable) {
+    public Page<AppointmentSummaryResponseDTO> getAppointmentsByDateRange(
+            LocalDate startDate, LocalDate endDate, Pageable pageable) {
         logger.info("Fetching appointments between dates: {} and {}", startDate, endDate);
+
         Integer userId = jwtUtils.getUserIdFromContext();
         Admin admin = adminRepository.findByUser_UserId(userId)
                 .orElseThrow(() -> new AdminNotFoundException("Admin not found"));
-        Page<Appointment> appointments = appointmentRepository.findByTimeSlot_DateBetween(admin,startDate, endDate, pageable);
+
+        Page<Appointment> appointments = appointmentRepository.findByTimeSlot_DateBetween(
+                admin, startDate, endDate, pageable);
         return appointments.map(AppointmentMapper::toSummaryDTO);
     }
 
@@ -218,34 +238,30 @@ public class AppointmentServiceImpl implements AppointmentService {
             Pageable pageable,
             Integer userId,
             Integer adminId) {
-        if(userId == null && adminId == null){
-            userId = jwtUtils.getUserIdFromContext();
-        }
-        Admin admin;
-        if(adminId == null){
-            admin = adminRepository.findByUser_UserId(userId)
-                    .orElseThrow(() -> new AdminNotFoundException("Admin not found"));
-        }else{
-            admin = adminRepository.findById(adminId)
-                    .orElseThrow(() -> new AdminNotFoundException("Admin not found"));
-        }
+
+        Admin admin = resolveAdmin(userId, adminId);
         LocalDate today = LocalDate.now();
         LocalTime now = LocalTime.now();
 
-        Page<Appointment> appointments;
-        if (timeFilter == AppointmentTimeFilter.UPCOMING) {
-            logger.info("Fetching upcoming appointments for admin ID: {} with status: {}",
-                    admin.getAdminId(), status);
-            appointments = appointmentRepository.findUpcomingAppointments(
-                    admin, today, now, status, pageable);
-        } else {
-            logger.info("Fetching past appointments for admin ID: {} with status: {}",
-                    admin.getAdminId(), status);
-            appointments = appointmentRepository.findPastAppointments(
-                    admin, today, now, status, pageable);
-        }
+        Page<Appointment> appointments = (timeFilter == AppointmentTimeFilter.UPCOMING) ?
+                appointmentRepository.findUpcomingAppointments(admin, today, now, status, pageable) :
+                appointmentRepository.findPastAppointments(admin, today, now, status, pageable);
+
+        logger.info("Fetching {} appointments for admin ID: {} with status: {}",
+                timeFilter, admin.getAdminId(), status);
 
         return appointments.map(AppointmentMapper::toSummaryDTO);
     }
 
+    private Admin resolveAdmin(Integer userId, Integer adminId) {
+        if (userId == null && adminId == null) {
+            userId = jwtUtils.getUserIdFromContext();
+        }
+
+        return (adminId == null) ?
+                adminRepository.findByUser_UserId(userId)
+                        .orElseThrow(() -> new AdminNotFoundException("Admin not found")) :
+                adminRepository.findById(adminId)
+                        .orElseThrow(() -> new AdminNotFoundException("Admin not found"));
+    }
 }

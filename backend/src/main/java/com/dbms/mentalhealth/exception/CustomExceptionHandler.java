@@ -203,4 +203,9 @@ public class CustomExceptionHandler {
     private ResponseEntity<String> createErrorResponse(String message, HttpStatus status) {
         return new ResponseEntity<>(message, status);
     }
+
+    @ExceptionHandler(InvalidAppointmentStatusException.class)
+    public ResponseEntity<String> handleInvalidAppointmentStatusException(InvalidAppointmentStatusException ex) {
+        return createErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
 }
