@@ -1,14 +1,10 @@
-import path from 'path';
-import { fileURLToPath } from 'url';
 import JavaScriptObfuscator from 'webpack-obfuscator';
-
-// Polyfill __dirname in ES modules
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   webpack: (config, { dev, isServer }) => {
     if (!dev && !isServer) {
+      // Add the JavaScript obfuscator plugin for production builds
       config.plugins.push(
         new JavaScriptObfuscator({
           rotateStringArray: true,
@@ -25,13 +21,10 @@ const nextConfig = {
         }, ['excluded_bundle.js'])
       );
 
-      // Loader configuration
+      // Add loader configuration for JavaScript obfuscation
       config.module.rules.push({
-        test: /\.(js|tsx|ts)$/,
-        exclude: [
-          /node_modules/, // Exclude node_modules
-          path.resolve(__dirname, 'src/service'), // Exclude all files in 'service' folder
-        ],
+        test: /\.tsx$/,  // Only matches .tsx files
+        exclude: /node_modules/, // Exclude node_modules
         enforce: 'post',
         use: {
           loader: JavaScriptObfuscator.loader,
