@@ -8,21 +8,12 @@ const nextConfig: NextConfig = {
       config.plugins?.push(
         new JavaScriptObfuscator(
           {
-            rotateStringArray: true,
-            stringArray: true,
-            stringArrayEncoding: ['base64'],
-            controlFlowFlattening: true,
-            deadCodeInjection: true,
-            debugProtection: true,
-            debugProtectionInterval: 2000,
-            disableConsoleOutput: true,
-            identifierNamesGenerator: 'hexadecimal',
-            numbersToExpressions: true,
+            stringArray: true, // Simple string array obfuscation
             selfDefending: true,
           },
-          ['excluded_bundle.js']
+          ['excluded_bundle.js']  // Specify files to exclude from obfuscation
         )
-      );
+      );      
 
       config.module?.rules?.push({
         test: /\.tsx$/,
@@ -33,7 +24,8 @@ const nextConfig: NextConfig = {
           options: {
             rotateStringArray: true,
             stringArray: true,
-            stringArrayEncoding: ['rc4'],
+            stringArrayEncoding: ['rc4'], 
+
           },
         },
       });
