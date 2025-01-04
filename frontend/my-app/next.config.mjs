@@ -45,9 +45,9 @@ const nextConfig = {
     config.module.rules.push({
       test: /\.(js|tsx|ts)$/,
       exclude: [
-        path.resolve(__dirname, 'src/pages/api'), // Now __dirname is correctly defined
+        path.resolve(__dirname, 'src/pages/api'), // Convert to absolute path
         /node_modules/,
-        'excluded_file.ts',
+        path.resolve(__dirname, 'excluded_file.ts'), // Convert to absolute path
       ],
       enforce: 'post',
       use: {
