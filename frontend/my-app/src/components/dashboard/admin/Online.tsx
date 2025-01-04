@@ -77,17 +77,15 @@ export function OnlineAdminsTable() {
 
   return (
     <div className="space-y-6 p-4 sm:p-6 max-w-7xl mx-auto">
-      <div className="flex flex-col sm:flex-row items-center gap-4 mb-6">
-        <div className="relative flex-1 w-full max-w-md">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-            <Input
-              placeholder="Search admins..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 h-11 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-xl focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-600 transition-shadow"
-            />
-          </div>
+      <div className="flex items-center gap-2">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+          <Input
+            placeholder="Search users..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-8"
+          />
         </div>
       </div>
 
@@ -96,8 +94,8 @@ export function OnlineAdminsTable() {
       {!loading && (
         <>
           {paginatedAdmins.length === 0 ? (
-            <Card className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-lg rounded-xl p-8">
-              <div className="text-center py-8 text-slate-500 dark:text-slate-400">
+            <Card className="bg-white border-slate-200 shadow-lg rounded-xl p-8">
+              <div className="text-center py-8 text-slate-500 ">
                 No admins found.
               </div>
             </Card>
@@ -106,7 +104,7 @@ export function OnlineAdminsTable() {
               {paginatedAdmins.map((admin) => (
                 <Card
                   key={admin.userId}
-                  className="group overflow-hidden hover:shadow-xl transition-all duration-300 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-xl"
+                  className="group overflow-hidden hover:shadow-xl transition-all duration-300 bg-white border-slate-200 rounded-xl"
                 >
                   <CardContent className="p-5 sm:p-6">
                     <div className="flex flex-col space-y-4">
@@ -115,14 +113,14 @@ export function OnlineAdminsTable() {
                           <div className="w-12 h-12 rounded-3xl bg-gradient-to-br from-lime-100 to-teal-300 flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:shadow-blue-500/30 group-hover:scale-105 transition-all duration-300">
                             <UserIcon role="admin" />
                           </div>
-                          <div className="absolute -bottom-1 -right-1 bg-emerald-500 w-3 h-3 rounded-full border-2 border-white dark:border-slate-900"></div>
+                          <div className="absolute -bottom-1 -right-1 bg-emerald-500 w-3 h-3 rounded-full border-2 border-white "></div>
                         </div>
 
                         <div className="flex-1 min-w-0">
-                          <h3 className="text-lg font-semibold text-slate-900 dark:text-white truncate">
+                          <h3 className="text-lg font-semibold text-slate-900  truncate">
                             {admin.anonymousName}
                           </h3>
-                          <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+                          <p className="text-sm text-slate-500  font-medium">
                             ID: {admin.userId}
                           </p>
                         </div>
@@ -132,18 +130,18 @@ export function OnlineAdminsTable() {
                         <Button
                           variant="outline"
                           onClick={() => handleDetailsModal(admin.userId)}
-                          className="w-full h-10 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-colors rounded-xl flex items-center justify-center space-x-2"
+                          className="w-full h-10 bg-white hover:bg-slate-50  border-slate-200  hover:border-slate-300  transition-colors rounded-xl flex items-center justify-center space-x-2"
                         >
-                          <User2 className="h-4 w-4 text-slate-600 dark:text-slate-400" />
+                          <User2 className="h-4 w-4 text-slate-600 " />
                           <span className="font-medium">View Details</span>
                         </Button>
 
                         <Button
                           variant="outline"
                           href={`/dashboard/admin/appointments/${admin.userId}?req=onlineAdmins`}
-                          className="w-full h-10 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-colors rounded-xl flex items-center justify-center space-x-2"
+                          className="w-full h-10 bg-white hover:bg-slate-50 border-slate-200  hover:border-slate-300 transition-colors rounded-xl flex items-center justify-center space-x-2"
                         >
-                          <Calendar className="h-4 w-4 text-slate-600 dark:text-slate-400" />
+                          <Calendar className="h-4 w-4 text-slate-600 " />
                           <span className="font-medium">Appointments</span>
                           <ExternalLink className="h-4 w-4 ml-1 text-slate-400" />
                         </Button>
@@ -156,7 +154,7 @@ export function OnlineAdminsTable() {
           )}
 
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6">
-            <p className="text-sm text-slate-500 dark:text-slate-400">
+            <p className="text-sm text-slate-500 ">
               Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
               {Math.min(currentPage * itemsPerPage, filteredAdmins.length)} of{" "}
               {filteredAdmins.length} entries
@@ -168,7 +166,7 @@ export function OnlineAdminsTable() {
                 size="sm"
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="h-9 px-4 rounded-xl border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50"
+                className="h-9 px-4 rounded-xl border-slate-200  hover:bg-slate-50 "
               >
                 Previous
               </Button>
@@ -177,7 +175,7 @@ export function OnlineAdminsTable() {
                 size="sm"
                 onClick={() => setCurrentPage((p) => p + 1)}
                 disabled={currentPage * itemsPerPage >= filteredAdmins.length}
-                className="h-9 px-4 rounded-xl border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50"
+                className="h-9 px-4 rounded-xl border-slate-200  hover:bg-slate-50 "
               >
                 Next
               </Button>

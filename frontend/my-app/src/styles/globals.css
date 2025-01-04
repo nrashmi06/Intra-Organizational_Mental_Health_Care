@@ -18,127 +18,85 @@ body {
   margin: 0;
   padding: 0;
   background-color: #ffffff;
-  opacity: 0.9;
-  background-image: linear-gradient(#518a72 0.8px, transparent 0.8px),
-    linear-gradient(to right, #518a72 0.8px, #ffffff 0.8px);
+  opacity: 0.7;
+  background-image: linear-gradient(#518a72 1.1px, transparent 1.1px),
+    linear-gradient(to right, #518a72 1.1px, #ffffff 1.1px);
   background-size: 22px 22px;
   position: relative;
 }
 
-/* Radial Background for Specific Sections */
-.radial-background {
-  background-color: #ffffff;
-  background-image: radial-gradient(#518a72 0.45px, #ffffff 0.45px);
-  background-size: 11px 11px;
-  opacity: 0.8;
-}
-
-/* Card Icon Styling */
-.card-icon {
-  color: #2c5e46;
-}
-
-/* Badge Styling */
-.badge {
-  background-color: #2c5e46;
-  color: #ffffff;
-  border-radius: 20px;
-  padding: 0.5rem 1rem;
-}
-
-/* Section Headings */
-.section-heading {
-  font-weight: 700;
-  text-align: center;
-  color: #1a1a1a;
-}
-
-/* Paragraph Text */
-.section-paragraph {
-  color: #444444;
-  line-height: 1.6;
-  text-align: center;
-}
-
-/* Button Styling */
-.button {
-  background-color: #2c5e46;
-  color: #ffffff;
-  border-radius: 25px;
-  padding: 0.75rem 1.5rem;
-  text-transform: uppercase;
-  font-weight: 700;
-  transition: all 0.3s ease;
-}
-
-.button:hover {
-  background-color: #1d4d35;
-  transform: translateY(-1px);
-}
-
-/* Hero Section Styling */
-.hero-section {
-  background: linear-gradient(90deg, 
-    rgba(179, 245, 220, 0.9) 0%, 
-    rgba(182, 230, 200, 0.9) 3%, 
-    rgba(231, 234, 235, 0.9) 18%, 
-    rgba(231, 233, 206, 0.9) 41%, 
-    rgba(212, 247, 167, 0.9) 95%
-  );
-  text-align: center;
-  padding: 2rem 0;
-}
-
-.hero-title {
-  font-size: 2.5rem;
-  color: #2c5e46;
-  font-weight: 700;
-}
-
-.hero-subtitle {
-  font-size: 1.2rem;
-  color: #4a4a4a;
-}
-
-/* Footer Section */
-.footer {
-  background-color: #f5f5f5;
-  color: #333333;
-  padding: 2rem 0;
-  text-align: center;
-}
-
-.loader {
-  width: 50px;
-  padding: 8px;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background: #2c5e46;
-  --_m: conic-gradient(#0000 10%, #000), linear-gradient(#000 0 0) content-box;
-  -webkit-mask: var(--_m);
-  mask: var(--_m);
-  -webkit-mask-composite: source-out;
-  mask-composite: subtract;
-  animation: l3 1s infinite linear;
-}
-
-@keyframes l3 {
-  to {
-    transform: rotate(1turn);
+  /* Radial Background for Specific Sections */
+  .radial-background {
+    background-color: #ffffff;
+    background-image: radial-gradient(#518a72 0.55px, #ffffff 0.55px);
+    background-size: 11px 11px;
+    opacity: 0.7;
   }
-}
-
-@keyframes slide-in-up {
-  0% {
-    transform: translateY(50%);
-    opacity: 0;
+  
+  /* Card Icon Styling */
+  .card-icon {
+    color: #2c5e46; /* Dark Green */
   }
-  100% {
-    transform: translateY(0);
-    opacity: 1;
+  
+  /* Badge Styling */
+  .badge {
+    background-color: #2c5e46;
+    color: #ffffff;
+    border-radius: 20px;
+    padding: 0.5rem 1rem;
   }
-}
-
-.animate-slide-in-up {
-  animation: slide-in-up 0.5s ease-in-out;
-}
+  
+  /* Section Headings */
+  .section-heading {
+    font-weight: bold;
+    text-align: center;
+    color: #333333;
+  }
+  
+  /* Paragraph Text */
+  .section-paragraph {
+    color: #666666;
+    line-height: 1.6;
+    text-align: center;
+  }
+  
+  /* Button Styling */
+  .button {
+    background-color: #2c5e46;
+    color: #ffffff;
+    border-radius: 25px;
+    padding: 0.75rem 1.5rem;
+    text-transform: uppercase;
+    font-weight: bold;
+    transition: all 0.3s ease;
+  }
+  
+  .button:hover {
+    background-color: #27693f;
+  }
+  
+  /* Hero Section Styling */
+  .hero-section {
+    background: linear-gradient(90deg, rgb(179, 245, 220) 0%, rgb(182, 230, 200) 3%, rgb(231, 234, 235) 18%, rgb(231, 233, 206) 41%, rgb(212, 247, 167) 95%);
+    text-align: center;
+    padding: 2rem 0;
+  }
+  
+  .hero-title {
+    font-size: 2.5rem;
+    color: #2c5e46;
+  }
+  
+  .hero-subtitle {
+    font-size: 1.2rem;
+    color: #6d6d6d;
+  }
+  
+  /* Footer Section */
+  .footer {
+    background-color: #f0f0f0;
+    color: #333333;
+    padding: 2rem 0;
+    text-align: center;
+  }
+  
