@@ -26,9 +26,6 @@ export const createBlog = async (
     });
     formData.append('blog', blogBlob, 'blog.json');
 
-    for (const [value] of formData.entries()) {
-      console.log('FormData -${key}:', value);
-    }
     const response = await axiosInstance.post(BLOG_API_ENDPOINTS.CREATE_BLOG, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
@@ -40,8 +37,6 @@ export const createBlog = async (
   } catch (error: any) {
     if (error.response) {
       console.error('Error response data:', error.response.data);
-      console.error('Error response status:', error.response.status);
-      console.error('Error response headers:', error.response.headers);
     } else if (error.request) {
       console.error('Error request:', error.request);
     } else {

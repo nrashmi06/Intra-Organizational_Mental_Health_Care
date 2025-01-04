@@ -1,7 +1,6 @@
 import axiosInstance from "@/utils/axios";
-import { BLOG_API_ENDPOINTS } from "@/mapper/blogMapper"; // Import the endpoint mapper
+import { BLOG_API_ENDPOINTS } from "@/mapper/blogMapper"; 
 
-// Fetch a blog by ID
 export const fetchBlogById = async (id: number, token: string) => {
   try {
     const response = await axiosInstance.get(BLOG_API_ENDPOINTS.GET_BLOG_BY_ID(id), {
@@ -10,11 +9,10 @@ export const fetchBlogById = async (id: number, token: string) => {
       },
     });
 
-    return response.data; // Returns the blog data
+    return response.data;
   } catch (error: any) {
     console.error("Error fetching blog by ID:", error);
 
-    // Handle Axios errors
     if (error.response) {
       throw new Error(
         error.response.data?.message || "Failed to fetch blog."
@@ -27,7 +25,6 @@ export const fetchBlogById = async (id: number, token: string) => {
   }
 };
 
-// Toggle like/unlike on a blog
 export const toggleLikeOnBlog = async (id: number, token: string, toggle: boolean) => {
   try {
     const response = await axiosInstance.post(
@@ -41,11 +38,10 @@ export const toggleLikeOnBlog = async (id: number, token: string, toggle: boolea
       }
     );
 
-    return response.data; // Returns updated blog details
+    return response.data; 
   } catch (error: any) {
     console.error("Error toggling like on blog:", error);
 
-    // Handle Axios errors
     if (error.response) {
       throw new Error(
         error.response.data?.message || "Failed to update like status."

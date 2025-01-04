@@ -14,11 +14,10 @@ export async function fetchAdmins(accessToken: string) {
       }
     );
 
-    return response.data; // Return the API response data
+    return response.data; 
   } catch (error : any) {
     console.error("Error fetching admins:", error);
 
-    // Enhanced error handling
     if (error.response) {
       throw new Error(
         `Error fetching admins: ${

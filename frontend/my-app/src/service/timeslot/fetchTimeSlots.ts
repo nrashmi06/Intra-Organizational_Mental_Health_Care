@@ -49,11 +49,9 @@ export const fetchTimeSlots = (
     });
     // Handle 304 (Not Modified) response
     if (response.status === 304) {
-      console.log("Data not modified. Using cached time slots.");
-      return; // No need to update the Redux store
+      return; 
     }
 
-    // Dispatch the response data along with ETag and pagination
     dispatch(
       setTimeSlots({
         timeSlots: response.data.content,

@@ -27,7 +27,6 @@ export const getAppointments = async ({
         Authorization: `Bearer ${token}`,
       },
     });
-    console.log("Appointments fetched successfully:", response);
     return response;
   } catch (error: any) {
     console.error("Error fetching appointments:", error);

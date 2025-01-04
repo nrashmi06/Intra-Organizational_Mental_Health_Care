@@ -30,23 +30,21 @@ const Component = () => {
   const [isUpdateMode, setIsUpdateMode] = useState(false);
   const [selectedHelplineId, setSelectedHelplineId] = useState<string | null>(null);
 
-  // Open modal with existing data for update
   const handleEditHelpline = (helpline: any) => {
-    setNewHelpline(helpline); // Populate modal with existing data
-    setSelectedHelplineId(helpline.helplineId); // Store the ID of the helpline being edited
-    setIsUpdateMode(true); // Set to update mode
-    setModalOpen(true); // Open modal
+    setNewHelpline(helpline);
+    setSelectedHelplineId(helpline.helplineId); 
+    setIsUpdateMode(true);
+    setModalOpen(true); 
   };
 
-  // Submit the update to the API
   const handleUpdateSubmit = async () => {
     if (!selectedHelplineId) return;
 
     try {
-      await updateEmergencyHelpline(selectedHelplineId, token, newHelpline); // Call the API
-      setModalOpen(false); // Close modal
-      setIsUpdateMode(false); // Exit update mode
-      dispatch(getAllHelplines()); // Trigger data refetch
+      await updateEmergencyHelpline(selectedHelplineId, token, newHelpline); 
+      setModalOpen(false); 
+      setIsUpdateMode(false);
+      dispatch(getAllHelplines()); 
     } catch (error) {
       console.error("Failed to update helpline:", error);
     }
@@ -57,8 +55,8 @@ const Component = () => {
 
   const handleDeleteHelpline = async (helplineId: string) => {
     try {
-      await deleteEmergencyHelpline(helplineId, token); // Call delete API
-      dispatch(getAllHelplines()); // Trigger refetch to update the table
+      await deleteEmergencyHelpline(helplineId, token); 
+      dispatch(getAllHelplines()); 
     } catch (error) {
       console.error("Failed to delete helpline:", error);
     }
@@ -71,18 +69,17 @@ const Component = () => {
 
   const handleSubmit = async () => {
     try {
-      await createEmergencyHelpline(newHelpline, token); // Call the createEmergencyHelpline function
-      setModalOpen(false); // Close modal after submission
-      dispatch(getAllHelplines()); // Trigger refetch
+      await createEmergencyHelpline(newHelpline, token);
+      setModalOpen(false);
+      dispatch(getAllHelplines());
     } catch (error) {
       console.error("Failed to create helpline:", error);
     }
   };
 
-  // Fetch all helplines on component mount or when the token changes
   useEffect(() => {
     if (token) {
-      dispatch(getAllHelplines()); // Fetch helplines when component mounts or token changes
+      dispatch(getAllHelplines()); 
     }
   }, [token, dispatch]);
 

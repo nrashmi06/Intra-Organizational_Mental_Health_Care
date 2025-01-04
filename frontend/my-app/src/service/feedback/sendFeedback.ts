@@ -1,4 +1,3 @@
-// api/submitFeedback.ts
 import axiosInstance from "@/utils/axios";
 import { FEEDBACK_API_ENDPOINTS } from "@/mapper/feedbackMapper";
 
@@ -19,16 +18,14 @@ const submitFeedback = async (
       {
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${auth}`, // Ensure the auth token is correct
+          Authorization: `Bearer ${auth}`, 
         },
       }
     );
 
-    return response.data; // Return the parsed response data
+    return response.data; 
   } catch (error: any) {
     console.error("Error during feedback submission:", error);
-
-    // Handle Axios-specific errors
     if (error.response) {
       throw new Error(
         `Failed to submit feedback: ${error.response.data?.message || error.response.statusText}`

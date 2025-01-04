@@ -6,7 +6,6 @@ import { API_ENDPOINTS } from "@/mapper/userMapper";
 export const loginUser =
   (email: string, password: string) => async (dispatch: AppDispatch) => {
     try {
-      // Send POST request using Axios
       const response = await axiosInstance.post(
         API_ENDPOINTS.LOGIN,
         { email, password },
@@ -17,7 +16,6 @@ export const loginUser =
         }
       );
 
-      // Extract access token from response headers
       const accessToken = response.headers["authorization"]?.startsWith(
         "Bearer "
       )
@@ -36,7 +34,6 @@ export const loginUser =
         };
       }
 
-      // Dispatch the action to store user details and token in Redux
       dispatch(
         setUser({
           userId: response.data.userId,

@@ -1,5 +1,5 @@
 import axiosInstance from "@/utils/axios";
-import { API_ENDPOINTS } from "@/mapper/userMapper"; // Import the userMapper
+import { API_ENDPOINTS } from "@/mapper/userMapper";
 import axios from "axios";
 
 interface ChangePasswordParams {
@@ -33,7 +33,6 @@ const changePassword = async ({
         },
       }
     );
-    // Assuming the response structure matches the example provided
     return response.data.message;
   } catch (error: any) {
     if (axios.isAxiosError(error)) {

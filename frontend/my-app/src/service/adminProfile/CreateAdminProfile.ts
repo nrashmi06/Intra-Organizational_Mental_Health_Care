@@ -8,7 +8,7 @@ export interface AdminProfile {
   qualifications: string;
   contactNumber: string;
   email: string;
-  profilePicture: File | null; // File type for the profile picture
+  profilePicture: File | null; 
 }
 
 export interface AdminProfileResponse {
@@ -19,7 +19,7 @@ export interface AdminProfileResponse {
   qualifications: string;
   contactNumber: string;
   email: string;
-  profilePictureUrl: string; // URL for the uploaded profile picture
+  profilePictureUrl: string; 
   createdAt: string;
   updatedAt: string;
 }
@@ -29,7 +29,6 @@ export const createAdminProfile = async (
     accessToken: string
   ): Promise<AdminProfileResponse> => {
     try {
-      // Construct FormData for file upload and text fields
       const formData = new FormData();
       
       const adminProfileDTO = {
@@ -40,32 +39,26 @@ export const createAdminProfile = async (
         email: adminProfile.email,
       };
 
-        // Convert blog data to Blob
         const adminProfileBlob = new Blob([JSON.stringify(adminProfileDTO)], {
             type: 'application/json'
             });
             formData.append('adminProfile', adminProfileBlob, 'adminProfile.json');
 
 
-      // Add profile picture if provided
       if (adminProfile.profilePicture) {
         formData.append('profilePicture', adminProfile.profilePicture);
       }
   
-      // Make the POST request
       const response = await axiosInstance.post<AdminProfileResponse>(`${ADMIN_PROFILE_API_ENDPOINTS.CREATE_ADMIN_PROFILE}`, 
         formData, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
           'Content-Type': 'multipart/form-data',
         }
-      });
-      console.log(response.data);   
+      });  
   
-      // Return the parsed response data
       return response.data;
     } catch (error: any) {
-      // Enhanced error logging
       const errorMessage = error.response
         ? error.response.data
         : error.message || 'An unknown error occurred';

@@ -31,7 +31,6 @@ export const getAllSSEbyRole = (
     eventSource.addEventListener("roleCounts", (event) => {
       try {
         const data: UserDetails[] = JSON.parse(event.data);
-        console.log("Received user details:", data);
         onMessage(data);
       } catch (error) {
         console.error("Error parsing user details message:", error);
@@ -39,7 +38,6 @@ export const getAllSSEbyRole = (
     });
 
     eventSource.onerror = async (error: any) => {
-      console.error("SSE error:", error.message);
       if (error?.status === 401 || error.status === 500 || error.message?.includes("Network Error")) {
         console.info("Unauthorized. Attempting to refresh token...");
 
@@ -49,7 +47,6 @@ export const getAllSSEbyRole = (
 
           if (refreshedData?.accessToken) {
             currentToken = refreshedData.accessToken; 
-            console.log("Token refreshed. Reconnecting SSE...");
             eventSource.close();
             eventSource = createEventSource(); 
             setupListeners();
@@ -58,7 +55,6 @@ export const getAllSSEbyRole = (
           }
         } catch (refreshError) {
           console.error("Error during token refresh:", refreshError);
-          alert("Error refreshing token. Please log in again.");
         }
       } else {
         eventSource.close();

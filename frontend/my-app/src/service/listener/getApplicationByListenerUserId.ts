@@ -1,5 +1,5 @@
 import axiosInstance from "@/utils/axios";
-import { LISTENER_APPLICATION_API_ENDPOINTS } from "@/mapper/listnerMapper"; // Import the URL mapper
+import { LISTENER_APPLICATION_API_ENDPOINTS } from "@/mapper/listnerMapper";
 
 export const getApplicationByListenerUserId = async (
   userId: string,
@@ -16,11 +16,10 @@ export const getApplicationByListenerUserId = async (
       }
     );
 
-    return response.data; // Return the parsed data
+    return response.data; 
   } catch (error: any) {
     console.error("Error fetching listener application:", error);
 
-    // Handle Axios-specific errors
     if (error.response) {
       throw new Error(
         `Error fetching listener application: ${error.response.data?.message || error.response.statusText}`

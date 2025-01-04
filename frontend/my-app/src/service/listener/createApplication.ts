@@ -9,18 +9,13 @@ export const createApplication = async (
     semester: number;
     phoneNumber: string;
     reasonForApplying: string;
-    image: File; // Ensure this is a File object
+    image: File;
   },
   accessToken: string
 ) => {
   try {
-    // Create FormData instance
     const formData = new FormData();
-
-    // Add the image file to FormData
     formData.append("certificate", applicationData.image);
-
-    // Prepare application data as a JSON object
     const applicationRequestDTO = {
       fullName: applicationData.fullName,
       branch: applicationData.branch,
@@ -29,19 +24,14 @@ export const createApplication = async (
       reasonForApplying: applicationData.reasonForApplying,
       phoneNumber: applicationData.phoneNumber,
     };
-
-    // Convert application data to a Blob
     const applicationBlob = new Blob([JSON.stringify(applicationRequestDTO)], {
       type: "application/json",
     });
     formData.append("application", applicationBlob, "application.json");
 
-    // Debug: Log FormData contents (optional, for debugging purposes)
     for (const [key, value] of formData.entries()) {
       console.log(`FormData - ${key}:`, value);
     }
-
-    // Make the POST request
     const response = await axiosInstance.post(
       `${LISTENER_APPLICATION_API_ENDPOINTS.SUBMIT_APPLICATION}`, // Use the mapped endpoint
       formData,
@@ -55,11 +45,8 @@ export const createApplication = async (
 
     return response.data;
   } catch (error: any) {
-    // Enhanced error logging
     if (error.response) {
       console.error("Error response data:", error.response.data);
-      console.error("Error response status:", error.response.status);
-      console.error("Error response headers:", error.response.headers);
     } else if (error.request) {
       console.error("Error request:", error.request);
     } else {

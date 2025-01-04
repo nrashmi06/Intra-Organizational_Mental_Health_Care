@@ -1,6 +1,5 @@
-// src/service/session/getSessionMessages.ts
-import axiosInstance from "@/utils/axios"; // Import the Axios instance
-import { SESSION_API_ENDPOINTS } from "@/mapper/sessionMapper"; // Import the session mapper
+import axiosInstance from "@/utils/axios";
+import { SESSION_API_ENDPOINTS } from "@/mapper/sessionMapper"; 
 
 export const getSessionMessages = async (
   sessionId: string,
@@ -8,14 +7,14 @@ export const getSessionMessages = async (
   signal?: AbortSignal
 ) => {
   try {
-    const url = SESSION_API_ENDPOINTS.GET_MESSAGES_BY_SESSION_ID(sessionId); // Use the mapped URL
+    const url = SESSION_API_ENDPOINTS.GET_MESSAGES_BY_SESSION_ID(sessionId);
 
     const response = await axiosInstance.get(url, {
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
-      signal, // Pass the abort signal for request cancellation
+      signal, 
     });
 
     if (response.status === 404) {

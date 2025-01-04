@@ -14,7 +14,6 @@ export const getApplicationsByApprovalStatus =
   ({ token, status, size, page }: ApprovalFilterParams) =>
   async (dispatch: AppDispatch, getState: () => RootState) => {
     try {
-      // Get the cached ETag from Redux state
       const cachedEtag = getState().applicationList.etag;
       const headers = {
         Authorization: `Bearer ${token}`,
@@ -24,26 +23,22 @@ export const getApplicationsByApprovalStatus =
       const response = await axiosInstance.get(
         LISTENER_APPLICATION_API_ENDPOINTS.GET_APPLICATION_BY_APPROVAL_STATUS,
         {
-          params: { status, page, size }, // Pass query parameters
+          params: { status, page, size }, 
           headers,
           validateStatus: (status) => status >= 200 && status < 400,
         }
       );
 
-      // If status 304, skip fetching data (use cached data)
       if (response.status === 304) {
-        console.log("Using cached application data");
         return;
       }
 
-      const etag = response.headers["etag"]; // Extract the ETag from response headers
-
-      // Dispatch the fresh data to Redux
+      const etag = response.headers["etag"]; 
       dispatch(
         setApplicationList({
           applications: response.data.content,
           page: response.data.page,
-          etag: etag || cachedEtag, // Save the new ETag or retain the old one
+          etag: etag || cachedEtag, 
         })
       );
 

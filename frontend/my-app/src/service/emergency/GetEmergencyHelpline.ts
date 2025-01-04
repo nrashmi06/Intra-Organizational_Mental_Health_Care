@@ -16,7 +16,6 @@ export const getAllHelplines = () => async (dispatch: AppDispatch, getState: () 
     });
 
     if (response.status === 304) {
-      console.log("No changes to helplines, using cached data");
       return;
     }
 

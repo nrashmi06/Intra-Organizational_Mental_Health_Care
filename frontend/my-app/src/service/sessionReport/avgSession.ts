@@ -8,12 +8,11 @@ export const getAverageSessionDetails = async (token: string) => {
       SESSION_API_ENDPOINTS.AVG_SESSION_DURATION,
       {
         headers: {
-          Authorization: `Bearer ${token}`, // Add token dynamically
+          Authorization: `Bearer ${token}`, 
         },
       }
     );
-    console.log("Average session summary:", response);
-    return response.data; // Axios response contains 'data' field directly
+    return response.data; 
   } catch (error) {
     if (isAxiosError(error)) {
       console.error(

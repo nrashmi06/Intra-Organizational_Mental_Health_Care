@@ -23,7 +23,6 @@ export const subscribeToHeartbeat = (
     eventSource.onmessage = (event) => {
       try {
         const eventData = event.data.trim();
-        console.log("Heartbeat message received:", eventData);
         onHeartbeatReceived(eventData);
       } catch (error) {
         console.error("Error handling heartbeat message:", error);
@@ -31,7 +30,6 @@ export const subscribeToHeartbeat = (
     };
 
     eventSource.onerror = async (error: any) => {
-      console.error("SSE error:", error);
 
       if (error?.status === 401 || error.message?.includes("401")) {
         console.info("Unauthorized. Attempting to refresh token...");
@@ -45,19 +43,16 @@ export const subscribeToHeartbeat = (
             console.log("Token refreshed. Reconnecting heartbeat SSE...");
             eventSource.close(); 
             eventSource = createEventSource(); 
-            setupListeners(); // Reattach the listeners to the new connection
+            setupListeners(); 
           } else {
             console.error("Token refresh failed. Redirecting to login.");
-            alert("Session expired. Please log in again.");
-            window.location.href = "/signin"; // Redirect to login page
+            window.location.href = "/signin"; 
           }
         } catch (refreshError) {
           console.error("Error during token refresh:", refreshError);
-          alert("Error refreshing token. Please log in again.");
-          window.location.href = "/signin"; // Redirect to login page
+          window.location.href = "/signin"; 
         }
       } else {
-        // Handle other errors and call onError if provided
         eventSource.close();
         if (onError) onError(error);
       }

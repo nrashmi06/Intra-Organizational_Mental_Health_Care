@@ -13,7 +13,6 @@ export const confirmTimeSlots = async (accessToken: string,userID : string | nul
   };
 
   try {
-    // Use axios to make the POST request
     const response = await axiosInstance.post(url, requestBody, {
       headers: {
         'Content-Type': 'application/json',
@@ -21,7 +20,7 @@ export const confirmTimeSlots = async (accessToken: string,userID : string | nul
       }
     });
 
-    return response.data; // Return the response data
+    return response.data; 
   } catch (error) {
     console.error('Error confirming selected time slots:', error);
     throw error; // Rethrow to handle in the calling function

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { BLOG_API_ENDPOINTS } from '@/mapper/blogMapper'; // Adjust the path if needed
+import { BLOG_API_ENDPOINTS } from '@/mapper/blogMapper'; 
 import axiosInstance from '@/utils/axios';
 
 export const updateBlog = async (
@@ -19,7 +19,6 @@ export const updateBlog = async (
     formData.append('image', blogData.image);
   }
 
-  // Only include properties that are defined
   const blogRequestDTO: { [key: string]: any } = {};
   if (blogData.title) blogRequestDTO.title = blogData.title;
   if (blogData.content) blogRequestDTO.content = blogData.content;

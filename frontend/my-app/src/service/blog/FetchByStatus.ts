@@ -30,7 +30,6 @@ export async function fetchByStatus(status: string, token: string, page?: number
 
     const data = response.data;
 
-    // Validate and safely access the data
     if (data && data.content && data.page) {
       const { content, page: pageInfo } = data;
       return {

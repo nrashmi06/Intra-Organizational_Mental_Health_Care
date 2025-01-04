@@ -1,7 +1,5 @@
-// src/service/session/getSessionListByRole.ts
-import axiosInstance from '@/utils/axios'// Import the Axios instance
-import { SESSION_API_ENDPOINTS } from "@/mapper/sessionMapper"; // Import the session mapper
-
+import axiosInstance from '@/utils/axios'
+import { SESSION_API_ENDPOINTS } from "@/mapper/sessionMapper"; 
 export const getSessionListByRole = async (
   id: string,
   role: string,
@@ -10,8 +8,7 @@ export const getSessionListByRole = async (
   try {
     const url = `${SESSION_API_ENDPOINTS.GET_SESSIONS_BY_USER_ID_OR_LISTENER_ID(
       id
-    )}?role=${role}`; // Construct the API endpoint
-
+    )}?role=${role}`; 
     const response = await axiosInstance.get(url, {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -19,7 +16,7 @@ export const getSessionListByRole = async (
       },
     });
 
-    return response.data; // Return the response data
+    return response.data;
   } catch (error) {
     console.error("Error fetching listener sessions:", error);
   }

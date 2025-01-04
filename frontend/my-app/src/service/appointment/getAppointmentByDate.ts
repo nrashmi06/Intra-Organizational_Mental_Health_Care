@@ -9,7 +9,6 @@ export const getAppointmentByDate =
     try {
       const cachedEtag = getState().appointments.etag;
 
-      // Set the `If-None-Match` header if the ETag is available
       const headers = cachedEtag ? { "If-None-Match": cachedEtag } : {};
 
       const response = await axiosInstance.get(
@@ -26,7 +25,6 @@ export const getAppointmentByDate =
       );
 
       if (response.status === 304) {
-        console.log("No changes to appointments, using cached data");
         return;
       }
 

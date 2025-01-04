@@ -25,13 +25,11 @@ export const getAllSSE = (
 
   const setupListeners = () => {
     eventSource.onopen = () => {
-      console.log("SSE connection opened.");
     };
 
     eventSource.addEventListener("allUsers", (event) => {
       try {
         const data: UserDetails[] = JSON.parse(event.data);
-        console.log("Received user details:", data);
         onMessage(data);
       } catch (error) {
         console.error("Error parsing user details message:", error);
@@ -39,18 +37,13 @@ export const getAllSSE = (
     });
 
     eventSource.onerror = async (error: any) => {
-      console.error("SSE error:", error.message);
-
-      // Handle 401 Unauthorized (Token Expired)
       if (error?.status === 401 || error.message?.includes("401")) {
-        console.info("Unauthorized. Attempting to refresh token...");
         try {
           await TokenManager.triggerRefresh();
           const refreshedData = store.getState().auth;
 
           if (refreshedData?.accessToken) {
-            currentToken = refreshedData.accessToken; // Update the token
-            console.log("Token refreshed. Reconnecting SSE...");
+            currentToken = refreshedData.accessToken;
             eventSource.close(); 
             eventSource = createEventSource(); 
             setupListeners(); 
@@ -59,7 +52,6 @@ export const getAllSSE = (
           }
         } catch (refreshError) {
           console.error("Error during token refresh:", refreshError);
-          alert("Error refreshing token. Please log in again.");
         }
       } else {
         eventSource.close();

@@ -21,7 +21,6 @@ export const getActiveListeners = (token: string, onMessage: (data: any) => void
   eventSource.addEventListener("listenerDetails", (event) => {
     try {
       const data: ListenerDetails[] = JSON.parse(event.data);
-      console.log("Received listener details:", data);
       onMessage(data);
     } catch (error) {
       console.error("Error parsing listener details:", error);
@@ -29,7 +28,6 @@ export const getActiveListeners = (token: string, onMessage: (data: any) => void
   });
 
   eventSource.onerror = async (error: any) => {
-    console.error("SSE error:", error);
 
     if (error.status === 401 || error.message?.includes("401")) {
       console.info("Unauthorized. Attempting to refresh token...");
@@ -40,21 +38,19 @@ export const getActiveListeners = (token: string, onMessage: (data: any) => void
 
         if (refreshedData?.accessToken) {
           currentToken = refreshedData.accessToken; 
-          console.log("Token refreshed. Reconnecting SSE...");
           eventSource.close(); 
           new EventSource(
             `${SSE_API_ENDPOINTS.SSE_ONLINE_LISTENERS}?token=${encodeURIComponent(currentToken)}`
           );
         } else {
           console.error("Failed to refresh token. Logging out...");
-          alert("Session expired. Please log in again.");
-          window.location.href = "/signin"; // Redirect to login
+          window.location.href = "/signin";
         }
       } catch (refreshError) {
         console.error("Error during token refresh:", refreshError);
       }
     } else {
-      eventSource.close(); // Close the connection on persistent error
+      eventSource.close(); 
     }
   };
 
