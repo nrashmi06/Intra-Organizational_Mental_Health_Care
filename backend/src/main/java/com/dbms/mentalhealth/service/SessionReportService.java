@@ -1,9 +1,9 @@
 package com.dbms.mentalhealth.service;
 
 
-import com.dbms.mentalhealth.dto.session.request.SessionReportRequestDTO;
-import com.dbms.mentalhealth.dto.session.response.SessionReportResponseDTO;
-import com.dbms.mentalhealth.dto.session.response.SessionReportSummaryResponseDTO;
+import com.dbms.mentalhealth.dto.SessionReport.request.SessionReportRequestDTO;
+import com.dbms.mentalhealth.dto.SessionReport.response.SessionReportResponseDTO;
+import com.dbms.mentalhealth.dto.SessionReport.response.SessionReportSummaryResponseDTO;
 
 import java.util.List;
 

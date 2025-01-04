@@ -1,8 +1,9 @@
 package com.dbms.mentalhealth.service.impl;
 import com.dbms.mentalhealth.dto.chatMessage.ChatMessageDTO;
-import com.dbms.mentalhealth.dto.session.SessionResponseDTO;
-import com.dbms.mentalhealth.dto.session.SessionSummaryDTO;
+import com.dbms.mentalhealth.dto.session.response.SessionResponseDTO;
+import com.dbms.mentalhealth.dto.session.response.SessionSummaryDTO;
 import com.dbms.mentalhealth.enums.SessionStatus;
+import com.dbms.mentalhealth.exception.appointment.InvalidRequestException;
 import com.dbms.mentalhealth.exception.listener.ListenerNotFoundException;
 import com.dbms.mentalhealth.exception.session.SessionNotFoundException;
 import com.dbms.mentalhealth.exception.user.UserNotFoundException;
@@ -13,18 +14,24 @@ import com.dbms.mentalhealth.repository.*;
 import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.service.NotificationService;
 import com.dbms.mentalhealth.service.SessionService;
+import com.dbms.mentalhealth.service.UserActivityService;
+import com.dbms.mentalhealth.service.UserMetricService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.benmanes.caffeine.cache.Cache;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -37,14 +44,23 @@ public class SessionServiceImpl implements SessionService {
     private final SessionRepository sessionRepository;
     private final NotificationRepository notificationRepository;
     private final ChatMessageRepository chatMessageRepository;
-
+    private final Cache<Integer, Session> ongoingSessionsCache;
+    private final UserActivityService userActivityService;
+    private final Cache<Integer, Integer> currentlyInSessionCache;
+    private static SessionServiceImpl instance;
+    private final UserMetricService userMetricService;
     @Autowired
     public SessionServiceImpl(NotificationService notificationService,
                               JwtUtils jwtUtils,
                               UserRepository userRepository,
                               ListenerRepository listenerRepository,
                               SessionRepository sessionRepository,
-                              NotificationRepository notificationRepository, ChatMessageRepository chatMessageRepository) {
+                              NotificationRepository notificationRepository,
+                              ChatMessageRepository chatMessageRepository,
+                              Cache<Integer, Session> ongoingSessionsCache,
+                              Cache<Integer, Integer> currentlyInSessionCache,
+                                UserMetricService userMetricService,
+                              @Lazy UserActivityService userActivityService) {
         this.notificationService = notificationService;
         this.jwtUtils = jwtUtils;
         this.userRepository = userRepository;
@@ -52,7 +68,13 @@ public class SessionServiceImpl implements SessionService {
         this.sessionRepository = sessionRepository;
         this.notificationRepository = notificationRepository;
         this.chatMessageRepository = chatMessageRepository;
+        this.ongoingSessionsCache = ongoingSessionsCache;
+        this.currentlyInSessionCache = currentlyInSessionCache;
+        this.userActivityService = userActivityService;
+        this.userMetricService = userMetricService;
+        instance = this;
     }
+
 
 
     @Override
@@ -60,9 +82,13 @@ public class SessionServiceImpl implements SessionService {
     public String initiateSession(Integer listenerId, String message) throws JsonProcessingException {
         User sender = userRepository.findById(jwtUtils.getUserIdFromContext())
                 .orElseThrow(() -> new UserNotFoundException("Sender not found"));
+
         User receiver = userRepository.findById(listenerId)
                 .orElseThrow(() -> new ListenerNotFoundException("Receiver not found"));
 
+        if(isUserInSessionStatic(receiver.getUserId())) {
+            throw new IllegalStateException("Listener is already in a session");
+        }
         // Create a notification
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode messageJson = objectMapper.readTree(message);
@@ -89,11 +115,21 @@ public class SessionServiceImpl implements SessionService {
         if ("accept".equalsIgnoreCase(action)) {
             // Create and save session
             Session session = new Session();
+            listener.setTotalSessions(listener.getTotalSessions() + 1);
             session.setListener(listener);
             session.setUser(user);
             session.setSessionStatus(SessionStatus.ONGOING);
             session.setSessionStart(LocalDateTime.now());
             sessionRepository.save(session);
+            userMetricService.incrementSessionCount(user);
+            userMetricService.setLastSessionDate(user, LocalDateTime.now());
+
+            ongoingSessionsCache.put(session.getSessionId(), session);
+            currentlyInSessionCache.put(user.getUserId(), listener.getUser().getUserId());
+            currentlyInSessionCache.put(listener.getUser().getUserId(), user.getUserId());
+
+            // Broadcast session details
+            broadcastFullSessionCache();
 
             // Prepare session notifications
             String userMessage = "Your session request has been accepted by listener " +
@@ -124,7 +160,6 @@ public class SessionServiceImpl implements SessionService {
         }
     }
 
-
     private void sendSseNotification(User receiver, User listener, String message) {
         Notification notification = new Notification();
         notification.setMessage(message);
@@ -142,32 +177,6 @@ public class SessionServiceImpl implements SessionService {
         return SessionMapper.toSessionResponseDTO(session);
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<SessionSummaryDTO> getSessionsByUserIdOrListenerId(Integer id, String role) {
-        List<Session> sessions;
-        if ("listener".equalsIgnoreCase(role)) {
-            Listener listener = listenerRepository.findByUser_UserId(id)
-                    .orElseThrow(() -> new ListenerNotFoundException("Listener not found"));
-            sessions = sessionRepository.findByListener_ListenerId(listener.getListenerId());
-        } else if ("user".equalsIgnoreCase(role)) {
-            sessions = sessionRepository.findByUser_UserId(id);
-        } else {
-            throw new IllegalArgumentException("Invalid role: " + role);
-        }
-        return sessions.stream()
-                .map(SessionMapper::toSessionSummaryDTO)
-                .toList();
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<SessionSummaryDTO> getSessionsByStatus(String status) {
-        List<Session> sessions = sessionRepository.findBySessionStatus(SessionStatus.valueOf(status.toUpperCase()));
-        return sessions.stream()
-                .map(SessionMapper::toSessionSummaryDTO)
-                .toList();
-    }
 
     @Override
     @Transactional
@@ -179,6 +188,14 @@ public class SessionServiceImpl implements SessionService {
         session.setSessionEnd(LocalDateTime.now());
         sessionRepository.save(session);
 
+        // Invalidate caches
+        ongoingSessionsCache.invalidate(sessionId);
+        currentlyInSessionCache.invalidate(session.getUser().getUserId());
+        currentlyInSessionCache.invalidate(session.getListener().getUser().getUserId());
+
+        // Broadcast session details
+        broadcastFullSessionCache();
+
         // Notify users about session end
         String message = "Session with ID " + sessionId + " has ended.";
         sendSseNotification(session.getUser(), session.getListener().getUser(), message);
@@ -188,12 +205,15 @@ public class SessionServiceImpl implements SessionService {
         return "Session ended successfully";
     }
 
+
     @Override
-    @Transactional(readOnly = true)
-    public List<SessionSummaryDTO> getAllSessions() {
-        return sessionRepository.findAll().stream()
-                .map(SessionMapper::toSessionSummaryDTO)
-                .toList();
+    public List<SessionSummaryDTO> broadcastFullSessionCache() {
+        List<SessionSummaryDTO> cachedSessions = new ArrayList<>();
+        ongoingSessionsCache.asMap().values().forEach(session -> {
+            cachedSessions.add(SessionMapper.toSessionSummaryDTO(session));
+        });
+        userActivityService.broadcastSessionDetails(cachedSessions);
+        return cachedSessions;
     }
 
     @Override
@@ -207,32 +227,65 @@ public class SessionServiceImpl implements SessionService {
 
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public String getAverageSessionDuration() {
-        List<Session> sessions = sessionRepository.findAll();
-        if (sessions.isEmpty()) {
+        long count = sessionRepository.countBySessionStatus(SessionStatus.COMPLETED);
+        if (count == 0) {
             return "0m 0s";
         }
 
-        long totalDurationInSeconds = sessions.stream()
-                .mapToLong(session -> Duration.between(session.getSessionStart(),session.getSessionEnd()).getSeconds())
+        long totalSeconds = sessionRepository.findBySessionStatus(SessionStatus.COMPLETED).stream()
+                .mapToLong(session -> Duration.between(session.getSessionStart(), session.getSessionEnd()).getSeconds())
                 .sum();
 
-        long averageDurationInSeconds = totalDurationInSeconds / sessions.size();
-        long minutes = averageDurationInSeconds / 60;
-        long seconds = averageDurationInSeconds % 60;
-
-        return String.format("%dm %ds", minutes, seconds);
+        long avgSeconds = totalSeconds / count;
+        return String.format("%dm %ds", avgSeconds / 60, avgSeconds % 60);
     }
+
 
     @Override
     @Transactional(readOnly = true)
-    public List<SessionResponseDTO> getSessionsByListenersUserId(Integer userId) {
-        Listener listener = listenerRepository.findByUser_UserId(userId)
-                .orElseThrow(() -> new ListenerNotFoundException("Listener not found"));
-        List<Session> sessions = sessionRepository.findByListener_ListenerId(listener.getListenerId());
-        return sessions.stream()
-                .map(SessionMapper::toSessionResponseDTO)
-                .collect(Collectors.toList());
+    public Page<SessionSummaryDTO> getSessionsByFilters(String status, Integer id, String idType, Pageable pageable) {
+        Page<Session> sessions;
+        if (id != null && idType != null && status != null) {
+            SessionStatus sessionStatus = SessionStatus.valueOf(status.toUpperCase());
+            if (idType.equalsIgnoreCase("userId")) {
+                sessions = sessionRepository.findByUser_UserIdAndSessionStatus(id, sessionStatus, pageable);
+            } else if (idType.equalsIgnoreCase("listenerId")) {
+                Listener listener = listenerRepository.findByUser_UserId(id)
+                        .orElseThrow(() -> new ListenerNotFoundException("Listener not found"));
+                sessions = sessionRepository.findByListener_ListenerIdAndSessionStatus(listener.getListenerId(), sessionStatus, pageable);
+            } else {
+                throw new InvalidRequestException("Invalid idType: " + idType);
+            }
+        } else if (id != null && idType != null) {
+            if (idType.equalsIgnoreCase("userId")) {
+                sessions = sessionRepository.findByUser_UserId(id, pageable);
+            } else if (idType.equalsIgnoreCase("listenerId")) {
+                Listener listener = listenerRepository.findByUser_UserId(id)
+                        .orElseThrow(() -> new ListenerNotFoundException("Listener not found"));
+                sessions = sessionRepository.findByListener_ListenerId(listener.getListenerId(), pageable);
+            } else {
+                throw new InvalidRequestException("Invalid idType: " + idType);
+            }
+        } else if (status != null) {
+            SessionStatus sessionStatus = SessionStatus.valueOf(status.toUpperCase());
+            sessions = sessionRepository.findBySessionStatus(sessionStatus, pageable);
+        } else {
+            sessions = sessionRepository.findAll(pageable);
+        }
+
+        return sessions.map(SessionMapper::toSessionSummaryDTO);
+    }
+
+
+
+    public static boolean isUserInSessionStatic(Integer userId) {
+        return instance.isUserInSession(userId);
+    }
+
+    @Override
+    public boolean isUserInSession(Integer userId) {
+        return currentlyInSessionCache.asMap().containsKey(userId);
     }
 }

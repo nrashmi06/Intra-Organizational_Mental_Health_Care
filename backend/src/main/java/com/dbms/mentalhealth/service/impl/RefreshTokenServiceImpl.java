@@ -11,6 +11,10 @@ import com.dbms.mentalhealth.repository.UserRepository;
 import com.dbms.mentalhealth.security.jwt.JwtUtils;
 import com.dbms.mentalhealth.service.RefreshTokenService;
 import com.dbms.mentalhealth.service.UserService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -24,10 +28,11 @@ import java.util.Map;
 import java.util.UUID;
 
 @Service
+@Slf4j
 public class RefreshTokenServiceImpl implements RefreshTokenService {
 
     private static final long REFRESH_TOKEN_VALIDITY_MS = 1_000L * 60 * 60 * 24; // 24 hrs
-
+    private final String baseUrl;
     private final UserService userService;
     private final RefreshTokenRepository refreshTokenRepository;
     private final UserRepository userRepository;
@@ -38,12 +43,14 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
             RefreshTokenRepository refreshTokenRepository,
             UserRepository userRepository,
             JwtUtils jwtUtils,
-            @Lazy UserService userService
+            @Lazy UserService userService,
+            @Value("${spring.app.base-url}") String baseUrl
     ) {
         this.refreshTokenRepository = refreshTokenRepository;
         this.userRepository = userRepository;
         this.jwtUtils = jwtUtils;
         this.userService = userService;
+        this.baseUrl = baseUrl;
     }
 
     @Transactional
@@ -64,8 +71,24 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 
     @Override
     public String getEmailFromRefreshToken(String token) {
+        log.debug("Attempting to get email from refresh token: {}", token.substring(0, 6) + "...");
         RefreshToken refreshToken = validateRefreshTokenAndGet(token);
-        return refreshToken.getUser().getEmail();
+        String email = refreshToken.getUser().getEmail();
+        log.debug("Successfully retrieved email: {}", email);
+        return email;
+    }
+
+    @Transactional
+    @Override
+    public void deleteRefreshToken(String token) {
+        log.debug("Attempting to delete refresh token: {}", token.substring(0, 6) + "...");
+        try {
+            refreshTokenRepository.deleteByToken(token);
+            log.info("Successfully deleted refresh token");
+        } catch (Exception e) {
+            log.error("Error deleting refresh token", e);
+            throw e;
+        }
     }
 
     @Override
@@ -75,11 +98,6 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
                 .isPresent();
     }
 
-    @Transactional
-    @Override
-    public void deleteRefreshToken(String token) {
-        refreshTokenRepository.deleteByToken(token);
-    }
 
     @Transactional
     @Override
@@ -116,8 +134,67 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     }
 
     private RefreshToken validateRefreshTokenAndGet(String token) {
+        log.debug("Validating refresh token: {}", token.substring(0, 6) + "...");
+
         return refreshTokenRepository.findByToken(token)
-                .filter(rt -> rt.getExpiry().isAfter(Instant.now()))
-                .orElseThrow(() -> new RefreshTokenException("Invalid or expired refresh token"));
+                .map(rt -> {
+                    boolean isValid = rt.getExpiry().isAfter(Instant.now());
+                    log.debug("Token valid: {}, Expiry: {}", isValid, rt.getExpiry());
+                    if (!isValid) {
+                        log.warn("Refresh token has expired: {}", token.substring(0, 6) + "...");
+                        throw new RefreshTokenException("Expired refresh token");
+                    }
+                    return rt;
+                })
+                .orElseThrow(() -> {
+                    log.warn("Refresh token not found: {}", token.substring(0, 6) + "...");
+                    return new RefreshTokenException("Invalid refresh token");
+                });
+    }
+
+    public void setSecureRefreshTokenCookie(HttpServletResponse response, String refreshToken) {
+        log.debug("Setting secure refresh token cookie");
+
+        boolean isSecure = !baseUrl.contains("localhost");
+        String sameSite = isSecure ? "None" : "Strict";
+
+        int maxAge = 7 * 24 * 60 * 60; // 7 days in seconds
+
+        Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setSecure(isSecure);
+        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setMaxAge(maxAge);
+
+        // Set domain for non-localhost environments
+        if (!baseUrl.contains("localhost")) {
+            String domain = baseUrl.replaceAll("https?://", "")
+                    .replaceAll("/.*$", "")
+                    .split(":")[0]
+                    .trim();
+            refreshTokenCookie.setDomain(domain);
+        }
+
+        response.addCookie(refreshTokenCookie);
+
+        StringBuilder cookieString = new StringBuilder();
+        cookieString.append(String.format("refreshToken=%s", refreshToken));
+        cookieString.append("; Path=/");
+        cookieString.append("; HttpOnly");
+        cookieString.append(String.format("; Max-Age=%d", maxAge));
+        cookieString.append(String.format("; SameSite=%s", sameSite));
+
+        if (isSecure) {
+            cookieString.append("; Secure");
+        }
+
+        if (!baseUrl.contains("localhost")) {
+            cookieString.append(String.format("; Domain=%s", refreshTokenCookie.getDomain()));
+        }
+
+        response.setHeader("Set-Cookie", cookieString.toString());
+
+        log.debug("Cookie settings - Path: /, MaxAge: {}, Secure: {}, SameSite: {}",
+                maxAge, isSecure, sameSite);
     }
 }

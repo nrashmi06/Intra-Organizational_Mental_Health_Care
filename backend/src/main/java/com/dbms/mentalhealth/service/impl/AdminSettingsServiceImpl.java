@@ -2,6 +2,7 @@ package com.dbms.mentalhealth.service.impl;
 
 import com.dbms.mentalhealth.dto.adminSettings.request.AdminSettingsRequestDTO;
 import com.dbms.mentalhealth.dto.adminSettings.response.AdminSettingsResponseDTO;
+import com.dbms.mentalhealth.exception.admin.AdminNotFoundException;
 import com.dbms.mentalhealth.exception.adminSettings.AdminSettingAlreadyExistsException;
 import com.dbms.mentalhealth.exception.adminSettings.AdminSettingNotFoundException;
 import com.dbms.mentalhealth.mapper.AdminSettingsMapper;
@@ -37,9 +38,9 @@ public class AdminSettingsServiceImpl implements AdminSettingsService {
     @Override
     @Transactional
     public AdminSettingsResponseDTO createAdminSettings(AdminSettingsRequestDTO adminSettingsRequestDTO) {
-        Integer userId = getUserIdFromContext();
+        Integer userId = jwtUtils.getUserIdFromContext();
         Admin admin = adminRepository.findByUser_UserId(userId)
-                .orElseThrow(() -> new IllegalArgumentException("Admin not found"));
+                .orElseThrow(() -> new AdminNotFoundException("Admin not found"));
         Integer adminId = admin.getAdminId();
 
         if (adminSettingsRepository.existsByAdmin_AdminId(adminId)) {
@@ -55,7 +56,7 @@ public class AdminSettingsServiceImpl implements AdminSettingsService {
     @Override
     @Transactional
     public AdminSettingsResponseDTO updateAdminSettings(AdminSettingsRequestDTO adminSettingsRequestDTO) {
-        Integer userId = getUserIdFromContext();
+        Integer userId = jwtUtils.getUserIdFromContext();
         Admin admin = adminRepository.findByUser_UserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("Admin not found"));
         Integer adminId = admin.getAdminId();
@@ -75,7 +76,7 @@ public class AdminSettingsServiceImpl implements AdminSettingsService {
     @Override
     @Transactional
     public void deleteAdminSettings() {
-        Integer userId = getUserIdFromContext();
+        Integer userId = jwtUtils.getUserIdFromContext();
         Admin admin = adminRepository.findByUser_UserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("Admin not found"));
         Integer adminId = admin.getAdminId();
@@ -90,7 +91,7 @@ public class AdminSettingsServiceImpl implements AdminSettingsService {
     @Override
     @Transactional(readOnly = true)
     public AdminSettingsResponseDTO getAdminSettings() {
-        Integer userId = getUserIdFromContext();
+        Integer userId = jwtUtils.getUserIdFromContext();
         Admin admin = adminRepository.findByUser_UserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("Admin not found"));
         Integer adminId = admin.getAdminId();
@@ -102,10 +103,5 @@ public class AdminSettingsServiceImpl implements AdminSettingsService {
         return adminSettingsMapper.toResponseDTO(adminSettings);
     }
 
-    // Method to extract user ID from the context
-    private Integer getUserIdFromContext() {
-        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
-        String jwt = jwtUtils.getJwtFromHeader(request);
-        return jwtUtils.getUserIdFromJwtToken(jwt);
-    }
+
 }

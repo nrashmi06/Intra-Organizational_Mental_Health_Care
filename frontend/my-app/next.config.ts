@@ -2,9 +2,10 @@ import type { NextConfig } from 'next';
 import JavaScriptObfuscator from 'webpack-obfuscator';
 
 const nextConfig: NextConfig = {
-  webpack: (config, { dev, isServer }) => {
-    if (!dev && !isServer) {
-      // Apply JavaScript obfuscation during production build
+  webpack: (config, { dev }) => {
+
+    if (!dev) {
+      // Apply JavaScript obfuscation for both SSR and CSR in production build
       config.plugins?.push(
         new JavaScriptObfuscator(
   {
@@ -29,6 +30,14 @@ const nextConfig: NextConfig = {
           },
         },
       });
+
+
+      // Suppress Webpack's "Critical dependency" warnings for dynamic imports or `require()` statements
+      config.ignoreWarnings = [
+        (warning : any) =>
+          warning.message.includes('Critical dependency') || 
+          warning.message.includes('the request of a dependency is an expression')
+      ];
     }
 
     return config;

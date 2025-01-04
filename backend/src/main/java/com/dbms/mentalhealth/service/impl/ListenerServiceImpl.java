@@ -1,70 +1,92 @@
 package com.dbms.mentalhealth.service.impl;
 
+import com.dbms.mentalhealth.dto.Listener.response.FullListenerDetailsDTO;
 import com.dbms.mentalhealth.dto.Listener.response.ListenerDetailsResponseDTO;
 import com.dbms.mentalhealth.dto.UserActivity.UserActivityDTO;
 import com.dbms.mentalhealth.enums.ProfileStatus;
 import com.dbms.mentalhealth.enums.Role;
+import com.dbms.mentalhealth.exception.appointment.InvalidRequestException;
 import com.dbms.mentalhealth.exception.listener.ListenerNotFoundException;
 import com.dbms.mentalhealth.exception.user.UserNotFoundException;
 import com.dbms.mentalhealth.mapper.ListenerDetailsMapper;
 import com.dbms.mentalhealth.mapper.UserActivityMapper;
 import com.dbms.mentalhealth.model.Listener;
 import com.dbms.mentalhealth.model.User;
+import com.dbms.mentalhealth.model.UserMetrics;
 import com.dbms.mentalhealth.repository.ListenerRepository;
+import com.dbms.mentalhealth.repository.UserMetricsRepository;
 import com.dbms.mentalhealth.repository.UserRepository;
 import com.dbms.mentalhealth.service.ListenerService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.List;
 
 @Service
 public class ListenerServiceImpl implements ListenerService {
 
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(ListenerServiceImpl.class);
     private final ListenerRepository listenerRepository;
     private final UserRepository userRepository;
+    private final UserMetricsRepository userMetricsRepository;
 
     @Autowired
-    public ListenerServiceImpl(ListenerRepository listenerRepository, UserRepository userRepository) {
+    public ListenerServiceImpl(ListenerRepository listenerRepository, UserRepository userRepository, UserMetricsRepository userMetricsRepository) {
         this.listenerRepository = listenerRepository;
         this.userRepository = userRepository;
+        this.userMetricsRepository = userMetricsRepository;
     }
 
-    @Override
     @Transactional(readOnly = true)
-    public ListenerDetailsResponseDTO getListenerDetails(String type, Integer id) {
+    public FullListenerDetailsDTO getListenerDetails(String type, Integer id) {
+        Listener listener;
+        User user;
+
         if ("userId".equalsIgnoreCase(type)) {
-            User user = userRepository.findById(id)
-                    .orElseThrow(() -> new UserNotFoundException("User not found for ID: " + id));
-            return ListenerDetailsMapper.toResponseDTO(listenerRepository.findByUser(user)
-                    .orElseThrow(() -> new ListenerNotFoundException("Listener not found for User ID: " + id)));
+            user = userRepository.findById(id)
+                    .orElseThrow(() -> new UserNotFoundException("User not found: " + id));
+            listener = listenerRepository.findByUser(user)
+                    .orElseThrow(() -> new ListenerNotFoundException("Listener not found: " + id));
         } else if ("listenerId".equalsIgnoreCase(type)) {
-            Listener listener = listenerRepository.findById(id)
-                    .orElseThrow(() -> new ListenerNotFoundException("Listener not found for ID: " + id));
-            return ListenerDetailsMapper.toResponseDTO(listener);
+            listener = listenerRepository.findById(id)
+                    .orElseThrow(() -> new ListenerNotFoundException("Listener not found: " + id));
+            user = listener.getUser();
         } else {
             throw new IllegalArgumentException("Invalid type: " + type);
         }
+
+        UserMetrics metrics = userMetricsRepository.findByUser(user)
+                .orElseThrow(() -> new RuntimeException("UserMetrics not found: " + id));
+
+        return ListenerDetailsMapper.toFullListenerDetailsDTO(listener, metrics);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<UserActivityDTO> getAllListeners(String type) {
-        List<Listener> listeners;
-        if ("suspended".equalsIgnoreCase(type)) {
-            listeners = listenerRepository.findAll().stream()
-                    .filter(listener -> listener.getUser().getProfileStatus() == ProfileStatus.SUSPENDED)
-                    .toList();
-        } else if ("active".equalsIgnoreCase(type)) {
-            listeners = listenerRepository.findAll().stream()
-                    .filter(listener -> listener.getUser().getProfileStatus() == ProfileStatus.ACTIVE)
-                    .toList();
-        } else {
-            listeners = listenerRepository.findAll();
+    public Page<UserActivityDTO> getListenersByFilters(String status, String searchTerm, Pageable pageable) {
+        logger.debug("Fetching listeners with status: {}, search term: {}, pagination: {}",
+                status, searchTerm, pageable);
+
+        ProfileStatus profileStatus = null;
+        if (status != null && !status.isEmpty()) {
+            try {
+                profileStatus = ProfileStatus.valueOf(status.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                logger.error("Invalid profile status: {}", status);
+                throw new InvalidRequestException("Invalid profile status: " + status);
+            }
         }
-        return listeners.stream()
-                .map(listener -> UserActivityMapper.toUserActivityDTO(listener.getUser()))
-                .toList();
+
+        Page<Listener> listeners;
+        if (searchTerm == null || searchTerm.trim().isEmpty()) {
+            listeners = listenerRepository.findListenersWithStatus(profileStatus, pageable);
+        } else {
+            String normalizedSearch = searchTerm.trim();
+            listeners = listenerRepository.findListenersWithFilters(profileStatus, normalizedSearch, pageable);
+        }
+
+        return listeners.map(listener -> UserActivityMapper.toUserActivityDTO(listener.getUser()));
     }
 
     @Override
@@ -92,8 +114,7 @@ public class ListenerServiceImpl implements ListenerService {
     }
 
     @Override
-    @Transactional
-    public void incrementMessageCount(String username) {
-        listenerRepository.incrementMessageCount(username);
+    public void incrementMessageCount(String username, Integer count) {
+        listenerRepository.incrementMessageCount(username, count);
     }
 }

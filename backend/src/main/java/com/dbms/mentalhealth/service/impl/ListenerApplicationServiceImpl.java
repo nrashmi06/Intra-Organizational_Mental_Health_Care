@@ -1,5 +1,7 @@
 package com.dbms.mentalhealth.service.impl;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 import com.dbms.mentalhealth.dto.listenerApplication.response.ListenerApplicationSummaryResponseDTO;
 import com.dbms.mentalhealth.dto.Listener.response.ListenerDetailsResponseDTO;
@@ -37,7 +39,6 @@ import org.springframework.security.core.GrantedAuthority;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 @Service
@@ -163,14 +164,6 @@ public class ListenerApplicationServiceImpl implements ListenerApplicationServic
         listenerApplicationRepository.deleteById(applicationId);
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<ListenerApplicationSummaryResponseDTO> getAllApplications() {
-        List<ListenerApplication> applications = listenerApplicationRepository.findAll();
-        return applications.stream()
-                .map(ListenerApplicationMapper::toSummaryResponseDTO)
-                .toList();
-    }
 
     @Override
     @Transactional
@@ -272,18 +265,22 @@ public class ListenerApplicationServiceImpl implements ListenerApplicationServic
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public List<ListenerApplicationSummaryResponseDTO> getApplicationByApprovalStatus(String status) {
+    public Page<ListenerApplicationSummaryResponseDTO> getApplications(String status, Pageable pageable) {
         try {
-            ListenerApplicationStatus applicationStatus = ListenerApplicationStatus.valueOf(status.toUpperCase());
-            List<ListenerApplication> applications = listenerApplicationRepository.findByApplicationStatus(applicationStatus);
-            return applications.stream()
-                    .map(ListenerApplicationMapper::toSummaryResponseDTO)
-                    .toList();
+            Page<ListenerApplication> applicationsPage;
+
+            if (status != null && !status.trim().isEmpty()) {
+                ListenerApplicationStatus applicationStatus = ListenerApplicationStatus.valueOf(status.toUpperCase());
+                applicationsPage = listenerApplicationRepository.findByApplicationStatus(applicationStatus, pageable);
+            } else {
+                applicationsPage = listenerApplicationRepository.findAll(pageable);
+            }
+
+            return applicationsPage.map(ListenerApplicationMapper::toSummaryResponseDTO);
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Invalid status: " + status, e);
         } catch (Exception e) {
-            throw new RuntimeException("An error occurred while fetching applications by approval status", e);
+            throw new RuntimeException("An error occurred while fetching applications", e);
         }
     }
 

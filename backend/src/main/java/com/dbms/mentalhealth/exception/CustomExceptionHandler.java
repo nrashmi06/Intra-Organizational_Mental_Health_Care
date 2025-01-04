@@ -1,220 +1,206 @@
 package com.dbms.mentalhealth.exception;
 
-import com.dbms.mentalhealth.exception.admin.AdminNotFoundException;
-import com.dbms.mentalhealth.exception.adminSettings.AdminSettingsNotFoundException;
-import com.dbms.mentalhealth.exception.adminSettings.InvalidAdminSettingsException;
-import com.dbms.mentalhealth.exception.appointment.AppointmentNotFoundException;
-import com.dbms.mentalhealth.exception.blog.BlogNotFoundException;
-import com.dbms.mentalhealth.exception.blog.InvalidBlogActionException;
-import com.dbms.mentalhealth.exception.emergency.EmergencyHelplineNotFoundException;
-import com.dbms.mentalhealth.exception.emergency.InvalidEmergencyHelplineException;
-import com.dbms.mentalhealth.exception.listener.AccessDeniedException;
-import com.dbms.mentalhealth.exception.listener.InvalidListenerApplicationException;
-import com.dbms.mentalhealth.exception.listener.ListenerApplicationNotFoundException;
-import com.dbms.mentalhealth.exception.listener.ListenerNotFoundException;
-import com.dbms.mentalhealth.exception.session.FeedbackNotFoundException;
-import com.dbms.mentalhealth.exception.session.ReportNotFoundException;
-import com.dbms.mentalhealth.exception.session.SessionNotFoundException;
-import com.dbms.mentalhealth.exception.sse.EmitterCreationException;
-import com.dbms.mentalhealth.exception.sse.UserNotOnlineException;
-import com.dbms.mentalhealth.exception.timeslot.InvalidTimeSlotException;
-import com.dbms.mentalhealth.exception.timeslot.TimeSlotNotFoundException;
-import com.dbms.mentalhealth.exception.token.JwtTokenExpiredException;
-import com.dbms.mentalhealth.exception.token.UnauthorizedException;
+import com.dbms.mentalhealth.exception.Image.ImageStorageException;
+import com.dbms.mentalhealth.exception.admin.*;
+import com.dbms.mentalhealth.exception.adminSettings.*;
+import com.dbms.mentalhealth.exception.appointment.*;
+import com.dbms.mentalhealth.exception.blog.*;
+import com.dbms.mentalhealth.exception.emergency.*;
+import com.dbms.mentalhealth.exception.listener.*;
+import com.dbms.mentalhealth.exception.session.*;
+import com.dbms.mentalhealth.exception.sse.*;
+import com.dbms.mentalhealth.exception.timeslot.*;
+import com.dbms.mentalhealth.exception.token.*;
 import com.dbms.mentalhealth.exception.user.*;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.MissingRequestCookieException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.NoHandlerFoundException;
-import org.springframework.web.multipart.MultipartException;
 
 @RestControllerAdvice
 public class CustomExceptionHandler {
 
+    // General Spring Framework Exceptions
     @ExceptionHandler(NoHandlerFoundException.class)
-    public ResponseEntity<Object> handleNoHandlerFoundException(NoHandlerFoundException ex, WebRequest request) {
-        return new ResponseEntity<>("Resource not found", HttpStatus.NOT_FOUND);
+    public ResponseEntity<String> handleNoHandlerFoundException(NoHandlerFoundException ex) {
+        return createErrorResponse("Resource not found", HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(ResponseStatusException.class)
-    public ResponseEntity<Object> handleResponseStatusException(ResponseStatusException ex, WebRequest request) {
-        return new ResponseEntity<>("An error occurred", ex.getStatusCode());
-    }
-
-
-    @ExceptionHandler(IncorrectResultSizeDataAccessException.class)
-    public ResponseEntity<Object> handleIncorrectResultSizeDataAccessException(IncorrectResultSizeDataAccessException ex, WebRequest request) {
-        return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
-    @ExceptionHandler(JwtTokenExpiredException.class)
-    public ResponseEntity<Object> handleJwtTokenExpiredException(JwtTokenExpiredException ex, WebRequest request) {
-        return new ResponseEntity<>("Session expired. Please log in again.", HttpStatus.UNAUTHORIZED);
+    public ResponseEntity<String> handleResponseStatusException(ResponseStatusException ex) {
+        return createErrorResponse("An error occurred", (HttpStatus) ex.getStatusCode());
     }
 
     @ExceptionHandler(MultipartException.class)
-    public ResponseEntity<Object> handleMultipartException(MultipartException ex, WebRequest request) {
-        return new ResponseEntity<>("Failed to parse multipart file", HttpStatus.BAD_REQUEST);
+    public ResponseEntity<String> handleMultipartException(MultipartException ex) {
+        return createErrorResponse("Failed to parse multipart file", HttpStatus.BAD_REQUEST);
     }
-
-    @ExceptionHandler(AdminSettingsNotFoundException.class)
-    public ResponseEntity<Object> handleAdminSettingsNotFoundException(AdminSettingsNotFoundException ex, WebRequest request) {
-        return new ResponseEntity<>("Admin settings not found", HttpStatus.NOT_FOUND);
-    }
-
-    @ExceptionHandler(AdminNotFoundException.class)
-    public ResponseEntity<Object> handleAdminNotFoundException(AdminNotFoundException ex, WebRequest request) {
-        return new ResponseEntity<>("Admin not found", HttpStatus.NOT_FOUND);
-    }
-
-    @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<Object> handleUserNotFoundException(UserNotFoundException ex, WebRequest request) {
-        return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
-    }
-
-    @ExceptionHandler(InvalidUserCredentialsException.class)
-    public ResponseEntity<Object> handleInvalidUserCredentialsException(InvalidUserCredentialsException ex, WebRequest request) {
-        return new ResponseEntity<>("Invalid email or password", HttpStatus.UNAUTHORIZED);
-    }
-
-    @ExceptionHandler(AnonymousNameAlreadyInUseException.class)
-    public ResponseEntity<String> handleAnonymousNameAlreadyInUseException(AnonymousNameAlreadyInUseException ex) {
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
-    }
-
-    @ExceptionHandler(UserNotActiveException.class)
-    public ResponseEntity<Object> handleUserNotActiveException(UserNotActiveException ex, WebRequest request) {
-        return new ResponseEntity<>("User is not active", HttpStatus.FORBIDDEN);
-    }
-
-    @ExceptionHandler(AppointmentNotFoundException.class)
-    public ResponseEntity<Object> handleAppointmentNotFoundException(AppointmentNotFoundException ex, WebRequest request) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
-    }
-
-    @ExceptionHandler(TimeSlotNotFoundException.class)
-    public ResponseEntity<Object> handleTimeSlotNotFoundException(TimeSlotNotFoundException ex, WebRequest request) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
-    }
-
-    @ExceptionHandler(InvalidTimeSlotException.class)
-    public ResponseEntity<Object> handleInvalidTimeSlotException(InvalidTimeSlotException ex, WebRequest request) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<Object> handleException(Exception ex, WebRequest request) {
-        return new ResponseEntity<>("An unexpected error occurred", HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
-    @ExceptionHandler(ListenerApplicationNotFoundException.class)
-    public ResponseEntity<Object> handleListenerApplicationNotFoundException(ListenerApplicationNotFoundException ex, WebRequest request) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
-    }
-
-    @ExceptionHandler(InvalidListenerApplicationException.class)
-    public ResponseEntity<Object> handleInvalidListenerApplicationException(InvalidListenerApplicationException ex, WebRequest request) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
-    }
-
-
-    @ExceptionHandler(UserActivityException.class)
-    public ResponseEntity<String> handleUserActivityException(UserActivityException ex) {
+    @ExceptionHandler(ImageStorageException.class)
+    public ResponseEntity<String> handleImageStorageException(ImageStorageException ex) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
     }
-
-    @ExceptionHandler(EmitterCreationException.class)
-    public ResponseEntity<String> handleEmitterCreationException(EmitterCreationException ex) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
+    @ExceptionHandler(IncorrectResultSizeDataAccessException.class)
+    public ResponseEntity<String> handleIncorrectResultSizeDataAccessException(IncorrectResultSizeDataAccessException ex) {
+        return createErrorResponse("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @ExceptionHandler(InvalidUserUpdateException.class)
-    public ResponseEntity<Object> handleInvalidUserUpdateException(InvalidUserUpdateException ex, WebRequest request) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    // Authentication & Authorization Exceptions
+    @ExceptionHandler(JwtTokenExpiredException.class)
+    public ResponseEntity<String> handleJwtTokenExpiredException(JwtTokenExpiredException ex) {
+        return createErrorResponse("Session expired. Please log in again.", HttpStatus.UNAUTHORIZED);
     }
 
-    @ExceptionHandler(EmergencyHelplineNotFoundException.class)
-    public ResponseEntity<Object> handleEmergencyHelplineNotFoundException(EmergencyHelplineNotFoundException ex, WebRequest request) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
-    }
-
-    @ExceptionHandler(InvalidEmergencyHelplineException.class)
-    public ResponseEntity<Object> handleInvalidEmergencyHelplineException(InvalidEmergencyHelplineException ex, WebRequest request) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(BlogNotFoundException.class)
-    public ResponseEntity<Object> handleBlogNotFoundException(BlogNotFoundException ex, WebRequest request) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
-    }
-    @ExceptionHandler(UserAccountSuspendedException.class)
-    public ResponseEntity<String> handleUserAccountSuspendedException(UserAccountSuspendedException ex) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
-    }
-    @ExceptionHandler(InvalidBlogActionException.class)
-    public ResponseEntity<Object> handleInvalidBlogActionException(InvalidBlogActionException ex, WebRequest request) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(InvalidAdminSettingsException.class)
-    public ResponseEntity<Object> handleInvalidAdminSettingsException(InvalidAdminSettingsException ex, WebRequest request) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(MissingRequestCookieException.class)
-    public ResponseEntity<String> handleMissingRequestCookieException(MissingRequestCookieException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Required cookie 'refreshToken' is not present");
-    }
-
-    @ExceptionHandler(ListenerNotFoundException.class)
-    public ResponseEntity<Object> handleListenerNotFoundException(ListenerNotFoundException ex, WebRequest request) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Listener not found");
-    }
-
-    @ExceptionHandler(EmailAlreadyVerifiedException.class)
-    public ResponseEntity<Object> handleEmailAlreadyVerifiedException(EmailAlreadyVerifiedException ex, WebRequest request) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
-    }
-
-    @ExceptionHandler(UserNotOnlineException.class)
-    public ResponseEntity<Object> handleUserNotOnlineException(UserNotOnlineException ex, WebRequest request) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
-    }
     @ExceptionHandler(UnauthorizedException.class)
     public ResponseEntity<String> handleUnauthorizedException(UnauthorizedException ex) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.FORBIDDEN);
-    }
-    @ExceptionHandler(EmailAlreadyInUseException.class)
-    public ResponseEntity<String> handleEmailAlreadyInUseException(EmailAlreadyInUseException ex, WebRequest request) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT);
-    }
-
-    @ExceptionHandler(InvalidUsernameException.class)
-    public ResponseEntity<String> handleInvalidUsernameException(InvalidUsernameException ex, WebRequest request) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(SessionNotFoundException.class)
-    public ResponseEntity<String> handleSessionNotFoundException(SessionNotFoundException ex) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
+        return createErrorResponse(ex.getMessage(), HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<String> handleAccessDeniedException(AccessDeniedException ex) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.FORBIDDEN);
-    }
-    @ExceptionHandler(FeedbackNotFoundException.class)
-    public ResponseEntity<String> handleFeedbackNotFoundException(FeedbackNotFoundException ex) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
+        return createErrorResponse(ex.getMessage(), HttpStatus.FORBIDDEN);
     }
 
-    @ExceptionHandler(ReportNotFoundException.class)
-    public ResponseEntity<String> handleReportNotFoundException(ReportNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    // User Related Exceptions
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<String> handleUserNotFoundException(UserNotFoundException ex) {
+        return createErrorResponse("User not found", HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(InvalidUserCredentialsException.class)
+    public ResponseEntity<String> handleInvalidUserCredentialsException(InvalidUserCredentialsException ex) {
+        return createErrorResponse("Invalid email or password", HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(UserNotActiveException.class)
+    public ResponseEntity<String> handleUserNotActiveException(UserNotActiveException ex) {
+        return new ResponseEntity<>("User account is not active", HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(UserAccountSuspendedException.class)
+    public ResponseEntity<String> handleUserAccountSuspendedException(UserAccountSuspendedException ex) {
+        return createErrorResponse(ex.getMessage(), HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler({
+            EmailAlreadyInUseException.class,
+            AnonymousNameAlreadyInUseException.class
+    })
+    public ResponseEntity<String> handleConflictExceptions(Exception ex) {
+        return createErrorResponse(ex.getMessage(), HttpStatus.CONFLICT);
+    }
+
+    // Admin Related Exceptions
+    @ExceptionHandler({
+            AdminNotFoundException.class,
+            AdminSettingsNotFoundException.class
+    })
+    public ResponseEntity<String> handleAdminNotFoundExceptions(Exception ex) {
+        return createErrorResponse(ex.getMessage(), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(InvalidAdminSettingsException.class)
+    public ResponseEntity<String> handleInvalidAdminSettingsException(InvalidAdminSettingsException ex) {
+        return createErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(InvalidEmailException.class)
+    public ResponseEntity<String> handleInvalidEmailException(InvalidEmailException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+    // Appointment and TimeSlot Exceptions
+    @ExceptionHandler({
+            AppointmentNotFoundException.class,
+            TimeSlotNotFoundException.class
+    })
+    public ResponseEntity<String> handleAppointmentNotFoundExceptions(Exception ex) {
+        return createErrorResponse(ex.getMessage(), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler({
+            InvalidTimeSlotException.class,
+            InvalidRequestException.class
+    })
+    public ResponseEntity<String> handleInvalidAppointmentExceptions(Exception ex) {
+        return createErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(PendingAppointmentException.class)
+    public ResponseEntity<String> handlePendingAppointmentException(PendingAppointmentException ex) {
+        return createErrorResponse(ex.getMessage(), HttpStatus.CONFLICT);
+    }
+
+    // Listener Related Exceptions
+    @ExceptionHandler({
+            ListenerNotFoundException.class,
+            ListenerApplicationNotFoundException.class
+    })
+    public ResponseEntity<String> handleListenerNotFoundExceptions(Exception ex) {
+        return createErrorResponse(ex.getMessage(), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(InvalidListenerApplicationException.class)
+    public ResponseEntity<String> handleInvalidListenerApplicationException(InvalidListenerApplicationException ex) {
+        return createErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    // Session Related Exceptions
+    @ExceptionHandler({
+            SessionNotFoundException.class,
+            FeedbackNotFoundException.class,
+            ReportNotFoundException.class
+    })
+    public ResponseEntity<String> handleSessionRelatedNotFoundExceptions(Exception ex) {
+        return createErrorResponse(ex.getMessage(), HttpStatus.NOT_FOUND);
+    }
+
+    // Blog Related Exceptions
+    @ExceptionHandler(BlogNotFoundException.class)
+    public ResponseEntity<String> handleBlogNotFoundException(BlogNotFoundException ex) {
+        return createErrorResponse(ex.getMessage(), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(InvalidBlogActionException.class)
+    public ResponseEntity<String> handleInvalidBlogActionException(InvalidBlogActionException ex) {
+        return createErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    // Emergency Helpline Exceptions
+    @ExceptionHandler(EmergencyHelplineNotFoundException.class)
+    public ResponseEntity<String> handleEmergencyHelplineNotFoundException(EmergencyHelplineNotFoundException ex) {
+        return createErrorResponse(ex.getMessage(), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(InvalidEmergencyHelplineException.class)
+    public ResponseEntity<String> handleInvalidEmergencyHelplineException(InvalidEmergencyHelplineException ex) {
+        return createErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    // SSE Related Exceptions
+    @ExceptionHandler({
+            EmitterCreationException.class,
+            UserActivityException.class
+    })
+    public ResponseEntity<String> handleSSEExceptions(Exception ex) {
+        return createErrorResponse(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(UserNotOnlineException.class)
+    public ResponseEntity<String> handleUserNotOnlineException(UserNotOnlineException ex) {
+        return createErrorResponse(ex.getMessage(), HttpStatus.NOT_FOUND);
+    }
+
+    // Fallback Exception Handler
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<String> handleGenericException(Exception ex) {
+        return createErrorResponse("An unexpected error occurred", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    // Helper method to create consistent error responses
+    private ResponseEntity<String> createErrorResponse(String message, HttpStatus status) {
+        return new ResponseEntity<>(message, status);
     }
 }

@@ -3,6 +3,7 @@ package com.dbms.mentalhealth.model;
 import com.dbms.mentalhealth.enums.ProfileStatus;
 import com.dbms.mentalhealth.enums.Role;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Pattern;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -26,10 +27,11 @@ public class User {
     private String password;
 
 
-    @Column(name = "anonymous_name", nullable = false, length = 50,unique = true)
+
+    @Column(name = "anonymous_name", nullable = false, length = 50, unique = true)
+    @Pattern(regexp = "^[^\\s]+$", message = "Anonymous name must not contain spaces")
     private String anonymousName;
-
-
+    
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false, length = 50)
     private Role role;

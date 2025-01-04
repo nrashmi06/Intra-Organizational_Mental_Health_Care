@@ -39,9 +39,6 @@ public class Blog {
     @Column(name = "summary", length = 500)
     private String summary;
 
-    @Column(name = "is_published", nullable = false)
-    private boolean isPublished;
-
     @Column(name = "publish_date")
     private LocalDateTime publishDate;
 
