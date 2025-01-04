@@ -1,4 +1,4 @@
-import axiosInstance from "@/utils/axios"; // Import your Axios instance
+import axiosInstance from "@/utils/axios"; 
 import { TIME_SLOT_API_ENDPOINTS } from "@/mapper/timeslotMapper";
 
 const deleteTimeSlots = async (
@@ -26,13 +26,11 @@ const deleteTimeSlots = async (
       },
     });
 
-    // Handle different status codes
     if (response.status === 404) {
       console.warn("No time slots found for the specified date range.");
       return { message: "No data found for the specified date range." };
     }
 
-    // Check if the response contains a message or data
     if (response.status === 200) {
       return response.data || { message: "Time slots deleted successfully." };
     }

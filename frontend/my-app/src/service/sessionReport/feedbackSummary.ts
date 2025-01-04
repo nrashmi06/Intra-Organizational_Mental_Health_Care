@@ -1,6 +1,6 @@
-import axiosInstance from "@/utils/axios"; // Import the Axios instance
+import axiosInstance from "@/utils/axios"; 
 import { REPORT_API_ENDPOINTS } from "@/mapper/reportMapper";
-import { isAxiosError } from "axios"; // Import isAxiosError from axios
+import { isAxiosError } from "axios";
 
 export const getSeverityAnalysis = async (token: string) => {
   try {
@@ -8,12 +8,12 @@ export const getSeverityAnalysis = async (token: string) => {
       REPORT_API_ENDPOINTS.GET_REPORT_SUMMARY,
       {
         headers: {
-          Authorization: `Bearer ${token}`, // Add token dynamically
+          Authorization: `Bearer ${token}`, 
         },
       }
     );
 
-    return response.data; // Return the response data
+    return response.data; 
   } catch (error: unknown) {
     if (isAxiosError(error)) {
       console.error(

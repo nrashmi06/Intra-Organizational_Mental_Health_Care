@@ -23,12 +23,10 @@ export const subscribeToNotifications = (
   const setupListeners = () => {
     eventSource.addEventListener("notification", (event) => {
       try {
-        const eventData = event.data.trim(); // Remove unnecessary spaces
-        console.log("Raw event data received:", eventData);
+        const eventData = event.data.trim();
 
         if (eventData.startsWith("{") && eventData.endsWith("}")) {
           const { message, senderId } = JSON.parse(eventData);
-          console.log("Parsed notification:", message, senderId);
 
           if (message && senderId) {
             onNotificationReceived(message, senderId); 
@@ -44,7 +42,6 @@ export const subscribeToNotifications = (
     eventSource.onerror = async (error: any) => {
       console.error("SSE error:", error);
 
-      // Handle 401 Unauthorized (Token Expired)
       if (error?.status === 401 || error.message?.includes("401")) {
         console.info("Unauthorized. Attempting to refresh token...");
 
@@ -53,20 +50,17 @@ export const subscribeToNotifications = (
           const refreshedData = store.getState().auth;
 
           if (refreshedData?.accessToken) {
-            currentToken = refreshedData.accessToken; // Update the token
-            console.log("Token refreshed. Reconnecting SSE...");
-            eventSource.close(); // Close the current connection
-            eventSource = createEventSource(); // Recreate the connection with the refreshed token
-            setupListeners(); // Reattach event listeners
+            currentToken = refreshedData.accessToken;
+            eventSource.close(); 
+            eventSource = createEventSource(); 
+            setupListeners(); 
           } else {
             console.error("Token refresh failed. Redirecting to login.");
-            alert("Session expired. Please log in again.");
-            window.location.href = "/signin"; // Redirect to login
+            window.location.href = "/signin";
           }
         } catch (refreshError) {
           console.error("Error during token refresh:", refreshError);
-          alert("Error refreshing token. Please log in again.");
-          window.location.href = "/signin"; // Redirect to login
+          window.location.href = "/signin"; 
         }
       } else {
         eventSource.close();

@@ -18,7 +18,6 @@ export const initiateSession = async (
         },
       }
     );
-    console.log("Session initiated:", response);
     return response.data;
   } catch (error : any) {
       console.error("Error initiating session:", error.response?.data);

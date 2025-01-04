@@ -10,7 +10,6 @@ export const getAppointments = async (token: string, userId: string) => {
         Authorization: `Bearer ${token}`,
       },
     });
-    console.log("Appointments fetched successfully:", response);
     return response;
   } catch (error: any) {
     console.error("Error fetching appointments:", error);

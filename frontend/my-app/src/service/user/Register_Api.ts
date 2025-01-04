@@ -28,7 +28,6 @@ export const registerUser = async (data: RegisterUserPayload) => {
     };
 
     if (axios.isAxiosError(error)) {
-      // Handle Axios errors
       errorToThrow = {
         message: error.response?.data?.message || error.message,
         status: error.response?.status
@@ -37,11 +36,9 @@ export const registerUser = async (data: RegisterUserPayload) => {
       console.error("API error while registering user:", errorToThrow.message);
       
     } else {
-      // Handle other types of errors
       console.error("Unexpected error:", error);
     }
 
-    // Throw the error so it can be handled by the calling code
     throw errorToThrow;
   }
 };

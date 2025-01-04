@@ -1,5 +1,5 @@
 import axios from "axios";
-import { LISTENER_APPLICATION_API_ENDPOINTS } from "@/mapper/listnerMapper"; // Import the mapper
+import { LISTENER_APPLICATION_API_ENDPOINTS } from "@/mapper/listnerMapper"; 
 import axiosInstance from "@/utils/axios";
 
 export const deleteApplication = async (
@@ -7,7 +7,6 @@ export const deleteApplication = async (
   accessToken: string
 ) => {
   try {
-    // Use the mapped endpoint for deleting the application
     if (!applicationId) {
       throw new Error("Application ID cannot be null");
     }
@@ -37,19 +36,15 @@ export const updateApplication = async (
     semester: number;
     phoneNumber: string;
     reasonForApplying: string;
-    image: File | null; // Ensure this is a File object or null
+    image: File | null; 
   }
 ) => {
   try {
-    // Create FormData instance
     const formData = new FormData();
-
-    // Add the image file to FormData if it exists
     if (updatedData.image) {
       formData.append("certificate", updatedData.image);
     }
 
-    // Prepare application data as a JSON object
     const applicationRequestDTO = {
       fullName: updatedData.fullName,
       branch: updatedData.branch,
@@ -59,18 +54,11 @@ export const updateApplication = async (
       phoneNumber: updatedData.phoneNumber,
     };
 
-    // Convert application data to a Blob
     const applicationBlob = new Blob([JSON.stringify(applicationRequestDTO)], {
       type: "application/json",
     });
     formData.append("application", applicationBlob, "application.json");
 
-    // Debug: Log FormData contents (optional, for debugging purposes)
-    for (const [key, value] of formData.entries()) {
-      console.log(`FormData - ${key}:`, value);
-    }
-
-    // Use the mapped endpoint for updating the application
     const response = await axios.put(
       `${LISTENER_APPLICATION_API_ENDPOINTS.UPDATE_APPLICATION(applicationId.toString())}`,
       formData,
@@ -84,11 +72,8 @@ export const updateApplication = async (
 
     return response.data;
   } catch (error: any) {
-    // Enhanced error logging
     if (error.response) {
       console.error("Error response data:", error.response.data);
-      console.error("Error response status:", error.response.status);
-      console.error("Error response headers:", error.response.headers);
     } else if (error.request) {
       console.error("Error request:", error.request);
     } else {

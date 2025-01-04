@@ -1,5 +1,5 @@
 import axiosInstance from '@/utils/axios';
-import { TIME_SLOT_API_ENDPOINTS } from '@/mapper/timeslotMapper'; // Adjust the path as needed
+import { TIME_SLOT_API_ENDPOINTS } from '@/mapper/timeslotMapper'; 
 
 const fetchTimeSlots = async (
   adminId: string,
@@ -22,9 +22,7 @@ const fetchTimeSlots = async (
         Authorization: `Bearer ${token}`,
       },
     });
-
-    console.log('Time Slots:', response.data);
-    return response.data.content; // Return the time slots data
+    return response.data.content;
   } catch (error: any) {
     if (error.response) {
       console.error('Error fetching time slots:', error.response.data || error.message);

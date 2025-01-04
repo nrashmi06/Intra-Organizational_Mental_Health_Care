@@ -14,10 +14,10 @@ export const getSessionFeedback = async (
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
-      signal, // Pass the abort signal, Axios supports it via options
+      signal,
     });
 
-    return response.data; // Return the response data
+    return response.data; 
   } catch (error) {
     console.error("Error fetching session feedback:", error);
   }

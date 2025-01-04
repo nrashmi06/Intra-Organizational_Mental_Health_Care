@@ -43,7 +43,6 @@ export const getActiveUserByRoleName = (
     eventSource.addEventListener(eventName, (event) => {
       try {
         const data = JSON.parse(event.data);
-        console.log(`Received ${eventName} details:`, data);
         onMessage(data);
       } catch (error) {
         console.error(`Error parsing ${eventName} details:`, error);
@@ -51,7 +50,6 @@ export const getActiveUserByRoleName = (
     });
 
     eventSource.onerror = async (error: any) => {
-      console.error(`SSE Connection Error for ${type}:`, error.message);
 
       if (error?.status === 401 || error.message?.includes("401")) {
         console.info("Unauthorized. Attempting to refresh token...");
@@ -62,7 +60,6 @@ export const getActiveUserByRoleName = (
 
           if (refreshedData?.accessToken) {
             currentToken = refreshedData.accessToken;
-            console.log("Token refreshed. Reconnecting SSE...");
             eventSource.close(); 
             connect(); 
           } else {
@@ -70,10 +67,9 @@ export const getActiveUserByRoleName = (
           }
         } catch (refreshError) {
           console.error("Error during token refresh:", refreshError);
-          alert("Error refreshing token. Please log in again.");
         }
       } else {
-        eventSource.close(); // Close the connection on persistent error
+        eventSource.close();
         if (onError) onError(error);
       }
     };

@@ -12,7 +12,7 @@ export const getSessionFeedbackSummary = async (token: string) => {
       }
     );
 
-    return response.data; // Return the expected feedback summary
+    return response.data;
   } catch (error: any) {
     console.error(
       "Error fetching session feedback summary:",

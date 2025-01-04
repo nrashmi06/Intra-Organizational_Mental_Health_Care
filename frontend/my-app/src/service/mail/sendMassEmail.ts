@@ -1,6 +1,5 @@
-// src/service/email/sendMassEmail.ts
 import axiosInstance from "@/utils/axios";
-import { EMAIL_API_ENDPOINTS } from "@/mapper/emailMapper"; // Import from the mapper file
+import { EMAIL_API_ENDPOINTS } from "@/mapper/emailMapper"; 
 
 export const sendMassEmail = async (
   emailData: {
@@ -30,13 +29,10 @@ export const sendMassEmail = async (
       }
     );
 
-    console.log(response);
     return response;
   } catch (error: any) {
     if (error.response) {
       console.error("Error response data:", error.response.data);
-      console.error("Error response status:", error.response.status);
-      console.error("Error response headers:", error.response.headers);
     } else if (error.request) {
       console.error("Error request:", error.request);
     } else {

@@ -39,12 +39,10 @@ export const getAppointmentsByFilter =
 
       if(response.status === 404)
       {
-        console.log("No appointments found");
         return;
       }
 
       if (response.status === 304) {
-        console.log("Using cached appointment data");
         return;
       }
 

@@ -9,7 +9,7 @@ export const submitFeedback = async (
 ) => {
   try {
     const response = await axiosInstance.post(
-      REPORT_API_ENDPOINTS.CREATE_REPORT, // Use the mapped endpoint
+      REPORT_API_ENDPOINTS.CREATE_REPORT,
       {
         sessionId,
         reportContent,

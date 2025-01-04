@@ -7,15 +7,11 @@ const handleDeleteTimeSlot = async (
   timeSlotId: string
 ) => {
   try {
-    // Validate userID
     if (!userID) {
       throw new Error("User ID is required to delete the time slot.");
     }
 
-    // Construct the API URL using the mapper
     const url = `${TIME_SLOT_API_ENDPOINTS.DELETE_TIME_SLOT_BY_ID(userID, timeSlotId)}?idType=userId`;
-
-    // Send DELETE request
     const response = await axiosInstance.delete(url, {
       headers: {
         Authorization: `Bearer ${token}`,

@@ -22,7 +22,7 @@ export const getListenersByProfileStatus =
         LISTENER_API_ENDPOINTS.GET_ALL_LISTENERS_BY_STATUS,
         {
           params: {
-            status: status === "ALL" ? "active" : status, // default to 'active' if status is 'ALL'
+            status: status === "ALL" ? "active" : status, 
             page,
             size,
             adminID: userId,
@@ -38,7 +38,6 @@ export const getListenersByProfileStatus =
       );
 
       if (response.status === 304) {
-        console.log("Using cached listener data");
         return;
       }
 

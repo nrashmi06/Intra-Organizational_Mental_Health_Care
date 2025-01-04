@@ -41,7 +41,6 @@ export default function AllBlogsPage() {
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(searchQuery);
 
   const [paginationInfo, setPaginationInfo] = useState(() => {
-    // Load initial state from localStorage if available
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
@@ -65,7 +64,6 @@ export default function AllBlogsPage() {
   });
 
   const [filterType, setFilterType] = useState<string>(() => {
-    // Load initial filter type from localStorage if available
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
