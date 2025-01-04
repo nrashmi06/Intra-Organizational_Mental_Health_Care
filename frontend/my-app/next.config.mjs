@@ -1,5 +1,9 @@
-import path from 'path'
-import JavaScriptObfuscator from 'webpack-obfuscator'
+import path from 'path';
+import { fileURLToPath } from 'url';
+import JavaScriptObfuscator from 'webpack-obfuscator';
+
+// Polyfill __dirname in ES modules
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -17,30 +21,30 @@ const nextConfig = {
           disableConsoleOutput: true,
           identifierNamesGenerator: 'hexadecimal',
           numbersToExpressions: true,
-          selfDefending: true
+          selfDefending: true,
         }, ['excluded_bundle.js'])
-      )
+      );
 
       // Loader configuration
       config.module.rules.push({
         test: /\.(js|tsx|ts)$/,
         exclude: [
-            /node_modules/, // Exclude node_modules
-            path.resolve(__dirname, 'src/service/**/*.ts') // Exclude all `.ts` files in 'service' folder and subfolders
-          ],
+          /node_modules/, // Exclude node_modules
+          path.resolve(__dirname, 'src/service'), // Exclude all files in 'service' folder
+        ],
         enforce: 'post',
         use: {
           loader: JavaScriptObfuscator.loader,
           options: {
             rotateStringArray: true,
             stringArray: true,
-            stringArrayEncoding: ['base64']
-          }
-        }
-      })
+            stringArrayEncoding: ['base64'],
+          },
+        },
+      });
     }
-    return config
-  }
-}
+    return config;
+  },
+};
 
-export default nextConfig
+export default nextConfig;
