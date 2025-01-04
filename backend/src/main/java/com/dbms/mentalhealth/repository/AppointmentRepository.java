@@ -44,6 +44,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
                 OR (a.timeSlot.date = :today AND a.timeSlot.startTime > :now)
             )
             AND (:status IS NULL OR a.status = :status)
+            ORDER BY a.timeSlot.date ASC, a.timeSlot.startTime ASC
             """)
     Page<Appointment> findUpcomingAppointments(
             @Param("admin") Admin admin,
@@ -61,6 +62,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
                 OR (a.timeSlot.date = :today AND a.timeSlot.startTime <= :now)
             )
             AND (:status IS NULL OR a.status = :status)
+            ORDER BY a.timeSlot.date DESC, a.timeSlot.startTime DESC
             """)
     Page<Appointment> findPastAppointments(
             @Param("admin") Admin admin,
