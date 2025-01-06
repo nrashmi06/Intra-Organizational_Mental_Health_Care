@@ -16,7 +16,7 @@ const refreshToken = async (dispatch: AppDispatch): Promise<void> => {
             : null;
 
         if (!accessToken) {
-            throw new Error("Failed to retrieve access token.");
+            console.error("Access token is null or undefined.");
         }
 
         dispatch(

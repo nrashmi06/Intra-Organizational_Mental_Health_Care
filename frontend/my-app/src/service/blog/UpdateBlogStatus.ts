@@ -12,6 +12,5 @@ export const changeBlogApprovalStatus = async (id: string, status: 'approved' | 
     return response.data; 
   } catch (error) {
     console.error("Error updating blog approval status:", error);
-    throw error;
   }
 };

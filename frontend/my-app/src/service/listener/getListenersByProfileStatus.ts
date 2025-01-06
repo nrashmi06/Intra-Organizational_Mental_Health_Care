@@ -53,6 +53,5 @@ export const getListenersByProfileStatus =
       return response.data;
     } catch (error: any) {
       console.error("Error fetching listeners:", error);
-      throw error;
     }
   };

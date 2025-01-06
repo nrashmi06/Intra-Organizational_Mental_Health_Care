@@ -20,6 +20,5 @@ export const fetchAdminProfile = async (token: string, userId?: string) => {
       return null; 
     }
     console.error("Error fetching admin profile:", error);
-    throw error;
   }
 };

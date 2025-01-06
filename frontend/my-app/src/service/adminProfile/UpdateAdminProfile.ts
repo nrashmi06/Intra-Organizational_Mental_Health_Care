@@ -5,7 +5,7 @@ import axiosInstance from "@/utils/axios";
 export const updateAdminProfile = async (
   profile: AdminProfile,
   token: string
-): Promise<AdminProfileResponse> => {
+)=> {
   try {
     const formData = new FormData();
 
@@ -42,6 +42,5 @@ export const updateAdminProfile = async (
 
   } catch (error) {
     console.error('Error updating profile:', error);
-    throw error;
   }
 };

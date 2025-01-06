@@ -22,7 +22,6 @@ const updateAppointmentStatus = async (token: string, appointmentId: string, sta
     return response;
   } catch (error: any) {
     console.error("Error updating appointment status:", error.response?.data || error.message || error);
-    throw error;
   }
 }
 

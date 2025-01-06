@@ -39,6 +39,5 @@ export const registerUser = async (data: RegisterUserPayload) => {
       console.error("Unexpected error:", error);
     }
 
-    throw errorToThrow;
   }
 };

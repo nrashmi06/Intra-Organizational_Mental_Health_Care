@@ -18,6 +18,5 @@ export const createEmergencyHelpline = async (helplineData:{
     return response.data;
   } catch (error: any) {
     console.error('Error creating emergency helpline:', error.response?.data || error.message);
-    throw error;
   }
 };

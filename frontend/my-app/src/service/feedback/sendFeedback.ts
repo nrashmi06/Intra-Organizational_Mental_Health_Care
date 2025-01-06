@@ -26,16 +26,7 @@ const submitFeedback = async (
     return response.data; 
   } catch (error: any) {
     console.error("Error during feedback submission:", error);
-    if (error.response) {
-      throw new Error(
-        `Failed to submit feedback: ${error.response.data?.message || error.response.statusText}`
-      );
-    } else if (error.request) {
-      throw new Error("No response received from the server. Please try again.");
-    } else {
-      throw new Error(error.message || "An unexpected error occurred.");
     }
-  }
 };
 
 export default submitFeedback;

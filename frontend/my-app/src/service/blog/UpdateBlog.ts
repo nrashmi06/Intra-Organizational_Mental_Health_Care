@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { BLOG_API_ENDPOINTS } from '@/mapper/blogMapper'; 
 import axiosInstance from '@/utils/axios';
 
@@ -39,12 +38,6 @@ export const updateBlog = async (
     });
     return response.data;
   } catch (error) {
-    if (axios.isAxiosError(error)) {
-      console.error('Error updating blog:', error.response?.data || error.message);
-      throw new Error(error.response?.data?.message || 'Failed to update blog');
-    } else {
-      console.error('Unexpected error:', error);
-      throw new Error('An unexpected error occurred while updating the blog');
-    }
+    console.error('Failed to update the blog:', error);
   }
 };

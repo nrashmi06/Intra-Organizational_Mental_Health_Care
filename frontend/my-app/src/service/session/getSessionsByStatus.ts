@@ -38,6 +38,5 @@ export const getSessionsByStatus = async ({
     return response.data;
   } catch (error) {
     console.error("Error fetching sessions by status:", error);
-    throw error;
   }
 };

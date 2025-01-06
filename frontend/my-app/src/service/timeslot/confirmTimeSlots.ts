@@ -23,6 +23,5 @@ export const confirmTimeSlots = async (accessToken: string,userID : string | nul
     return response.data; 
   } catch (error) {
     console.error('Error confirming selected time slots:', error);
-    throw error; // Rethrow to handle in the calling function
   }
 };

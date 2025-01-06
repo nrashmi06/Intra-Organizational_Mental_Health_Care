@@ -61,11 +61,5 @@ export const updateApplication = async (
     } else {
       console.error("Error message:", error.message);
     }
-
-    throw new Error(
-      error.response?.data?.message ||
-        error.response?.data?.error ||
-        "Failed to update application"
-    );
   }
 };

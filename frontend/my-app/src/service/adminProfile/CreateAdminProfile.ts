@@ -27,7 +27,7 @@ export interface AdminProfileResponse {
 export const createAdminProfile = async (
     adminProfile: AdminProfile,
     accessToken: string
-  ): Promise<AdminProfileResponse> => {
+  )=> {
     try {
       const formData = new FormData();
       
@@ -63,6 +63,5 @@ export const createAdminProfile = async (
         ? error.response.data
         : error.message || 'An unknown error occurred';
       console.error('Error creating admin profile:', errorMessage);
-      throw new Error(errorMessage);
     }
   };

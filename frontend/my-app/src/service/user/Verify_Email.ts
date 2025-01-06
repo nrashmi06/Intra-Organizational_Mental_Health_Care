@@ -21,9 +21,8 @@ export const verifyEmail = async (email: string) => {
 
     if (error.response) {
       const errorData = error.response.data;
-      throw new Error(`Email verification failed: ${errorData.message || error.response.statusText}`);
+      console.error('Error data:', errorData);
     }
 
-    throw new Error("Network or unexpected error occurred during email verification.");
   }
 };
