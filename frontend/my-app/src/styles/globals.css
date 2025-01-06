@@ -10,7 +10,7 @@
 body {
   color: var(--foreground);
   background: var(--background);
-  @apply font-serif tracking-tight;
+  font-family: serif;
 }
 
 .core-values {
