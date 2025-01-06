@@ -8,21 +8,15 @@ export interface AdminProfile {
   qualifications: string;
   contactNumber: string;
   email: string;
-  profilePicture: File | null; 
+  profilePicture: File | null;
+  profilePictureUrl?: string;
+  totalAppointments?: number;
+  lastAppointmentDate?: string;
+  totalBlogsPublished?: number;
+  totalLikesReceived?: number;
+  totalViewsReceived?: number;
 }
 
-export interface AdminProfileResponse {
-  adminId: number;
-  userId: number;
-  fullName: string;
-  adminNotes: string;
-  qualifications: string;
-  contactNumber: string;
-  email: string;
-  profilePictureUrl: string; 
-  createdAt: string;
-  updatedAt: string;
-}
 
 export const createAdminProfile = async (
     adminProfile: AdminProfile,
@@ -49,7 +43,7 @@ export const createAdminProfile = async (
         formData.append('profilePicture', adminProfile.profilePicture);
       }
   
-      const response = await axiosInstance.post<AdminProfileResponse>(`${ADMIN_PROFILE_API_ENDPOINTS.CREATE_ADMIN_PROFILE}`, 
+      const response = await axiosInstance.post(`${ADMIN_PROFILE_API_ENDPOINTS.CREATE_ADMIN_PROFILE}`, 
         formData, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -57,7 +51,7 @@ export const createAdminProfile = async (
         }
       });  
   
-      return response.data;
+      return response.data || null;
     } catch (error: any) {
       const errorMessage = error.response
         ? error.response.data

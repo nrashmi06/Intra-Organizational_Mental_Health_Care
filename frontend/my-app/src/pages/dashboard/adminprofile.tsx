@@ -22,7 +22,7 @@ export interface AdminProfile {
   profilePicture?: File | null;
   profilePictureUrl?: string;
   totalAppointments?: number;
-  lastAppointmentDate?: string; // Use `string` for ISO format if working with JSON APIs.
+  lastAppointmentDate?: string; 
   totalBlogsPublished?: number;
   totalLikesReceived?: number;
   totalViewsReceived?: number;
