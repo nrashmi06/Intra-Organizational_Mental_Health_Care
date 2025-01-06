@@ -1,4 +1,4 @@
-import { AdminProfile, AdminProfileResponse } from "./CreateAdminProfile";
+import { AdminProfile} from "./CreateAdminProfile";
 import { ADMIN_PROFILE_API_ENDPOINTS } from "@/mapper/adminProfileMapper";
 import axiosInstance from "@/utils/axios";
 
@@ -26,7 +26,7 @@ export const updateAdminProfile = async (
     if (profile.profilePicture) {
       formData.append('profilePicture', profile.profilePicture);
     }
-    const response = await axiosInstance.put<AdminProfileResponse>(
+    const response = await axiosInstance.put(
       ADMIN_PROFILE_API_ENDPOINTS.UPDATE_ADMIN_PROFILE,
       formData,
       {
