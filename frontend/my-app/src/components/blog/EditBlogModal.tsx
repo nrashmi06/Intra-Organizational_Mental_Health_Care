@@ -24,21 +24,20 @@ const EditBlogModal: React.FC<EditBlogModalProps> = ({
   content,
   summary,
   error,
-  initialImageUrl,
   onClose,
   onSave,
   onChange,
   isLoading = false,
 }) => {
   const [successMessage, setSuccessMessage] = useState("");
-  const [imagePreview, setImagePreview] = useState<string | null>(initialImageUrl);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [showLoadingPopup, setShowLoadingPopup] = useState(false); // State to control loading popup
 
   const handleImageChange = (file: File | null) => {
     if (file) {
       setImagePreview(URL.createObjectURL(file));
     } else {
-      setImagePreview(initialImageUrl);
+      setImagePreview(null);
     }
     onChange("image", file);
   };
