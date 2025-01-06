@@ -12,7 +12,6 @@ interface EditBlogModalProps {
   content: string;
   summary: string;
   error: string | null;
-  initialImageUrl: string | null;
   onClose: () => void;
   onSave: () => void;
   onChange: (field: string, value: string | File | null) => void;
