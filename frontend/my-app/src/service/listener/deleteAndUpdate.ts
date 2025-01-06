@@ -22,7 +22,6 @@ export const deleteApplication = async (
     return result;
   } catch (error) {
     console.error("Error deleting application:", error);
-    throw error;
   }
 };
 

@@ -16,16 +16,14 @@ export const getUserDetails = async (userId: string, token: string) => {
   } catch (error : any) {
     if (error.response) {
       if (error.response.status === 404) {
-        throw new Error("User not found.");
+        console.error("User not found:", error.response.data?.message || error.message);
       } else if (error.response.status === 401) {
-        throw new Error("Unauthorized access. Please log in again.");
+        console.error("Unauthorized request:", error.response.data?.message || error.message);
       } else {
-        throw new Error(`Error: ${error.response.statusText || "Unknown error occurred."}`);
+        console.error("Error fetching user details:", error.response.data?.message || error.message);
       }
     } else {
-      // Network or unknown error
       console.error("Error fetching user details:", error.message || error);
-      throw new Error("Failed to fetch user details.");
     }
   }
 };

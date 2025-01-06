@@ -6,7 +6,7 @@ interface ResetPasswordParams {
   newPassword: string;
 }
 
-const resetPassword = async ({ token, newPassword }: ResetPasswordParams): Promise<string> => {
+const resetPassword = async ({ token, newPassword }: ResetPasswordParams) => {
   try {
     const response = await axiosInstance.post(API_ENDPOINTS.RESET_PASSWORD, {
       token,
@@ -18,7 +18,6 @@ const resetPassword = async ({ token, newPassword }: ResetPasswordParams): Promi
     const errorMessage =
       error.response?.data?.message || "An error occurred while resetting the password.";
     console.error("Error resetting password:", errorMessage);
-    throw new Error(errorMessage);
   }
 };
 

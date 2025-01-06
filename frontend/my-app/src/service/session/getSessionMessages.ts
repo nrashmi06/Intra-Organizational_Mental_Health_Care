@@ -20,7 +20,7 @@ export const getSessionMessages = async (
     if (response.status === 404) {
       return response;
     }
-    return response.data; // Return the response data
+    return response.data; 
   } catch (error) {
     console.error("Error fetching session messages:", error);
   }

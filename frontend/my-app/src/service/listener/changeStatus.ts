@@ -24,6 +24,5 @@ export const changeStatus = async (
     } else {
       console.error("Error suspending listener:", error);
     }
-    throw error;
   }
 };

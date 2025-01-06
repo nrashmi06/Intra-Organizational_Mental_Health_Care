@@ -21,6 +21,5 @@ export const getListenerFeedbacks = async (
     return response.data;
   } catch (error) {
     console.error("Error fetching listener feedbacks:", error);
-    throw error;
   }
 };

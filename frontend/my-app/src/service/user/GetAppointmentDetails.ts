@@ -25,6 +25,5 @@ export const getAppointmentDetails = async (appointmentId: string | null, token:
     } else {
       console.error("Error fetching appointment details:", error.message || error);
     }
-    throw error; 
   }
 };

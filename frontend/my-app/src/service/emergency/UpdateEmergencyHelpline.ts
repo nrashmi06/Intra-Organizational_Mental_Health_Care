@@ -26,6 +26,5 @@ export const updateEmergencyHelpline = async (
     return response.data;
   } catch (error) {
     console.error("Failed to update the helpline:", error);
-    throw error;
   }
 };

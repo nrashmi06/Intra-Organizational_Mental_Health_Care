@@ -21,13 +21,7 @@ export const getApplicationByListenerUserId = async (
     console.error("Error fetching listener application:", error);
 
     if (error.response) {
-      throw new Error(
-        `Error fetching listener application: ${error.response.data?.message || error.response.statusText}`
-      );
-    } else if (error.request) {
-      throw new Error("No response received from the server. Please try again.");
-    } else {
-      throw new Error(error.message || "An unexpected error occurred.");
+      console.error("Error fetching listener application:", error.response.data?.message || error.message);
     }
   }
 };

@@ -19,7 +19,6 @@ export const getListenerDetails = async (id: string, token: string, type: string
     } else {
       console.error("Error fetching listener details:", error);
     }
-    throw error;
   }
 };
 

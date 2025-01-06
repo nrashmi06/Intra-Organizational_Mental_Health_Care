@@ -11,6 +11,5 @@ export const deleteEmergencyHelpline = async (helplineId: string, token: string)
     });
   } catch (error) {
     console.error("Failed to delete helpline:", error);
-    throw error;
   }
 };

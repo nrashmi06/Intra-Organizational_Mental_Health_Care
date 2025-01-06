@@ -16,6 +16,5 @@ export const endSession = async (sessionId: number, accessToken: string) => {
     return response.data;
   } catch (error) {
     console.error("Error ending session:", error);
-    throw error;
   }
 };

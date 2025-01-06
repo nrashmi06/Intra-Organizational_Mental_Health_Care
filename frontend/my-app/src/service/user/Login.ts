@@ -48,7 +48,6 @@ export const loginUser =
     } catch (error: any) {
       console.error("Login error:", error);
 
-      // Axios-specific error handling
       if (error.response) {
         if (error.response.status === 401) {
           return {

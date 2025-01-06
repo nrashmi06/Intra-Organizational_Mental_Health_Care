@@ -18,7 +18,7 @@ const changePassword = async ({
   oldPassword,
   newPassword,
   token,
-}: ChangePasswordParams): Promise<string> => {
+}: ChangePasswordParams) => {
   try {
     const response = await axiosInstance.put<ChangePasswordResponse>(
       API_ENDPOINTS.CHANGE_PASSWORD(userId),
@@ -37,12 +37,8 @@ const changePassword = async ({
   } catch (error: any) {
     if (axios.isAxiosError(error)) {
       console.error("API error:", error.response?.data || error.message);
-      throw new Error(
-        error.response?.data?.message || "Failed to change password"
-      );
     } else {
       console.error("Unexpected error:", error);
-      throw new Error("An unexpected error occurred");
     }
   }
 };

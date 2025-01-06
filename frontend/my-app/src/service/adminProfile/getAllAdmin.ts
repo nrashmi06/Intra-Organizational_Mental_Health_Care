@@ -18,14 +18,5 @@ export async function fetchAdmins(accessToken: string) {
   } catch (error : any) {
     console.error("Error fetching admins:", error);
 
-    if (error.response) {
-      throw new Error(
-        `Error fetching admins: ${
-          error.response.data.message || error.response.statusText
-        }`
-      );
-    } else {
-      throw new Error("Network or unexpected error occurred.");
-    }
   }
 }

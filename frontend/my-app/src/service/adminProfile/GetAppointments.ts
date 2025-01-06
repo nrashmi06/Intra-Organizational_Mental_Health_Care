@@ -30,6 +30,5 @@ export const getAppointments = async ({
     return response;
   } catch (error: any) {
     console.error("Error fetching appointments:", error);
-    throw error;
   }
 };

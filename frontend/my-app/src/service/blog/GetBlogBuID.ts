@@ -12,16 +12,6 @@ export const fetchBlogById = async (id: number, token: string) => {
     return response.data;
   } catch (error: any) {
     console.error("Error fetching blog by ID:", error);
-
-    if (error.response) {
-      throw new Error(
-        error.response.data?.message || "Failed to fetch blog."
-      );
-    } else if (error.request) {
-      throw new Error("No response received from the server. Please try again.");
-    } else {
-      throw new Error(error.message || "An unexpected error occurred.");
-    }
   }
 };
 
@@ -41,15 +31,5 @@ export const toggleLikeOnBlog = async (id: number, token: string, toggle: boolea
     return response.data; 
   } catch (error: any) {
     console.error("Error toggling like on blog:", error);
-
-    if (error.response) {
-      throw new Error(
-        error.response.data?.message || "Failed to update like status."
-      );
-    } else if (error.request) {
-      throw new Error("No response received from the server. Please try again.");
-    } else {
-      throw new Error(error.message || "An unexpected error occurred.");
-    }
   }
 };

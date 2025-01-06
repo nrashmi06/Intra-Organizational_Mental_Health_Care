@@ -8,6 +8,7 @@ import { getAppointmentsByFilter } from "@/service/appointment/getAppointmentsBy
 import { CalendarDays, Search } from "lucide-react";
 import AppointmentCard from "./AppointmentCard";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
+import Pagination from "@/components/ui/PaginationComponent";
 
 export function AllAppointments() {
   const dispatch = useAppDispatch();
@@ -88,7 +89,7 @@ export function AllAppointments() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br p-4 sm:p-8">
+    <div className="min-h-screen bg-gradient-to-br">
       <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
         {/* Header Section */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -190,25 +191,11 @@ export function AllAppointments() {
               ))}
               
               {/* Pagination */}
-              <div className="mt-6 flex justify-center gap-2">
-                <button
-                  className="px-4 py-2 border rounded-md disabled:opacity-50"
-                  onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
-                  disabled={currentPage === 1 || loading}
-                >
-                  Previous
-                </button>
-                <span className="px-4 py-2">
-                  {currentPage} of {totalPages || 1}
-                </span>
-                <button
-                  className="px-4 py-2 border rounded-md disabled:opacity-50"
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages || loading}
-                >
-                  Next
-                </button>
-              </div>
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages || 1}
+                onPageChange={handlePageChange}
+              />
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-12">

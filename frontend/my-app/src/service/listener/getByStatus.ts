@@ -17,7 +17,7 @@ export const getApplicationsByApprovalStatus =
       const cachedEtag = getState().applicationList.etag;
       const headers = {
         Authorization: `Bearer ${token}`,
-        ...(cachedEtag && { "If-None-Match": cachedEtag }), // Include ETag header if available
+        ...(cachedEtag && { "If-None-Match": cachedEtag }), 
       };
 
       const response = await axiosInstance.get(
@@ -45,6 +45,5 @@ export const getApplicationsByApprovalStatus =
       return response.data;
     } catch (error: any) {
       console.error("Error fetching applications by approval status:", error);
-      throw error;
     }
   };

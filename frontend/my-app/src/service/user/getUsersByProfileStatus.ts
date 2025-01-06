@@ -41,6 +41,5 @@ export const getUsersByProfileStatus = async ({
     } else {
       console.error("Error fetching users by profile status:", error);
     }
-    throw error; 
   }
 };

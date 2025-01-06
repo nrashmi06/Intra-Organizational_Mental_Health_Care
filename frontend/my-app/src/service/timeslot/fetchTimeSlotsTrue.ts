@@ -29,7 +29,6 @@ const fetchTimeSlots = async (
     } else {
       console.error('Error fetching time slots:', error.message);
     }
-    throw new Error('Failed to fetch time slots. Please try again later.');
   }
 };
 
