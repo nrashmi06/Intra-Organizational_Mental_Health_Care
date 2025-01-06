@@ -244,7 +244,6 @@ const BlogPost = () => {
           content={editedBlogData.content}
           summary={editedBlogData.summary}
           error={error}
-          image={null}
           onClose={handleCancelEdit}
           onSave={handleSaveChanges}
           onChange={(field, value) =>
