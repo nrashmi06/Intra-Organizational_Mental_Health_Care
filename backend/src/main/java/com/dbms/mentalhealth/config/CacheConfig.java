@@ -47,8 +47,6 @@ public class CacheConfig {
     private static final int TINY_CACHE_SIZE = 10;
     private static final int USER_INACTIVITY_MINUTES = 30;
 
-    private final Lock lock = new ReentrantLock();
-
     @Value("${cache.duration.minutes}")
     private Long cacheExpiry;
 
