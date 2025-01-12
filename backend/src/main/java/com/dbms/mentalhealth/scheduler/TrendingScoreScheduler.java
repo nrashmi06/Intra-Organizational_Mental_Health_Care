@@ -27,7 +27,7 @@ public class TrendingScoreScheduler {
     private final TrendingScoreConfig properties;
     private final TrendingScoreCalculator calculator;
 
-    @Scheduled(fixedRate = 600000) // Every 10 minutes
+    @Scheduled(fixedRate = 3600000) // 1 hour
     @Transactional
     public void updateTrendingScores() {
         LocalDateTime cutoff = LocalDateTime.now().minusHours(properties.getDecayHours());

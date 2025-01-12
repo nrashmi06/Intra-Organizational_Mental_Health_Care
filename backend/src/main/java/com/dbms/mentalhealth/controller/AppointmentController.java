@@ -149,7 +149,6 @@ public class AppointmentController {
             @RequestHeader(value = HttpHeaders.IF_NONE_MATCH, required = false) String ifNoneMatch,
             @PageableDefault(size = 10) Pageable pageable) {
 
-        // Create a new pageable with the appropriate sort
         Pageable sortedPageable = PageRequest.of(
                 pageable.getPageNumber(),
                 pageable.getPageSize()
