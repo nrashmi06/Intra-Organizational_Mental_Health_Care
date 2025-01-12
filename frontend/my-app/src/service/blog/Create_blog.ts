@@ -1,4 +1,4 @@
-import { BLOG_API_ENDPOINTS } from '@/mapper/blogMapper'; // Import the blog endpoints from the mapper
+import { BLOG_API_ENDPOINTS } from '@/mapper/blogMapper'; 
 import axiosInstance from '@/utils/axios';
 
 export const createBlog = async (
