@@ -1,93 +1,74 @@
-'use client'
-
-import { useState } from "react"
+import * as React from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import clsx from "clsx"
+import { DayPicker } from "react-day-picker"
 
-interface CalendarProps {
-  selected?: Date
-  onSelect?: (date: Date) => void
-  className?: string
-}
+import { cn } from "@/lib/utils"
+import { buttonVariants } from "@/components/ui/button"
 
-export const Calendar: React.FC<CalendarProps> = ({ selected, onSelect, className }) => {
-  const today = new Date()
-  const [currentMonth, setCurrentMonth] = useState(
-    new Date(today.getFullYear(), today.getMonth(), 1)
-  )
+export type CalendarProps = React.ComponentProps<typeof DayPicker>
 
-  const daysInMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate()
-  const firstDayIndex = currentMonth.getDay()
-  const prevMonthDays = Array.from(
-    { length: firstDayIndex },
-    (_, i) => new Date(currentMonth.getFullYear(), currentMonth.getMonth(), i - firstDayIndex + 1)
-  )
-  const currentMonthDays = Array.from(
-    { length: daysInMonth },
-    (_, i) => new Date(currentMonth.getFullYear(), currentMonth.getMonth(), i + 1)
-  )
-  const totalCells = [...prevMonthDays, ...currentMonthDays]
-  const weeks = Array.from({ length: Math.ceil(totalCells.length / 7) }, (_, i) =>
-    totalCells.slice(i * 7, (i + 1) * 7)
-  )
-
-  const handlePrevMonth = () =>
-    setCurrentMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1))
-  const handleNextMonth = () =>
-    setCurrentMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1))
-
-  const isSelected = (date: Date) =>
-    selected &&
-    date.getDate() === selected.getDate() &&
-    date.getMonth() === selected.getMonth() &&
-    date.getFullYear() === selected.getFullYear()
-
-  const isToday = (date: Date) =>
-    date.getDate() === today.getDate() &&
-    date.getMonth() === today.getMonth() &&
-    date.getFullYear() === today.getFullYear()
-
+function Calendar({
+  className,
+  classNames,
+  showOutsideDays = true,
+  ...props
+}: CalendarProps) {
   return (
-    <div className={clsx("p-4 bg-white gap-2 rounded-lg shadow", className)}>
-      <div className="flex items-center justify-between mb-4">
-        <button onClick={handlePrevMonth}>
-          <ChevronLeft className="h-5 w-5 text-gray-600" />
-        </button>
-        <h2 className="text-lg font-semibold text-gray-800">
-          {currentMonth.toLocaleString("default", { month: "long" })} {currentMonth.getFullYear()}
-        </h2>
-        <button onClick={handleNextMonth}>
-          <ChevronRight className="h-5 w-5 text-gray-600" />
-        </button>
-      </div>
-      <div className="grid grid-cols-7 text-center text-gray-600 font-medium">
-        {["S", "M", "T", "W", "T", "F", "S"].map((day) => (
-          <div key={day} className="p-2">
-            {day}
-          </div>
-        ))}
-      </div>
-      <div className="grid grid-cols-7">
-        {weeks.map((week, weekIndex) => (
-          <div key={weekIndex} className="contents">
-            {week.map((date, dayIndex) => (
-              <div
-                key={dayIndex}
-                onClick={() => onSelect && onSelect(date)}
-                className={clsx(
-                  "p-2 cursor-pointer text-sm rounded-md",
-                  isToday(date) && "bg-pink-100 text-pink-700",
-                  isSelected(date) && "bg-purple-200 text-purple-800",
-                  date.getMonth() !== currentMonth.getMonth() && "text-gray-400",
-                  "hover:bg-purple-100"
-                )}
-              >
-                {date.getDate()}
-              </div>
-            ))}
-          </div>
-        ))}
-      </div>
-    </div>
+    <DayPicker
+      showOutsideDays={showOutsideDays}
+      className={cn("p-3", className)}
+      classNames={{
+        months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
+        month: "space-y-4",
+        caption: "flex justify-center pt-1 relative items-center",
+        caption_label: "text-sm font-medium",
+        nav: "space-x-1 flex items-center",
+        nav_button: cn(
+          buttonVariants({ variant: "outline" }),
+          "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100"
+        ),
+        nav_button_previous: "absolute left-1",
+        nav_button_next: "absolute right-1",
+        table: "w-full border-collapse space-y-1",
+        head_row: "flex",
+        head_cell:
+          "text-muted-foreground rounded-md w-8 font-normal text-[0.8rem]",
+        row: "flex w-full mt-2",
+        cell: cn(
+          "relative p-0 text-center text-sm focus-within:relative focus-within:z-20 [&:has([aria-selected])]:bg-accent [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected].day-range-end)]:rounded-r-md",
+          props.mode === "range"
+            ? "[&:has(>.day-range-end)]:rounded-r-md [&:has(>.day-range-start)]:rounded-l-md first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md"
+            : "[&:has([aria-selected])]:rounded-md"
+        ),
+        day: cn(
+          buttonVariants({ variant: "ghost" }),
+          "h-8 w-8 p-0 font-normal aria-selected:opacity-100"
+        ),
+        day_range_start: "day-range-start",
+        day_range_end: "day-range-end",
+        day_selected:
+          "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+        day_today: "bg-accent text-accent-foreground",
+        day_outside:
+          "day-outside text-muted-foreground aria-selected:bg-accent/50 aria-selected:text-muted-foreground",
+        day_disabled: "text-muted-foreground opacity-50",
+        day_range_middle:
+          "aria-selected:bg-accent aria-selected:text-accent-foreground",
+        day_hidden: "invisible",
+        ...classNames,
+      }}
+      components={{
+        IconLeft: ({ className, ...props }) => (
+          <ChevronLeft className={cn("h-4 w-4", className)} {...props} />
+        ),
+        IconRight: ({ className, ...props }) => (
+          <ChevronRight className={cn("h-4 w-4", className)} {...props} />
+        ),
+      }}
+      {...props}
+    />
   )
 }
+Calendar.displayName = "Calendar"
+
+export { Calendar }

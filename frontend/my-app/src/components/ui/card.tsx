@@ -1,55 +1,92 @@
-// src/components/ui/Card.tsx
-import React from 'react';
-import clsx from 'clsx';
+import * as React from "react"
 
-// Define a reusable interface for all Card components
-interface CardProps extends React.HTMLProps<HTMLDivElement> {
-  className?: string;  // Optional className prop for styling
-  children: React.ReactNode;  // Content inside the card
+import { cn } from "@/lib/utils"
+
+function Card({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="card"
+      className={cn(
+        "bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm",
+        className
+      )}
+      {...props}
+    />
+  )
 }
 
-// Card component with default styling and additional class support
-const Card: React.FC<CardProps> = ({ className, children, ...props }) => {
+function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
-    <div className={clsx('bg-white shadow-lg rounded-lg overflow-hidden', className)} {...props}>
-      {children}
-    </div>
-  );
-};
-
-// CardHeader component for card header (optional but common for card title or metadata)
-const CardHeader: React.FC<CardProps> = ({ className, children, ...props }) => {
-  return (
-    <div className={clsx('p-4 border-b border-gray-200', className)} {...props}>
-      {children}
-    </div>
-  );
-};
-
-// CardTitle component to wrap a title inside the card header
-interface CardTitleProps {
-  children: React.ReactNode;
+    <div
+      data-slot="card-header"
+      className={cn(
+        "@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6",
+        className
+      )}
+      {...props}
+    />
+  )
 }
-const CardTitle: React.FC<CardTitleProps> = ({ children }) => {
-  return <h3 className="text-xl font-semibold">{children}</h3>;
-};
 
-// CardContent component for the main content inside the card with padding
-const CardContent: React.FC<CardProps> = ({ className, children, ...props }) => {
+function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
   return (
-    <div className={clsx('p-4', className)} {...props}>
-      {children}
-    </div>
-  );
-};
+    <div
+      data-slot="card-title"
+      className={cn("leading-none font-semibold", className)}
+      {...props}
+    />
+  )
+}
 
-// CardFooter component for additional content at the bottom of the card
-const CardFooter: React.FC<CardProps> = ({ className, children, ...props }) => {
+function CardDescription({ className, ...props }: React.ComponentProps<"div">) {
   return (
-    <div className={clsx('p-4 border-t border-gray-200', className)} {...props}>
-      {children}
-    </div>
-  );
-};
+    <div
+      data-slot="card-description"
+      className={cn("text-muted-foreground text-sm", className)}
+      {...props}
+    />
+  )
+}
 
-export { Card, CardHeader, CardTitle, CardContent, CardFooter };
+function CardAction({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="card-action"
+      className={cn(
+        "col-start-2 row-span-2 row-start-1 self-start justify-self-end",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+function CardContent({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="card-content"
+      className={cn("px-6", className)}
+      {...props}
+    />
+  )
+}
+
+function CardFooter({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="card-footer"
+      className={cn("flex items-center px-6 [.border-t]:pt-6", className)}
+      {...props}
+    />
+  )
+}
+
+export {
+  Card,
+  CardHeader,
+  CardFooter,
+  CardTitle,
+  CardAction,
+  CardDescription,
+  CardContent,
+}

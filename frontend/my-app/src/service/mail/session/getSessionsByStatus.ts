@@ -1,6 +1,5 @@
 import { SESSION_API_ENDPOINTS } from "@/mapper/sessionMapper";
 import axiosInstance from "@/utils/axios";
-import { Session } from "@/lib/types"; // Make sure this matches your session object
 
 interface GetSessionsByStatusParams {
   accessToken: string;
@@ -11,14 +10,6 @@ interface GetSessionsByStatusParams {
   id?: number;
 }
 
-interface PaginatedSessionResponse {
-  content: Session[];
-  page: {
-    totalElements: number;
-    totalPages: number;
-  };
-}
-
 export const getSessionsByStatus = async ({
   accessToken,
   status = "completed",
@@ -26,29 +17,26 @@ export const getSessionsByStatus = async ({
   size = 4,
   idType,
   id,
-}: GetSessionsByStatusParams): Promise<PaginatedSessionResponse> => {
+}: GetSessionsByStatusParams) => {
   try {
     const url = new URL(SESSION_API_ENDPOINTS.GET_SESSIONS_BY_STATUS);
-    url.searchParams.append("status", status);
-    url.searchParams.append("page", page.toString());
-    url.searchParams.append("size", size.toString());
-
+    url.searchParams.append('status', status);
+    url.searchParams.append('page', page.toString());
+    url.searchParams.append('size', size.toString());
     if (idType) {
-      url.searchParams.append("idType", idType);
+      url.searchParams.append('idType', idType);
     }
     if (id) {
-      url.searchParams.append("id", id.toString());
+      url.searchParams.append('id', id.toString());
     }
-
-    const response = await axiosInstance.get<PaginatedSessionResponse>(url.toString(), {
+    const response = await axiosInstance.get(url.toString(), {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
     });
-
+    console.log("PAGINATED SEssions RESPONSE", response);
     return response.data;
   } catch (error) {
     console.error("Error fetching sessions by status:", error);
-    throw error; // re-throw to allow catch in caller
   }
 };

@@ -1,31 +1,22 @@
-import React from 'react'
+import * as React from "react"
 
-export const Textarea = ({
-  id,
-  label,
-  placeholder,
-  value,
-  onChange,
-  className
-}: {
-  id ?: string
-  label?: string,
-  name?: string,
-  placeholder?: string
-  value?: string
-  onChange?: React.ChangeEventHandler<HTMLTextAreaElement>
-  className?: string
-}) => {
+import { cn } from "@/lib/utils"
+
+const Textarea = React.forwardRef<
+  HTMLTextAreaElement,
+  React.ComponentProps<"textarea">
+>(({ className, ...props }, ref) => {
   return (
-    <div>
-    <label className="block text-purple-700 font-semibold mb-2">{label}</label>
     <textarea
-      id={id}
-      placeholder={placeholder}
-      value={value}
-      onChange={onChange}
-      className={`p-2 border border-gray-300 rounded-md w-full ${className}`}
+      className={cn(
+        "flex min-h-[60px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+        className
+      )}
+      ref={ref}
+      {...props}
     />
-    </div>
   )
-}
+})
+Textarea.displayName = "Textarea"
+
+export { Textarea }
