@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog Message</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #4a76a8;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            border-radius: 5px 5px 0 0;
+        }
+        .content {
+            padding: 20px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 5px 5px;
+        }
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 0.8em;
+            color: #777;
+        }
+        .animated-image {
+            display: block;
+            margin: 20px auto;
+            max-width: 150px;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .pulse {
+            animation: pulse 2s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body>
+<div class="header">
+    <h1>Mental Health Support</h1>
+</div>
+<div class="content">
+    <p>Dear user,</p>
+    <p>You have received an email from a user of the Mental Health Care platform through your blog post.</p>
+
+    <!-- Animated image - using a placeholder but you can replace with your actual image URL -->
+    <img class="animated-image pulse" src="https://cdn.dribbble.com/users/2514124/screenshots/5439070/media/083c0d29ab58bef54d72d968a3bff84c.gif" alt="Message notification" />
+
+    <p>Message:</p>
+    <p th:utext="${emailBody}">Message content will appear here...</p>
+    <p>If you don't want to receive these emails, you may edit your blog to turn off communications.</p>
+</div>
+<div class="footer">
+    <p>Mental Health Support Team</p>
+</div>
+</body>
+</html>

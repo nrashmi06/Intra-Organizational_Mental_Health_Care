@@ -50,6 +50,9 @@ public class Blog {
     @Column(name = "like_count", nullable = false)
     private int likeCount = 0;
 
+    @Column(name="is_open_for_communication", nullable = false)
+    private Boolean isOpenForCommunication = false;
+
     @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "approval_status", nullable = false, length = 50)
