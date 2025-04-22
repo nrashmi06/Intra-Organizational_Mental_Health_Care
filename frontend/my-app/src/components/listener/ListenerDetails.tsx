@@ -25,7 +25,7 @@ const ListenerModal: React.FC<ListenerModalProps> = ({
     const fetchListenerDetails = async () => {
       try {
         const details = await getListenerDetails(userId, token, "userId");
-        setDetailedListener(details);
+        setDetailedListener(details as ListenerDetails);
       } catch (error) {
         console.error("Error fetching listener details:", error);
       }

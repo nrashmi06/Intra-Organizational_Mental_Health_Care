@@ -25,8 +25,8 @@ type AppPropsWithLayout = AppProps & {
 
 export default function MyApp({ Component, pageProps }: AppPropsWithLayout) {
   const [loading, setLoading] = useState(false);
-  const loadingTimeoutRef = useRef<NodeJS.Timeout>();
-  const showLoaderTimeoutRef = useRef<NodeJS.Timeout>();
+  const loadingTimeoutRef = useRef<NodeJS.Timeout>(null);
+  const showLoaderTimeoutRef = useRef<NodeJS.Timeout>(null);
   const router = useRouter();
   const getLayout = Component.getLayout ?? ((page) => page);
   const isDashboardRoute = router.pathname.includes("/dashboard");

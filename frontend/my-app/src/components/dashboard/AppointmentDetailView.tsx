@@ -30,7 +30,7 @@ const AppointmentDetailView: React.FC<DetailViewProps> = ({
 
       try {
         const data = await getAppointmentDetails(appointmentId, token);
-        setAppointmentDetails(data);
+        setAppointmentDetails(data as AppointmentDetails);
       } catch (err) {
         console.error("Error fetching appointment details:", err);
         setError("Failed to load appointment details.");

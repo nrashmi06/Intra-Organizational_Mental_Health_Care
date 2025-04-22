@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import Avatar from "../ui/avatar";
+import { Avatar } from "../ui/avatar";
 import { useRouter } from "next/router";
 import { logout } from "@/service/user/Logout";
 import { RootState } from "@/store";
@@ -56,8 +56,8 @@ export default function Navbar({ children }: NavbarProps) {
             Log out
           </Button>
           <div className="flex items-center">
-            <Button variant="ghost" size="icon" href="/dashboard/adminprofile">
-              <Avatar className="h-8 w-8" name="Admin" />
+            <Button variant="ghost" size="icon" onClick={() => router.push("/dashboard/adminprofile")}>
+              <Avatar className="h-8 w-8" />
             </Button>
           </div>
         </div>

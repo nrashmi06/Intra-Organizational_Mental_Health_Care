@@ -81,7 +81,7 @@ const BlogPost = () => {
   };
 
   const handleEditClick = () => {
-    if (article && article.userId === parseInt(ReduxuserId, 10)) {
+    if (article && ReduxuserId && article.userId === parseInt(ReduxuserId, 10)) {
       setEditMode(true);
       setEditedBlogData({
         title: article.title,
@@ -156,6 +156,11 @@ const BlogPost = () => {
     setContactSending(true);
 
     try {
+      if (!article) {
+        setError("Article data is not available.");
+        setShowErrorModal(true);
+        return;
+      }
       await sendMailToAuthor(
         {
           subject: contactSubject,
@@ -215,10 +220,12 @@ const BlogPost = () => {
             )}
             <div className="hidden md:block absolute inset-0 bg-gradient-to-b from-transparent to-green-900/20 group-hover:opacity-10 transition-opacity duration-500"></div>
           </div>
+
           <div className="p-8 space-y-6">
             <h1 className="text-4xl font-extrabold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent leading-tight mb-4">
               {article?.title}
             </h1>
+
             <div className="flex justify-between items-center text-sm text-gray-600 pb-4 border-b border-green-100">
               <span className="text-emerald-600 font-medium">
                 {article?.publishDate
@@ -233,6 +240,7 @@ const BlogPost = () => {
                     })
                   : null}
               </span>
+
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-1 text-emerald-600">
                   <Eye className="w-5 h-5" />

@@ -1,11 +1,10 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { X, Image as ImageIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-
-const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
-import "quill/dist/quill.snow.css";
+import { EditorContent, useEditor } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
 
 interface EditBlogModalProps {
   title: string;
@@ -30,7 +29,21 @@ const EditBlogModal: React.FC<EditBlogModalProps> = ({
 }) => {
   const [successMessage, setSuccessMessage] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [showLoadingPopup, setShowLoadingPopup] = useState(false); // State to control loading popup
+  const [showLoadingPopup, setShowLoadingPopup] = useState(false);
+
+  const editor = useEditor({
+    extensions: [StarterKit],
+    content: content,
+    onUpdate: ({ editor }) => {
+      onChange("content", editor.getHTML());
+    },
+  });
+
+  useEffect(() => {
+    if (editor && content !== editor.getHTML()) {
+      editor.commands.setContent(content);
+    }
+  }, [content, editor]);
 
   const handleImageChange = (file: File | null) => {
     if (file) {
@@ -42,13 +55,13 @@ const EditBlogModal: React.FC<EditBlogModalProps> = ({
   };
 
   const handleSave = async () => {
-    if (!title || !content || !summary) {
+    if (!title || !editor?.getHTML() || !summary) {
       return;
     }
 
-    setShowLoadingPopup(true); // Show the loading popup
+    setShowLoadingPopup(true);
     await onSave();
-    setShowLoadingPopup(false); // Hide the loading popup after saving
+    setShowLoadingPopup(false);
     setSuccessMessage("Blog updated successfully!");
   };
 
@@ -97,13 +110,8 @@ const EditBlogModal: React.FC<EditBlogModalProps> = ({
             <label htmlFor="content" className="block text-sm font-medium text-green-700 mb-1">
               Content
             </label>
-            <div className="bg-white/50 rounded-lg">
-              <ReactQuill
-                value={content}
-                onChange={(value) => onChange("content", value)}
-                theme="snow"
-                className="mt-2"
-              />
+            <div className="bg-white/50 rounded-lg p-2 border border-green-200 min-h-[200px]">
+              <EditorContent editor={editor} />
             </div>
           </div>
 

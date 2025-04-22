@@ -41,7 +41,7 @@ export const VerifyAndDownload = () => {
     try {
       const response = await requestVerificationCode(accesstoken);
       console.log(response?.data);
-      setSuccessMessage(response?.data);
+      setSuccessMessage(response?.data as any);
       setIsOtpRequested(true);
     } catch (error) {
       if (error instanceof Error) {
@@ -70,7 +70,7 @@ export const VerifyAndDownload = () => {
         const fileBlob = response?.data;
 
         const url = window.URL.createObjectURL(
-          new Blob([fileBlob], { type: "application/pdf" })
+          new Blob([fileBlob as any], { type: "application/pdf" })
         );
         const link = document.createElement("a");
         link.href = url;

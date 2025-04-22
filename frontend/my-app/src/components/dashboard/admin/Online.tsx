@@ -136,15 +136,14 @@ export function OnlineAdminsTable() {
                           <span className="font-medium">View Details</span>
                         </Button>
 
-                        <Button
-                          variant="outline"
+                        <a
                           href={`/dashboard/admin/appointments/${admin.userId}?req=onlineAdmins`}
-                          className="w-full h-10 bg-white hover:bg-slate-50 border-slate-200  hover:border-slate-300 transition-colors rounded-xl flex items-center justify-center space-x-2"
+                          className="w-full h-10 bg-white hover:bg-slate-50 border-slate-200 hover:border-slate-300 transition-colors rounded-xl flex items-center justify-center space-x-2"
                         >
                           <Calendar className="h-4 w-4 text-slate-600 " />
                           <span className="font-medium">Appointments</span>
                           <ExternalLink className="h-4 w-4 ml-1 text-slate-400" />
-                        </Button>
+                        </a>
                       </div>
                     </div>
                   </CardContent>

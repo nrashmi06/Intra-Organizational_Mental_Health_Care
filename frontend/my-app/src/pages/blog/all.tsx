@@ -41,7 +41,7 @@ export default function AllBlogsPage() {
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(searchQuery);
 
   const [paginationInfo, setPaginationInfo] = useState(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         const parsedStored = JSON.parse(stored);
@@ -64,7 +64,7 @@ export default function AllBlogsPage() {
   });
 
   const [filterType, setFilterType] = useState<string>(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         const parsedStored = JSON.parse(stored);
@@ -84,12 +84,15 @@ export default function AllBlogsPage() {
 
   // Save to localStorage whenever filters change
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        pageNumber: paginationInfo.pageNumber,
-        pageSize: paginationInfo.pageSize,
-        filterType,
-      }));
+    if (typeof window !== "undefined") {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          pageNumber: paginationInfo.pageNumber,
+          pageSize: paginationInfo.pageSize,
+          filterType,
+        })
+      );
     }
   }, [paginationInfo.pageNumber, paginationInfo.pageSize, filterType]);
 
@@ -119,11 +122,15 @@ export default function AllBlogsPage() {
       });
 
       if (response?.data) {
-        setBlogs(response.data.content);
+        const data = response.data as {
+          content: BlogPost[];
+          page: { totalPages: number; totalElements: number };
+        };
+        setBlogs(data.content);
         setPaginationInfo((prev) => ({
           ...prev,
-          totalPages: response.data.page.totalPages,
-          totalElements: response.data.page.totalElements,
+          totalPages: data.page.totalPages,
+          totalElements: data.page.totalElements,
         }));
       }
     } catch (err) {
@@ -166,7 +173,7 @@ export default function AllBlogsPage() {
       title: "",
     });
     setSearchQuery("");
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       localStorage.removeItem(STORAGE_KEY);
     }
   };

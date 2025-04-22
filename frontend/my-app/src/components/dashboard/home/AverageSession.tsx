@@ -12,7 +12,7 @@ export default function AverageSession() {
     const fetchListenerDetails = async () => {
       try {
         const details = await getAverageSessionDetails(token);
-        setDetails(details);
+        setDetails(details as any);
       } catch (error) {
         console.error("Error fetching listener details:", error);
       }

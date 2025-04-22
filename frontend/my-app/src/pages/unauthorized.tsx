@@ -18,13 +18,12 @@ const UnauthorizedPage = () => {
           You are not authorized to access this page. Please contact your administrator if you believe this is an error.
         </p>
         
-        <Button 
-          className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors duration-200"
+        <a 
+          className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors duration-200 inline-block text-center"
           href="/"
-          variant='link'
         >
           Go Home
-        </Button>
+        </a>
       </div>
     </div>
   );

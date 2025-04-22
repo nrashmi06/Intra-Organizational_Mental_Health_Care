@@ -37,7 +37,7 @@ const ModalDetails: React.FC<DetailsProps> = ({ userId, handleClose }) => {
     const fetchData = async () => {
       try {
         const data = await fetchAdminProfile(token, userId);
-        setAdmin(data);
+        setAdmin(data as AdminDetails);
       } catch (error) {
         setError("Error fetching admin details." + error);
       } finally {

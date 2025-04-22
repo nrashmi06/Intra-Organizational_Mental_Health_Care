@@ -22,7 +22,7 @@ export function RegisteredAdminsTable() {
   const fetchAdminProfiles = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetchAdmins(accessToken);
+      const response = await fetchAdmins(accessToken) as AdminSummary[];
       setAdmins(response);
       setLoading(false);
     } catch (error) {
@@ -123,16 +123,20 @@ export function RegisteredAdminsTable() {
                   </CardContent>
 
                   <CardFooter className="p-4 bg-gray-50 flex items-center justify-between">
-                    <Button
-                      variant="ghost"
-                      className="w-full hover:bg-green-50 hover:text-green-600 group/btn"
+                    <a
                       href={`/dashboard/admin/appointments/${admin.adminId}?req=registeredAdmins`}
+                      className="w-full hover:bg-green-50 hover:text-green-600 group/btn no-underline"
                     >
-                      <div className="flex items-center gap-1">
-                      <span className="flex-1">View Appointments</span>
-                      <ChevronRight className="h-4 w-4 transform transition-transform group-hover/btn:translate-x-1" />
-                      </div>
-                    </Button>
+                      <Button
+                        variant="ghost"
+                        className="w-full"
+                      >
+                        <div className="flex items-center gap-1">
+                          <span className="flex-1">View Appointments</span>
+                          <ChevronRight className="h-4 w-4 transform transition-transform group-hover/btn:translate-x-1" />
+                        </div>
+                      </Button>
+                    </a>
                   </CardFooter>
                 </Card>
               ))}

@@ -37,7 +37,7 @@ export default function ListenerSummary() {
       try {
         console.log("Fetching listener details...");
         const details = await getSessionFeedbackSummary(token);
-        setDetails(details);
+        setDetails(details as any);
       } catch (error) {
         console.error("Error fetching listener details:", error);
       }

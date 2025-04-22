@@ -130,7 +130,7 @@ export interface AdminDetails {
   createdAt: string;
   updatedAt: string;
   totalAppointments: number;
-  lastAppointmentDate: string; // Use `string` for ISO format if working with JSON APIs.
+  lastAppointmentDate: string; // Use string for ISO format if working with JSON APIs.
   totalBlogsPublished: number;
   totalLikesReceived: number;
   totalViewsReceived: number;
@@ -163,6 +163,7 @@ export interface BlogPost {
   date: string;
   likeCount: number;
   likedByCurrentUser: boolean;
+  isOpenForCommunication: boolean;
 }
 
 export interface Article {
@@ -176,6 +177,7 @@ export interface Article {
   summary: string;
   likedByCurrentUser: boolean;
   likeCount: number;
+  isOpenForCommunication: boolean;
 }
 export interface CalendarDayProps {
   day: Date;

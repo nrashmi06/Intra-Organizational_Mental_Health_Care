@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useEffect, useState } from "react";
 import { User, CheckCircle, Mail, Shield, X, MessageSquare, Book, ThumbsUp, Eye, Users, Calendar } from "lucide-react";
 import { useSelector } from "react-redux";
@@ -32,7 +34,7 @@ const ModalDetails: React.FC<DetailsProps> = ({
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await getUserDetails(userId, token);
+        const data = await getUserDetails(userId, token) as UserDetails;
         setUser(data);
       } catch (error) {
         setError("Error fetching user details." + error);
@@ -158,7 +160,11 @@ const ModalDetails: React.FC<DetailsProps> = ({
                     <Button
                       variant="outline"
                       className="text-blue-500 hover:bg-blue-50"
-                      onClick={() => router.push(`/dashboard/user/sessions/${userId}`)}
+                      onClick={() => {
+                        handleClose(); // close modal first
+                        router.push(`/dashboard/user/sessions/${userId}`);
+                      }}
+                      
                     >
                       View Sessions
                     </Button>

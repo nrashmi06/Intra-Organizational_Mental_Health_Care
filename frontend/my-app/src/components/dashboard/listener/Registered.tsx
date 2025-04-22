@@ -34,21 +34,15 @@ export function RegisteredListenersTable() {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const accessToken = useSelector((state: RootState) => state.auth.accessToken);
-  const listeners = useSelector(
-    (state: RootState) => state.listeners.listeners
-  );
+  const listeners = useSelector((state: RootState) => state.listeners.listeners);
 
-  const [statusFilter, setStatusFilter] = useState<"ACTIVE" | "SUSPENDED">(
-    "ACTIVE"
-  );
+  const [statusFilter, setStatusFilter] = useState<"ACTIVE" | "SUSPENDED">("ACTIVE");
   const [searchQuery, setSearchQuery] = useState(DEFAULT_FILTERS.searchQuery);
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(searchQuery);
   const [loading, setLoading] = useState(false);
   const [detailsModal, setDetailsModal] = useState(false);
   const [applicationModal, setApplicationModal] = useState(false);
-  const [application, setApplication] = useState<ListenerApplication | null>(
-    null
-  );
+  const [application, setApplication] = useState<ListenerApplication | null>(null);
   const [selectedListener, setSelectedListener] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [paginationInfo, setPaginationInfo] = useState({
@@ -58,7 +52,6 @@ export function RegisteredListenersTable() {
     totalPages: 0,
   });
 
-  // Debounce search query
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearchQuery(searchQuery);
@@ -70,7 +63,8 @@ export function RegisteredListenersTable() {
   const fetchListeners = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await dispatch(
+
+      const response: any = await dispatch(
         getListenersByProfileStatus({
           status: statusFilter,
           page: paginationInfo.pageNumber,
@@ -79,11 +73,18 @@ export function RegisteredListenersTable() {
         })
       );
       if (response && response.content) {
-        setListeners(response.content);
+        dispatch(
+          setListeners({
+            listeners: response.content,
+            page: response.page,
+            etag: response.etag ?? null,
+          })
+        );
+
         setPaginationInfo((prev) => ({
           ...prev,
-          totalElements: response.page.totalElements,
-          totalPages: response.page.totalPages,
+          totalElements: response.page?.totalElements ?? 0,
+          totalPages: response.page?.totalPages ?? 0,
         }));
       }
     } catch (error) {
@@ -95,9 +96,8 @@ export function RegisteredListenersTable() {
     statusFilter,
     paginationInfo.pageNumber,
     paginationInfo.pageSize,
-    accessToken,
-    dispatch,
     debouncedSearchQuery,
+    dispatch,
   ]);
 
   useEffect(() => {
@@ -133,7 +133,7 @@ export function RegisteredListenersTable() {
       const fetchedApplication = await getApplicationByListenerUserId(
         userId,
         accessToken
-      );
+      ) as ListenerApplication;
       setApplication(fetchedApplication);
       setApplicationModal(true);
     } catch (error) {
@@ -146,9 +146,7 @@ export function RegisteredListenersTable() {
     setDetailsModal(true);
   };
 
-  if (loading) {
-    return <InlineLoader />;
-  }
+  if (loading) return <InlineLoader />;
 
   return (
     <div className="space-y-6">

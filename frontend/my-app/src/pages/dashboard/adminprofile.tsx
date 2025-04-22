@@ -7,11 +7,10 @@ import { RootState } from "@/store";
 import { Input } from "@/components/ui/input";
 import { useSelector } from "react-redux";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
-import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
-import "react-quill/dist/quill.snow.css";
 import ProfileCard from "@/components/dashboard/admin/ProfileCard";
-const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
+import { EditorContent, useEditor } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
 
 export interface AdminProfile {
   fullName: string;
@@ -22,7 +21,7 @@ export interface AdminProfile {
   profilePicture?: File | null;
   profilePictureUrl?: string;
   totalAppointments?: number;
-  lastAppointmentDate?: string; 
+  lastAppointmentDate?: string;
   totalBlogsPublished?: number;
   totalLikesReceived?: number;
   totalViewsReceived?: number;
@@ -35,15 +34,20 @@ export default function AdminProfile() {
   const userID = useSelector((state: RootState) => state.auth.userId);
   const token = useSelector((state: RootState) => state.auth.accessToken);
 
+  const editor = useEditor({
+    extensions: [StarterKit],
+    content: profile?.adminNotes || "",
+    onUpdate({ editor }) {
+      const html = editor.getHTML();
+      setProfile((prev) => (prev ? { ...prev, adminNotes: html } : null));
+    },
+  });
+
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
     setProfile((prev) => (prev ? { ...prev, [name]: value } : null));
-  };
-
-  const handleQuillChange = (value: string) => {
-    setProfile((prev) => (prev ? { ...prev, adminNotes: value } : null));
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -65,7 +69,7 @@ export default function AdminProfile() {
           { ...profileData, profilePicture },
           token
         );
-        setProfile(createdProfile);
+        setProfile(createdProfile as AdminProfile);
         setIsCreating(false);
       } else {
         await updateAdminProfile(
@@ -89,7 +93,7 @@ export default function AdminProfile() {
     try {
       const fetchedProfile = await fetchAdminProfile(token);
       if (fetchedProfile) {
-        setProfile(fetchedProfile);
+        setProfile(fetchedProfile as AdminProfile);
       } else {
         setIsCreating(true);
         setProfile({
@@ -174,13 +178,9 @@ export default function AdminProfile() {
                 <label className="block text-teal-700 font-semibold mb-2">
                   About You
                 </label>
-
-                <ReactQuill
-                  value={profile?.adminNotes || ""}
-                  onChange={handleQuillChange}
-                  className="min-h-[120px]"
-                  placeholder="Tell us about yourself..."
-                />
+                <div className="border rounded-md p-2 min-h-[120px]">
+                  <EditorContent editor={editor} />
+                </div>
               </div>
               <div className="space-y-2">
                 <label className="block text-teal-700 font-semibold mb-2">

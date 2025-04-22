@@ -82,8 +82,9 @@ export function ListenerApplicationsTable() {
           fetchApplication(accessToken, selectedApplicationId.toString())
         );
 
-        if (response?.payload) {
-          setSelectedApplication(response.payload);
+        const applicationResponse = response as { payload: ListenerApplication | null };
+        if (applicationResponse?.payload) {
+          setSelectedApplication(applicationResponse.payload);
         } else if (applicationDataFromStore) {
           setSelectedApplication(applicationDataFromStore);
         }

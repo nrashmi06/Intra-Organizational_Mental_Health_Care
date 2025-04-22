@@ -2,18 +2,17 @@ import React, { useState, useEffect } from "react";
 import Navbar from "@/components/navbar/Navbar2";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import Checkbox from "@/components/ui/checkbox";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useSelector } from "react-redux";
 import { fetchAdmins } from "@/service/adminProfile/getAllAdmin";
 import { RootState } from "@/store";
-import axios from "axios";
 import createAppointment from "@/service/appointment/createAppointment";
 import fetchTimeSlots from "@/service/timeslot/fetchTimeSlotsTrue";
 import router from "next/router";
 import { PersonalInfo } from "@/components/bookAppointments/PersonalInfo";
 import { AdminSelect } from "@/components/bookAppointments/AdminSelect";
+import AppointmentReason from "@/components/bookAppointments/AppointmentReason";
 import { DateTimeSelect } from "@/components/bookAppointments/DateTimeSelect";
-import { AppointmentReason } from "@/components/bookAppointments/AppointmentReason";
 import { PrioritySelect } from "@/components/bookAppointments/PrioritySelect";
 import { FormData, Slot } from "@/lib/types";
 import SuccessMessage from "@/components/bookAppointments/SuccessMessage";
@@ -49,7 +48,7 @@ export default function BookAppointment() {
       }
       try {
         const response = await fetchAdmins(token);
-        setAdmins(response);
+        setAdmins(response as any[]);
       } catch (err) {
         console.error("Error fetching admins:", err);
       }
@@ -75,16 +74,7 @@ export default function BookAppointment() {
         );
         setAvailableSlots(timeSlots);
       } catch (error) {
-        if (axios.isAxiosError(error)) {
-          console.error(
-            "Error fetching time slots:",
-            error.response?.data || error.message
-          );
-        } else if (error instanceof Error) {
-          console.error("Error fetching time slots:", error.message);
-        } else {
-          console.error("Error fetching time slots:", error);
-        }
+          console.error("Error fetching time slots:", error)
       }
     };
 

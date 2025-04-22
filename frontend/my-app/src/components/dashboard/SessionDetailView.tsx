@@ -27,7 +27,7 @@ const SessionDetailView: React.FC<DetailViewProps> = ({
         case "report":
           setLoading(true);
           const data = await getSessionReport(sessionId, token);
-          if (data.status === 404) {
+          if ((data as { status: number }).status === 404) {
             setContent(
               <div className="p-4 text-gray-500">
                 No report found for this session
@@ -86,7 +86,7 @@ const SessionDetailView: React.FC<DetailViewProps> = ({
         case "feedback":
           setLoading(true);
           const feedbackData = await getSessionFeedback(sessionId, token);
-          if (feedbackData.status === 404) {
+          if ((feedbackData as { status: number }).status === 404) {
             setContent(
               <div className="p-4 text-gray-500">
                 No feedback found for this session
@@ -140,7 +140,7 @@ const SessionDetailView: React.FC<DetailViewProps> = ({
           break;
         case "messages":
           setLoading(true);
-          const messages = await getSessionMessages(sessionId, token);
+          const messages = (await getSessionMessages(sessionId, token)) as { status: number; [key: string]: any };
           if (messages.status === 404) {
             setContent(
               <div className="p-4 text-gray-500">

@@ -62,7 +62,7 @@ export function RegisteredUsersTable() {
           page: paginationInfo.pageNumber,
           size: paginationInfo.pageSize,
           search: debouncedSearchQuery,
-        });
+        }) as any;
 
         if (response && response.content) {
           setUsers(response.content);

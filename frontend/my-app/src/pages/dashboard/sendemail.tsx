@@ -1,8 +1,10 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import React, { useState } from "react";
-import "quill/dist/quill.snow.css";
+import dynamic from "next/dynamic";
+import { useSelector } from "react-redux";
+import { useEditor, EditorContent } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -18,18 +20,25 @@ import { X, Paperclip } from "lucide-react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { sendMassEmail } from "@/service/mail/sendMassEmail";
 import { RootState } from "@/store";
-import { useSelector } from "react-redux";
-
-const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
 
 const EmailPage = () => {
   const [subject, setSubject] = useState("");
   const [recipientType, setRecipientType] = useState("");
-  const [emailBody, setEmailBody] = useState("");
   const [attachments, setAttachments] = useState<File[]>([]);
   const [message, setMessage] = useState("");
   const [showMessage, setShowMessage] = useState(false);
   const accessToken = useSelector((state: RootState) => state.auth.accessToken);
+
+  const editor = useEditor({
+    extensions: [StarterKit],
+    content: "<p>Write your email here...</p>",
+    editorProps: {
+      attributes: {
+        class:
+          "prose max-w-none min-h-[200px] px-4 py-2 border border-emerald-200 rounded-md focus:outline-none",
+      },
+    },
+  });
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
@@ -55,27 +64,25 @@ const EmailPage = () => {
   const resetForm = () => {
     setSubject("");
     setRecipientType("");
-    setEmailBody("");
+    editor?.commands.setContent("<p>Write your email here...</p>");
     setAttachments([]);
   };
 
-  const handleEmailBodyChange = (value: string) => {
-    setEmailBody(value);
-  };
-
   const handleSendEmail = async () => {
+    if (!editor) return;
+
     try {
       const response = await sendMassEmail(
         {
           subject,
-          body: emailBody,
+          body: editor.getHTML(),
           files: attachments,
         },
         recipientType,
         accessToken
       );
       if (response?.status === 200) {
-        handleResponse(response.data);
+        handleResponse(response.data as string);
       }
     } catch (error) {
       console.error("Failed to send email:", error);
@@ -84,14 +91,12 @@ const EmailPage = () => {
 
   return (
     <DashboardLayout>
-      {/* Main container with texture and gradient */}
       <div
         className="min-h-screen bg-gradient-to-br from-emerald-50 to-green-100 bg-opacity-90 py-8 px-4 sm:px-6 lg:px-8"
         style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23a7f3d0' fill-opacity='0.2'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
         }}
       >
-        {/* Content container */}
         <div className="max-w-4xl mx-auto">
           <div className="bg-white/80 backdrop-blur-sm shadow-xl rounded-2xl border border-emerald-100">
             <div className="p-6">
@@ -136,12 +141,8 @@ const EmailPage = () => {
                   <Label htmlFor="email-body" className="text-emerald-700">
                     Email Content
                   </Label>
-                  <div className="mt-2 border border-emerald-200 rounded-md">
-                    <ReactQuill
-                      value={emailBody}
-                      onChange={handleEmailBodyChange}
-                      theme="snow"
-                    />
+                  <div className="mt-2">
+                    <EditorContent editor={editor} />
                   </div>
                 </div>
 
@@ -189,7 +190,7 @@ const EmailPage = () => {
 
                 <Button
                   onClick={handleSendEmail}
-                  disabled={!subject || !recipientType || !emailBody}
+                  disabled={!subject || !recipientType || !editor?.getText().trim()}
                   className="w-full bg-emerald-600 hover:bg-emerald-700 text-white transition-colors"
                 >
                   Send Mass Email

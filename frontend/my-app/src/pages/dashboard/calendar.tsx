@@ -11,6 +11,7 @@ import { getAppointmentByDate } from "@/service/appointment/getAppointmentByDate
 import { useAppDispatch } from "@/hooks/useAppDispatch";
 import { format } from "date-fns";
 
+
 const SchedulePage = () => {
   const dispatch = useAppDispatch();
   const [date, setDate] = useState<Date>(new Date());

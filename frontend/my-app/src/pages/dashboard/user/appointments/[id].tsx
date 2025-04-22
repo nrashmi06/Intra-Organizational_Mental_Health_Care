@@ -42,7 +42,7 @@ const UserAppointments = () => {
     try {
       const response = await getAppointments(token, userId);
       if (response?.status === 200) {
-        const appointmentData: Appointment[] = response.data;
+        const appointmentData: Appointment[] = response.data as Appointment[];
         setAppointments(appointmentData);
       } else {
         console.error("Failed to fetch appointments:", response?.statusText);

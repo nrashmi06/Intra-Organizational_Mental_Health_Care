@@ -53,7 +53,7 @@ const BlogApprovalTable: React.FC<BlogApprovalTableProps> = ({
       } else {
         console.error(
           "Failed to update approval status:",
-          response?.message || "Unknown error"
+          (response as { message?: string })?.message || "Unknown error"
         );
         // Optionally set an error modal here
       }

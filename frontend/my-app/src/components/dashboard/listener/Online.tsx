@@ -89,7 +89,8 @@ export function OnlineListenersTable() {
         userId,
         token
       );
-      setApplication(fetchedApplication);
+      setApplication(fetchedApplication as ListenerApplication);
+
       setApplicationModal(true);
     } catch (error) {
       console.error(error);
