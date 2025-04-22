@@ -1,89 +1,53 @@
-import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import InlineLoader from "@/components/ui/inlineLoader";
-import router from "next/router";
-import { BlogPost } from "@/lib/types";
-import fetchBlogs from "@/service/blog/fetchBlogs";
-import BlogCard from "@/components/blog/BlogCard";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "lucide-react";
 
-interface AuthorBlogsProps {
-  userId: string;
-  currentBlogId: string | string[];
-  token: string;
-}
-
-const BlogsByAuthor = ({ userId, currentBlogId, token }: AuthorBlogsProps) => {
-  const [blogs, setBlogs] = useState<BlogPost[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!currentBlogId) return;
-    const fetchAuthorBlogs = async () => {
-      try {
-        setLoading(true);
-        const authorBlogs = await fetchBlogs({ userId, token, title: "" });
-        if (!authorBlogs) return;
-        const filteredBlogs = authorBlogs.data.content.filter(
-          (blog: { id: any }) => Number(blog.id) !== Number(currentBlogId)
-        );
-        setBlogs(filteredBlogs);
-      } catch (err) {
-        setError("Failed to fetch author's blogs" + err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (userId && token) {
-      fetchAuthorBlogs();
-    }
-  }, [userId, token, currentBlogId]);
-
-  if (loading) {
-    return <InlineLoader height="h-64" />;
-  }
-
-  if (error) {
-    return null;
-  }
-
-  if (blogs.length === 0) {
-    return null;
-  }
-
-  return (
-    <div className="w-full container max-w-3xl mx-auto px-4 py-12 space-y-8">
-      <div className="border-l-4 border-green-500 pl-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="space-y-1">
-            <h2 className="text-2xl font-bold text-gray-900">
-              More from this author
-            </h2>
-            <p className="text-gray-600">
-              Discover other blogs from this writer
-            </p>
-          </div>
-          <Button
-            onClick={() => {
-              router.push(`/blog/${currentBlogId}/more?userId=${userId}`);
-            }}
-            variant="outline"
-            className="w-full sm:w-auto"
-          >
-            <span className="text-green-700 group-hover:text-green-800">
-              View More
-            </span>
-          </Button>
-        </div>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {blogs.map((blog) => (
-          <BlogCard key={blog.id} post={blog} />
-        ))}
-      </div>
-    </div>
-  );
+// Placeholder implementations for missing functions
+const getCategoryStyles = (category: string) => {
+  return { badge: "bg-blue-500 text-white" }; // Example styles
 };
 
-export default BlogsByAuthor;
+const formatCategoryName = (category: string) => {
+  return category.charAt(0).toUpperCase() + category.slice(1); // Capitalize first letter
+};
+
+export const SessionCard = ({ session, onView }: { session: any; onView: (session: any) => void }) => {
+  const categoryStyles = getCategoryStyles(session.sessionCategory);
+  const formattedCategory = formatCategoryName(session.sessionCategory);
+
+  // Get truncated summary
+  const truncateSummary = (text: string, maxLength: number = 100): string => {
+    if (text.length <= maxLength) return text;
+    return text.substr(0, maxLength) + "...";
+  };
+
+  return (
+    <Card className="shadow-md hover:shadow-lg transition-shadow duration-300 rounded-xl overflow-hidden border-0">
+      <CardContent className="p-0">
+        <div className="p-5">
+          <div className="flex justify-between items-center mb-3">
+            <Badge className={`${categoryStyles.badge}`}>
+              {formattedCategory}
+            </Badge>
+            <span className="text-sm font-medium text-gray-400">#{session.sessionId}</span>
+          </div>
+
+          <div className="h-24 overflow-hidden mb-4">
+            <p className="text-gray-600 text-sm">
+              {truncateSummary(session.sessionSummary)}
+            </p>
+          </div>
+        </div>
+
+        <div className="border-t border-gray-100 p-4 bg-gray-50">
+          <Button
+            onClick={() => onView(session)}
+            className="w-full bg-gray-800 hover:bg-gray-700 text-white font-medium py-2 rounded-lg transition-colors"
+          >
+            View Details
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
