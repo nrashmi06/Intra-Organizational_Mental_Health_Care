@@ -134,11 +134,15 @@ export default function MoreBlogs() {
       });
 
       if (response?.data) {
-        setBlogs(response.data.content);
+        const data = response.data as {
+          content: BlogPost[];
+          page: { totalPages: number; totalElements: number };
+        };
+        setBlogs(data.content);
         setPaginationInfo((prev) => ({
           ...prev,
-          totalPages: response.data.page.totalPages,
-          totalElements: response.data.page.totalElements,
+          totalPages: data.page.totalPages,
+          totalElements: data.page.totalElements,
         }));
       }
     } catch (err) {
