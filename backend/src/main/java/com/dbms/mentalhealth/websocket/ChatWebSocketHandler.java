@@ -1,12 +1,14 @@
 package com.dbms.mentalhealth.websocket;
 
 import com.dbms.mentalhealth.model.ChatMessage;
+import com.dbms.mentalhealth.model.ModerationResult;
 import com.dbms.mentalhealth.model.Session;
 import com.dbms.mentalhealth.model.User;
 import com.dbms.mentalhealth.repository.SessionRepository;
 import com.dbms.mentalhealth.repository.UserRepository;
 import com.dbms.mentalhealth.scheduler.ChatMessageScheduler;
 import com.dbms.mentalhealth.service.ChatMessageService;
+import com.dbms.mentalhealth.service.GeminiService;
 import com.dbms.mentalhealth.service.UserService;
 import com.dbms.mentalhealth.service.ListenerService;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +30,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     private final SessionRepository sessionRepository;
     private final UserRepository userRepository;
     private final ChatMessageScheduler chatMessageScheduler;
+    private final GeminiService geminiService;
 
     private static final Map<String, Map<String, WebSocketSession>> chatSessions = new ConcurrentHashMap<>();
     private final Map<String, Session> sessionCache = new ConcurrentHashMap<>();
@@ -35,10 +38,12 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     public ChatWebSocketHandler(SessionRepository sessionRepository,
                                 UserRepository userRepository,
-                                ChatMessageScheduler chatMessageScheduler) {
+                                ChatMessageScheduler chatMessageScheduler,
+                                GeminiService geminiService) {
         this.sessionRepository = sessionRepository;
         this.userRepository = userRepository;
         this.chatMessageScheduler = chatMessageScheduler;
+        this.geminiService = geminiService;
     }
 
     @Override
@@ -78,16 +83,30 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
                 return;
             }
 
+            String messageContent = message.getPayload();
+
+            // Moderate the message using Gemini API
+            ModerationResult moderationResult = geminiService.moderateMessage(messageContent);
+
+            if (!moderationResult.isAllowed()) {
+                log.warn("Message from user {} in session {} was blocked by moderation. Reason: {}",
+                        username, sessionId, moderationResult.getReason());
+
+                // Send notification back to the sender that their message was blocked
+                sendModerationNotification(session, moderationResult.getReason());
+                return;
+            }
+
             ChatMessage chatMessage = new ChatMessage();
             chatMessage.setSession(chatSession);
             chatMessage.setSender(sender);
-            chatMessage.setMessageContent(message.getPayload());
+            chatMessage.setMessageContent(messageContent);
             chatMessage.setSentAt(LocalDateTime.now());
 
             chatMessageScheduler.queueMessage(chatMessage, username);
 
-            log.info("Queued message from {} in session {}: {}", username, sessionId, message.getPayload());
-            broadcastMessage(sessionId, username + ": " + message.getPayload(), username);
+            log.info("Queued message from {} in session {}: {}", username, sessionId, messageContent);
+            broadcastMessage(sessionId, username + ": " + messageContent, username);
 
         } catch (Exception e) {
             log.error("Error processing WebSocket message", e);
@@ -111,6 +130,15 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             } else {
                 broadcastMessage(sessionId, createSystemMessage(username + " has left the chat"), null);
             }
+        }
+    }
+
+    private void sendModerationNotification(WebSocketSession session, String reason) {
+        try {
+            String notification = createSystemMessage("Your message was not sent due to content policy violation: " + reason);
+            session.sendMessage(new TextMessage(notification));
+        } catch (IOException e) {
+            log.error("Error sending moderation notification", e);
         }
     }
 

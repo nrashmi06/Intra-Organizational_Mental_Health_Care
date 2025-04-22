@@ -9,5 +9,6 @@ public class BlogRequestDTO {
     private String title;
     private String content;
     private Integer userId;
+    private Boolean isOpenForCommunication;
     private String summary;
 }

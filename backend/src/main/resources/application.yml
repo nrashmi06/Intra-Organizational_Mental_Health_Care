@@ -1,4 +1,9 @@
 spring:
+  ai:
+    google:
+      gemini:
+        api-key: ${GEMINI_API_KEY}
+        url: ${GEMINI_URL}
   servlet:
     multipart:
       enabled: true

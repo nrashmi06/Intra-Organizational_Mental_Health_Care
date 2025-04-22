@@ -18,6 +18,7 @@ public class BlogResponseDTO {
     private Integer userId;
     private String imageUrl;
     private String summary;
+    private Boolean isOpenForCommunication;
     private LocalDateTime publishDate;
     private int viewCount;
     private int likeCount;

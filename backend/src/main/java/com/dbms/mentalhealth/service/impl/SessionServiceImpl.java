@@ -2,7 +2,8 @@ package com.dbms.mentalhealth.service.impl;
 import com.dbms.mentalhealth.dto.chatMessage.ChatMessageDTO;
 import com.dbms.mentalhealth.dto.session.response.SessionResponseDTO;
 import com.dbms.mentalhealth.dto.session.response.SessionSummaryDTO;
-import com.dbms.mentalhealth.enums.SessionStatus;
+import com.dbms.mentalhealth.enums.SessionActivityStatus;
+import com.dbms.mentalhealth.enums.SessionCategory;
 import com.dbms.mentalhealth.exception.appointment.InvalidRequestException;
 import com.dbms.mentalhealth.exception.listener.ListenerNotFoundException;
 import com.dbms.mentalhealth.exception.session.SessionNotFoundException;
@@ -48,6 +49,7 @@ public class SessionServiceImpl implements SessionService {
     private final UserActivityService userActivityService;
     private final Cache<Integer, Integer> currentlyInSessionCache;
     private static SessionServiceImpl instance;
+    public static SessionStatusRepository sessionStatusRepository;
     private final UserMetricService userMetricService;
     @Autowired
     public SessionServiceImpl(NotificationService notificationService,
@@ -60,6 +62,7 @@ public class SessionServiceImpl implements SessionService {
                               Cache<Integer, Session> ongoingSessionsCache,
                               Cache<Integer, Integer> currentlyInSessionCache,
                                 UserMetricService userMetricService,
+                              SessionStatusRepository sessionStatusRepository,
                               @Lazy UserActivityService userActivityService) {
         this.notificationService = notificationService;
         this.jwtUtils = jwtUtils;
@@ -72,6 +75,7 @@ public class SessionServiceImpl implements SessionService {
         this.currentlyInSessionCache = currentlyInSessionCache;
         this.userActivityService = userActivityService;
         this.userMetricService = userMetricService;
+        this.sessionStatusRepository = sessionStatusRepository;
         instance = this;
     }
 
@@ -118,7 +122,7 @@ public class SessionServiceImpl implements SessionService {
             listener.setTotalSessions(listener.getTotalSessions() + 1);
             session.setListener(listener);
             session.setUser(user);
-            session.setSessionStatus(SessionStatus.ONGOING);
+            session.setSessionStatus(SessionActivityStatus.ONGOING);
             session.setSessionStart(LocalDateTime.now());
             sessionRepository.save(session);
             userMetricService.incrementSessionCount(user);
@@ -184,7 +188,8 @@ public class SessionServiceImpl implements SessionService {
         Session session = sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new SessionNotFoundException("Session not found"));
 
-        session.setSessionStatus(SessionStatus.COMPLETED);
+        // Mark session as completed
+        session.setSessionStatus(SessionActivityStatus.COMPLETED);
         session.setSessionEnd(LocalDateTime.now());
         sessionRepository.save(session);
 
@@ -193,6 +198,14 @@ public class SessionServiceImpl implements SessionService {
         currentlyInSessionCache.invalidate(session.getUser().getUserId());
         currentlyInSessionCache.invalidate(session.getListener().getUser().getUserId());
 
+        SessionStatus sessionStatus = new SessionStatus();
+        sessionStatus.setCategory(SessionCategory.OTHER);
+        sessionStatus.setSummary("Productive session");
+        sessionStatus.setSession(session);
+        sessionStatusRepository.save(sessionStatus);
+
+        log.info("Session ended - Session ID: {}. Default session status created with ID: {}",
+                session.getSessionId(), sessionStatus.getStatusId());
         // Broadcast session details
         broadcastFullSessionCache();
 
@@ -201,7 +214,6 @@ public class SessionServiceImpl implements SessionService {
         sendSseNotification(session.getUser(), session.getListener().getUser(), message);
         sendSseNotification(session.getListener().getUser(), session.getUser(), message);
 
-        log.info("Session ended - Session ID: {}", sessionId);
         return "Session ended successfully";
     }
 
@@ -229,12 +241,12 @@ public class SessionServiceImpl implements SessionService {
     @Override
     @Transactional(readOnly = true)
     public String getAverageSessionDuration() {
-        long count = sessionRepository.countBySessionStatus(SessionStatus.COMPLETED);
+        long count = sessionRepository.countBySessionStatus(SessionActivityStatus.COMPLETED);
         if (count == 0) {
             return "0m 0s";
         }
 
-        long totalSeconds = sessionRepository.findBySessionStatus(SessionStatus.COMPLETED).stream()
+        long totalSeconds = sessionRepository.findBySessionStatus(SessionActivityStatus.COMPLETED).stream()
                 .mapToLong(session -> Duration.between(session.getSessionStart(), session.getSessionEnd()).getSeconds())
                 .sum();
 
@@ -248,7 +260,7 @@ public class SessionServiceImpl implements SessionService {
     public Page<SessionSummaryDTO> getSessionsByFilters(String status, Integer id, String idType, Pageable pageable) {
         Page<Session> sessions;
         if (id != null && idType != null && status != null) {
-            SessionStatus sessionStatus = SessionStatus.valueOf(status.toUpperCase());
+            SessionActivityStatus sessionStatus = SessionActivityStatus.valueOf(status.toUpperCase());
             if (idType.equalsIgnoreCase("userId")) {
                 sessions = sessionRepository.findByUser_UserIdAndSessionStatus(id, sessionStatus, pageable);
             } else if (idType.equalsIgnoreCase("listenerId")) {
@@ -269,7 +281,7 @@ public class SessionServiceImpl implements SessionService {
                 throw new InvalidRequestException("Invalid idType: " + idType);
             }
         } else if (status != null) {
-            SessionStatus sessionStatus = SessionStatus.valueOf(status.toUpperCase());
+            SessionActivityStatus sessionStatus = SessionActivityStatus.valueOf(status.toUpperCase());
             sessions = sessionRepository.findBySessionStatus(sessionStatus, pageable);
         } else {
             sessions = sessionRepository.findAll(pageable);

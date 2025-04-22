@@ -26,7 +26,7 @@ public class JwtUtils {
 
     private final ApplicationConfig applicationConfig;
 
-    private static final long JWT_EXPIRATION = 1_000L * 60 * 10; // 1 hour
+    private static final long JWT_EXPIRATION = 1_000L * 60 * 10 * 60;
 
     @Autowired
     public JwtUtils(ApplicationConfig applicationConfig) {

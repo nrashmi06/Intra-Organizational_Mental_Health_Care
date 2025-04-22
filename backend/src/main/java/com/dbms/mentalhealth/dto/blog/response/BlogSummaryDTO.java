@@ -11,6 +11,7 @@ public class BlogSummaryDTO {
     private Integer id;
     private String title;
     private String summary;
+    private Boolean isOpenForCommunication;
     private Integer likeCount;
     private String imageUrl;
     private boolean likedByCurrentUser;

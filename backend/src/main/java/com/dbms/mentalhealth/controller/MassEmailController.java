@@ -1,8 +1,10 @@
 package com.dbms.mentalhealth.controller;
 
+import com.dbms.mentalhealth.dto.massEmail.EmailRequestDTO;
 import com.dbms.mentalhealth.dto.massEmail.MassEmailRequestDTO;
 import com.dbms.mentalhealth.service.EmailService;
 import com.dbms.mentalhealth.urlMapper.EmailUrlMapping;
+import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,4 +63,18 @@ public class MassEmailController {
             }
         }
     }
+
+    @PostMapping(value = EmailUrlMapping.USER_EMAIL)
+    public ResponseEntity<String> sendEmailToUser(@PathVariable Integer userId,
+                                                  @RequestBody EmailRequestDTO request) {
+        try {
+            emailService.sendEmailToUser(userId, request);
+            return ResponseEntity.ok("Email to user initiated");
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(404).body("Failed to send email: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Failed to send email: " + e.getMessage());
+        }
+    }
+
 }

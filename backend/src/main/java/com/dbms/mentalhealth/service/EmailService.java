@@ -1,5 +1,7 @@
 package com.dbms.mentalhealth.service;
 
+
+import com.dbms.mentalhealth.dto.massEmail.EmailRequestDTO;
 import com.dbms.mentalhealth.dto.massEmail.MassEmailRequestDTO;
 
 import java.io.File;
@@ -23,4 +25,5 @@ public interface EmailService {
     CompletableFuture<Void> sendAppointmentRequestedEmail(String userEmail, String adminEmail, LocalDateTime appointmentTime);
     CompletableFuture<Void> sendAppointmentConfirmedEmail(String userEmail, LocalDateTime appointmentTime);
     CompletableFuture<Void> sendAppointmentCancelledEmail(String userEmail, LocalDateTime appointmentTime, String cancellationReason);
+    CompletableFuture<Void> sendEmailToUser(Integer userId, EmailRequestDTO request);
 }

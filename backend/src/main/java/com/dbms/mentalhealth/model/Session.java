@@ -1,6 +1,6 @@
 package com.dbms.mentalhealth.model;
 
-import com.dbms.mentalhealth.enums.SessionStatus;
+import com.dbms.mentalhealth.enums.SessionActivityStatus;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -31,7 +31,7 @@ public class Session {
 
     @Column(name = "session_status", nullable = false, length = 20)
     @Enumerated(EnumType.STRING)
-    private SessionStatus sessionStatus;
+    private SessionActivityStatus sessionStatus;
 
     @Column(name = "session_start", nullable = false)
     private LocalDateTime sessionStart;

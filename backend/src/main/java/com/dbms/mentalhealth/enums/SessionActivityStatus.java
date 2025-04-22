@@ -1,6 +1,6 @@
 package com.dbms.mentalhealth.enums;
 
-public enum SessionStatus {
+public enum SessionActivityStatus {
     ONGOING,
     COMPLETED,
 }

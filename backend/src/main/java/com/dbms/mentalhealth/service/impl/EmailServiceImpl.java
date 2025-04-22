@@ -1,6 +1,7 @@
 package com.dbms.mentalhealth.service.impl;
 
 import com.cloudinary.utils.StringUtils;
+import com.dbms.mentalhealth.dto.massEmail.EmailRequestDTO;
 import com.dbms.mentalhealth.dto.massEmail.MassEmailRequestDTO;
 import com.dbms.mentalhealth.enums.Role;
 import com.dbms.mentalhealth.model.User;
@@ -9,6 +10,7 @@ import com.dbms.mentalhealth.service.EmailService;
 import com.dbms.mentalhealth.urlMapper.UserUrlMapping;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -326,6 +328,38 @@ public class EmailServiceImpl implements EmailService {
         String body = templateEngine.process("userAppointmentRejectionTemplate.html", context);
         sendHtmlEmail(userEmail, subject, body);
         logger.info("Appointment cancellation email sent to: {}", userEmail);
+        return CompletableFuture.completedFuture(null);
+    }
+
+    @Async
+    @Override
+    public CompletableFuture<Void> sendEmailToUser(Integer userId, EmailRequestDTO request) {
+        if (request == null || userId == null) {
+            logger.error("Invalid request: userId or email request is null");
+            return CompletableFuture.completedFuture(null);
+        }
+
+        try {
+            // Find user by ID
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new EntityNotFoundException("User not found with ID: " + userId));
+
+            // Process email content with template
+            Context context = new Context();
+            context.setVariable("emailBody", request.getBody());
+            String processedBody = templateEngine.process("userEmailTemplate.html", context);
+
+            // Send email
+            sendHtmlEmail(user.getEmail(), request.getSubject(), processedBody);
+            logger.info("Email sent to user with ID: {}", userId);
+
+        } catch (EntityNotFoundException e) {
+            logger.error("User not found: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            logger.error("Error sending email to user: {}", e.getMessage());
+        }
+
         return CompletableFuture.completedFuture(null);
     }
 }
