@@ -14,6 +14,7 @@ import InlineLoader from "@/components/ui/inlineLoader";
 import { PaginationInfo } from "@/lib/types";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import ServerPagination from "@/components/ui/ServerPagination";
+import SessionCategoryChartPage from "@/components/dashboard/home/session-category";
 
 const DashboardPage = () => {
   const [blogs, setBlogs] = useState<BlogApproval[]>([]);
@@ -39,13 +40,13 @@ const DashboardPage = () => {
           paginationInfo.pageSize
         );
 
-        setBlogs(response?.content);
+        setBlogs(response?.content || []);
         setPaginationInfo((prev) => ({
           ...prev,
-          totalPages: response?.pageInfo.totalPages,
-          totalElements: response?.pageInfo.totalElements,
-          pageSize: response?.pageInfo.size,
-          pageNumber: response?.pageInfo.number,
+          totalPages: response?.pageInfo?.totalPages || 0,
+          totalElements: response?.pageInfo?.totalElements || 0,
+          pageSize: response?.pageInfo?.size || prev.pageSize,
+          pageNumber: response?.pageInfo?.number || prev.pageNumber,
         }));
       }
     } catch (error) {
@@ -102,7 +103,7 @@ const DashboardPage = () => {
             </CardContent>
           </Card>
         </div>
-
+        <SessionCategoryChartPage />
         <section className="mt-8">
           <div className="bg-white/80 rounded-lg shadow-lg border border-emerald-100">
             <div className="p-4 border-b border-emerald-100">
