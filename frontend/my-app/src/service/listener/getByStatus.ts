@@ -10,6 +10,11 @@ interface ApprovalFilterParams {
   page: number;
 }
 
+interface ApplicationResponse {
+  content: any[]; // Replace 'any' with the actual type of your application data
+  page: number;
+}
+
 export const getApplicationsByApprovalStatus =
   ({ token, status, size, page }: ApprovalFilterParams) =>
   async (dispatch: AppDispatch, getState: () => RootState) => {
@@ -34,15 +39,16 @@ export const getApplicationsByApprovalStatus =
       }
 
       const etag = response.headers["etag"]; 
+      const data = response.data as ApplicationResponse; // Explicitly type response.data
       dispatch(
         setApplicationList({
-          applications: response.data.content,
-          page: response.data.page,
+          applications: data.content,
+          page: data.page,
           etag: etag || cachedEtag, 
         })
       );
 
-      return response.data;
+      return data;
     } catch (error: any) {
       console.error("Error fetching applications by approval status:", error);
     }
