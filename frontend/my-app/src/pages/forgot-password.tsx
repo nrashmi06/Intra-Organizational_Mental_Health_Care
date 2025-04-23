@@ -80,7 +80,11 @@ export default function ForgotPassword() {
 
     try {
       const response = await resetPassword({ token: otpValue, newPassword });
-      setSuccessMessage(response);
+      if (response) {
+        setSuccessMessage(response);
+      } else {
+        setSuccessMessage("Password reset successfully!");
+      }
       setTimeout(() => {
         router.push("/signin");
       }, 2000);
