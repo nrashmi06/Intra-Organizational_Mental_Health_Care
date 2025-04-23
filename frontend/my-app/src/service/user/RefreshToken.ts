@@ -3,6 +3,13 @@ import { API_ENDPOINTS } from "@/mapper/userMapper";
 import { setUser, clearUser } from "@/store/authSlice";
 import { AppDispatch } from "@/store"; // Adjust according to your app's store setup
 
+interface RefreshTokenResponse {
+    userId: string;
+    email: string;
+    anonymousName: string;
+    role: string;
+}
+
 const refreshToken = async (dispatch: AppDispatch): Promise<void> => {
     try {
         const response = await axiosInstance.post(
@@ -11,23 +18,24 @@ const refreshToken = async (dispatch: AppDispatch): Promise<void> => {
             { withCredentials: true }
         );
 
-        const accessToken = response.headers["authorization"]?.startsWith("Bearer ")
+        const accessToken = response.headers["authorization"]?.startsWith(
+            "Bearer "
+          )
             ? response.headers["authorization"].slice(7)
             : null;
-
-        if (!accessToken) {
-            console.error("Access token is null or undefined.");
-        }
+        const data = response.data as RefreshTokenResponse;
+        console.log("Refresh token response:", data, accessToken);
 
         dispatch(
             setUser({
-                userId: response.data.userId,
-                email: response.data.email,
-                anonymousName: response.data.anonymousName,
-                role: response.data.role,
+                userId: data.userId,
+                email: data.email,
+                anonymousName: data.anonymousName,
+                role: data.role,
                 accessToken: accessToken,
             })
         );
+               
     } catch (error: any) {
         console.error("Error refreshing token:", error.response || error.message);
 
