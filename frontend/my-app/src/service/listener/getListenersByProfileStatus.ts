@@ -11,6 +11,11 @@ interface FilterParams {
   search?: string;
 }
 
+interface ListenerResponse {
+  content: any[]; // Replace 'any[]' with the actual type of listeners if known
+  page: number;
+}
+
 export const getListenersByProfileStatus =
   ({ status, page, size, userId, search }: FilterParams) =>
   async (dispatch: AppDispatch, getState: () => RootState) => {
@@ -18,7 +23,7 @@ export const getListenersByProfileStatus =
       const cachedEtag = getState().listeners.etag;
       const headers = cachedEtag ? { "If-None-Match": cachedEtag } : {};
 
-      const response = await axiosInstance.get(
+      const response = await axiosInstance.get<ListenerResponse>(
         LISTENER_API_ENDPOINTS.GET_ALL_LISTENERS_BY_STATUS,
         {
           params: {

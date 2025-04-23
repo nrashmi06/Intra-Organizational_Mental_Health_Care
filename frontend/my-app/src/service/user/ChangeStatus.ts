@@ -19,10 +19,6 @@ export const changeStatus = async (
     );
     return response.data;
   } catch (error) {
-    if (axios.isAxiosError(error)) {
-      console.error("Error suspending user:", error.response?.data);
-    } else {
       console.error("Error suspending user:", error);
-    }
   }
 };

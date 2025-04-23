@@ -28,7 +28,7 @@ const appointmentSlice = createSlice({
       state,
       action: PayloadAction<{
         appointments: Appointment[];
-        page: Page;
+        page: any;
         etag: string | null;
       }>
     ) => {

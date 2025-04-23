@@ -1,6 +1,6 @@
 import axiosInstance from '@/utils/axios';
 import { BLOG_API_ENDPOINTS } from '@/mapper/blogMapper';
-import axios from 'axios';
+
 
 export async function fetchByStatus(status: string, token: string, page?: number, size?: number) {
   if (!token) {
@@ -28,7 +28,17 @@ export async function fetchByStatus(status: string, token: string, page?: number
       params,
     });
 
-    const data = response.data;
+    interface BlogResponse {
+      content: any[];
+      page: {
+        number: number;
+        size: number;
+        totalElements: number;
+        totalPages: number;
+      };
+    }
+
+    const data: BlogResponse = response.data as BlogResponse;
 
     if (data && data.content && data.page) {
       const { content, page: pageInfo } = data;
@@ -40,10 +50,6 @@ export async function fetchByStatus(status: string, token: string, page?: number
       console.error('Unexpected data structure:', data);
     }
   } catch (error : any) {
-    if (axios.isAxiosError(error)) {
-      console.error('Axios error response:', error.response?.data);
-    } else {
       console.error('Unexpected error:', error);
-    }
   }
 }

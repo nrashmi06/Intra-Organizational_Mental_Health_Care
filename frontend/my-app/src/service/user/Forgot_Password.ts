@@ -13,11 +13,7 @@ const forgotPassword = async (email: string) => {
     );
     return response.data.message;
   } catch (error: any) {
-    if (axios.isAxiosError(error)) {
-      console.error("API error:", error.response?.data || error.message);
-    } else {
       console.error("Unexpected error:", error);
-    }
   }
 };
 

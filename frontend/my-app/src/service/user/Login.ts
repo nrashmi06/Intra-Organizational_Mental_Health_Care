@@ -6,7 +6,14 @@ import { API_ENDPOINTS } from "@/mapper/userMapper";
 export const loginUser =
   (email: string, password: string) => async (dispatch: AppDispatch) => {
     try {
-      const response = await axiosInstance.post(
+      interface LoginResponseData {
+        userId: string;
+        email: string;
+        anonymousName: string;
+        role: string;
+      }
+
+      const response = await axiosInstance.post<LoginResponseData>(
         API_ENDPOINTS.LOGIN,
         { email, password },
         {

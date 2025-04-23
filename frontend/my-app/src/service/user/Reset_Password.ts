@@ -6,9 +6,13 @@ interface ResetPasswordParams {
   newPassword: string;
 }
 
-const resetPassword = async ({ token, newPassword }: ResetPasswordParams) => {
+interface ResetPasswordResponse {
+  message: string;
+}
+
+const resetPassword = async ({ token, newPassword }: ResetPasswordParams): Promise<string | void> => {
   try {
-    const response = await axiosInstance.post(API_ENDPOINTS.RESET_PASSWORD, {
+    const response = await axiosInstance.post<ResetPasswordResponse>(API_ENDPOINTS.RESET_PASSWORD, {
       token,
       newPassword,
     });

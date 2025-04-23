@@ -1,6 +1,14 @@
 import { API_ENDPOINTS } from "@/mapper/userMapper";
 import axiosInstance from "@/utils/axios";
-import axios from "axios";
+import { User as UserType } from "@/lib/types";
+
+interface GetUsersByProfileStatusResponse {
+  content: UserType[];
+  page: {
+    totalElements: number;
+    totalPages: number;
+  };
+}
 
 export const getUsersByProfileStatus = async ({
   page = 0,
@@ -14,9 +22,9 @@ export const getUsersByProfileStatus = async ({
   status?: string;
   search?: string;
   token: string;
-}) => {
+}): Promise<GetUsersByProfileStatusResponse> => {
   try {
-    const response = await axiosInstance.get(
+    const response = await axiosInstance.get<GetUsersByProfileStatusResponse>(
       API_ENDPOINTS.GET_ALL_USERS_BY_PROFILE_STATUS,
       {
         headers: {
@@ -26,20 +34,14 @@ export const getUsersByProfileStatus = async ({
           page,
           size,
           status,
-          ...(search ? { search } : {}), 
+          ...(search ? { search } : {}),
         },
       }
     );
-    
+
     return response.data;
   } catch (error) {
-    if (axios.isAxiosError(error)) {
-      console.error(
-        "Error fetching users by profile status:",
-        error.response?.data
-      );
-    } else {
-      console.error("Error fetching users by profile status:", error);
-    }
+    console.error("Error fetching users by profile status:", error);
+    throw error;
   }
 };

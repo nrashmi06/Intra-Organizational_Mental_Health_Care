@@ -52,14 +52,26 @@ export const fetchTimeSlots = (
       return; 
     }
 
+    interface TimeSlotResponse {
+      content: any[]; // Replace 'any[]' with the actual type of time slots if known
+      page: {
+        size: number;
+        number: number;
+        totalElements: number;
+        totalPages: number;
+      };
+    }
+
+    const data = response.data as TimeSlotResponse;
+
     dispatch(
       setTimeSlots({
-        timeSlots: response.data.content,
+        timeSlots: data.content,
         page: {
-          size: response.data.page.size,
-          number: response.data.page.number,
-          totalElements: response.data.page.totalElements,
-          totalPages: response.data.page.totalPages,
+          size: data.page.size,
+          number: data.page.number,
+          totalElements: data.page.totalElements,
+          totalPages: data.page.totalPages,
         },
         etag: response.headers["etag"] || null, // Get the ETag from response headers
       })

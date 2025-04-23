@@ -1,3 +1,4 @@
+
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 interface Application {
@@ -36,7 +37,7 @@ const applicationListSlice = createSlice({
       state,
       action: PayloadAction<{
         applications: Application[];
-        page: Page;
+        page: any;
         etag: string | null;
       }>
     ) => {

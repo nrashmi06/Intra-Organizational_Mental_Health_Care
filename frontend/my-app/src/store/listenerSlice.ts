@@ -9,7 +9,7 @@ interface Page {
 }
 
 interface ListenerState {
-  listeners: Listener[]; // Assuming you have a Listener type
+  listeners: any[]; // Assuming you have a Listener type
   page: Page | null;
   etag: string | null; // Store the ETag value
 }
@@ -27,8 +27,8 @@ const listenerSlice = createSlice({
     setListeners: (
       state,
       action: PayloadAction<{
-        listeners: Listener[]; // An array of listeners
-        page: Page; // Pagination details
+        listeners: any[]; // An array of listeners
+        page: any; // Pagination details
         etag: string | null; // The ETag value
       }>
     ) => {

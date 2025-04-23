@@ -11,7 +11,11 @@ const fetchTimeSlots = async (
   const url = TIME_SLOT_API_ENDPOINTS.GET_TIME_SLOTS_BY_ADMIN_IN_DATE_RANGE(adminId);
 
   try {
-    const response = await axiosInstance.get(url, {
+    interface TimeSlotResponse {
+      content: any; // Replace 'any' with the actual type of 'content' if known
+    }
+
+    const response = await axiosInstance.get<TimeSlotResponse>(url, {
       params: {
         startDate,
         endDate,

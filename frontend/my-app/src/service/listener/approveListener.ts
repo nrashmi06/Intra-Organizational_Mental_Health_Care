@@ -21,10 +21,6 @@ export const approveListener = async (
 
     return response;
   } catch (error) {
-    if (axios.isAxiosError(error)) {
-      console.error("Error approving listener:", error.response?.data || error.message);
-    } else {
       console.error("Error approving listener:", error);
-    }
   }
 };

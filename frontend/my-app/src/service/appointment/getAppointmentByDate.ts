@@ -3,6 +3,11 @@ import { setAppointments } from "@/store/appointmentSlice";
 import { RootState, AppDispatch } from "@/store"; 
 import axiosInstance from "@/utils/axios";
 
+interface AppointmentResponse {
+  content: any[]; // Replace 'any[]' with the actual type of appointments if known
+  page: number;
+}
+
 export const getAppointmentByDate =
   (startDate: string, endDate: string, page: number, size: number) =>
   async (dispatch: AppDispatch, getState: () => RootState) => {
@@ -23,26 +28,22 @@ export const getAppointmentByDate =
           validateStatus: (status) => status >= 200 && status < 400, 
         }
       );
-
-      if (response.status === 304) {
-        return;
-      }
-
       const etag = response.headers["etag"];
+      const data = response.data as AppointmentResponse;
 
       if (etag) {
         dispatch(
           setAppointments({
-            appointments: response.data.content,
-            page: response.data.page,
+            appointments: data.content,
+            page: data.page,
             etag,
           })
         );
       } else {
         dispatch(
           setAppointments({
-            appointments: response.data.content,
-            page: response.data.page,
+            appointments: data.content,
+            page: data.page,
             etag: cachedEtag,
           })
         );

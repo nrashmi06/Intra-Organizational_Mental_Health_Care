@@ -1,5 +1,5 @@
 import { EMERGENCY_API_ENDPOINTS } from '@/mapper/emergencyMapper';
-import { setHelplines } from '@/store/emergencySlice';
+import { setHelplines } from '@/store/emergencySlice';  
 import { RootState, AppDispatch } from '@/store';
 import axiosInstance from '@/utils/axios';
 
@@ -12,7 +12,7 @@ export const getAllHelplines = () => async (dispatch: AppDispatch, getState: () 
       headers: {
         'Content-Type': 'application/json',
         ...headers,
-      },
+      },  
     });
 
     if (response.status === 304) {
@@ -22,9 +22,9 @@ export const getAllHelplines = () => async (dispatch: AppDispatch, getState: () 
     const etag = response.headers['etag'];
 
     if (etag) {
-      dispatch(setHelplines({ helplines: response.data, etag }));
+      dispatch(setHelplines({ helplines: response.data as any[], etag }));
     } else {
-      dispatch(setHelplines({ helplines: response.data, etag: cachedEtag }));
+      dispatch(setHelplines({ helplines: response.data as any[], etag: cachedEtag }));
     }
   } catch (error: any) {
     if (error.response && error.response.status !== 304) {

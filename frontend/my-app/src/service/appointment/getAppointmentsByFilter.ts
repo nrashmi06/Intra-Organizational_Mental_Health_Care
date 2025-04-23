@@ -18,7 +18,12 @@ export const getAppointmentsByFilter =
       const cachedEtag = getState().appointments.etag;
       const headers = cachedEtag ? { "If-None-Match": cachedEtag } : {};
 
-      const response = await axiosInstance.get(
+      interface AppointmentResponse {
+        content: any[]; // Replace 'any[]' with the actual type of appointments if known
+        page: number;
+      }
+
+      const response = await axiosInstance.get<AppointmentResponse>(
         APPOINTMENT_API_ENDPOINTS.GET_APPOINTMENTS_BY_FILTER,
         {
           params: {
