@@ -23,21 +23,7 @@ export const registerUser = async (data: RegisterUserPayload) => {
     console.log("RESPONSE", response);
     return response;
   } catch (error: unknown) {
-    let errorToThrow: ApiError = {
-      message: "An unexpected error occurred during registration",
-    };
-
-    if (axios.isAxiosError(error)) {
-      errorToThrow = {
-        message: error.response?.data?.message || error.message,
-        status: error.response?.status
-      };
-
-      console.error("API error while registering user:", errorToThrow.message);
-      
-    } else {
       console.error("Unexpected error:", error);
-    }
 
   }
 };
