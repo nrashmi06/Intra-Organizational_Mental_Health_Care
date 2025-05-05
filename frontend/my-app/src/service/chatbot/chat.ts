@@ -31,7 +31,7 @@ export const chatBot = async (
       max_search_results: 3,
     };
 
-    const response = await axiosInstance.post<ChatBotResponse>("ht2-23-98.ngrok-free.app/api/v1/chat", requestBody);
+    const response = await axiosInstance.post<ChatBotResponse>("https://ebd5-125-22-23-98.ngrok-free.app/api/v1/chat", requestBody);
 
     if (response?.data?.response) {
         
