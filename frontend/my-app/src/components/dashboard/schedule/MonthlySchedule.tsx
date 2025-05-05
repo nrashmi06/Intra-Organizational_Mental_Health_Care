@@ -8,7 +8,7 @@ import { SidePanel } from './SidePanel';
 import { MobileDrawer } from './MobileDrawer';
 
 const MonthlySchedule: React.FC<MonthlyScheduleProps> = ({
-  appointments,
+  appointments = [],  // Default to an empty array if appointments is undefined
   date = new Date()
 }) => {
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);

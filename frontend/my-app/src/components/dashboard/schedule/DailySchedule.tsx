@@ -23,6 +23,8 @@ const DailySchedule: React.FC<{
   });
 
   const processedAppointments = useMemo(() => {
+    if (!appointments || !Array.isArray(appointments)) return [];
+    
     return appointments
       .filter((apt) => {
         const aptDate = parseISO(apt.date);

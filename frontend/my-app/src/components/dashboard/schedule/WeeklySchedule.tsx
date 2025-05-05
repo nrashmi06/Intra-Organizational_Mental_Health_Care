@@ -19,7 +19,8 @@ const TimeSlot: React.FC<TimeSlotProps> = ({
   isToday,
   onSelectSlot
 }) => {
-  const slotAppointments = appointments.filter(apt => {
+  // Ensure appointments is never undefined
+  const slotAppointments = (appointments || []).filter(apt => {
     const aptHour = parseInt(apt.startTime.split(':')[0]);
     return aptHour === hour;
   });
@@ -56,7 +57,7 @@ const TimeSlot: React.FC<TimeSlotProps> = ({
 };
 
 const WeeklySchedule: React.FC<WeeklyScheduleProps> = ({
-  appointments,
+  appointments = [], // Provide a fallback to an empty array if undefined
   date = new Date()
 }) => {
   const [selectedSlot, setSelectedSlot] = useState<{ date: Date; hour: number } | null>(null);
@@ -121,7 +122,7 @@ const WeeklySchedule: React.FC<WeeklyScheduleProps> = ({
                       key={hourIdx}
                       hour={hour}
                       date={day}
-                      appointments={appointments.filter(apt => 
+                      appointments={(appointments || []).filter(apt => 
                         isSameDay(parseISO(apt.date), day)
                       )}
                       isToday={isSameDay(day, today)}

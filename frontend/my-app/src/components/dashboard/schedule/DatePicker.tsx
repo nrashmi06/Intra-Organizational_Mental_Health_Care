@@ -23,8 +23,9 @@ const DatePicker: React.FC<DatePickerProps> = ({
   };
 
   const handleDateSelect = (newDate: Date) => {
+    // Ensure the new date is set correctly
     onDateChange(newDate);
-    setIsCalendarVisible(false);
+    setIsCalendarVisible(false);  // Close the calendar after selecting a date
   };
 
   return (
@@ -36,14 +37,14 @@ const DatePicker: React.FC<DatePickerProps> = ({
       >
         <CalendarIcon className="h-4 w-4" />
         <span className="hidden sm:inline-block sm:ml-2">
-          {format(date, "PPP")}
+          {format(date, "PPP")} {/* Format the selected date */}
         </span>
       </Button>
 
       {isCalendarVisible &&
         createPortal(
           <>
-            {/* Overlay */}
+            {/* Overlay to close the calendar when clicking outside */}
             <div
               className="fixed inset-0 bg-black/50 z-[9999]"
               onClick={() => setIsCalendarVisible(false)}
@@ -52,7 +53,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
             {/* Calendar Container */}
             <div className="fixed z-[9999] top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[90vw] max-w-[320px] rounded-lg border bg-white p-4 shadow-lg">
               <Calendar
-                selected={date}
+                selected={date} 
                 onSelect={handleDateSelect}
                 className="rounded-md border-none"
               />
