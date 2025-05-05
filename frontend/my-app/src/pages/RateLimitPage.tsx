@@ -2,16 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Timer } from 'lucide-react';
 
 const RateLimitPage = () => {
-  const [countdown, setCountdown] = useState(30);
+  const [countdown, setCountdown] = useState(0);
   const [scale, setScale] = useState(1);
 
   useEffect(() => {
-    if (countdown > 0) {
-      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
-      return () => clearTimeout(timer);
-    } else {
-      window.history.back();
-    }
+    window.history.back();
   }, [countdown]);
 
   useEffect(() => {

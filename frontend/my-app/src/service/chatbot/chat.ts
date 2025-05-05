@@ -17,7 +17,7 @@ interface ChatBotResponse {
 
 export const chatBot = async (
   message: string,
-  sessionId: string = 'test-session'
+  sessionId: string = 'test-session-1111'
 ): Promise<ChatHistoryEntry | null> => {
   try {
     const requestBody = {
@@ -25,15 +25,16 @@ export const chatBot = async (
       prompt: message,
       session_id: sessionId,
       include_history: true,
-      max_history: 5,
+      max_history: 15,
       stream: false,
       use_semantic_search: true,
       max_search_results: 3,
     };
 
-    const response = await axiosInstance.post<ChatBotResponse>(chatBotURL, requestBody);
+    const response = await axiosInstance.post<ChatBotResponse>("https://93c1-125-22-23-98.ngrok-free.app/api/v1/chat", requestBody);
 
     if (response?.data?.response) {
+        
       return {
         role: 'assistant',
         content: response.data.response,

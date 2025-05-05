@@ -1,2 +1,2 @@
-export const chatBotURL = `${process.env.REACT_APP_CHAT_BOT_URL}api/v1/chat`;
+export const chatBotURL = process.env.CHAT_BOT_ENDPOINT;
 

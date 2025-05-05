@@ -1,3 +1,4 @@
+"use client"
 import React, { useState } from "react";
 import { Bell, MessageCircle, User, X, Check, XCircle, AlertCircle, ChevronRight, Sparkles, Send } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
