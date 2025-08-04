@@ -1,2 +1,15 @@
-# Intra-Organizational_Mental_Health_Care
-Many in organizations, including schools, face unaddressed mental health challenges despite rising awareness. Limited access to resources affects both personal well-being and productivity. A more integrated, accessible approach is needed—one that meets immediate needs and provides long-term support for community well-being.
+# Intra-Organizational Mental Health Care
+
+## Addressing Unmet Mental Health Needs in Organizations
+
+Many individuals within organizations, including schools, are grappling with unaddressed mental health challenges, despite a growing global awareness of mental well-being. The pervasive issue of limited access to adequate mental health resources significantly impacts not only personal well-being but also overall productivity and organizational effectiveness.
+
+---
+
+## 🎥 Watch Our Introductory Video
+
+Learn more about the critical need for improved intra-organizational mental health care and our proposed solutions in this brief video:
+
+[![Click to Watch Video](media/introduction_to_our_platform.jpg)](https://drive.google.com/file/d/1VhF_pm2RzkuZvJrfKhc17UGXwGaJRLm8/view?usp=sharing)
+
+*Click the image above to open/watch the video from Google Drive.*
